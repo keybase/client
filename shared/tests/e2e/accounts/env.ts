@@ -20,11 +20,20 @@ export type E2EEnv = {
   peers: Record<PeerRole, PeerAccount>
   // KB_E2E_SERVICE_LOG: the main service's log, when not the default
   serviceLog?: string
+  // KB_SECOND_PASSWORD: the second account's password, which the harness sets (second-password.mts).
+  // Never printed: redactSecrets does not catch it, so no output may include it at all.
+  secondPassword?: string
+  // KB_SECOND_PASSWORD_NEXT is set: a password change stopped part way, so the server holds either
+  // it or KB_SECOND_PASSWORD (only whether it is set is kept here, never the value)
+  secondPasswordChangePending?: boolean
 }
 
 export const e2eConfigDir = () => path.join(os.homedir(), '.config', 'keybase-e2e')
 export const defaultEnvPath = () => path.join(e2eConfigDir(), 'env')
 export const defaultPeerHome = (role: PeerRole) => path.join(e2eConfigDir(), 'homes', role)
+// Where a run's provisioning flow keeps the device it makes (e2e-<runid>-prov); the sweeper
+// retires a leftover one from here.
+export const provisionHomeFor = (runId: string) => path.join(e2eConfigDir(), 'homes', `prov-${runId}`)
 
 export const homeVar = (role: PeerRole) => `KB_${role.toUpperCase()}_HOME`
 export const paperKeyVar = (role: PeerRole) => `KB_${role.toUpperCase()}_PAPERKEY`
@@ -116,22 +125,45 @@ export const loadE2EAccounts = (file = defaultEnvPath(), env: NodeJS.ProcessEnv 
 }
 
 export const loadE2EEnv = (file = defaultEnvPath(), env: NodeJS.ProcessEnv = process.env): E2EEnv => {
-  const {get, missing} = mergeVars([...envVarNames, 'KB_E2E_SERVICE_LOG'], file, env)
-  const required = missing.filter(n => n !== 'KB_E2E_SERVICE_LOG')
+  const optional = ['KB_E2E_SERVICE_LOG', 'KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
+  const {get, missing} = mergeVars([...envVarNames, ...optional], file, env)
+  const required = missing.filter(n => !optional.includes(n))
   if (required.length) throw missingError(required, file)
   const smokeUser = get('KB_SMOKE_USER')
   const secondUser = get('KB_SECOND_USER')
   const serviceLog = get('KB_E2E_SERVICE_LOG')
+  const secondPassword = get('KB_SECOND_PASSWORD')
   return {
     peers: {
       owner: {home: get(homeVar('owner')), paperKey: get(paperKeyVar('owner')), user: smokeUser},
       second: {home: get(homeVar('second')), paperKey: get(paperKeyVar('second')), user: secondUser},
     },
+    ...(secondPassword ? {secondPassword} : {}),
+    ...(get('KB_SECOND_PASSWORD_NEXT') ? {secondPasswordChangePending: true} : {}),
     secondUser,
     ...(serviceLog ? {serviceLog} : {}),
     smokeUser,
     team: get('KB_E2E_TEAM'),
   }
+}
+
+export const secondPasswordCommand = 'yarn test:e2e:accounts:second-password'
+
+// Throws while KB_SECOND_PASSWORD_NEXT is set: which of the two values the server holds needs the owner.
+export const refuseWhileSecondPasswordChangePending = (env: Pick<E2EEnv, 'secondPasswordChangePending'>) => {
+  if (env.secondPasswordChangePending) {
+    throw new Error(
+      'e2e env has KB_SECOND_PASSWORD_NEXT: a password change stopped part way and the server holds either it or KB_SECOND_PASSWORD; the owner has to check which and remove KB_SECOND_PASSWORD_NEXT before any password flow runs'
+    )
+  }
+}
+
+// The second account's password, for the flows that type it. Refuses while a password change that
+// stopped part way is unresolved: which of the two the server holds needs the owner.
+export const requireSecondPassword = (env: E2EEnv) => {
+  refuseWhileSecondPasswordChangePending(env)
+  if (!env.secondPassword) throw new Error(`e2e env is missing KB_SECOND_PASSWORD (${secondPasswordCommand} sets it)`)
+  return env.secondPassword
 }
 
 // What a child process of a run is handed, so code that reads only the environment sees the same
@@ -143,23 +175,25 @@ export const childEnvVars = (env: E2EEnv): Record<string, string> => ({
   ...(env.serviceLog ? {KB_E2E_SERVICE_LOG: env.serviceLog} : {}),
 })
 
-// Rewrites `name` lines in place (or appends them), keeping the file mode 600. The write goes
-// through a temp file and a rename, so an interrupted run never leaves a half-written env file.
-export const setEnvVars = (file: string, updates: Record<string, string>) => {
+// Rewrites `name` lines in place (or appends them; a null value removes the line), keeping the file
+// mode 600. The write goes through a temp file and a rename, so an interrupted run never leaves a
+// half-written env file.
+export const setEnvVars = (file: string, updates: Record<string, string | null>) => {
   for (const [k, v] of Object.entries(updates)) {
-    if (v.includes("'") || v.includes('\n')) throw new Error(`refusing to write ${k}: its value has a quote or newline`)
+    if (v !== null && (v.includes("'") || v.includes('\n'))) throw new Error(`refusing to write ${k}: its value has a quote or newline`)
   }
   const text = fs.existsSync(file) ? (checkMode(file), fs.readFileSync(file, 'utf8')) : ''
   const lines = text === '' ? [] : text.replace(/\n$/, '').split('\n')
   const pending = new Map(Object.entries(updates))
-  const out = lines.map(line => {
+  const out = lines.flatMap(line => {
     const name = lineRe.exec(line)?.[1]
     const v = name === undefined ? undefined : pending.get(name)
-    if (name === undefined || v === undefined) return line
-    pending.delete(name)
-    return `export ${name}='${v}'`
+    if (name === undefined || v === undefined) return [line]
+    // a later line for a removed name goes too
+    if (v !== null) pending.delete(name)
+    return v === null ? [] : [`export ${name}='${v}'`]
   })
-  for (const [k, v] of pending) out.push(`export ${k}='${v}'`)
+  for (const [k, v] of pending) if (v !== null) out.push(`export ${k}='${v}'`)
   const tmp = `${file}.tmp-${process.pid}`
   fs.writeFileSync(tmp, out.join('\n') + '\n', {mode: 0o600})
   fs.chmodSync(tmp, 0o600)

@@ -16,7 +16,9 @@
 // test, take() after it, for the RPC methods the app sent and the routes it focused. While it
 // records and no fixture is active, __kbVisualRpc is a hook that only notes each outgoing method and
 // changes nothing: invoke returns false, so the engine sends the call itself, and incoming hands back
-// the payload it was given.
+// the payload it was given. In a desktop app the harness launched (KB_E2E_TEST=1), it also notes the
+// methods sent from startup until the first take(), so the first test's recording can include them;
+// any other dev app has no hook outside a fixture or a recording.
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
 import type {FixtureContext, FixtureDef, RpcRule, StartedBy, StoreApi, StoreKey, Stores} from './def.ts'
 import {chatThreadContent} from './chat-thread.ts'
@@ -81,8 +83,10 @@ declare global {
 }
 
 export type E2ERecorder = {
-  // starts a recording, dropping any earlier one
-  start: () => void
+  // starts a recording, dropping any earlier one. With includeBoot it begins with every method sent
+  // since the recorder was installed on this page (the first take() clears that list, so a page's
+  // startup calls are credited once).
+  start: (opts?: {includeBoot?: boolean}) => void
   // what was recorded since start(), each name once in the order first seen; ends the recording.
   // startRoutes is the focused chain shown at start; routes holds the chains of the states after it
   // that differed from the one before, so a screen left on from before start() is in routes only
@@ -115,6 +119,14 @@ export const routeNames = (state: unknown) => {
   collectRouteNames(state, names)
   return [...names]
 }
+
+// The dev app's navigation globals (router-v2/router.tsx sets them once, at the first mount).
+export type DevNavGlobals = {DEBUGRouter2?: {navigationRef?: {current?: NavLike | null}}; DEBUGNavigator?: NavLike}
+
+// The navigation container now mounted: the router remounts its container (a new key) on every
+// sign-in, sign-out and account switch, and DEBUGNavigator keeps the first one, so the live one is
+// read through the router's navigationRef.
+export const liveNavigator = (g: DevNavGlobals): NavLike | undefined => g.DEBUGRouter2?.navigationRef?.current ?? g.DEBUGNavigator
 
 // Records the focused route names of every navigation state between start() and take(): each
 // 'state' event, and the state shown at start, at take and on every poll in between (a nested
@@ -248,11 +260,15 @@ export const createRuntime = (deps: {
   install: (rpc: VisualRpc | undefined) => void
   inject: (payload: IncomingPayload) => void
   now: () => number
+  // note every method sent from creation on, for start({includeBoot: true})
+  recordBoot?: boolean
 }) => {
   let cur: Active | undefined
   // the methods sent while recording
   let recorded: Set<string> | undefined
-  const sync = () => deps.install(cur || recorded ? rpc : undefined)
+  // the methods sent since creation, until the first take()
+  let boot: Set<string> | undefined = deps.recordBoot ? new Set() : undefined
+  const sync = () => deps.install(cur || recorded || boot ? rpc : undefined)
 
   type Payload = {method: string; param: object}
   const build = (a: Active, defs: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>): Array<Payload> => {
@@ -328,6 +344,7 @@ export const createRuntime = (deps: {
     },
     invoke: call => {
       recorded?.add(call.method)
+      boot?.add(call.method)
       const a = cur
       if (!a) return false
       const sessionID = (call.param as {sessionID?: unknown} | undefined)?.sessionID
@@ -438,19 +455,25 @@ export const createRuntime = (deps: {
     version: FIXTURE_RUNTIME_VERSION,
   }
   const recording = {
-    start: () => {
-      recorded = new Set()
+    start: (opts?: {includeBoot?: boolean}) => {
+      recorded = new Set(opts?.includeBoot ? boot : undefined)
       sync()
     },
     take: () => {
       const out = [...(recorded ?? [])]
       recorded = undefined
+      boot = undefined
       sync()
       return out
     },
   }
+  if (boot) sync()
   return {fixtures, recording, rpc}
 }
+
+// The desktop app's main-process env, as the preload hands it over (no such global on the phone).
+const launchedByHarness = () =>
+  (globalThis as {_fromPreload?: {constants?: {env?: {KB_E2E_TEST?: string}}}})._fromPreload?.constants?.env?.KB_E2E_TEST === '1'
 
 if (__DEV__) {
   const {fixtures, recording} = createRuntime({
@@ -460,6 +483,7 @@ if (__DEV__) {
       globalThis.__kbVisualRpc = rpc
     },
     now: () => Date.now(),
+    recordBoot: launchedByHarness(),
     stores: devStores(),
   })
   globalThis.__kbVisualFixtures = fixtures
@@ -468,11 +492,11 @@ if (__DEV__) {
       const id = setInterval(f, ms)
       return () => clearInterval(id)
     },
-    navigator: () => (globalThis as {DEBUGNavigator?: NavLike}).DEBUGNavigator,
+    navigator: () => liveNavigator(globalThis as DevNavGlobals),
   })
   globalThis.__kbE2ERecorder = {
-    start: () => {
-      recording.start()
+    start: opts => {
+      recording.start(opts)
       routes.start()
     },
     take: () => ({...routes.take(), rpcs: recording.take()}),

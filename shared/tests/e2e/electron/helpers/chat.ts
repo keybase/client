@@ -7,8 +7,12 @@
 // refresh, an account switch).
 import {expect, type ConsoleMessage, type ElementHandle, type JSHandle, type Locator, type Page} from '@playwright/test'
 import * as T from '@/tests/e2e/shared/test-ids'
-import {navigateToChat} from './navigate'
+import escapeRegExp from 'lodash/escapeRegExp'
+import {navigateToChat, navigateToPeople} from './navigate'
+import {retriedNavigation} from './step'
 import {E2E_CHANNELS, e2eAccounts, type E2EChannel} from '@/tests/e2e/shared/chat-data'
+import {peerSender} from '@/tests/e2e/shared/peer-actors'
+import {loadE2EEnv} from '@/tests/e2e/accounts/env'
 
 // The same tolerance the thread itself treats as at the end (list-area's endTolerancePx).
 export const endTolerancePx = 2
@@ -326,6 +330,39 @@ export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
   }
 }
 
+// Resolves once `locator` has matched one and the same element for `ms` straight: a list that
+// redraws replaces its rows, and a press on the replaced one lands on nothing. Throws, naming
+// `what`, when it does not settle within `timeoutMs`.
+export const waitSteady = async (locator: Locator, what: string, ms = 1_000, timeoutMs = 30_000) => {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    const handle = await locator.elementHandle({timeout: Math.max(1, deadline - Date.now())}).catch(() => null)
+    if (handle) {
+      await locator.page().waitForTimeout(ms)
+      const same = await locator.evaluate((el, h) => (el as unknown) === (h as unknown), handle, {timeout: 2_000}).catch(() => false)
+      await handle.dispose()
+      if (same) return
+    }
+  }
+  throw new Error(`${what} did not stay the same element for ${ms}ms within ${timeoutMs / 1000}s`)
+}
+
+// Resolves once the Kb.Button `button` has been shown and enabled (no button--disabled) for `ms`
+// straight: a button whose inputs reload is disabled again for a moment, and a press then does
+// nothing. Throws, naming `what`, when it does not settle within `timeoutMs`.
+export const waitEnabledSteady = async (button: Locator, what: string, ms = 1_000, timeoutMs = 20_000) => {
+  const deadline = Date.now() + timeoutMs
+  let since = 0
+  while (Date.now() < deadline) {
+    const cls = await button.getAttribute('class', {timeout: 1_000}).catch(() => null)
+    if (cls === null || /\bbutton--disabled\b/.test(cls)) since = 0
+    else if (!since) since = Date.now()
+    else if (Date.now() - since >= ms) return
+    await button.page().waitForTimeout(100)
+  }
+  throw new Error(`${what} was not enabled for ${ms}ms straight within ${timeoutMs / 1000}s`)
+}
+
 // -- conversations -------------------------------------------------------------------------------
 
 export const threadHeaderTitle = (page: Page) => page.getByTestId(T.CHAT_HEADER_TITLE)
@@ -344,8 +381,6 @@ const openFromInboxSearch = async (page: Page, query: string, pick: (page: Page)
   await expect(page.getByTestId(T.CHAT_MESSAGE_LIST)).toBeVisible({timeout: 10_000})
 }
 
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 // A conversation result names its conversation in semibold; a user result above the conversations
 // (which opens the profile) shows the same name in another style.
 const conversationResult = (name: string) => (page: Page) =>
@@ -355,6 +390,34 @@ const conversationResult = (name: string) => (page: Page) =>
 export const openConversationByName = async (page: Page, team: string, channel: string) => {
   await openFromInboxSearch(page, channel, p => p.getByText(`#${channel}`, {exact: true}))
   await expect(threadHeaderTitle(page)).toHaveText(`${team}#${channel}`, {timeout: 10_000})
+}
+
+// openConversationByName, for a channel inbox search can be slow to find: one made moments
+// earlier, or any channel while the service's search is busy. A search that does not find it yet is
+// closed and run again.
+export const openChannelWithRetries = async (page: Page, team: string, channel: string) => {
+  await retriedNavigation(`#${channel} through inbox search`, async () => {
+    try {
+      await openConversationByName(page, team, channel)
+    } catch (e) {
+      await page.keyboard.press('Escape')
+      throw e
+    }
+  }, {intervals: [2_000], timeout: 60_000})
+}
+
+// Opens a small team's one conversation (its #general) through inbox search, which names it by the
+// team alone; again when a search does not find a team joined moments earlier yet.
+export const openSmallTeamWithRetries = async (page: Page, team: string) => {
+  await retriedNavigation(`${team} through inbox search`, async () => {
+    try {
+      await openFromInboxSearch(page, team, conversationResult(team))
+      await expect(threadHeaderTitle(page)).toHaveText(team, {timeout: 10_000})
+    } catch (e) {
+      await page.keyboard.press('Escape')
+      throw e
+    }
+  }, {intervals: [2_000], timeout: 60_000})
 }
 
 // Opens one of the seeded e2e team channels (e2e-scratch unless named). Flows that just need "a
@@ -377,10 +440,57 @@ export const openDirectConversation = async (page: Page, username: string) => {
   await expect(threadHeaderTitle(page)).toHaveText(username, {timeout: 10_000})
 }
 
+// A user's profile, through the people search.
+export const openUserProfile = async (page: Page, username: string) => {
+  await navigateToPeople(page)
+  // the people tab's search field opens the people search on its hotkey
+  await page.keyboard.press('Meta+k')
+  const search = page.getByPlaceholder('Search Keybase').locator('visible=true')
+  await expect(search).toBeVisible({timeout: 5_000})
+  await search.fill(username)
+  const result = page.getByTestId(T.TEAM_BUILDING_RESULT_ROW).filter({has: page.getByText(username, {exact: true})}).first()
+  await expect(result, `${username} in the people search`).toBeVisible({timeout: 15_000})
+  await clickUnoccluded(result)
+  await expect(page.getByTestId(T.PROFILE_PAGE).locator('visible=true').first()).toBeVisible({timeout: 10_000})
+}
+
 // A small conversation's inbox row, by the participant names its title carries (the user's own
 // name for their conversation with themselves).
 export const inboxRow = (page: Page, title: string) =>
   page.getByTestId(T.CHAT_INBOX_ROW).filter({has: page.locator(`[title="${title}"]`)})
+
+// The second account sends `text` from its peer service. A channel made moments earlier can be
+// missing from the peer's inbox for a few seconds: a send that finds no such conversation (and so
+// sent nothing) is tried again.
+export const sendAsSecond = async (convID: string, text: string) => {
+  const sender = await peerSender(loadE2EEnv())
+  const deadline = Date.now() + 30_000
+  for (;;) {
+    try {
+      await sender.send(convID, text)
+      return
+    } catch (e) {
+      if (!String(e).includes('no conversations matched') || Date.now() > deadline) throw e
+      await new Promise(resolve => setTimeout(resolve, 2_000))
+    }
+  }
+}
+
+// Scrolls the inbox to its top, then down until `target` is in view: the inbox draws only the rows near
+// what it shows. Fails naming `what` when it does not come into view in time.
+export const scrollInboxTo = async (page: Page, target: Locator, what: string, timeoutMs = 20_000) => {
+  await navigateToChat(page)
+  const list = page.getByTestId(T.CHAT_INBOX_LIST)
+  await list.hover()
+  await page.mouse.wheel(0, -100_000)
+  const deadline = Date.now() + timeoutMs
+  while (!(await target.isVisible())) {
+    if (Date.now() > deadline) throw new Error(`${what} is not in the inbox (scrolled for ${timeoutMs / 1000}s)`)
+    await page.mouse.wheel(0, 300)
+    await page.waitForTimeout(100)
+  }
+  await target.scrollIntoViewIfNeeded({timeout: 5_000})
+}
 
 // The inbox rows drawn as selected, by name: a big team's channel as `#channel` (its name turns
 // semibold), a small conversation by its row's title. One entry while one conversation is selected.
@@ -417,8 +527,19 @@ export const watchSelection = async (page: Page, forMs: number) => {
 // Collects the renderer's console errors from now until stop(), less those matching `ignore`.
 export const collectConsoleErrors = (page: Page, ignore: ReadonlyArray<RegExp> = []) => {
   const errors: Array<string> = []
+  // A failed load names only its status; add the origin and first path segment of the resource
+  // (never the rest, which can hold a folder path or a token).
+  const where = (m: ConsoleMessage) => {
+    try {
+      const u = new URL(m.location().url)
+      return ` [${u.origin}/${u.pathname.split('/')[1] ?? ''}]`
+    } catch {
+      return ''
+    }
+  }
   const onConsole = (m: ConsoleMessage) => {
-    if (m.type() === 'error') errors.push(m.text())
+    if (m.type() !== 'error') return
+    errors.push(m.text().startsWith('Failed to load resource') ? `${m.text()}${where(m)}` : m.text())
   }
   page.on('console', onConsole)
   return {
@@ -443,7 +564,10 @@ export const signedInAs = async (page: Page) =>
 export const switchAccount = async (page: Page, username: string) => {
   if ((await signedInAs(page)) === username) return
   await signedInName(page).click({force: true, timeout: 5_000})
-  const row = page.locator('.accountSwitcherScrollView').getByText(username, {exact: true})
+  // the row's name in semibold: the smaller line under it can show the same name
+  const row = page
+    .locator('.accountSwitcherScrollView .text_BodySemibold')
+    .filter({hasText: new RegExp(`^${escapeRegExp(username)}$`)})
   await expect(row).toBeVisible({timeout: 5_000})
   // the switcher's popup ignores a choice within 100ms of showing (see messageMenu)
   await page.waitForTimeout(150)
@@ -762,6 +886,8 @@ export const watchOutgoingRpcs = async (page: Page) => {
     uidChangedMarker
   )
   return {
+    // what was recorded so far, while it goes on recording
+    seen: () => calls.slice(),
     stop: async () => {
       page.off('console', onConsole)
       await page.evaluate(() => {

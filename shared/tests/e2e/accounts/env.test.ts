@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {childEnvVars, loadE2EAccounts, loadE2EEnv, parseEnvText, setEnvVars} from './env'
+import {childEnvVars, loadE2EAccounts, loadE2EEnv, parseEnvText, requireSecondPassword, setEnvVars} from './env'
 
 let dir = ''
 beforeEach(() => {
@@ -115,4 +115,35 @@ test('setEnvVars replaces existing lines, appends new ones and keeps mode 600', 
     "export KB_SMOKE_USER=testuser\nexport KB_SECOND_HOME='/new'\nexport KB_OWNER_PAPERKEY='golf hotel'\n"
   )
   expect(fs.statSync(p).mode & 0o777).toBe(0o600)
+})
+
+test('setEnvVars removes a line whose update is null', () => {
+  const p = writeEnv("export KB_SMOKE_USER=testuser\nexport KB_SECOND_PASSWORD_NEXT='x'\nexport KB_E2E_TEAM=testteam\n")
+  setEnvVars(p, {KB_SECOND_PASSWORD: 'y', KB_SECOND_PASSWORD_NEXT: null})
+  expect(fs.readFileSync(p, 'utf8')).toBe("export KB_SMOKE_USER=testuser\nexport KB_E2E_TEAM=testteam\nexport KB_SECOND_PASSWORD='y'\n")
+})
+
+test('secondPassword comes from KB_SECOND_PASSWORD and is optional', () => {
+  expect(loadE2EEnv(writeEnv(fullFile), noEnv).secondPassword).toBeUndefined()
+  expect(loadE2EEnv(writeEnv(`${fullFile}export KB_SECOND_PASSWORD='e2e-abc'\n`), noEnv).secondPassword).toBe('e2e-abc')
+})
+
+test('requireSecondPassword names the variable and the command that sets it, never a value', () => {
+  expect(() => requireSecondPassword(loadE2EEnv(writeEnv(fullFile), noEnv))).toThrow(
+    /KB_SECOND_PASSWORD.*yarn test:e2e:accounts:second-password/
+  )
+  expect(requireSecondPassword(loadE2EEnv(writeEnv(`${fullFile}export KB_SECOND_PASSWORD='e2e-abc'\n`), noEnv))).toBe('e2e-abc')
+})
+
+test('requireSecondPassword refuses while KB_SECOND_PASSWORD_NEXT is set, naming neither value', () => {
+  const env = loadE2EEnv(writeEnv(`${fullFile}export KB_SECOND_PASSWORD='e2e-abc'\nexport KB_SECOND_PASSWORD_NEXT='e2e-def'\n`), noEnv)
+  expect(env.secondPasswordChangePending).toBe(true)
+  let message = ''
+  try {
+    requireSecondPassword(env)
+  } catch (e) {
+    message = e instanceof Error ? e.message : String(e)
+  }
+  expect(message).toMatch(/KB_SECOND_PASSWORD_NEXT.*stopped part way/)
+  expect(message).not.toMatch(/e2e-abc|e2e-def/)
 })

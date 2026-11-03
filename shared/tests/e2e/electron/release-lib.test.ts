@@ -13,6 +13,7 @@ import {
   parseTimeoutMin,
   preflightProblems,
   probeSample,
+  RELEASE_PORTS,
   releaseFailed,
   renderLine,
   summarizeFlows,
@@ -34,6 +35,7 @@ const ok = (over: Partial<PreflightState> = {}): PreflightState => ({
     {holders: [], port: 4000},
     {holders: [], port: 9222},
   ],
+  screen: {locked: false},
   setupCheck: {ok: true},
   smokeUser: 'testuser',
   whoami: {ok: true, user: 'testuser'},
@@ -71,6 +73,12 @@ describe('preflightProblems', () => {
     expect(preflightProblems(ok({ports: [{holders, port: 9222}]}))).toHaveLength(1)
   })
 
+  test("the main process inspector's port is checked with the app's", () => {
+    expect(RELEASE_PORTS).toEqual([4000, 9222, 9229])
+    const p = preflightProblems(ok({appPgid: 500, ports: [{holders: [{command: 'node --inspect', pgid: 77, pid: 78}], port: 9229}]}))
+    expect(p).toEqual([expect.stringContaining('port 9229 is held by pid 78')])
+  })
+
   test('a held visual gate lock refuses', () => {
     const p = preflightProblems(ok({lockHeld: 'visual gate lock held by pid 9 (visual:render) since 2026-10-27T00:00:00.000Z'}))
     expect(p).toEqual([expect.stringContaining('visual gate lock held by pid 9')])
@@ -80,6 +88,11 @@ describe('preflightProblems', () => {
     const held = 'release lock held by pid 9 (yarn test:e2e:desktop:release) since 2026-10-27T00:00:00.000Z'
     expect(preflightProblems(ok({releaseLockHeld: held}))).toEqual([`${held}; another release run is going, wait for it to finish`])
     expect(preflightProblems(ok({releaseLockHeld: undefined}))).toEqual([])
+  })
+
+  test('a locked macOS session refuses, as does not knowing', () => {
+    expect(preflightProblems(ok({screen: {locked: true}}))).toEqual([expect.stringContaining('the macOS session is locked')])
+    expect(preflightProblems(ok({screen: {error: 'ioreg timed out'}}))).toEqual([expect.stringContaining('(ioreg timed out)')])
   })
 
   test('KBFS not answering refuses with the command to start it', () => {

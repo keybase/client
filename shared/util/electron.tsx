@@ -60,6 +60,8 @@ export type KB2 = {
     env: {
       APPDATA: string
       HOME: string
+      // set by the e2e/visual harness's app launch (desktop:start:hot:e2e)
+      KB_E2E_TEST: string
       KEYBASE_AUTOSTART: string
       KEYBASE_CRASH_REPORT: string
       KEYBASE_DEVEL_USE_XDG: string

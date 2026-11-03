@@ -8,6 +8,7 @@ import {leaveTeam} from '@/teams/actions'
 import {navigateToInbox} from '@/constants/router'
 import {persistRoute} from '@/util/storeless-actions'
 import {useConfigState} from '@/stores/config'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -42,13 +43,14 @@ type CheckboxRowProps = {
   info?: string
   more?: React.ReactNode
   onCheck: (c: boolean) => void
+  testID?: string
   text: React.ReactNode
 }
 const CheckboxRow = (props: CheckboxRowProps) => {
   const styles = useStyles()
   const {onCheck, checked} = props
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow} testID={props.testID}>
       <Kb.Switch
         allowLabelClick={!props.disabled}
         color="red"
@@ -392,6 +394,7 @@ const BlockModal = (ownProps: OwnProps) => {
             text={`Report ${username} to Keybase admins`}
             onCheck={shouldReport => setReportForUsername(username, shouldReport)}
             checked={getShouldReport(username)}
+            testID={getShouldReport(username) ? TestIDs.CHAT_BLOCK_REPORT_ON : TestIDs.CHAT_BLOCK_REPORT_OFF}
             key={`report-${username}`}
           />
           {getShouldReport(username) && (

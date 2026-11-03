@@ -11,6 +11,7 @@ import {
   useFsUploadStatus,
 } from '@/fs/common'
 import * as FS from '@/constants/fs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -57,6 +58,7 @@ const StillContainer = (p: OwnProps) => {
       path={path}
       inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}
+      testID={TestIDs.FILES_ROW}
       writingToJournal={writingToJournal}
       uploadErrored={!!dismissUploadError}
       content={

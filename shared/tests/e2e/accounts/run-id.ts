@@ -9,6 +9,8 @@
 //                                                                     so the label is at most 9
 //   teams and subteam parts                     e2e<runid><label>     a team name part is at most
 //                                                                     16 of [a-z0-9_]: label up to 7
+//   emoji                                       e2e_<runid>_<label>   at most 32, label of [a-z0-9]
+//   messages and attachment titles              a channel-style name as their first word
 // Ids that would start before the scheme existed, or more than a day from now, are not run ids
 // either.
 
@@ -21,6 +23,7 @@ const runIdRe = /^[0-9a-z]{5}[0-9]$/
 
 export const channelNameMax = 20
 export const teamNamePartMax = 16
+export const emojiNameMax = 32
 
 // `random(n)` is an integer in [0, n).
 export const newRunId = (nowMs = Date.now(), random = (n: number) => Math.floor(Math.random() * n)) => {
@@ -75,9 +78,17 @@ export const stampedTeamName = (label: string, runId: string, nowMs = Date.now()
   return name
 }
 
+export const stampedEmojiName = (label: string, runId: string, nowMs = Date.now()) => {
+  if (!/^[a-z0-9]+$/.test(label)) throw new Error(`emoji label ${JSON.stringify(label)}: use [a-z0-9]`)
+  const name = `e2e_${requireRunId(runId, nowMs)}_${label}`
+  if (name.length > emojiNameMax) throw new Error(`emoji name ${name} is over ${emojiNameMax} characters`)
+  return name
+}
+
 const stampedRe = {
   // after the stamp: nothing a shell or `keybase fs` would expand as a glob
   dashed: /^e2e-([0-9a-z]{5}[0-9])-[A-Za-z0-9_.-]+$/,
+  emoji: /^e2e_([0-9a-z]{5}[0-9])_[a-z0-9]+$/,
   team: /^e2e([0-9a-z]{5}[0-9])[a-z0-9_]{1,7}$/,
 } as const
 
@@ -87,3 +98,7 @@ export const parseStampedName = (name: string, form: keyof typeof stampedRe, now
   const run = runId === undefined ? undefined : parseRunId(runId, nowMs)
   return runId === undefined || !run ? undefined : {runId, startMs: run.startMs}
 }
+
+// The run a message body or attachment title was made by: its first word (from the very first
+// character, up to the first whitespace) must be a dashed stamped name.
+export const parseStampedText = (body: string, nowMs = Date.now()) => parseStampedName(body.split(/\s/, 1)[0] ?? '', 'dashed', nowMs)

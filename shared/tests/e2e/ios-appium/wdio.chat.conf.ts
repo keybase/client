@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
+import {ensureRunId} from '../accounts/run-id'
 import {e2eAccounts, ensureChatData} from '../shared/chat-data'
 import {switchCliAccount} from '../shared/cli-account'
 import {hideKeyboard, switchAppAccount} from './helpers/chat'
@@ -15,6 +16,10 @@ import {escapeToTabs} from './helpers/navigate'
 const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-appium-chat-iphone'
 
 let mark: ReturnType<typeof metroLogMark> | undefined
+
+// Everything the flows create carries the run id (see run-id.ts). Set here, where the launcher
+// loads the config first, so the workers it starts inherit the same one.
+ensureRunId(process.env)
 
 // Before any flow: the app in the foreground on the current bundle, the chat data seeded, the app
 // signed in as the smoke user and the host's CLI as the second account.
