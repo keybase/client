@@ -2,7 +2,6 @@ import {
   deviceListProblem,
   deviceRowPredicate,
   deviceRowsIn,
-  maskedByRole,
   mergeRows,
   paperKeyMasked,
   postAddListReads,
@@ -128,15 +127,6 @@ describe('postAddListReads', () => {
     const calls = [{...add, answer: {afterSeq: 1}}, read(2, {afterSeq: 4, error: 'boom'}), read(3, {afterSeq: 5})]
     expect(postAddListReads(calls)).toEqual({reads: [{answered: true, error: 'boom'}, {answered: true}], settled: true})
   })
-})
-
-test('maskedByRole replaces each name with its role, the longest name first', () => {
-  const roles = [
-    {name: 'testuser', role: 'the smoke account'},
-    {name: 'testuser-mac', role: 'the new computer'},
-    {name: '', role: 'nothing'},
-  ]
-  expect(maskedByRole('testuser-mac of testuser failed', roles)).toBe('the new computer of the smoke account failed')
 })
 
 test('postAddReadsSummary counts the reads and lists each failure', () => {

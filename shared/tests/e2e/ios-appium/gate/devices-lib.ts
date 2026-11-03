@@ -110,10 +110,6 @@ export const postAddListReads = (calls: ReadonlyArray<LoggedCall>): {settled: bo
   return {reads, settled}
 }
 
-// `text` with each name replaced by its role (longest name first, so a name inside another goes too).
-export const maskedByRole = (text: string, roles: ReadonlyArray<{name: string; role: string}>) =>
-  [...roles].filter(r => r.name).sort((a, b) => b.name.length - a.name.length).reduce((t, r) => t.split(r.name).join(r.role), text)
-
 // A step name for the reads: how many there were, and each failed one's error.
 export const postAddReadsSummary = (reads: ReadonlyArray<{answered: boolean; error?: string}>) => {
   const failed = reads.filter(r => r.error !== undefined)
