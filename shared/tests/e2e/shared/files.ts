@@ -5,7 +5,7 @@
 import {randomBytes} from 'crypto'
 import {loadE2EAccounts} from '../accounts/env.ts'
 import {parseStampedName} from '../accounts/run-id.ts'
-import {maskAccounts} from '../accounts/sweep-lib.ts'
+import {maskE2E} from '../accounts/sweep-lib.ts'
 import {waitFor} from './deadline.ts'
 import {pairFolder} from './favorites.ts'
 import {requireMainIsSmoke, runKeybase} from './peer-service.ts'
@@ -105,9 +105,8 @@ export const waitForKbfs = async (path: string, want: KbfsWant, boundMs = PHONE_
     async () => {
       const e = await kbfsEntry(dir, name).catch((err: unknown) => {
         // the CLI's error holds the path, and with it the account names
-        const {secondUser, smokeUser, team} = loadE2EAccounts()
         const msg = (err instanceof Error ? err.message : String(err)).split(dir).join('<folder>').split(name).join('<entry>')
-        throw new Error(maskAccounts(msg, {team, users: {second: secondUser, smoke: smokeUser}}))
+        throw new Error(maskE2E(msg))
       })
       return isWanted(e, want) ? {e} : undefined
     },

@@ -1,25 +1,11 @@
 // Evals in the running app, and asks of the phone's own service. What lives only on the phone (its
 // files settings, a folder's sync config, the emoji skin tone) is read back and restored here, never
 // through the host's main service, which holds the Mac's copy.
-import {loadE2EAccounts} from '../../accounts/env'
-import {maskAccounts} from '../../accounts/sweep-lib.ts'
+import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
 import {withHarnessRpcs} from './recorder.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// `text` with the test accounts' and the e2e team's names put by role: a service error can quote a
-// folder's path (/keybase/private/<smoke>,<second>). Left as it is when the env file has no names (the
-// gate cannot run then, but its unit tests can).
-const maskedNames = (text: string) => {
-  let names: ReturnType<typeof loadE2EAccounts> | undefined
-  try {
-    names = loadE2EAccounts()
-  } catch {
-    return text
-  }
-  return maskAccounts(text, {team: names.team, users: {second: names.secondUser, smoke: names.smokeUser}})
-}
 
 // Metro's inspector connection to the app drops now and then for a moment (the app keeps running);
 // an eval that fails to connect is tried again for a few seconds before it counts. A body that
@@ -94,7 +80,7 @@ export const askApp = async <T,>(what: string, body: string, timeout = 20_000): 
       throw e
     }
   })
-  if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${maskedNames(r.error)}`)
+  if (r.state === 'failed') throw new Error(`${what}: the phone's service answered ${maskE2E(r.error)}`)
   return r.value
 }
 

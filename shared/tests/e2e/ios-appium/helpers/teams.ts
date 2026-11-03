@@ -5,7 +5,7 @@
 import {randomBytes} from 'crypto'
 import {loadE2EAccounts, loadE2EEnv} from '../../accounts/env'
 import {parseStampedName, stampedTeamName} from '../../accounts/run-id'
-import {maskAccounts} from '../../accounts/sweep-lib.ts'
+import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {createThrowawaySubteam, retryTransient} from '../../shared/chat-data'
 import {ensurePeer, runKeybase} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
@@ -36,11 +36,9 @@ export const masked = async <R,>(f: () => Promise<R>): Promise<R> => {
     return await f()
   } catch (e) {
     if (isAttemptOver(e)) throw e
-    const {secondUser, smokeUser, team} = loadE2EAccounts()
-    const msg = e instanceof Error ? e.message : String(e)
     // no cause: the original message is the one with the names in it
     // eslint-disable-next-line preserve-caught-error
-    throw new Error(maskAccounts(msg, {team, users: {second: secondUser, smoke: smokeUser}}))
+    throw new Error(maskE2E(e))
   }
 }
 

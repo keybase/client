@@ -1,6 +1,6 @@
 import {loadE2EAccounts, loadE2EEnv, requireSecondPassword} from '../../accounts/env'
 import {sayMasked} from '../../accounts/second-password-lib'
-import {maskAccounts} from '../../accounts/sweep-lib'
+import {maskE2E} from '../../accounts/sweep-lib'
 import {deviceNameCandidates} from '../../shared/peer-service'
 import {e2eRunId} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -43,11 +43,6 @@ const refuseSecret = (text: string) => {
   if (secrets.includes(text)) throw new Error('refusing to type an env file secret into a signed-out field')
 }
 
-const masked = (s: string) => {
-  const {secondUser, smokeUser, team} = loadE2EAccounts()
-  return maskAccounts(s, {team, users: {second: secondUser, smoke: smokeUser}})
-}
-
 // Types `text` into the field `id` and waits until the field reads it back. A screen's first field
 // can drop what is typed while its screen is still sliding in, so it is typed once more; what the
 // field read the first time is logged, and an error says what it reads last, both with the account
@@ -60,7 +55,7 @@ const typed = async (id: PlainField, text: string) => {
     await enterText(id, text)
     if (await waitFor(`the field ${id} to read what was typed`, async () => ((await reads()) ? true : undefined), {interval: 250, timeout: 5_000}).then(() => true, () => false)) return
     const got = JSON.stringify(await el(id).getAttribute('value').catch(() => null))
-    if (tries >= 2) throw new Error(masked(`the field ${id} reads ${got} after typing ${JSON.stringify(text)} twice`))
+    if (tries >= 2) throw new Error(maskE2E(`the field ${id} reads ${got} after typing ${JSON.stringify(text)} twice`))
     sayMasked(`[account-signed-out] the field ${id} read ${got} after typing ${JSON.stringify(text)}; typing it again`)
   }
 }

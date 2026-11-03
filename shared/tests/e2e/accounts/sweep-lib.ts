@@ -14,6 +14,7 @@
 //                                 and unchanged name
 // Anything outside its scope is dropped, never judged. Other `e2e` names (seeded data, flows still
 // on older naming) are reported and kept.
+import {loadE2EAccounts} from './env.ts'
 import {parseRunId, parseStampedName, parseStampedText} from './run-id.ts'
 import type {PaperKeyEntry} from './paper-key-ledger.ts'
 
@@ -312,3 +313,18 @@ export const staleRunIds = (names: ReadonlyArray<string>, prefix: string, curren
     const startMs = runId === undefined ? undefined : parseRunId(runId, before)?.startMs
     return runId === undefined || startMs === undefined || runId === currentRunId || startMs + 60_000 > before ? [] : [runId]
   })
+
+// An error's message (or any text) with the env file's test accounts and e2e team named by role, as
+// maskAccounts does: a CLI or service error can quote a folder's path (/keybase/private/<smoke>,<second>)
+// or a team's name. Left as it is when the env file has no names (the gate cannot run then, but its
+// unit tests can).
+export const maskE2E = (e: unknown) => {
+  const text = e instanceof Error ? e.message : String(e)
+  let names: ReturnType<typeof loadE2EAccounts>
+  try {
+    names = loadE2EAccounts()
+  } catch {
+    return text
+  }
+  return maskAccounts(text, {team: names.team, users: {second: names.secondUser, smoke: names.smokeUser}})
+}

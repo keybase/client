@@ -16,7 +16,7 @@
 // Entries a flow finds by their row have no extension: the app draws a name's extension as a text of
 // its own, so the row's label would not hold the name whole.
 import {loadE2EAccounts} from '../../accounts/env'
-import {maskAccounts} from '../../accounts/sweep-lib.ts'
+import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {CORPUS} from '../../fixtures/corpus/corpus'
 import {directConvIDFromCli, readFromCli} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
@@ -80,10 +80,9 @@ describe('files actions', function () {
       return new Set((await kbfsList(dir)).map(e => e.name))
     } catch (e) {
       // the CLI's error holds the path, and with it the account names
-      const {secondUser, smokeUser, team} = loadE2EAccounts()
       const msg = (e instanceof Error ? e.message : String(e)).split(dir).join('<folder>')
       // eslint-disable-next-line preserve-caught-error
-      throw new Error(`the host's listing of a work folder failed: ${maskAccounts(msg, {team, users: {second: secondUser, smoke: smokeUser}})}`)
+      throw new Error(`the host's listing of a work folder failed: ${maskE2E(msg)}`)
     }
   }
 
