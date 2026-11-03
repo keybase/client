@@ -1,6 +1,6 @@
 import type {Page} from '@playwright/test'
-import {test, expect, e2eRunId, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
-import {composerInput, messageMenu, openE2EChannel, rowByOrdinal, waitForRow} from '@/tests/e2e/electron/helpers/chat'
+import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {composerInput, messageMenu, openE2EChannel, rowByOrdinal, waitForRow, waitForScrollStable} from '@/tests/e2e/electron/helpers/chat'
 import {E2E_CHANNELS, sendFromCli} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
@@ -17,7 +17,7 @@ test.beforeAll(async () => {
 // Opens e2e-scratch, sends a text message from the CLI (the smoke account) and returns its ordinal.
 const openWithOwnMessage = async (page: Page, label: string) => {
   await openE2EChannel(page)
-  const marker = `e2e-${e2eRunId()}-${label}-${Date.now().toString(36)}`
+  const marker = e2eMarker(label)
   await sendFromCli(E2E_CHANNELS.scratch, marker)
   return waitForRow(page, marker, 30_000)
 }
@@ -58,12 +58,17 @@ test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
   const ordinal = await openWithOwnMessage(page, 'react')
   const row = rowByOrdinal(page, ordinal)
   const reacji = row.locator('.icon-gen-iconfont-reacji')
-  // the row shows its toolbar only while hovered, and the list ignores the pointer until 200ms after
-  // its last scroll: hover again until the row takes it
-  await expect(async () => {
-    await row.hover({timeout: 1_000})
-    await expect(reacji.first()).toBeVisible({timeout: 500})
-  }, 'the hover toolbar reaction button on the message just sent').toPass({timeout: 10_000})
+  // The row shows its toolbar only while hovered (CSS :hover), and any scroll of the list turns the
+  // pointer off over it for 200ms (scroll-ignore-pointer), which hides the toolbar until the pointer
+  // moves again. A hover that has to scroll the row into view does exactly that, so the row is
+  // brought into view first and the press waits until the list has stopped and takes the pointer.
+  await row.scrollIntoViewIfNeeded()
+  await waitForScrollStable(page)
+  await expect(page.locator('.scroll-ignore-pointer'), 'the thread taking the pointer again').toHaveCount(0)
+  await row.hover()
+  await expect(reacji.first(), 'the hover toolbar reaction button on the message just sent').toBeVisible({
+    timeout: 5_000,
+  })
   await reacji.first().click()
   await expect(page.getByTestId(T.CHAT_EMOJI_PICKER)).toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'reaction picker')

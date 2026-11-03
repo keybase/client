@@ -26,7 +26,7 @@ import {
   E2E_CHANNELS,
   botCommands,
   createThrowawayChannel,
-  deleteThrowawayChannels,
+  deleteThrowawayChannel,
   type ChatData,
 } from '@/tests/e2e/shared/chat-data'
 import {cliWhoami} from '@/tests/e2e/shared/cli-account'
@@ -659,25 +659,32 @@ test.describe('leaving with a suggestion preview', () => {
 // composer and leaves the draft set aside for the edit as it was; it loads again once the account
 // can post. The owner clearing the role altogether makes the channel writable again as it shows.
 test.describe('read-only mid-edit', () => {
-  const prefix = 'e2e-roedit'
+  // channel labels (see createThrowawayChannel), one per test
+  const editLabel = 'roedit'
+  const clearLabel = 'roclear'
+  const created: Array<string> = []
+  const createChannel = async (label: string) => {
+    const channel = await createThrowawayChannel(label)
+    created.push(channel.topicName)
+    return channel
+  }
   let owner: ChannelOwner
 
   test.beforeAll(async () => {
     test.setTimeout(120_000)
     if ((await cliWhoami()) !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user')
     owner = await peerChannelOwner(loadE2EEnv())
-    await deleteThrowawayChannels(prefix)
   })
 
   test.afterEach(async ({page}) => {
     test.setTimeout(120_000)
     await switchAccount(page, data.smokeUser)
-    await deleteThrowawayChannels(prefix)
+    for (const topicName of created.splice(0)) await deleteThrowawayChannel(topicName)
   })
 
   test('Escape ends the edit, empties the composer and leaves the draft, which comes back once it can post', async ({page}) => {
     test.setTimeout(180_000)
-    const {convID, topicName} = await createThrowawayChannel(prefix)
+    const {convID, topicName} = await createChannel(editLabel)
 
     await switchAccount(page, data.secondUser)
     // from its inbox row: inbox search can lag behind a channel made moments earlier
@@ -720,7 +727,7 @@ test.describe('read-only mid-edit', () => {
 
   test('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async ({page}) => {
     test.setTimeout(180_000)
-    const {convID, topicName} = await createThrowawayChannel(prefix)
+    const {convID, topicName} = await createChannel(clearLabel)
 
     await switchAccount(page, data.secondUser)
     const row = page.locator('.inbox-hover-container').getByText(topicName, {exact: true})
