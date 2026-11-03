@@ -18,7 +18,8 @@ import {deleteEmailIfPresent, emails, primaryEmail, requireStampedEmail, setPrim
 import * as T from '../../shared/test-ids'
 import {requireAppIsSmoke} from '../gate/accounts'
 import {randomPW} from '../gate/app-ask'
-import {elementInRow, innermost, rectOf, type Rect} from '../gate/chat-lib.ts'
+import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
+import {labelParts, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 import {callsSince, currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {manualEdge, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
@@ -26,10 +27,10 @@ import {el} from '../helpers/elements'
 import {fillField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, openMenuFrom, waitForSheetGone} from '../helpers/menus'
+import {cardTitledIn, check, chooseMenuItem, openMenuFrom, press, waitForSheetGone} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
 import {ACCOUNT_TAB, openAccountPage} from '../helpers/settings'
-import {masked, TEXTS, textShown} from '../helpers/teams'
+import {masked, TEXT_TYPES, textShown} from '../helpers/teams'
 
 const ADD_EMAIL = 'keybase.1.emails.addEmail'
 const SEND_VERIFICATION = 'keybase.1.emails.sendVerificationEmail'
@@ -39,17 +40,18 @@ const DELETE_EMAIL = 'keybase.1.emails.deleteEmail'
 const DELETE_ACCOUNT_BUTTON = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Delete account" AND visible == 1'
 // what an address row draws its address as (selectable text can draw as a text view), and the row's
 // line under it
-const ROW_TEXTS =
-  '-ios predicate string:(type == "XCUIElementTypeStaticText" OR type == "XCUIElementTypeTextView" OR type == "XCUIElementTypeOther") AND visible == 1'
-// the items of an open menu sheet: an item with a subtitle reads "<title>, <subtitle>"
-const MENU_ROWS = '-ios predicate string:type == "XCUIElementTypeOther" AND label != "" AND visible == 1'
+const ROW_TYPES = ['XCUIElementTypeStaticText', 'XCUIElementTypeTextView', 'XCUIElementTypeOther']
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-const labelOf = async (e: WebdriverIO.Element, attr: 'label' | 'value') =>
-  ((await e.getAttribute(attr).catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
+const plain = (s: string | undefined) => (s ?? '').replace(/\u00a0/g, ' ')
 
-const inside = (r: Rect, band: Rect) => {
+// The visible elements of `types`, read off one page source (an attribute call per element took most
+// of a row's wait). Bound: one read 1.
+const drawnOf = async (types: ReadonlyArray<string>) =>
+  sourceElements(await browser.getPageSource()).filter(e => types.includes(e.type) && e.attrs['visible'] === 'true')
+
+const middleIn = (r: Rect, band: Rect) => {
   const y = r.y + r.height / 2
   return y >= band.y && y <= band.y + band.height
 }
@@ -130,12 +132,9 @@ describe('settings account', function () {
 
   // The rects of the texts on screen that read `addr`, innermost of nested ones. Bound: one read 1.
   const addressRects = async (addr: string) => {
-    const rects: Array<Rect> = []
-    for (const e of await browser.$$(ROW_TEXTS).getElements()) {
-      if ((await labelOf(e, 'label')) !== addr && (await labelOf(e, 'value')) !== addr) continue
-      const r = await rectOf(e)
-      if (r) rects.push(r)
-    }
+    const rects = (await drawnOf(ROW_TYPES))
+      .filter(e => plain(e.attrs['label']) === addr || plain(e.attrs['value']) === addr)
+      .map(e => sourceRect(e.attrs))
     return innermost(rects).map(i => rects[i]!)
   }
 
@@ -157,15 +156,14 @@ describe('settings account', function () {
 
   // Whether the row in `band` draws `word` as its line (or a part of it: "Primary • Not
   // searchable"). Bound: one read 1.
-  const rowSays = async (band: Rect, word: string) => {
-    for (const e of await browser.$$(TEXTS).getElements()) {
-      const parts = (await labelOf(e, 'label')).split(/, | • /).map(p => p.trim())
-      if (!parts.includes(word)) continue
-      const r = await rectOf(e)
-      if (r && inside(r, band)) return true
-    }
-    return false
-  }
+  const rowSays = async (band: Rect, word: string) =>
+    (await drawnOf(TEXT_TYPES)).some(
+      e =>
+        labelParts(e.attrs['label'] ?? '')
+          .flatMap(p => p.split(' • '))
+          .map(p => p.trim())
+          .includes(word) && middleIn(sourceRect(e.attrs), band)
+    )
 
   // Waits for the row of `addr` to draw `word` in its line (`want`) or not. Bound: the row 16, then
   // 15s of reads, overrun by one 1 = 32.
@@ -175,10 +173,7 @@ describe('settings account', function () {
   }
 
   // Whether a text reading exactly `label` is drawn now. Bound: one read 1.
-  const textShownNow = async (label: string) => {
-    for (const e of await browser.$$(TEXTS).getElements()) if ((await labelOf(e, 'label')) === label) return true
-    return false
-  }
+  const textShownNow = async (label: string) => (await drawnOf(TEXT_TYPES)).some(e => plain(e.attrs['label']) === label)
 
   // Settings > Account with the account's addresses loaded (the original's row is always drawn).
   // Bound: openAccountPage 126, the row 16 = 142.
@@ -198,20 +193,10 @@ describe('settings account', function () {
   const chooseSubtitled = async (title: string) => {
     const item = await waitFor(
       `"${title}" in the menu`,
-      async () => {
-        const found: Array<{e: WebdriverIO.Element; rect: Rect}> = []
-        for (const e of await browser.$$(MENU_ROWS).getElements()) {
-          if (!(await labelOf(e, 'label')).split(', ').some(p => p.trim() === title)) continue
-          const r = await rectOf(e)
-          if (r) found.push({e, rect: r})
-        }
-        const inner = innermost(found.map(f => f.rect))
-        if (inner.length > 1) throw new Error(`${inner.length} "${title}" items in the menu, not one`)
-        return inner.length ? found[inner[0]!]!.e : undefined
-      },
+      async () => cardTitledIn(['XCUIElementTypeOther'], title, `"${title}" in the menu`, {forTap: true}),
       {interval: 300, timeout: 10_000}
     )
-    await item.click()
+    await press(item, `the menu's "${title}"`)
     await waitForSheetGone(5_000)
   }
 
