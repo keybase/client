@@ -1,6 +1,6 @@
 // The system pickers' pages, read from one page source, and what the app was handed from them.
 // Pure: system-ui.ts drives the pickers and device.ts reads the picked files.
-import type {SourceElement} from './page-source-lib.ts'
+import {hasTrait, sourceRect, type SourceElement} from './page-source-lib.ts'
 
 // The photo picker (PHPicker) grid draws the corpus in this order (iOS 26.5, read live). Its cells
 // carry no file name, only "Photo, <date>" or "Video, <duration>, <date>", and the picker's search
@@ -18,15 +18,6 @@ export const LIBRARY_PHOTO_ORDER: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDE
 export type Rect = {x: number; y: number; width: number; height: number}
 export type LibraryCell = {kind: 'Photo' | 'Video'; date: string; rect: Rect; selected: boolean}
 
-const rectOf = (a: Record<string, string>): Rect => ({
-  height: Number(a['height']),
-  width: Number(a['width']),
-  x: Number(a['x']),
-  y: Number(a['y']),
-})
-
-const hasTrait = (a: Record<string, string>, trait: string) => (a['traits'] ?? '').split(', ').includes(trait)
-
 // The grid's cells in document order (the grid's order).
 export const libraryCells = (els: ReadonlyArray<SourceElement>): Array<LibraryCell> =>
   els.flatMap(e => {
@@ -36,7 +27,7 @@ export const libraryCells = (els: ReadonlyArray<SourceElement>): Array<LibraryCe
     if (kind !== 'Photo' && kind !== 'Video') return []
     // a video's label holds its duration before the date
     const date = parts.slice(kind === 'Video' ? 2 : 1).join(', ')
-    return [{date, kind, rect: rectOf(e.attrs), selected: hasTrait(e.attrs, 'Selected')}]
+    return [{date, kind, rect: sourceRect(e.attrs), selected: hasTrait(e.attrs['traits'], 'Selected')}]
   })
 
 // The corpus's cells, in `order` (the grid's order, or the photos-only one): the one run of

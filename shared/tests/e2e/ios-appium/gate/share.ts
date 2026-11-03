@@ -16,7 +16,7 @@ import * as T from '../../shared/test-ids'
 import {requireCurrentAttempt} from './attempt.ts'
 import {requireUdid} from './device-lib.ts'
 import {openLink, seedFolderPath} from './device.ts'
-import {sourceElements} from './page-source-lib.ts'
+import {labelHas, sourceElements, sourceRect} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
 import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
@@ -255,8 +255,7 @@ export const filesSheet = (folder: string, file: string) => async () => {
   const cellNow = async () => {
     const found = sourceElements(await browser.getPageSource()).filter(e => e.type === 'XCUIElementTypeCell' && e.attrs['name'] === fileCellName(file))
     if (found.length !== 1) throw new Error(`Files shows ${found.length} cells of the seeded file, not one`)
-    const a = found[0]!.attrs
-    return {height: Number(a['height']), width: Number(a['width']), x: Number(a['x']), y: Number(a['y'])}
+    return sourceRect(found[0]!.attrs)
   }
   await holdThenTap(cellNow, 'Share', 'the seeded file')
 }
@@ -399,15 +398,14 @@ export const pickSelfInSharePicker = async (smokeUser: string) => {
     'the self conversation row in the share picker',
     async () => {
       const rows = sourceElements(await browser.getPageSource()).filter(
-        e => e.attrs['name'] === T.CHAT_SEND_TO_CHAT_ROW && (e.attrs['label'] ?? '').split(', ').includes(smokeUser)
+        e => e.attrs['name'] === T.CHAT_SEND_TO_CHAT_ROW && labelHas(e.attrs['label'] ?? '', smokeUser)
       )
       if (rows.length > 1) throw new Error(`${rows.length} rows of the share picker read as the self conversation, not one`)
       return rows[0]
     },
     {interval: 1_000, timeout: 20_000}
   )
-  const a = row.attrs
-  await tapFrame({height: Number(a['height']), width: Number(a['width']), x: Number(a['x']), y: Number(a['y'])}, 'the self conversation row')
+  await tapFrame(sourceRect(row.attrs), 'the self conversation row')
 }
 
 // For a flow's afterEach: leaves the app's share screen through its own Cancel. escapeToTabs never

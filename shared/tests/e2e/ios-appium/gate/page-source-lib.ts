@@ -57,3 +57,6 @@ export const labelParts = (label: string) =>
 
 // Whether `label` holds `part` as one of its parts.
 export const labelHas = (label: string, part: string) => labelParts(label).includes(part)
+
+// Whether an element's traits attribute ("Selected, Image") holds `trait`.
+export const hasTrait = (traits: string | null | undefined, trait: string) => (traits ?? '').split(', ').includes(trait)

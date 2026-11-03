@@ -16,7 +16,7 @@ import {tapElement, tapFrame} from '../helpers/menus'
 import {e2eRunId} from '../../shared/run-marker.ts'
 import {deleteSavedAsset, libraryHasAsset, mediaPermission, requestFullPhotoAccess} from './app-ask.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
-import {sourceElements} from './page-source-lib.ts'
+import {hasTrait, sourceElements} from './page-source-lib.ts'
 import {WaitStopped} from './wait-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
 
@@ -210,7 +210,7 @@ export const pickDocument = async (folder: string, file: string) => {
   await tapElement(await cell.getElement(), 'the seeded file')
   await waitFor(
     'the seeded file selected',
-    async () => (((await cell.getAttribute('traits')) ?? '').split(', ').includes('Selected') ? true : undefined),
+    async () => (hasTrait(await cell.getAttribute('traits'), 'Selected') ? true : undefined),
     {interval: 250, timeout: 5_000}
   )
   await button('Open').waitForExist({timeout: 5_000, timeoutMsg: "the document picker's Open did not show"})
