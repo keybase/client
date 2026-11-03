@@ -5,6 +5,7 @@ import {beginErrorCapture, takeErrors} from '../gate/errors'
 import {step} from '../gate/step'
 import {openLink, relaunchApp, setPasteboard} from '../gate/device'
 import {attemptRecording} from '../gate/recording'
+import {creditSurface} from '../gate/attempt'
 import {appSnapshot, jsEval, waitFor} from '../helpers/lifecycle'
 import {emptySecretField, fieldLength, focusSecretField, submitSecret} from '../gate/secret-input'
 
@@ -30,12 +31,14 @@ describe('harness simulator helpers', () => {
       {interval: 500, timeout: 20_000}
     )
     expect(screen.name).toBe('settingsTabs.devicesTab')
+    creditSurface('deep-link')
     await step('The devices link opened the Devices screen')
     await escapeToTabs()
   })
 
   // Appium's own setPasteboard backs pasteText, and `simctl pbpaste` reads back empty on this host's
   // simulators, so reading the text back is not possible; this checks the stdin write is accepted.
+  // The app never reads it here, so nothing credits the pasteboard surface.
   it('writes the pasteboard text over stdin', () => {
     expect(() => setPasteboard(`harness pasteboard "quoted" $HOME ${Date.now()}`)).not.toThrow()
   })
@@ -52,6 +55,7 @@ describe('harness simulator helpers', () => {
     await navigateToPeople()
     await rec.checkpoint()
     expect(rec.recordings.flatMap(r => r.routes)).toContain('peopleRoot')
+    creditSurface('relaunch')
     await step('On the People tab after the relaunch')
   })
 })

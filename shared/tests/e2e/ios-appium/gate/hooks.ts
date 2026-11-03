@@ -6,7 +6,9 @@
 import * as path from 'path'
 import {HANG_SETTLE_MS, settleHangRelaunch, startHangWatch, stopHangWatch} from './hang.ts'
 import {setBeforeCleanupSteps} from '../../shared/cleanup.ts'
+import {CRASH_RECOVERY_MS, crashDuringAttempt, recoverGoneApp, settleCrashRecovery} from './crash.ts'
 import {
+  addEndedAttemptError,
   beginAttempt,
   endAttemptOf,
   endedRecord,
@@ -87,9 +89,27 @@ globalThis.xdescribe = globalThis.describe.skip
 globalThis.context = globalThis.describe
 globalThis.xcontext = globalThis.describe.skip
 
+// A test body that ends (passed or not) with the app crashed fails of the crash, after the app is
+// relaunched inside its attempt (crash.ts), so its afterTest and the flow's afterEach find an app.
+const crashCheckedAfter = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
+  async function (this: Mocha.Context) {
+    let failure: {e: unknown} | undefined
+    try {
+      await fn.call(this)
+    } catch (e) {
+      failure = {e}
+    }
+    const crash = await crashDuringAttempt()
+    if (crash) throw failure ? new Error(`${crash}; then: ${message(failure.e)}`, {cause: failure.e}) : new Error(crash)
+    if (failure) throw failure.e
+  }
+
 const declareTest = (t: Declare) =>
   function (this: unknown, ...args: Array<unknown>) {
     insideDescribe('a test')
+    const [title, fn, ...rest] = args
+    // a done-callback body (fn.length > 0) is left as it is: gate bodies are async
+    if (typeof fn === 'function' && fn.length === 0) return t.call(this, title, crashCheckedAfter(fn as Mocha.AsyncFunc), ...rest)
     return t.apply(this, args)
   }
 globalThis.it = Object.assign(declareTest(plain.it as Declare), {
@@ -100,13 +120,14 @@ globalThis.specify = globalThis.it
 globalThis.xit = globalThis.it.skip
 globalThis.xspecify = globalThis.it.skip
 
-// A flow afterEach first waits for a hung app's relaunch still running (hang.ts), so it never
-// drives an app that is restarting.
+// A flow afterEach first waits for a hung app's relaunch (hang.ts) or a gone app's recovery
+// (crash.ts) still running, so it never drives an app that is restarting.
 const settledFirst = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
   async function (this: Mocha.Context) {
-    // the wait's own bound; a hook that sets its timeout restarts it from there
-    this.timeout(HANG_SETTLE_MS + 30_000)
+    // the waits' own bounds; a hook that sets its timeout restarts it from there
+    this.timeout(HANG_SETTLE_MS + CRASH_RECOVERY_MS + 30_000)
     await settleHangRelaunch()
+    await settleCrashRecovery()
     return fn.call(this)
   }
 
@@ -118,8 +139,11 @@ const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, settle = false) =>
     if (!b) throw new Error(`the hook "${a}" has no function`)
     return h(a, wrap(b))
   } as Mocha.HookFunction<Mocha.Hook>
-// a test body's own cleanup steps wait the same way
-setBeforeCleanupSteps(settleHangRelaunch)
+// a test body's own cleanup steps wait the same way, and find a crashed app relaunched
+setBeforeCleanupSteps(async () => {
+  await settleHangRelaunch()
+  await crashDuringAttempt()
+})
 
 globalThis.before = declareHook(plain.before)
 globalThis.beforeEach = declareHook(plain.beforeEach)
@@ -152,9 +176,15 @@ const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, m
 const NOT_RECORDED = 'the test passed, but wdio afterTest did not record its attempt'
 
 plain.beforeEach(
-  kept(function (this: Mocha.Context) {
+  kept(async function (this: Mocha.Context) {
+    this.timeout(CRASH_RECOVERY_MS + 30_000)
     const test = this.currentTest
     if (!test?.fn) throw new Error('the gate hooks ran outside a test')
+    // The app went away after the root afterEach saw it (a flow's after or before hook): it is brought
+    // back before this test's hooks drive it. A recovery that fails throws here, which ends the run,
+    // so every later test is recorded as never run with why.
+    const gone = await recoverGoneApp()
+    if (gone) recordRunError(`before "${test.fullTitle()}": ${gone}`)
     const retry = (test as unknown as {currentRetry: () => number}).currentRetry()
     const token = beginAttempt(flowFileOf(test), test.titlePath(), retry)
     attempts.set(test, token)
@@ -204,39 +234,61 @@ plain.beforeEach(
   })
 )
 
+// Ends an attempt wdio's afterTest did not end, or fails one that ended passed for what failed after
+// its body. `gone` is why the app was gone at the test's end (crash.ts), which fails it either way.
+const endTheAttempt = async (test: Mocha.Test, token: AttemptToken, gone: string | undefined) => {
+  const hookError = failuresOf(suitesOf(test), ['_beforeEach', '_afterEach']).join('; ') || undefined
+  const ended = endedRecord(token)
+  if (ended) {
+    if (hookError) failEndedAttempt(token, hookError)
+    // a crash the body already failed of is in its error
+    if (gone && !endedRecord(token)?.error?.includes(gone)) addEndedAttemptError(token, gone)
+    return
+  }
+  if (test.isPending()) {
+    endAttemptOf(token, {durationMs: test.duration ?? 0, status: 'skipped'})
+    return
+  }
+  const cause =
+    hookError ??
+    bodyErrors.get(token) ??
+    (test.timedOut ? timeoutMessage(test.timeout()) : 'the attempt ended without wdio afterTest recording it')
+  const error = gone && !cause.includes(gone) ? `${gone}; then: ${cause}` : cause
+  try {
+    await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
+  } catch (e) {
+    // what kept afterTest from ending it can stop finishAttempt too; a throw here would end the run
+    if (!endedRecord(token)) endAttemptOf(token, {durationMs: test.duration ?? 0, error: `${error}; ending it: ${message(e)}`, status: 'failed'})
+  }
+}
+
 // An attempt wdio's afterTest did not end (mocha timed it out, the account check refused it, a flow
 // beforeEach failed) is ended here with the same failure details; one that passed is failed when a
-// flow afterEach failed after it.
+// flow afterEach failed after it or the app was gone at its end.
 plain.afterEach(
   kept(async function (this: Mocha.Context) {
-    // waiting out a relaunch (HANG_SETTLE_MS) and then ending the attempt (its screenshot and logs)
-    this.timeout(HANG_SETTLE_MS + 90_000)
+    // waiting out a relaunch (HANG_SETTLE_MS), bringing back a gone app (CRASH_RECOVERY_MS) and then
+    // ending the attempt (its screenshot and logs)
+    this.timeout(HANG_SETTLE_MS + CRASH_RECOVERY_MS + 90_000)
     // a body mocha timed out is still running and never stopped its watch, and a relaunch the watch
     // started may still be running
     stopHangWatch()
     await settleHangRelaunch()
     const test = this.currentTest
     const token = test && attempts.get(test)
-    if (!test || !token) return
-    const hookError = failuresOf(suitesOf(test), ['_beforeEach', '_afterEach']).join('; ') || undefined
-    if (endedRecord(token)) {
-      if (hookError) failEndedAttempt(token, hookError)
-      return
-    }
-    if (test.isPending()) {
-      endAttemptOf(token, {durationMs: test.duration ?? 0, status: 'skipped'})
-      return
-    }
-    const error =
-      hookError ??
-      bodyErrors.get(token) ??
-      (test.timedOut ? timeoutMessage(test.timeout()) : 'the attempt ended without wdio afterTest recording it')
+    // An app gone now went away during this test where its body's own check did not see it (mocha
+    // timed the body out, or a flow afterEach): it is brought back, inside the attempt while that is
+    // open, and the test fails of it. A recovery that fails is thrown once the attempt has ended,
+    // which ends the run, so every later test is recorded as never run with why.
+    let gone: string | undefined
+    let stop: Error | undefined
     try {
-      await runAttempt(token, async () => finishAttempt({duration: test.duration ?? 0, error: new Error(error), passed: false}))
+      gone = await recoverGoneApp(token)
     } catch (e) {
-      // what kept afterTest from ending it can stop finishAttempt too; a throw here would end the run
-      if (!endedRecord(token)) endAttemptOf(token, {durationMs: test.duration ?? 0, error: `${error}; ending it: ${message(e)}`, status: 'failed'})
+      stop = e instanceof Error ? e : new Error(String(e))
     }
+    if (test && token) await endTheAttempt(test, token, [gone, stop?.message].filter(Boolean).join('; ') || undefined)
+    if (stop) throw stop
   })
 )
 

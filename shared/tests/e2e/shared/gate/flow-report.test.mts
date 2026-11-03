@@ -93,3 +93,22 @@ test('without variantOf every project of a spec is keyed and labelled by the spe
   assert.doesNotMatch(html, /\(dark\)/)
   assert.equal(html.split('known on master: flaky send').length - 1, 2)
 })
+
+test('a tour entry captured twice shows why on its card; one captured once has no such mark', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({suites: []}))
+  const renderDir = path.join(dir, 'render')
+  fs.mkdirSync(renderDir)
+  const note = 'recaptured after the inspector page dropped: inspector connection closed before answering'
+  const entries = [
+    {id: 'settings/display', note, png: null, status: 'ok'},
+    {id: 'settings/chat', png: null, status: 'ok'},
+  ]
+  fs.writeFileSync(path.join(renderDir, 'render.json'), JSON.stringify({entries}))
+  assert.equal(runFlowReport(platform(dir), ['--render', renderDir]), 0)
+  const html = fs.readFileSync(path.join(dir, 'report.html'), 'utf8')
+  assert.ok(html.includes('tour · settings/display (recaptured)'))
+  assert.ok(html.includes(note))
+  assert.ok(html.includes('tour · settings/chat'))
+  assert.ok(!html.includes('tour · settings/chat ('))
+})

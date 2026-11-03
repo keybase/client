@@ -7,12 +7,13 @@
 //   KB_SMOKE_USER  the account the app under test is signed in as, and the team owner
 //   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages)
 //   KB_E2E_TEAM    the team the e2e channels live in
-import {spawn, execFile, type ChildProcessWithoutNullStreams} from 'child_process'
+import {spawn, type ChildProcessWithoutNullStreams} from 'child_process'
 import {randomBytes} from 'crypto'
 import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
+import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
 
 // The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
@@ -184,13 +185,7 @@ class ChatApi {
 }
 
 const cli = async (args: Array<string>) =>
-  new Promise<string>((resolve, reject) => {
-    execFile(keybaseBin(), args, {encoding: 'utf8', killSignal: 'SIGKILL', timeout: cliTimeoutMs}, (err, stdout, stderr) => {
-      if (err?.killed) reject(new Error(`keybase ${args.join(' ')}: no answer in ${cliTimeoutMs / 1000}s`))
-      else if (err) reject(new Error(`keybase ${args.join(' ')}: ${stderr || err.message}`))
-      else resolve(`${stdout}${stderr}`)
-    })
-  })
+  runCli(args, `keybase ${args.join(' ')}`, {timeoutMs: cliTimeoutMs, withStderr: true})
 
 // Setting a min writer role or deleting a channel asks for confirmation on /dev/tty, so the command
 // runs under `expect` (a pseudo-terminal; `script` needs a terminal on its own stdin, which a test

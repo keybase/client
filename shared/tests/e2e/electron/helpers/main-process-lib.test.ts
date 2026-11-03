@@ -1,4 +1,4 @@
-import {cdpEvaluate, consoleLocked, electronMainPid, inspectorUrl, parseEvaluateReply, serviceSocketFds} from './main-process-lib'
+import {cdpEvaluate, electronMainPid, inspectorUrl, parseEvaluateReply, serviceSocketFds} from './main-process-lib'
 
 describe('inspectorUrl', () => {
   test('picks the node target', () => {
@@ -84,12 +84,3 @@ describe('serviceSocketFds', () => {
   })
 })
 
-describe('consoleLocked', () => {
-  test('reads the root entry', () => {
-    expect(consoleLocked('+-o Root  <class IORegistryEntry>\n    {\n      "IOConsoleLocked" = Yes\n    }')).toBe(true)
-    expect(consoleLocked('    {\n      "IOConsoleLocked" = No\n    }')).toBe(false)
-  })
-  test('refuses output without it', () => {
-    expect(() => consoleLocked('+-o Root')).toThrow(/IOConsoleLocked/)
-  })
-})

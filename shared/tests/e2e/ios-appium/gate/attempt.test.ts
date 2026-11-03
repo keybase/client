@@ -2,8 +2,11 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {
+  addEndedAttemptError,
   attemptToken,
   beginAttempt,
+  creditedSurfaces,
+  creditSurface,
   currentAttempt,
   endAttempt,
   endAttemptOf,
@@ -11,6 +14,7 @@ import {
   failEndedAttempt,
   iosReportDir,
   NEVER_ENDED,
+  openAttemptToken,
   readAttempts,
   readRunErrors,
   recordRunError,
@@ -100,6 +104,30 @@ test('a passed attempt can be failed after it ended, a failed one keeps its reas
   ])
 })
 
+test('an ended attempt can be failed for a crash after its body, keeping a reason it had', () => {
+  const passed = beginAttempt(file, ['d', 'p'], 0)
+  expect(() => addEndedAttemptError(passed, 'x')).toThrow('has not ended')
+  endAttemptOf(passed, {durationMs: 3, status: 'passed'})
+  addEndedAttemptError(passed, 'the app crashed')
+  const failed = beginAttempt(file, ['d', 'f'], 0)
+  endAttemptOf(failed, {durationMs: 3, error: 'first', status: 'failed'})
+  addEndedAttemptError(failed, 'the app crashed')
+  expect(readAttempts().map(r => [r.titlePath.at(-1), r.status, r.error])).toEqual([
+    ['p', 'failed', 'the app crashed'],
+    ['f', 'failed', 'first; the app crashed'],
+  ])
+})
+
+test('the open attempt is the running body\'s until it ends, and none outside one', () => {
+  const token = beginAttempt(file, ['d', 'o'], 0)
+  expect(openAttemptToken()).toBeUndefined()
+  runAttempt(token, () => {
+    expect(openAttemptToken()).toBe(token)
+    endAttemptOf(token, {durationMs: 1, status: 'passed'})
+    expect(openAttemptToken()).toBeUndefined()
+  })
+})
+
 test('run errors are kept once each, in the order they were recorded', () => {
   expect(readRunErrors()).toEqual([])
   recordRunError('one')
@@ -112,4 +140,17 @@ test('the report dir defaults to shared/tests/results/ios-report', () => {
   delete process.env['KB_IOS_REPORT_DIR']
   expect(iosReportDir()).toBe(path.resolve(__dirname, '../../../results/ios-report'))
   expect(iosReportDir().endsWith(path.join('shared', 'tests', 'results', 'ios-report'))).toBe(true)
+})
+
+test('surfaces are credited to the running attempt once each, and only inside one', () => {
+  expect(() => creditSurface('relaunch')).toThrow('no test attempt is running')
+  const a = beginAttempt(file, ['d', 't'], 0)
+  runAttempt(a, () => {
+    creditSurface('deep-link')
+    creditSurface('relaunch')
+    creditSurface('deep-link')
+    expect(creditedSurfaces()).toEqual(['deep-link', 'relaunch'])
+  })
+  const b = beginAttempt(file, ['d', 't'], 1)
+  runAttempt(b, () => expect(creditedSurfaces()).toEqual([]))
 })

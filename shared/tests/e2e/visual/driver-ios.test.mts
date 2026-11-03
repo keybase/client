@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {pidFromLaunchctl} from '../ios-appium/helpers/app.ts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
   const win = {height: 800, width: 400}
@@ -294,4 +295,168 @@ test('typeIntoTarget types into the focused screen\'s input, never a hidden scre
   const root = parent({tag: 3}, parent({tag: 0}, chain(screen(true), field(shown)), chain(screen(false), field(hidden))))
   typeIn(root, false)
   assert.deepEqual([shown, hidden], [['visual gate'], []])
+})
+
+test('a broken app is reloaded, unless its inspector page is gone, which only a relaunch can fix', () => {
+  assert.equal(recoveryFor('reading the router state: app evaluate threw: Error: no navigation state'), 'reload')
+  assert.equal(recoveryFor('reading the router state: no answer in 5s'), 'reload')
+  assert.equal(
+    recoveryFor('reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'),
+    'relaunch'
+  )
+  assert.equal(
+    recoveryFor('reading the router state: inspector connection closed before answering'),
+    'relaunch'
+  )
+})
+
+test('the app pid is read from launchctl list, and a listed app with no pid is not running', () => {
+  const out = [
+    'PID\tStatus\tLabel',
+    '412\t0\tcom.apple.springboard',
+    '99507\t0\tUIKitApplication:keybase.ios[b613][rb-legacy]',
+    '-\t0\tUIKitApplication:keybase.ios.share[aa][rb-legacy]',
+  ].join('\n')
+  assert.equal(pidFromLaunchctl(out, 'keybase.ios'), 99507)
+  assert.equal(pidFromLaunchctl('-\t-9\tUIKitApplication:keybase.ios[b613][rb-legacy]', 'keybase.ios'), undefined)
+  assert.equal(pidFromLaunchctl('412\t0\tcom.apple.springboard', 'keybase.ios'), undefined)
+})
+
+const sameRuntime = {tokenExpected: 'tok-1', tokenSeen: 'tok-1'}
+
+test('a capture is taken again only when it lost the inspector page and the app process lived through it', () => {
+  const dropped = 'switching to tabs.peopleTab: no Metro inspector page for iPhoneTest (Metro lists nothing)'
+  // a socket drop: same process
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), true)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: inspector connection closed before answering', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), true)
+  // the app died: killed or crashed, then nothing running, or something else started it again
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: 200, pidBefore: 100, ...sameRuntime}), false)
+  // no pid to compare with
+  assert.equal(recaptureAfterDrop({firstError: dropped, pidAtDrop: undefined, pidBefore: undefined, ...sameRuntime}), false)
+  // a failure that is not a lost page
+  assert.equal(recaptureAfterDrop({firstError: 'testID x did not appear after 10s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: 'switching to tabs.peopleTab: no answer in 5s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+  assert.equal(recaptureAfterDrop({firstError: undefined, pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+})
+
+test('a capture that failed for a reason of its own before the page went is not taken again', () => {
+  // the first error is the capture's own; the lost page only shows in what followed
+  assert.equal(recaptureAfterDrop({firstError: 'testID settingsDisplay did not appear after 10s', pidAtDrop: 100, pidBefore: 100, ...sameRuntime}), false)
+  // a capture that passed, then lost the page in the router check after it
+  assert.equal(
+    recaptureAfterDrop({
+      firstError: 'the app was left broken (reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)) and was relaunched',
+      pidAtDrop: 100,
+      pidBefore: 100,
+      ...sameRuntime,
+    }),
+    true
+  )
+})
+
+test('a capture is taken again only when the JS runtime at the drop is the one the run last marked', () => {
+  const dropped = 'switching to tabs.peopleTab: inspector connection closed before answering'
+  const same = {firstError: dropped, pidAtDrop: 100, pidBefore: 100}
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: 'tok-1'}), true)
+  // the JS reloaded or crashed and restarted under the same pid: an unmarked runtime, or one marked
+  // by a reload or relaunch the recovery did
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: null}), false)
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: 'tok-2'}), false)
+  // never read back
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: 'tok-1', tokenSeen: undefined}), false)
+  assert.equal(recaptureAfterDrop({...same, tokenExpected: undefined, tokenSeen: undefined}), false)
+})
+
+// Recovery deps that log each call; `routerAt` and `readToken` answer from the given lists in turn.
+const recoverWith = (o: {drop?: boolean; restarted?: boolean; router?: Array<string | undefined>; token?: Array<boolean>}) => {
+  const calls: Array<string> = []
+  let restarted = false
+  let dropped = !!o.drop
+  const deps: RecoverDeps = {
+    dropPending: () => dropped,
+    noteDrop: () => {
+      calls.push('noteDrop')
+      dropped = true
+    },
+    readToken: async () => {
+      calls.push('readToken')
+      const back = o.token?.shift() ?? true
+      if (back) restarted = !!o.restarted
+      return Promise.resolve(back)
+    },
+    relaunch: async () => {
+      calls.push('relaunch')
+      return Promise.resolve()
+    },
+    reload: async () => {
+      calls.push('reload')
+      return Promise.resolve()
+    },
+    routerAt: async () => {
+      calls.push('routerAt')
+      const err = o.router?.shift()
+      return err === undefined ? Promise.resolve() : Promise.reject(new Error(err))
+    },
+    runtimeRestarted: () => restarted,
+  }
+  return {calls, deps}
+}
+const LOST = 'reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'
+
+test('a page back on a restarted runtime is reloaded into the prepared state, though its router is fine', async () => {
+  const {calls, deps} = recoverWith({drop: true, restarted: true})
+  const why = await recoverApp(deps)
+  assert.deepEqual(calls, ['readToken', 'reload'])
+  assert.match(why ?? '', /the JS runtime restarted while the inspector page was gone\) and was reloaded/)
+  // and the entry stays failed: the runtime it reads back is not the one the run marked
+  assert.equal(
+    recaptureAfterDrop({firstError: LOST, pidAtDrop: 100, pidBefore: 100, tokenExpected: 'tok-1', tokenSeen: null}),
+    false
+  )
+})
+
+test('a page back on the same runtime with a working router needs nothing', async () => {
+  const {calls, deps} = recoverWith({drop: true})
+  assert.equal(await recoverApp(deps), undefined)
+  assert.deepEqual(calls, ['readToken', 'routerAt'])
+})
+
+test('a page that does not come back after a drop is relaunched, without waiting on the router', async () => {
+  const {calls, deps} = recoverWith({drop: true, token: [false]})
+  assert.match((await recoverApp(deps)) ?? '', /the inspector page did not come back\) and was relaunched/)
+  assert.deepEqual(calls, ['readToken', 'relaunch'])
+})
+
+test('a router check that loses the page notes the drop, and a restarted runtime behind it is reloaded', async () => {
+  const {calls, deps} = recoverWith({restarted: true, router: [LOST]})
+  assert.match((await recoverApp(deps)) ?? '', /and was reloaded/)
+  assert.deepEqual(calls, ['routerAt', 'noteDrop', 'readToken', 'reload'])
+})
+
+test('a router check that loses the page goes on as a drop: the page back on the same runtime gets the router once more', async () => {
+  const ok = recoverWith({router: [LOST]})
+  assert.equal(await recoverApp(ok.deps), undefined)
+  assert.deepEqual(ok.calls, ['routerAt', 'noteDrop', 'readToken', 'routerAt'])
+  const broken = recoverWith({router: [LOST, 'reading the router state: app evaluate threw: Error: no navigation state']})
+  assert.match((await recoverApp(broken.deps)) ?? '', /Metro lists nothing\); once the page was back: .*no navigation state\) and was reloaded/)
+  assert.deepEqual(broken.calls, ['routerAt', 'noteDrop', 'readToken', 'routerAt', 'reload'])
+  const gone = recoverWith({router: [LOST], token: [false]})
+  assert.match((await recoverApp(gone.deps)) ?? '', /Metro lists nothing\); the inspector page did not come back\) and was relaunched/)
+  assert.deepEqual(gone.calls, ['routerAt', 'noteDrop', 'readToken', 'relaunch'])
+})
+
+test('without a drop a working router needs nothing, and a broken one is reloaded', async () => {
+  const ok = recoverWith({})
+  assert.equal(await recoverApp(ok.deps), undefined)
+  assert.deepEqual(ok.calls, ['routerAt'])
+  const broken = recoverWith({router: ['reading the router state: app evaluate threw: Error: no navigation state']})
+  assert.match((await recoverApp(broken.deps)) ?? '', /no navigation state\) and was reloaded/)
+  assert.deepEqual(broken.calls, ['routerAt', 'reload'])
+})
+
+test('a relaunch that fails stops the run with one error', async () => {
+  const {deps} = recoverWith({drop: true, token: [false]})
+  deps.relaunch = async () => Promise.reject(new Error('activating the app: no answer in 30s'))
+  await assert.rejects(recoverApp(deps), /a relaunch did not bring it back: activating the app: no answer in 30s/)
 })

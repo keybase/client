@@ -11,29 +11,14 @@
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
-import {execFile} from 'child_process'
-import {keybaseBin} from '../shared/keybase-bin.ts'
+import {readCliMasked} from './cli-masked.mts'
 import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
 
-const CLI_TIMEOUT_MS = 30_000
-
-export const runCli: CliRunner = async args =>
-  new Promise<string>((resolve, reject) => {
-    const proc = execFile(
-      keybaseBin(),
-      args,
-      {encoding: 'utf8', killSignal: 'SIGKILL', timeout: CLI_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024},
-      (err, stdout, stderr) => {
-        if (err?.killed) reject(new Error(`keybase ${args[0]}: no answer in ${CLI_TIMEOUT_MS / 1000}s`))
-        else if (err) reject(new Error(`keybase ${args[0]}: ${stderr || err.message}`))
-        else resolve(stdout)
-      }
-    )
-    proc.stdin?.end()
-  })
+// Every call here only reads. Bound: readCli's, 61s.
+export const runCli: CliRunner = async args => readCliMasked(args, `keybase ${args[0]}`)
 
 type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})

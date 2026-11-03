@@ -98,7 +98,8 @@ const enabledOutgoing = () => {
 }
 
 const checkManualReasons = (exclusions: Exclusions, manualOnly: Record<string, unknown>) => {
-  const bad = Object.entries({...exclusions.routes, ...exclusions.rpcs})
+  const bad = [exclusions.routes, exclusions.rpcs, exclusions.surfaces ?? {}]
+    .flatMap(o => Object.entries(o))
     .map(([k, reason]) => [k, /^manual-only: ([\w-]+)/.exec(reason)?.[1]] as const)
     .filter(([, id]) => id !== undefined && !(id in manualOnly))
   if (bad.length) throw new Error(`exclusions name unknown MANUAL_ONLY ids: ${bad.map(([k, id]) => `${k} (${id})`).join(', ')}`)
@@ -154,7 +155,7 @@ const run = (p: CensusPlatform, argv: ReadonlyArray<string> | undefined): number
   console.log(
     `census: routes ${t.routesCovered} covered, ${t.routesUnclaimed} unclaimed, ${t.routesExcluded} excluded; ` +
       `writes ${t.writesCovered} covered, ${t.writesUnsent} unsent, ${t.writesBackground} background, ${t.writesExcluded} excluded; ` +
-      `${noun}s ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed; ` +
+      `${noun}s ${t.surfacesCovered} covered, ${t.surfacesUnclaimed} unclaimed${t.surfacesExcluded ? `, ${t.surfacesExcluded} excluded` : ''}; ` +
       `${t.stale} stale exclusions, ${result.coverageProblems.length} coverage problems (${flows.length} passing flow tests, ${entries.length} rendered tour entries)`
   )
   console.log(`census: ${mdFile}`)

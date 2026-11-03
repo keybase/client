@@ -10,6 +10,7 @@ import {byText, el, waitForTestID} from './elements'
 import {appSnapshot, jsEval as jsEvalOnce, openUrl, waitFor} from './lifecycle'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import * as T from '../../shared/test-ids'
+import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -455,12 +456,7 @@ export const openConversation = async (convID: string) => {
 
 // -- accounts -----------------------------------------------------------------------------------
 
-type Account = {loggedIn: boolean; switching: boolean; username: string}
-export const signedInAs = async () =>
-  jsEval<Account>(`
-    const c = kbModule('stores/config.tsx').useConfigState.getState()
-    return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
-  `)
+export const signedInAs = async () => jsEval<AppAccount>(APP_ACCOUNT_BODY)
 
 // Opens the account switcher sheet from the chat tab's avatar.
 export const openAccountSwitcher = async () => {

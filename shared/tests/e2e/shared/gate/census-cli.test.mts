@@ -68,6 +68,20 @@ test('an unclaimed route exits 1', () => {
   assert.equal(quiet(() => runCensusCli(platform, ['--no-render'])), 1)
 })
 
+test('manual-only reasons are checked per kind, so a same-named route and rpc both count', () => {
+  const {platform} = fixture(true)
+  const bad = {...platform, exclusions: {routes: {k: 'manual-only: known'}, rpcs: {k: 'manual-only: nope'}, surfaces: {s: 'manual-only: nada'}}, manualOnly: {known: 1}}
+  const errors: Array<string> = []
+  const err = console.error
+  console.error = (m: string) => errors.push(m)
+  try {
+    assert.equal(runCensusCli(bad, ['--no-render']), 1)
+  } finally {
+    console.error = err
+  }
+  assert.match(errors.join(), /k \(nope\), s \(nada\)/)
+})
+
 const writeRender = (dir: string, stamp: string, platform: string | undefined, routes: Array<string>) => {
   const run = path.join(dir, 'visual/render', stamp)
   fs.mkdirSync(run, {recursive: true})

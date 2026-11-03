@@ -419,6 +419,7 @@ type RenderRow = {
   startRoutes: Array<string>
   rpcs: Array<string>
   openedUnread: boolean
+  note?: string
 }
 
 // Every selected entry captured from this tree, for a person or the release gate to look
@@ -460,9 +461,11 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
           startRoutes,
           status: cap.status,
           theme,
+          ...(cap.note ? {note: cap.note} : {}),
         }
         rows.push(row)
-        const note = cap.status === 'unstable' ? ' (unstable: frames still changing at capture)' : ''
+        const note =
+          cap.status === 'unstable' ? ' (unstable: frames still changing at capture)' : cap.note ? ` (${cap.note})` : ''
         deps.log(cap.status === 'failed' ? `✗ ${e.id} ${platform} ${theme} failed: ${cap.error ?? 'no error given'}` : `✓ ${e.id} ${platform} ${theme}${note}`)
       }
     }

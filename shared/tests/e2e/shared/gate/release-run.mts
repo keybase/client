@@ -1,22 +1,33 @@
 // The plumbing of a release gate run: timed phases, children under a deadline, the release lock,
 // the overall deadline and interrupts, and the summary and notification at the end. The platform's
 // release command supplies what it launches and stops.
+import {appendFileSync, existsSync, mkdirSync, statSync} from 'fs'
+import {dirname} from 'path'
 import {spawn, execFileSync, type ChildProcess} from 'child_process'
 import {redactSecrets} from '../peer-service.ts'
 import {acquireFileLock} from '../../visual/lock.mts'
-import {fmtMs, summaryLines, type Phase} from './release-lib.ts'
+import {fmtMs, summaryLines, writtenSince, type Phase} from './release-lib.ts'
 
 const MIN = 60_000
+const CLOSE_WAIT_MS = 2_000
 
 export const errText = (e: unknown) => redactSecrets(e instanceof Error ? e.message : String(e))
 
-export type ChildResult = {code: number | null; stdout: string; timedOut: boolean}
+// logError: the first failure writing opts.logFile; the child's own result is unaffected
+export type ChildResult = {code: number | null; stdout: string; timedOut: boolean; logError?: string}
+
+export type ChildOptions = {
+  // stdout and stderr are also appended here as they arrive
+  logFile?: string
+  env?: NodeJS.ProcessEnv
+  cwd?: string
+}
 
 export type ReleaseRun = {
   runStart: number
   log: (s: string) => void
   phase: (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => Promise<boolean>
-  runChild: (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) => Promise<ChildResult>
+  runChild: (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number, opts?: ChildOptions) => Promise<ChildResult>
   remainingMs: () => number
   // cleanup may add to it
   phases: Array<Phase>
@@ -35,8 +46,8 @@ export type ReleaseRunOptions = {
   lockPath: string
   deadlineMs: number
   notifyTitle: string
-  // what the summary shows after the phase lines
-  printResults: () => void
+  // what the summary lists after the phase lines, by label, each marked when this run did not write it
+  artifacts: () => ReadonlyArray<readonly [label: string, path: string]>
   // Runs first when the run ends, before the summary: may add phases and returns the exit code.
   cleanup?: (code: number) => Promise<number>
   notify?: (text: string) => void
@@ -64,39 +75,71 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   // Runs a child in `cwd` with its output passed through, under a deadline (SIGTERM, then SIGKILL
   // 10s later). Resolves with its exit code (null when killed) and its stdout. Once the run is aborted
   // it starts nothing and resolves at once as a child that timed out.
-  const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number) =>
+  const runChild = async (name: string, cmd: string, args: ReadonlyArray<string>, timeoutMs: number, opts: ChildOptions = {}) =>
     new Promise<ChildResult>(resolve => {
       if (isAborted()) {
         resolve({code: null, stdout: '', timedOut: true})
         return
       }
-      const child = spawn(cmd, [...args], {cwd: o.cwd, env: process.env, stdio: ['ignore', 'pipe', 'pipe']})
+      const child = spawn(cmd, [...args], {cwd: opts.cwd ?? o.cwd, env: opts.env ?? process.env, stdio: ['ignore', 'pipe', 'pipe']})
       currentChild = child
+      let logError: string | undefined
+      const toFile = (d: Buffer) => {
+        if (!opts.logFile || logError) return
+        try {
+          appendFileSync(opts.logFile, d)
+        } catch (e) {
+          logError = errText(e)
+          log(`${name}: log write failed: ${logError}`)
+        }
+      }
+      if (opts.logFile) {
+        try {
+          mkdirSync(dirname(opts.logFile), {recursive: true})
+        } catch (e) {
+          logError = errText(e)
+          log(`${name}: log write failed: ${logError}`)
+        }
+      }
       let stdout = ''
       let timedOut = false
       let killTimer: ReturnType<typeof setTimeout> | undefined
+      let closeTimer: ReturnType<typeof setTimeout> | undefined
+      let done = false
       child.stdout.on('data', (d: Buffer) => {
-        stdout += d.toString()
+        if (!done) stdout += d.toString()
         process.stdout.write(d)
+        toFile(d)
       })
-      child.stderr.on('data', (d: Buffer) => process.stderr.write(d))
+      child.stderr.on('data', (d: Buffer) => {
+        process.stderr.write(d)
+        toFile(d)
+      })
       const timer = setTimeout(() => {
         timedOut = true
         log(`${name}: not done in ${Math.round(timeoutMs / 1000)}s; stopping it`)
         child.kill('SIGTERM')
         killTimer = setTimeout(() => child.kill('SIGKILL'), 10_000)
       }, timeoutMs)
-      child.on('close', code => {
+      const settle = (r: ChildResult) => {
+        if (done) return
+        done = true
         clearTimeout(timer)
         clearTimeout(killTimer)
+        clearTimeout(closeTimer)
         if (currentChild === child) currentChild = undefined
-        resolve({code, stdout, timedOut})
+        resolve(r)
+      }
+      const result = (code: number | null, out = stdout) => ({code, stdout: out, timedOut, ...(logError ? {logError} : {})})
+      child.on('close', code => settle(result(code)))
+      // A grandchild that inherited the pipes (Appium, WebDriverAgent's xcodebuild) keeps them open after
+      // the child exits, and 'close' only comes once it lets go: the child's exit settles it once its
+      // output has had CLOSE_WAIT_MS to drain. The pipes stay open and keep passing the grandchild's
+      // output through (closing them would kill it with SIGPIPE on its next write).
+      child.on('exit', code => {
+        closeTimer = setTimeout(() => settle(result(code)), CLOSE_WAIT_MS)
       })
-      child.on('error', e => {
-        clearTimeout(timer)
-        clearTimeout(killTimer)
-        resolve({code: null, stdout: `${stdout}\n${e.message}`, timedOut})
-      })
+      child.on('error', e => settle(result(null, `${stdout}\n${e.message}`)))
     })
 
   const phase = async (name: string, f: () => Promise<Omit<Phase, 'name' | 'ms'>>) => {
@@ -162,7 +205,10 @@ export const createReleaseRun = (o: ReleaseRunOptions): ReleaseRun => {
   const printResults = () => {
     for (const line of summaryLines(phases)) console.log(line)
     console.log(`total ${fmtMs(Date.now() - runStart)}, run id ${process.env['KB_E2E_RUN_ID'] ?? '(none)'}`)
-    o.printResults()
+    for (const [label, p] of o.artifacts()) {
+      const fresh = writtenSince({path: p, ...(existsSync(p) ? {mtimeMs: statSync(p).mtimeMs} : {})}, runStart)
+      console.log(`${label.padEnd(17)}${p}${fresh ? '' : ' (not written by this run)'}`)
+    }
   }
 
   const finish = async (code: number, why?: string) => {

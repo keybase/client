@@ -9,8 +9,8 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
-import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
-import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
+import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
+import {evalInPage, inspectorPageFor, lostInspectorPage, retryFor, whileLost} from '../shared/metro-eval.ts'
 import {
   fixDate,
   IDLE_QUIET_MS,
@@ -90,6 +90,10 @@ const APPIUM_STOP_MS = 5_000
 const SESSION_MS = 180_000
 const SIMCTL_MS = 10_000
 const EVAL_MS = 5_000
+// The app's inspector socket to Metro drops now and then while the app runs on; RN reconnects
+// after 2s, then 4s and 8s, so this covers three tries.
+const PAGE_MS = 15_000
+const PAGE_POLL_MS = 500
 const APP_CMD_MS = 30_000
 const BOOT_MS = 90_000
 const RESET_MS = 5_000
@@ -104,6 +108,99 @@ const SCROLL_ATTEMPTS = 4
 const TARGET_QUIET_MS = 300
 // Longer than a Pressable's 500ms long press delay.
 const LONG_PRESS_S = 1
+
+// How a capture that left the app broken (`why`) is first tried: a reload runs through the
+// app's inspector page, so without one only a relaunch can help.
+export const recoveryFor = (why: string): 'reload' | 'relaunch' => (lostInspectorPage(why) ? 'relaunch' : 'reload')
+
+// A capture whose first error was a lost inspector page is taken once more only when the app lived
+// through it (a socket drop): the same process, and in it the same JS runtime (the token the run last
+// set, `tokenExpected`, read back as `tokenSeen`; null when the runtime has none, undefined when it
+// could not be read). An app that died (crashed, was killed) or whose JS restarted keeps the entry
+// failed, so a route that takes the app down is never hidden; so does a capture that failed for a
+// reason of its own before the page went.
+export const recaptureAfterDrop = (o: {
+  firstError: string | undefined
+  pidBefore: number | undefined
+  pidAtDrop: number | undefined
+  tokenExpected: string | undefined
+  tokenSeen: string | null | undefined
+}) =>
+  lostInspectorPage(o.firstError) &&
+  o.pidBefore !== undefined &&
+  o.pidAtDrop === o.pidBefore &&
+  o.tokenExpected !== undefined &&
+  o.tokenSeen === o.tokenExpected
+
+export type RecoverDeps = {
+  routerAt: () => Promise<unknown>
+  // whether the current capture lost the inspector page
+  dropPending: () => boolean
+  noteDrop: () => void
+  // reads the app's runtime token once its page answers (once per drop); false when it doesn't
+  readToken: () => Promise<boolean>
+  runtimeRestarted: () => boolean
+  reload: () => Promise<void>
+  relaunch: () => Promise<void>
+}
+
+// Brings back an app a capture left broken, and says how, or undefined when nothing was. A screen
+// that throws takes the navigator down with it (no navigation state) and every later capture would
+// fail on that, so such an app is reloaded. A reload goes through the inspector page, so an app whose
+// page is gone is relaunched instead; one a relaunch can't bring back stops the run, since every later
+// capture would fail the same way. After a lost page the runtime is checked before the router: one
+// that restarted has a router too, but none of what prepare set, so it is reloaded. The router and
+// token reads are side-effect free, so they may run again; nothing else does.
+export const recoverApp = async (d: RecoverDeps): Promise<string | undefined> => {
+  let why = ''
+  let step: 'reload' | 'relaunch' = 'reload'
+  const also = (s: string) => {
+    why = why ? `${why}; ${s}` : s
+  }
+  // with no drop yet, the router first: a lost page there is a drop, and goes on as one
+  if (!d.dropPending()) {
+    try {
+      await d.routerAt()
+      return undefined
+    } catch (e) {
+      why = (e as Error).message
+      step = recoveryFor(why)
+    }
+    if (lostInspectorPage(why)) d.noteDrop()
+  }
+  if (d.dropPending()) {
+    if (!(await d.readToken())) {
+      also('the inspector page did not come back')
+      step = 'relaunch'
+    } else if (d.runtimeRestarted()) {
+      also('the JS runtime restarted while the inspector page was gone')
+      step = 'reload'
+    } else {
+      try {
+        await d.routerAt()
+        return undefined
+      } catch (e) {
+        const again = (e as Error).message
+        also(why ? `once the page was back: ${again}` : again)
+        step = recoveryFor(again)
+      }
+    }
+  }
+  if (step === 'reload') {
+    try {
+      await d.reload()
+      return `the app was left broken (${why}) and was reloaded`
+    } catch (e) {
+      why = `${why}; the reload failed: ${(e as Error).message}`
+    }
+  }
+  try {
+    await d.relaunch()
+  } catch (e) {
+    throw new Error(`the app was left broken (${why}) and a relaunch did not bring it back: ${(e as Error).message}`, {cause: e})
+  }
+  return `the app was left broken (${why}) and was relaunched`
+}
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -198,6 +295,16 @@ const stopAppium = async (child: ChildProcess) => {
     child.kill('SIGKILL')
   }
 }
+
+// Fixes Date at `at`, keeping React Native's Animated clock real. JS-driven Animated (timing,
+// spring and decay without the native driver, e.g. SwitchToggle's on mount) reads its time from
+// Date.now(), so under a fixed Date it never reaches its end: it updates the view every frame
+// forever, and the busy main thread makes WDA's accessibility snapshots (the window rect, element
+// queries) take seconds.
+const fixClocks = (at: number) =>
+  `(${fixDate.toString()})(${at});
+   kbModule('node_modules/react-native/Libraries/Animated/AnimationTimingUtils.js')
+     .setAnimationTimeProvider(() => globalThis.__kbVisualRealDate.now())`
 
 const ROUTER = `const r = kbModule('constants/router.tsx');`
 // The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
@@ -376,12 +483,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     throw e
   }
 
-  const appEval = async <R,>(body: string, what: string) =>
-    withDeadline(
-      (async () => evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body))(),
-      EVAL_MS,
-      what
-    )
+  const appEval = async <R,>(body: string, what: string) => {
+    const page = await retryFor(async () => inspectorPageFor(device, BUNDLE_ID), {intervalMs: PAGE_POLL_MS, ms: PAGE_MS, what})
+    return withDeadline(evalInPage<R>(page, body), EVAL_MS, what)
+  }
   const appCmd = async <R,>(p: Promise<R>, what: string) => withDeadline(p, APP_CMD_MS, what)
 
   // A token set on the JS runtime; a runtime without it is a fresh one (after a reload or relaunch).
@@ -430,11 +535,45 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     )
     await waitForRuntime(true)
   }
+  const appPid = () => {
+    try {
+      return pidFromLaunchctl(simctl('spawn', udid, 'launchctl', 'list'), BUNDLE_ID)
+    } catch {
+      return undefined
+    }
+  }
+  // The app process the run last started or found. When the current capture loses the inspector
+  // page: the process then (read before any relaunch replaces it), the runtime token the run last set,
+  // and the token the app answers with once the page is back.
+  let knownPid: number | undefined
+  let drop: {pid: number | undefined; tokenExpected: string; tokenSeen?: string | null} | undefined
+  const noteDrop = () => {
+    drop ??= {pid: appPid(), tokenExpected: runtimeToken}
+  }
+  // Reads the app's runtime token once its page answers, once per drop (a no-op once read, or with
+  // no drop): false when the page does not answer.
+  const readDropToken = async () => {
+    const d = drop
+    if (!d || d.tokenSeen !== undefined) return true
+    try {
+      const t = await retryFor(async () => appEval<unknown>('return globalThis.__kbVisualRuntime', 'reading the JS runtime token'), {
+        intervalMs: PAGE_POLL_MS,
+        ms: PAGE_MS,
+        retryIf: whileLost,
+      })
+      d.tokenSeen = typeof t === 'string' ? t : null
+      return true
+    } catch {
+      return false
+    }
+  }
+  const runtimeRestarted = () => drop !== undefined && drop.tokenSeen !== drop.tokenExpected
   const relaunchApp = async () => {
     await markRuntime().catch(() => {})
     await appCmd(browser.terminateApp(BUNDLE_ID), 'terminating the app')
     await appCmd(browser.activateApp(BUNDLE_ID), 'activating the app')
     await waitForRuntime(true)
+    knownPid = appPid()
   }
 
   // Reanimated reads Reduce Motion once, when its native module starts; RN's AccessibilityInfo
@@ -737,7 +876,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     if (changed || !(await accessibilityOn())) await relaunchApp()
     else if (p.reload) await reloadJs()
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
-    await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
+    await appEval(fixClocks(p.frozenAt), 'fixing Date')
     datePatched = true
     frozenAt = p.frozenAt
     await applyLight()
@@ -745,33 +884,41 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
+    // a capture that loses the inspector page compares the runtime with this mark
+    await markRuntime()
+    knownPid = appPid()
     prepared = true
   }
 
-  // A fresh JS runtime set up as prepare left it.
-  const reloadPrepared = async (at: number) => {
-    await reloadJs()
-    await appEval(`(${fixDate.toString()})(${at})`, 'fixing Date')
+  // The state prepare leaves on a fresh JS runtime.
+  const restorePrepared = async (at: number) => {
+    await appEval(fixClocks(at), 'fixing Date')
     await applyLight()
     await remountScreens()
     await warmTabs()
+    await markRuntime()
   }
-  // A screen that throws takes the navigator down with it (no navigation state), and every later
-  // capture would fail on that; so a capture that left the app without one reloads it.
+  const reloadPrepared = async (at: number) => {
+    await reloadJs()
+    await restorePrepared(at)
+  }
+  const relaunchPrepared = async (at: number) => {
+    await relaunchApp()
+    if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
+    await restorePrepared(at)
+  }
   const recoverIfBroken = async (): Promise<string | undefined> => {
     if (frozenAt === undefined) return undefined
-    try {
-      await routerAt()
-      return undefined
-    } catch (e) {
-      const why = (e as Error).message
-      try {
-        await reloadPrepared(frozenAt)
-        return `the app was left broken (${why}) and was reloaded`
-      } catch (e2) {
-        return `the app was left broken (${why}) and the reload failed: ${(e2 as Error).message}`
-      }
-    }
+    const at = frozenAt
+    return recoverApp({
+      dropPending: () => drop !== undefined,
+      noteDrop,
+      readToken: readDropToken,
+      relaunch: async () => relaunchPrepared(at),
+      reload: async () => reloadPrepared(at),
+      routerAt,
+      runtimeRestarted,
+    })
   }
 
   // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
@@ -800,7 +947,11 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const takeRecorder = async (startedIn: string) =>
     takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
-  const capture: IosSession['capture'] = async (entry, opts) => {
+  const captureOnce = async (
+    entry: TourEntry,
+    opts: {record?: boolean} | undefined
+  ): Promise<{result: Capture; firstError: string | undefined}> => {
+    drop = undefined
     let png: Buffer | undefined
     let recordingIn: string | undefined
     const fixture = fixtureCapture(fixtureHooks, entry.fixture)
@@ -881,14 +1032,32 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     problems.push(...(await fixture.end()))
+    if (lostInspectorPage(result.error ?? problems[0])) noteDrop()
     // a fixture's end can leave the navigator without state too, so this runs after every capture
     const recovered = await recoverIfBroken()
     if (recovered) problems.push(recovered)
+    // after a reload or relaunch this reads that new runtime, which keeps the entry failed
+    await readDropToken()
+    const firstError = result.error ?? problems[0]
     if (problems.length) {
       const why = problems.join('; ')
       result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
     }
-    return result
+    return {firstError, result}
+  }
+  const capture: IosSession['capture'] = async (entry, opts) => {
+    const pidBefore = knownPid
+    const {result: first, firstError} = await captureOnce(entry, opts)
+    const seen = drop
+    if (
+      first.status !== 'failed' ||
+      !recaptureAfterDrop({firstError, pidAtDrop: seen?.pid, pidBefore, tokenExpected: seen?.tokenExpected, tokenSeen: seen?.tokenSeen})
+    )
+      return first
+    const {result: second} = await captureOnce(entry, opts)
+    return second.status === 'failed'
+      ? {...second, error: `${second.error ?? 'no error given'}; captured again after the inspector page dropped, which failed first with: ${first.error}`}
+      : {...second, note: `recaptured after the inspector page dropped: ${first.error}`}
   }
 
   const close: IosSession['close'] = async () => {

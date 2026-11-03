@@ -512,6 +512,27 @@ test('render: refuses --base and --coverage, an unknown id, and an app served fr
   await assert.rejects(runRender(renderDeps({servedFrom: () => '/other/shared'}), []), /served from \/other\/shared/)
 })
 
+test('render: a capture that passed on a second try says why, in its line and render.json', async () => {
+  const lines: Array<string> = []
+  const note = 'recaptured after the inspector page dropped: reading the router state: no Metro inspector page for iPhoneTest (Metro lists nothing)'
+  const capture = async (): Promise<Capture> => ({coverage: null, masks: [], note, png: pngOf(false), recorded: recorded(), status: 'ok'})
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), ['--ios']), 0)
+  const out = lines.join('\n')
+  assert.ok(out.includes(`✓ tab/chat ios light (${note})`))
+  const dir = /^render: (.*)$/m.exec(out)?.[1]
+  const summary = JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {entries: Array<{note?: string}>}
+  assert.equal(summary.entries[0]?.note, note)
+})
+
+test('render: a capture with no note writes no note field', async () => {
+  const lines: Array<string> = []
+  const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'})
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l)}), ['--ios']), 0)
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  const summary = JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {entries: Array<object>}
+  assert.ok(!('note' in summary.entries[0]!))
+})
+
 test('render: an unstable capture is rendered, and says so', async () => {
   const lines: Array<string> = []
   const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'unstable'})

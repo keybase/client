@@ -28,17 +28,63 @@ export const listInspectorPages = async (timeoutMs = 3000): Promise<Array<Inspec
 // Node's WebSocket, described here: this file is also type-checked against react-native's globals,
 // whose WebSocket differs.
 type NodeWebSocket = {
-  addEventListener: (type: 'error' | 'message' | 'open', listener: (e: {data?: unknown}) => void) => void
+  addEventListener: (type: 'close' | 'error' | 'message' | 'open', listener: (e: {data?: unknown}) => void) => void
   close: () => void
   send: (data: string) => void
 }
 type NodeWebSocketCtor = new (url: string, opts: {headers: Record<string, string>}) => NodeWebSocket
 
-export const inspectorPageFor = async (device: string, appId: string) => {
-  const page = (await listInspectorPages()).filter(p => p.deviceName === device && p.appId === appId).at(-1)
-  if (!page) throw new Error(`no Metro inspector page for ${device}`)
+export const NO_INSPECTOR_PAGE = 'no Metro inspector page'
+// Metro closes a debugger socket when the app's own inspector socket drops (or the page is gone), so
+// an eval it closes before answering may or may not have run.
+export const INSPECTOR_CLOSED = 'inspector connection closed before answering'
+// Whether `message` says the app's inspector page went away, as opposed to the app failing an eval.
+export const lostInspectorPage = (message: string | undefined) =>
+  !!message && (message.includes(NO_INSPECTOR_PAGE) || message.includes(INSPECTOR_CLOSED))
+
+// The newest of `pages` for the device and app. When there is none, the error says what Metro did
+// list: nothing (the app's inspector socket is closed) or other targets (a different device or app).
+export const pickInspectorPage = (pages: ReadonlyArray<InspectorPage>, device: string, appId: string) => {
+  const page = pages.filter(p => p.deviceName === device && p.appId === appId).at(-1)
+  if (!page) {
+    const listed = pages.map(p => `${p.deviceName ?? '?'}/${p.appId ?? '?'}/${p.title ?? '?'}`).join(', ') || 'nothing'
+    throw new Error(`${NO_INSPECTOR_PAGE} for ${device} (Metro lists ${listed})`)
+  }
   return page
 }
+
+export const inspectorPageFor = async (device: string, appId: string) =>
+  pickInspectorPage(await listInspectorPages(), device, appId)
+
+export type WaitClock = {now: () => number; sleep: (ms: number) => Promise<void>}
+const realClock: WaitClock = {now: () => Date.now(), sleep: async ms => new Promise(resolve => setTimeout(resolve, ms))}
+
+// Runs a side-effect-free `f` (a page lookup, a read) until it answers, trying it again every
+// `intervalMs` for up to `ms` while it fails in a way `retryIf` accepts (any failure when there is
+// none). A failure it does not accept, or the last one at the bound, is thrown, prefixed with `what`
+// when given. Never for a body that changes anything: one that already ran may have done it.
+export const retryFor = async <R,>(
+  f: () => Promise<R>,
+  opts: {ms: number; intervalMs: number; retryIf?: (e: Error) => boolean; what?: string; clock?: WaitClock}
+): Promise<R> => {
+  const clock = opts.clock ?? realClock
+  const end = clock.now() + opts.ms
+  for (;;) {
+    try {
+      return await f()
+    } catch (e) {
+      const err = e as Error
+      if ((opts.retryIf && !opts.retryIf(err)) || clock.now() >= end) {
+        throw opts.what ? new Error(`${opts.what}: ${err.message}`, {cause: e}) : e
+      }
+      await clock.sleep(opts.intervalMs)
+    }
+  }
+}
+
+// While the app's inspector socket flaps, a lookup can find the page and the eval's socket still be
+// closed under it: a read is tried again on that alone.
+export const whileLost = (e: Error) => lostInspectorPage(e.message)
 
 // The id of the module Metro registered as `name`: an exact verboseName first, then, for a
 // node_modules/ name, the one that ends with it, and more than one is an error (a worktree whose node_modules is a symlink makes Metro
@@ -71,6 +117,11 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
       ws.addEventListener('error', () => {
         clearTimeout(timer)
         reject(new Error('inspector connection failed'))
+      })
+      // after an answer or an error this is a no-op: the promise has settled
+      ws.addEventListener('close', () => {
+        clearTimeout(timer)
+        reject(new Error(INSPECTOR_CLOSED))
       })
       ws.addEventListener('open', () => {
         const expression = `(() => { ${prelude} ${body} })()`

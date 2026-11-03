@@ -46,8 +46,10 @@ export const watchEnvSecrets = (read: () => ReadonlyArray<string> = envSecrets, 
   }
 }
 
+// `dir` may also name a single file
 const filesUnder = (dir: string): Array<string> => {
   if (!fs.existsSync(dir)) return []
+  if (fs.statSync(dir).isFile()) return [dir]
   return fs.readdirSync(dir, {withFileTypes: true}).flatMap(d => {
     const p = path.join(dir, d.name)
     if (d.isDirectory()) return filesUnder(p)
@@ -60,6 +62,22 @@ export type SecretScan = {hits: Array<string>; scanned: number; line: string}
 // A flow run's scan result ({line, ok}), written beside the results it scanned: a report is built
 // only from results with a clean scan.
 export const SECRET_SCAN_FILE = 'secret-scan.json'
+
+// Why the results in `dir` must not go into a report, or undefined: the run's scan must have passed,
+// and come after the results were written.
+export const unscannedProblem = (dir: string, results = 'results.json'): string | undefined => {
+  const file = path.join(dir, SECRET_SCAN_FILE)
+  let scan: {ok?: unknown; line?: unknown}
+  try {
+    scan = JSON.parse(fs.readFileSync(file, 'utf8')) as typeof scan
+  } catch {
+    return `${file} is missing, so the flow run's artifacts were never scanned for secrets`
+  }
+  if (scan.ok !== true) return `the flow run's secret scan failed (${String(scan.line)})`
+  const r = path.join(dir, results)
+  if (fs.existsSync(r) && fs.statSync(r).mtimeMs > fs.statSync(file).mtimeMs) return `${r} was written after the flow run's secret scan`
+  return undefined
+}
 
 export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray<string> = envSecrets()): SecretScan => {
   const files = dirs.flatMap(filesUnder)

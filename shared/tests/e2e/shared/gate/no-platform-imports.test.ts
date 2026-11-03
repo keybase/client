@@ -15,3 +15,13 @@ test('shared gate code imports nothing from a platform dir', () => {
     expect(src).not.toMatch(/(?:from\s*|import\s*\(?\s*)['"][^'"]*\/(electron|ios-appium|ios)\//)
   }
 })
+
+test('iOS gate code imports nothing from the desktop gate', () => {
+  const ios = path.join(__dirname, '../../ios-appium')
+  const iosFiles = (fs.readdirSync(ios, {recursive: true}) as Array<string>).filter(f => /\.m?tsx?$/.test(f))
+  expect(iosFiles.length).toBeGreaterThan(0)
+  for (const f of iosFiles) {
+    const src = fs.readFileSync(path.join(ios, f), 'utf8')
+    expect(`${f}: ${src}`).not.toMatch(/(?:from\s*|import\s*\(?\s*)['"][^'"]*\/electron\//)
+  }
+})

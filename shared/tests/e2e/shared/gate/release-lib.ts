@@ -1,6 +1,8 @@
 // What the release summary and the census read from a gate run: Playwright's json report, the flow and
 // render tallies, and the phase summary. Free of I/O so they can be tested.
+import {signedInName} from '../../accounts/sweep-lib.ts'
 import {flowTestKey, knownFlowCause, knownRenderCause, knownVerdict, type KnownVerdict} from './known.ts'
+import {KBFS_START_COMMAND} from './processes.ts'
 
 export type Outcome = {ok: true} | {ok: false; error: string}
 
@@ -108,10 +110,14 @@ export const flowProblems = (s: FlowSummary) => [...s.flaky.map(n => `flaky: ${n
 
 // ---------------------------------------------------------------- render results
 
-export type RenderResultRow = {id: string; status: string; error?: string}
+// `note`: why an entry that passed was captured twice (only the iOS driver sets one)
+export type RenderResultRow = {id: string; status: string; error?: string; note?: string}
+export type RenderTally = Tally & {recaptured: Array<string>}
 
-export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known: Record<string, string>): Tally =>
-  tally(rows.map(r => ({cause: knownRenderCause(r.id, known), name: r.id, passed: r.status !== 'failed'})))
+export const summarizeRender = (rows: ReadonlyArray<RenderResultRow>, known: Record<string, string>): RenderTally => ({
+  ...tally(rows.map(r => ({cause: knownRenderCause(r.id, known), name: r.id, passed: r.status !== 'failed'}))),
+  recaptured: rows.filter(r => r.status !== 'failed' && r.note).map(r => r.id),
+})
 
 // ---------------------------------------------------------------- summary
 
@@ -125,8 +131,10 @@ export const flowsLine = (s: FlowSummary) =>
   (s.runErrors.length ? `, ${s.runErrors.length} run errors` : '') +
   (s.nowPasses.length ? `; ${s.nowPasses.length} known failures now pass` : '')
 
-export const renderLine = (t: Tally) =>
-  `${t.passed} rendered, ${t.failed} failed${knownPart(t)}` + (t.nowPasses.length ? `; ${t.nowPasses.length} known failures now pass` : '')
+export const renderLine = (t: RenderTally) =>
+  `${t.passed} rendered, ${t.failed} failed${knownPart(t)}` +
+  (t.recaptured.length ? `, ${t.recaptured.length} recaptured after the inspector page dropped` : '') +
+  (t.nowPasses.length ? `; ${t.nowPasses.length} known failures now pass` : '')
 
 export const flowsOk = (s: FlowSummary, exitCode: number | null) =>
   exitCode === 0 && s.failed === 0 && !s.runErrors.length && !flowProblems(s).length
@@ -146,7 +154,7 @@ export const releaseFailed = (phases: ReadonlyArray<Phase>) => phases.some(p => 
 const MAX_TIMEOUT_MIN = Math.floor((2 ** 31 - 1) / 60_000)
 
 // KB_E2E_RELEASE_TIMEOUT_MIN: the overall deadline in minutes, or why the value is refused.
-export const parseTimeoutMin = (raw: string | undefined, fallback = 150): {minutes: number} | {error: string} => {
+export const parseTimeoutMin = (raw: string | undefined, fallback: number): {minutes: number} | {error: string} => {
   if (raw === undefined || raw === '') return {minutes: fallback}
   const n = Number(raw)
   if (!Number.isFinite(n) || n <= 0) return {error: `KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(raw)} is not a positive number of minutes`}
@@ -154,3 +162,76 @@ export const parseTimeoutMin = (raw: string | undefined, fallback = 150): {minut
   if (n > MAX_TIMEOUT_MIN) return {error: `KB_E2E_RELEASE_TIMEOUT_MIN=${JSON.stringify(raw)} is over ${MAX_TIMEOUT_MIN} minutes, the longest a timer can wait`}
   return {minutes: n}
 }
+
+// ---------------------------------------------------------------- phase results
+
+// `ms` down to its second: file times and ps start times are kept to the second on some filesystems
+export const toSecond = (ms: number) => Math.floor(ms / 1000) * 1000
+
+// A finished child, as the release run's runChild reports it.
+type PhaseChild = {code: number | null; stdout: string; logError?: string}
+// An output the phase must have written: `mtimeMs` left out when the file does not exist.
+type PhaseOutput = {path: string; mtimeMs?: number}
+
+export const logFailed = (c: Pick<PhaseChild, 'logError'>) => (c.logError ? ` (its log could not be written: ${c.logError})` : '')
+// since `start`, to the second
+export const writtenSince = (o: PhaseOutput, start: number) => o.mtimeMs !== undefined && o.mtimeMs >= toSecond(start)
+
+// The flows phase reads only a results json wdio wrote since the phase started (one from an earlier run
+// is not this run's flows); `summarize` reads it. `summary` is left out when there was none to read.
+export const flowsPhaseResult = (c: PhaseChild, results: PhaseOutput, start: number, summarize: () => FlowSummary) => {
+  if (!writtenSince(results, start)) return {line: `wdio exited ${c.code} and wrote no ${results.path}${logFailed(c)}`, ok: false}
+  const summary = summarize()
+  return {line: `${flowsLine(summary)}${c.code === 0 ? '' : ` (wdio exited ${c.code})`}${logFailed(c)}`, ok: flowsOk(summary, c.code) && !c.logError, summary}
+}
+
+// The census phase passes only on what its own child did: its `census: routes …` line, and a census
+// json written since the phase started (a file from an earlier run is not this run's census).
+export const censusPhaseResult = (c: PhaseChild, json: PhaseOutput, start: number) => {
+  const line = /^census: (routes .+)$/m.exec(c.stdout)?.[1]
+  if (line === undefined) return {line: `census exited ${c.code} and printed no census line${logFailed(c)}`, ok: false}
+  if (!writtenSince(json, start)) return {line: `${line}; ${json.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${line}${logFailed(c)}`, ok: c.code === 0 && !c.logError}
+}
+
+// The report phase passes only on a report written since the phase started.
+export const reportPhaseResult = (c: PhaseChild, report: PhaseOutput, start: number) => {
+  if (c.code !== 0) return {line: `report generator exited ${c.code}${logFailed(c)}`, ok: false}
+  if (!writtenSince(report, start)) return {line: `report generator exited 0 and ${report.path} was not written by this run${logFailed(c)}`, ok: false}
+  return {line: `${report.path}${logFailed(c)}`, ok: !c.logError}
+}
+
+// ---------------------------------------------------------------- preflight
+
+// What both release commands' preflights check the same way. Left out when not checked: KBFS while
+// the service is not on the smoke account, peers and setup until every check above them passes.
+export type CommonPreflightState = {
+  // the release lock's live holder, when another release run holds it: nothing else is checked
+  releaseLockHeld?: string
+  // the visual gate lock's holder, when a live process holds it
+  lockHeld?: string | undefined
+  // whether the macOS session is locked; `error` when ioreg could not say
+  screen?: {locked: boolean} | {error: string}
+  kbfs?: Outcome & {path: string}
+  peers?: ReadonlyArray<{role: string} & Outcome>
+  setupCheck?: Outcome
+}
+
+// Every reason the run must not start, each saying what to do about it; `platform` gives the
+// platform's own, which come first. Empty: go ahead. `lockedWhy` says what a locked session breaks.
+export const commonPreflightProblems = (s: CommonPreflightState, platform: () => Array<string>, o: {lockedWhy: string}): Array<string> => {
+  if (s.releaseLockHeld) return [`${s.releaseLockHeld}; another release run is going, wait for it to finish`]
+  const out = platform()
+  if (s.lockHeld) out.push(`${s.lockHeld}; wait for that run to finish`)
+  if (s.screen && 'error' in s.screen) out.push(`could not tell whether the macOS session is locked (${s.screen.error}); fix ioreg and rerun`)
+  else if (s.screen?.locked) out.push(`the macOS session is locked, and ${o.lockedWhy}; unlock it and rerun`)
+  if (s.kbfs && !s.kbfs.ok) out.push(`KBFS does not answer for ${s.kbfs.path} (${s.kbfs.error}); start it: ${KBFS_START_COMMAND}`)
+  for (const p of s.peers ?? []) {
+    if (!p.ok) out.push(`peer ${p.role}: ${p.error}; yarn test:e2e:accounts:setup provisions and signs in the peers`)
+  }
+  if (s.setupCheck && !s.setupCheck.ok) out.push(`yarn test:e2e:accounts:setup --check failed:\n    ${s.setupCheck.error.trim().split('\n').join('\n    ')}`)
+  return out
+}
+
+// Who a service is signed in as, for a refusal: a test account by role, never another account's name.
+export const serviceAccountName = (user: string, s: {smokeUser: string; secondUser: string}) => signedInName(user, {second: s.secondUser, smoke: s.smokeUser})

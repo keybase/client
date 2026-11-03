@@ -35,7 +35,7 @@ const newRun = (over: {exits: Array<number>; notes: Array<string>; lockPath?: st
     lockPath: over.lockPath ?? tmpLock(),
     notify: text => void over.notes.push(text),
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
 
@@ -56,7 +56,7 @@ test('two phases are timed, the run fails, and finish prints the summary once', 
   assert.ok(lines.includes('[release] --- first ---'))
   assert.ok(lines.includes('[release] second: FAILED: broke'))
   assert.ok(lines.includes('\n=== release summary ==='))
-  assert.equal(lines.filter(x => x === 'artifacts here').length, 1)
+  assert.equal(lines.filter(x => x === 'report           /nonexistent/report.html (not written by this run)').length, 1)
   assert.match(notes[0] ?? '', /^FAILED in \d+s: second$/)
   assert.deepEqual(exits, [1])
   // a second finish is a no-op
@@ -80,6 +80,52 @@ test('runChild passes stdout back with the exit code', async () => {
   const run = newRun({exits: [], notes: []})
   const r = await run.runChild('echo', process.execPath, ['-e', 'console.log("hi"); process.exit(3)'], 10_000)
   assert.deepEqual(r, {code: 3, stdout: 'hi\n', timedOut: false})
+  await end(run)
+})
+
+test('runChild with a logFile appends stdout and stderr to it and still returns stdout', async () => {
+  const run = newRun({exits: [], notes: []})
+  const logFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')), 'child.log')
+  fs.writeFileSync(logFile, 'earlier\n')
+  const r = await run.runChild('both', process.execPath, ['-e', 'console.log("out"); console.error("err")'], 10_000, {logFile})
+  assert.deepEqual(r, {code: 0, stdout: 'out\n', timedOut: false})
+  const text = fs.readFileSync(logFile, 'utf8')
+  assert.match(text, /^earlier\n/)
+  assert.match(text, /out\n/)
+  assert.match(text, /err\n/)
+  await end(run)
+})
+
+test('runChild with an unwritable logFile reports logError and still returns the child result', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const blocker = path.join(dir, 'file')
+  fs.writeFileSync(blocker, '')
+  const lines = await capture(async () => {
+    const r = await run.runChild('bad', process.execPath, ['-e', 'console.log("out"); process.exit(4)'], 10_000, {logFile: path.join(blocker, 'x', 'child.log')})
+    assert.equal(r.code, 4)
+    assert.equal(r.stdout, 'out\n')
+    assert.equal(r.timedOut, false)
+    assert.match(r.logError ?? '', /ENOTDIR|EEXIST/)
+  })
+  assert.equal(lines.filter(l => l.includes('bad: log write failed')).length, 1)
+  await end(run)
+})
+
+test('runChild creates the logFile directory', async () => {
+  const run = newRun({exits: [], notes: []})
+  const logFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')), 'a', 'b', 'child.log')
+  const r = await run.runChild('mk', process.execPath, ['-e', 'console.log("hi")'], 10_000, {logFile})
+  assert.equal(r.logError, undefined)
+  assert.equal(fs.readFileSync(logFile, 'utf8'), 'hi\n')
+  await end(run)
+})
+
+test('runChild takes its env and cwd from opts', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-')))
+  const r = await run.runChild('opts', process.execPath, ['-e', 'console.log(process.env.KB_X + process.cwd())'], 10_000, {cwd: dir, env: {...process.env, KB_X: 'v'}})
+  assert.equal(r.stdout, `v${dir}\n`)
   await end(run)
 })
 
@@ -112,7 +158,7 @@ test('the overall deadline kills the running child, records the phase, and ends 
     lockPath: tmpLock(),
     notify: text => void notes.push(text),
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
   let pid = 0
@@ -150,7 +196,7 @@ const cleanupRun = (cleanup: (code: number) => Promise<number>, exits: Array<num
     lockPath: tmpLock(),
     notify: () => {},
     notifyTitle: 'test release',
-    printResults: () => console.log('artifacts here'),
+    artifacts: () => [['report', '/nonexistent/report.html']],
     tag: '[release]',
   })
 
@@ -196,7 +242,7 @@ test('runChild after an abort spawns nothing and resolves at once as timed out',
     lockPath: tmpLock(),
     notify: () => {},
     notifyTitle: 'test release',
-    printResults: () => {},
+    artifacts: () => [],
     tag: '[release]',
   })
   await capture(async () => until(() => exits.length > 0))
@@ -218,4 +264,74 @@ test('finish releases the lock, so a later run on the same path takes it', async
   b.acquireLock('second holder')
   assert.equal(b.holdsLock(), true)
   await end(b)
+})
+
+test('runChild resolves after a timeout even while a grandchild keeps its stdout open', async () => {
+  const run = newRun({exits: [], notes: []})
+  // the grandchild inherits the child's stdout and outlives it
+  const script = `const c = require('child_process').spawn(process.execPath, ['-e', 'setTimeout(()=>{},30000)'], {stdio: ['ignore', 'inherit', 'inherit']}); console.log(c.pid); setTimeout(()=>{},60000)`
+  let grandchild = 0
+  try {
+    const lines = await capture(async () => {
+      const started = Date.now()
+      const r = await Promise.race([
+        run.runChild('holder', process.execPath, ['-e', script], 300),
+        new Promise<'pending'>(resolve => setTimeout(() => resolve('pending'), 8_000)),
+      ])
+      assert.notEqual(r, 'pending', 'runChild still pending 8s after its timeout')
+      if (r === 'pending') return
+      grandchild = Number(r.stdout.trim())
+      assert.equal(r.timedOut, true)
+      assert.equal(r.code, null)
+      assert.ok(Date.now() - started < 8_000)
+    })
+    assert.ok(lines.some(l => l.includes('holder: not done in')))
+  } finally {
+    if (grandchild > 0 && alive(grandchild)) process.kill(grandchild, 'SIGKILL')
+  }
+  await end(run)
+})
+
+test('runChild settles on the exit of a child whose grandchild keeps writing, and keeps passing that output through', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const logFile = path.join(dir, 'child.log')
+  const finished = path.join(dir, 'grandchild-finished')
+  // the grandchild writes for 4s after its parent exits, then marks that every write went through
+  const grandchild = `let n = 0; const t = setInterval(() => { console.log('tick ' + n++); if (n === 40) { clearInterval(t); require('fs').writeFileSync(${JSON.stringify(finished)}, ''); console.log('grandchild done') } }, 100)`
+  const script = `require('child_process').spawn(process.execPath, ['-e', ${JSON.stringify(grandchild)}], {stdio: ['ignore', 'inherit', 'inherit']}).unref(); console.log('child out')`
+  const written: Array<string> = []
+  const origWrite = process.stdout.write.bind(process.stdout)
+  process.stdout.write = (d: string | Uint8Array) => {
+    written.push(String(d))
+    return true
+  }
+  try {
+    const started = Date.now()
+    const r = await run.runChild('writer', process.execPath, ['-e', script], 30_000, {logFile})
+    assert.equal(r.code, 0)
+    assert.ok(Date.now() - started < 3_500, 'settled on the exit, not on the grandchild letting go')
+    assert.match(r.stdout, /^child out\n/)
+    await until(() => fs.existsSync(finished) && written.join('').includes('grandchild done'))
+  } finally {
+    process.stdout.write = origWrite
+  }
+  assert.equal(fs.existsSync(finished), true, 'the grandchild died before its last write')
+  assert.match(fs.readFileSync(logFile, 'utf8'), /tick 39\ngrandchild done\n/)
+  assert.match(written.join(''), /tick 39\ngrandchild done\n/)
+  await end(run)
+})
+
+test('runChild that cannot spawn reports the spawn error and its log failure', async () => {
+  const run = newRun({exits: [], notes: []})
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-release-run-'))
+  const blocker = path.join(dir, 'file')
+  fs.writeFileSync(blocker, '')
+  await capture(async () => {
+    const r = await run.runChild('missing', path.join(dir, 'no-such-command'), [], 10_000, {logFile: path.join(blocker, 'x', 'child.log')})
+    assert.equal(r.code, null)
+    assert.match(r.stdout, /ENOENT/)
+    assert.match(r.logError ?? '', /ENOTDIR|EEXIST/)
+  })
+  await end(run)
 })

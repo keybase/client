@@ -1,7 +1,7 @@
 // Ends the running attempt with what the harness attaches to it: a failure's screenshot and app log,
 // the app's console and uncaught errors, and its coverage record. wdio's afterTest ends an attempt
 // this way, and the root afterEach (gate/hooks.ts) one that afterTest never reached.
-import {attemptToken, currentAttempt, endAttempt} from './attempt.ts'
+import {attemptToken, creditedSurfaces, currentAttempt, endAttempt} from './attempt.ts'
 import {recorders} from './recording.ts'
 import {appLogTail, takeErrors} from './errors.ts'
 import {uncaughtErrors} from './step-lib.ts'
@@ -51,7 +51,8 @@ export const finishAttempt = async (result: TestResult) => {
     }
   }
   error ||= captureError ?? ''
-  const coverage = {...(error ? {error} : {}), ...got}
+  const surfaces = creditedSurfaces()
+  const coverage = {...(error ? {error} : {}), ...got, ...(surfaces.length ? {surfaces} : {})}
   attempt.addAttachment('coverage.json', 'application/json', JSON.stringify(coverage, null, 2))
   // a failed attempt already has its reason; a passing one fails for the missing record
   const coverageFails = !!error && result.passed
