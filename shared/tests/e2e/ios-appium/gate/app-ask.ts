@@ -4,7 +4,6 @@
 // back and restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
-import {LOCATION_PERMISSION, PUSH_HAS_PERMISSIONS, type LocationPermission} from './app-account-lib.ts'
 import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {ASSET_ID_RE, type AssetInfo} from './save-photos-lib.ts'
@@ -381,16 +380,6 @@ export const removeArchiveJobs = async (ids: ArchiveJobs, before: ArchiveJobs) =
 // -- native permissions and the photo library --------------------------------------------------------
 
 const MEDIA = `kbModule('node_modules/expo-media-library/build/index.js')`
-
-// Whether the app holds push permission (usePushState.hasPermissions, which it reads from iOS at
-// launch). Never asked for: the app's request opens the Settings app, so the owner grants it once.
-export const pushHasPermissions = async () =>
-  askApp<boolean>("the app's push permission", `Promise.resolve(${PUSH_HAS_PERMISSIONS})`)
-
-export type {LocationPermission}
-
-// The location permission as the app reads it (expo-location; native, no RPC).
-export const locationPermission = async () => askApp<LocationPermission>("the app's location permission", LOCATION_PERMISSION)
 
 // The photo library permission as the app reads it (expo-media-library; native, no RPC): adding
 // (photos-add) and reading (photos), with how much of the library a read may see.

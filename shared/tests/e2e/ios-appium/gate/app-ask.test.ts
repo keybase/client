@@ -13,12 +13,10 @@ import {
   assetInfo,
   libraryAssetIds,
   libraryHasAsset,
-  locationPermission,
   mediaPermission,
   phoneDownloads,
   requestFullPhotoAccess,
   proxyData,
-  pushHasPermissions,
   randomPW,
   phoneReachesServer,
   rememberPassphrase,
@@ -50,7 +48,6 @@ const mockApp = {
   assets: [] as Array<{height: number; id: string; mediaType: string; width: number}>,
   // the phone service's downloads
   downloads: [] as Array<{canceled: boolean; done: boolean; downloadID: string}>,
-  push: false,
   // the service config's runtime stats flag; undefined: never set
   statsEnabled: undefined as undefined | boolean,
 }
@@ -78,7 +75,6 @@ beforeEach(() => {
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
   mockApp.statsEnabled = undefined
-  mockApp.push = false
   mockApp.assets = []
   mockApp.downloads = []
   const log = (s: string) => mockApp.log.push(s)
@@ -160,10 +156,6 @@ beforeEach(() => {
     'constants/rpc/rpc-chat-gen.tsx': chat,
     'constants/rpc/rpc-gen.tsx': rpc,
     'engine/call-port.tsx': callPort,
-    'node_modules/expo-location/build/index.js': {
-      getBackgroundPermissionsAsync: async () => answer('location background', {status: 'denied'}),
-      getForegroundPermissionsAsync: async () => answer('location foreground', {status: 'granted'}),
-    },
     'node_modules/expo-media-library/build/index.js': {
       Asset: class {
         constructor(readonly id: string) {}
@@ -193,7 +185,6 @@ beforeEach(() => {
       getPermissionsAsync: async (writeOnly?: boolean) =>
         answer(`media permission ${writeOnly ? 'add' : 'read'}`, writeOnly ? {status: 'granted'} : {accessPrivileges: 'none', status: 'denied'}),
     },
-    'stores/push.tsx': {usePushState: {getState: () => ({hasPermissions: mockApp.push})}},
     'stores/darkmode.tsx': {
       useDarkModeState: {getState: () => ({darkModePreference: 'alwaysLight', supported: true, systemDarkMode: false})},
     },
@@ -395,17 +386,9 @@ const ID = 'ph://0F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'
 const OTHER = '1F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'
 
 describe('native permissions and the photo library', () => {
-  test("push, location and photo permissions are read as the app sees them, with the recorder paused", async () => {
-    await expect(pushHasPermissions()).resolves.toBe(false)
-    mockApp.push = true
-    await expect(pushHasPermissions()).resolves.toBe(true)
-    await expect(locationPermission()).resolves.toEqual({background: 'denied', foreground: 'granted'})
+  test('the photo permission is read as the app sees it, with the recorder paused', async () => {
     await expect(mediaPermission()).resolves.toEqual({add: 'granted', read: 'denied', readAccess: 'none'})
-    expect(mockApp.log).toEqual([
-      ...['pause', 'resume tok', 'pause', 'resume tok'],
-      ...['pause', 'location foreground', 'location background', 'resume tok'],
-      ...['pause', 'media permission read', 'media permission add', 'resume tok'],
-    ])
+    expect(mockApp.log).toEqual(['pause', 'media permission read', 'media permission add', 'resume tok'])
   })
 
   test("the library's asset ids, and an asset's kind and size", async () => {
