@@ -407,13 +407,20 @@ const keepErrors = async () => {
   }
 }
 
+// Before something restarts the app: its runtime id (to tell the new one by), the attempt's recording
+// so far, and what it logged so far.
+const beforeRestart = async () => {
+  const before = await runtimeId().catch(() => undefined)
+  await attemptRecording().checkpoint()
+  await keepErrors()
+  return before
+}
+
 // Terminates and launches the app and waits for its new JS runtime, with error capture running on it.
 // `whileDown` runs once the app has exited, before it is launched (a mark on a log the next process
 // writes). The flow credits 'relaunch' once it has asserted what the app shows after it.
 export const relaunchApp = async ({whileDown}: {whileDown?: () => void} = {}) => {
-  const before = await runtimeId().catch(() => undefined)
-  await attemptRecording().checkpoint()
-  await keepErrors()
+  const before = await beforeRestart()
   await terminateApp()
   whileDown?.()
   await launch(before)
@@ -430,9 +437,7 @@ export const appRuntime = async () => runtimeId()
 // next is what `deliver` opened. The flow credits
 // 'relaunch' (and the surface `deliver` used) once it has asserted that screen.
 export const launchedBy = async (deliver: () => unknown) => {
-  const before = await runtimeId().catch(() => undefined)
-  await attemptRecording().checkpoint()
-  await keepErrors()
+  const before = await beforeRestart()
   await terminateApp()
   await deliver()
   await waitFor('the app to launch from what was delivered', () => (appPid() === undefined ? undefined : true), {
@@ -527,9 +532,7 @@ export const grantPrivacy = async (service: PrivacyService): Promise<PrivacyRest
   const original = privacyOriginal(privacySnapshot(udid), service)
   const restore = privacyRestoreArgs(original, service, udid)
   const grant = privacyGrantArgs(service, udid, BUNDLE_ID)
-  const before = await runtimeId().catch(() => undefined)
-  await attemptRecording().checkpoint()
-  await keepErrors()
+  const before = await beforeRestart()
   // from the grant until the token is handed back, a failure leaves the permission changed with no
   // token to put it back: the gate stays poisoned, naming the restore (restorePrivacy's own name, so
   // a later restore of it clears this too)

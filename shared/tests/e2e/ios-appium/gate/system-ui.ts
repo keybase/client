@@ -18,7 +18,7 @@ import {deleteSavedAsset, libraryHasAsset, mediaPermission, requestFullPhotoAcce
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {hasTrait, sourceElements} from './page-source-lib.ts'
 import {WaitStopped} from './wait-lib.ts'
-import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
+import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_GRID_ORDER, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
 
 const BANNER_MS = 8_000
 // clearing a few of this run's notifications, one swipe and tap each
@@ -129,25 +129,31 @@ const waitPickerGone = async (what: string, up: () => Promise<boolean>) =>
 
 const libraryNow = async () => libraryCells(sourceElements(await browser.getPageSource()))
 
-// In the photo picker the app opened, selects the corpus items `names` (each once, in that order:
-// the app gets them in the order selected) and confirms. The corpus's cells are found by their
-// dates and kinds (picker-lib.ts corpusCells), each tapped at its own frame (the grid reads
-// visible=false), and the selection read back off the grid before the confirm. The caller proves
-// the pick by the files the app was handed (device.ts pickedFiles). Bound: the picker 20, the grid
-// 20 overrun by one read 2, per item the tap 1, the selection read once 2, the confirm 5 and its tap
-// 1, gone 15 = 65 + 1 per item.
-export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
-  if (!names.length || new Set(names).size !== names.length) throw new Error('pick each corpus item once')
+// Waits for the photo picker the app opened to draw the corpus, and returns its cells in `order`
+// (picker-lib.ts corpusCells). A picker that opened with cells already selected is refused. Bound:
+// the picker 20, the grid 20 overrun by one read 2 = 42.
+const corpusInPicker = async (order: ReadonlyArray<LibraryName>) => {
   await button(PHOTO_PICKER).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the photo picker did not open'})
-  const run = await waitFor(
+  return waitFor(
     'the corpus in the photo picker',
     async () => {
       const cells = await libraryNow()
       if (cells.some(c => c.selected)) throw new WaitStopped('the photo picker opened with cells already selected')
-      return corpusCells(cells)
+      return corpusCells(cells, order)
     },
     {interval: 1_000, timeout: 20_000}
   )
+}
+
+// In the photo picker the app opened, selects the corpus items `names` (each once, in that order:
+// the app gets them in the order selected) and confirms. The corpus's cells are found by their
+// dates and kinds (picker-lib.ts corpusCells), each tapped at its own frame (the grid reads
+// visible=false), and the selection read back off the grid before the confirm. The caller proves
+// the pick by the files the app was handed (device.ts pickedFiles). Bound: corpusInPicker 42, per
+// item the tap 1, the selection read once 2, the confirm 5 and its tap 1, gone 15 = 65 + 1 per item.
+export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
+  if (!names.length || new Set(names).size !== names.length) throw new Error('pick each corpus item once')
+  const run = await corpusInPicker(LIBRARY_GRID_ORDER)
   for (const name of names) await tapFrame(corpusCellOf(run, name).rect, 'a corpus cell in the photo picker')
   const want = names.map(n => corpusCellOf(run, n).rect)
   const selected = (await libraryNow()).filter(c => c.selected)
@@ -164,15 +170,9 @@ export const pickFromLibrary = async (names: ReadonlyArray<LibraryName>) => {
 // corpus photo `name`: such a picker hands the photo over on the tap, with no confirm, so nothing can
 // be read back before it goes. The corpus's photos are found as in pickFromLibrary (in
 // LIBRARY_PHOTO_ORDER) and the cell is tapped at its frame; the caller proves the pick by the file
-// the app was handed. Bound: the picker 20, the grid 20 overrun by one read 2, the tap 1, gone 15 =
-// 58.
+// the app was handed. Bound: corpusInPicker 42, the tap 1, gone 15 = 58.
 export const pickOnePhoto = async (name: LibraryName) => {
-  await button(PHOTO_PICKER).waitForExist({timeout: PICKER_OPEN_MS, timeoutMsg: 'the photo picker did not open'})
-  const run = await waitFor(
-    'the corpus photos in the photo picker',
-    async () => corpusCells(await libraryNow(), LIBRARY_PHOTO_ORDER),
-    {interval: 1_000, timeout: 20_000}
-  )
+  const run = await corpusInPicker(LIBRARY_PHOTO_ORDER)
   await tapFrame(corpusCellOf(run, name, LIBRARY_PHOTO_ORDER).rect, 'a corpus cell in the photo picker')
   await waitPickerGone('the photo picker', photoPickerUp)
 }
