@@ -58,9 +58,10 @@ const navigations = () =>
 const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
 const modalsCleared = () => !rootNames()?.includes(openModal)
 
-// The listener hands incoming calls to their handlers on a timer, and a flow reading a dialog's events
-// sees its end on another
+// What the service sent crosses IPC, the listener hands incoming calls to their handlers on a timer,
+// and a flow reading a dialog's events sees its end on another
 const settle = async () => {
+  await tick()
   for (let i = 0; i < 2; i++) {
     // eslint-disable-next-line no-await-in-loop
     await new Promise(resolve => setTimeout(resolve, 0))

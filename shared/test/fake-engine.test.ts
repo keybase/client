@@ -97,6 +97,9 @@ test('a held call settles when the test replies', async () => {
   const fake = installFakeEngine()
   const held = fake.hold('keybase.1.config.getBootstrapStatus')
   const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
+  // The call crosses IPC to the service a turn later
+  expect(held).toHaveLength(0)
+  await tick()
   expect(held).toHaveLength(1)
   held[0]!.reply({deviceName: 'held'})
   await expect(p).resolves.toMatchObject({deviceName: 'held'})
@@ -125,10 +128,15 @@ test('a held call left at uninstall fails, and nothing reaches the stores afterw
 test('a dropped link rejects a held call', async () => {
   const fake = installFakeEngine()
   fake.hold('keybase.1.config.waitForClient')
-  const p = T.RPCGen.configWaitForClientRpcPromise({clientType: T.RPCGen.ClientType.none, timeout: 1})
+  const rejected = expect(
+    T.RPCGen.configWaitForClientRpcPromise({clientType: T.RPCGen.ClientType.none, timeout: 1})
+  ).rejects.toMatchObject(linkLost)
   fake.drop()
+  // The renderer hears of it a turn later, as the relay's link frame crosses IPC
+  expect(fake.connected()).toBe(true)
+  await tick()
   expect(fake.connected()).toBe(false)
-  await expect(p).rejects.toMatchObject(linkLost)
+  await rejected
 })
 
 test('a call made while dropped is refused, and one made once the link comes back is answered', async () => {
@@ -137,6 +145,8 @@ test('a call made while dropped is refused, and one made once the link comes bac
   fake.drop()
   await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).rejects.toMatchObject(linkLost)
   fake.restart()
+  expect(fake.connected()).toBe(false)
+  await tick()
   expect(fake.connected()).toBe(true)
   await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'back'})
   expect(fake.calls).toHaveLength(1)
@@ -183,7 +193,8 @@ test('a service cancel settles the pending push and the GUI may no longer answer
   fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')
   await expect(pushed).resolves.toMatchObject({error: {desc: 'fake engine: the service cancelled it'}})
   held[0]!.reply(undefined)
-  await expect(done).resolves.toBeUndefined()
+  // msgpack has no undefined: a void reply arrives as null
+  await expect(done).resolves.toBeNull()
   fake.engine._rpcClient.transport.send([MESSAGE_TYPE_RESPONSE, 1, null, true])
   expect(() => uninstallFakeEngine()).toThrow('GUI answered push seqid 1')
 })
@@ -207,6 +218,8 @@ test('a pushed notification reaches onEngineIncoming', async () => {
   await expect(
     fake.push('keybase.1.NotifyBadges.badgeState', {badgeState: {}}, {oneway: true})
   ).resolves.toEqual({})
+  expect(onEngineIncoming).not.toHaveBeenCalled()
+  await tick()
   expect(onEngineIncoming).toHaveBeenCalledWith(
     expect.objectContaining({type: 'keybase.1.NotifyBadges.badgeState'})
   )
@@ -240,4 +253,56 @@ test('an answer that throws after uninstall fails the test then running', async 
   } finally {
     logged.mockRestore()
   }
+})
+
+test('what crosses the wire is msgpack: undefined arrives as null, and nothing is shared by reference', async () => {
+  const fake = installFakeEngine()
+  const answer = {deviceName: undefined, uid: 'u1'}
+  fake.answer('keybase.1.config.getBootstrapStatus', () => answer)
+  fake.answer('keybase.1.config.waitForClient', () => true)
+  const params = {clientType: T.RPCGen.ClientType.none, timeout: 1}
+  const waited = T.RPCGen.configWaitForClientRpcPromise(params)
+  params.timeout = 2
+  await expect(waited).resolves.toBe(true)
+  expect(fake.calls[0]!.params).toEqual({
+    clientType: T.RPCGen.ClientType.none,
+    sessionID: expect.any(Number),
+    timeout: 1,
+  })
+  const status = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+  expect(status).toEqual({deviceName: null, uid: 'u1'})
+  expect(status).not.toBe(answer)
+})
+
+test('a reply arrives a macrotask later, not on a microtask', async () => {
+  const fake = installFakeEngine()
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'd'}))
+  let settled = false
+  void T.RPCGen.configGetBootstrapStatusRpcPromise().then(() => (settled = true))
+  for (let i = 0; i < 50; i++) {
+    await Promise.resolve()
+  }
+  expect(settled).toBe(false)
+  // Over to the service, and its reply back: a turn each way
+  await tick()
+  await tick()
+  expect(settled).toBe(true)
+})
+
+test('an engine reset drops the link and it stays down, as the desktop relay keeps it', async () => {
+  const fake = installFakeEngine()
+  fake.hold('keybase.1.config.waitForClient')
+  const rejected = expect(
+    T.RPCGen.configWaitForClientRpcPromise({clientType: T.RPCGen.ClientType.none, timeout: 1})
+  ).rejects.toMatchObject(linkLost)
+  fake.engine.reset()
+  // engineDropLink crosses to the relay, and its link-down frame crosses back
+  expect(fake.connected()).toBe(true)
+  await tick()
+  await tick()
+  expect(fake.connected()).toBe(false)
+  await rejected
+  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).rejects.toMatchObject(linkLost)
+  expect(() => fake.restart()).toThrow('stays down until the renderer reloads')
+  expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.waitForClient'])
 })

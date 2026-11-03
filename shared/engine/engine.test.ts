@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import logger from '@/logger'
 import {errors as rpcErrors} from './rpc-transport'
 import {isCancelled, isErrorTransient, type RPCError} from '@/util/errors'
@@ -38,6 +38,7 @@ test('a call started before an account switch is refused when its reply lands af
   // is what lands after the switch.
   const held = fake.hold('keybase.1.SimpleFS.simpleFSUserEditHistory')
   const p = T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+  await tick()
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   useConfigState.getState().dispatch.setUserSwitching(false)
   held[0]!.reply({folders: []})
@@ -55,7 +56,7 @@ test('a global prompt the engine does not hand over is auto-answered once', asyn
   const fake = installFakeEngine({onEngineIncoming})
   await expect(
     fake.push('keybase.1.NotifyTeam.avatarUpdated', {formats: [], name: 'testuser', typ: 0})
-  ).resolves.toEqual({result: undefined})
+  ).resolves.toEqual({result: null})
   expect(onEngineIncoming).toHaveBeenCalledTimes(1)
   expect(onEngineIncoming.mock.calls[0]![0].payload).not.toHaveProperty('response')
   expect(logged).not.toHaveBeenCalled()
@@ -76,21 +77,26 @@ test('a service cancel of a pending prompt leaves the listener running until its
   const sessionID = fake.calls[0]!.params.sessionID as number
   const pushed = fake.push('keybase.1.loginUi.promptPassphraseRecovery', {kind: 0}, {sessionID})
   // the listener hands the prompt to its handler on a timer
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await settle()
   expect(onPrompt).toHaveBeenCalledTimes(1)
   fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')
   await pushed
   held[0]!.reply(undefined)
-  await expect(ended).resolves.toBeUndefined()
+  await expect(ended).resolves.toBeNull()
   // The engine writes no RESPONSE of its own for the cancelled seqid; the fake would record one
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
-test('reset restarts the link, so calls still reach the fake', async () => {
+// On desktop the relay drops its link and stays off the service until the renderer reloads
+// (EngineRelay.dropLink), so nothing after a reset reaches the service
+test('reset takes the link down and keeps it down, so later calls fail with the transport EOF', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'after reset'}))
   fake.engine.reset()
-  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'after reset'})
-  expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  await tick()
+  await tick()
+  expect(fake.connected()).toBe(false)
+  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).rejects.toMatchObject({code: rpcErrors.EOF})
+  expect(fake.calls).toEqual([])
   uninstallFakeEngine()
 })

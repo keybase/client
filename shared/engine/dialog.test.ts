@@ -36,9 +36,10 @@ const pushPrivate = 'keybase.1.pgpUi.shouldPushPrivate'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 const waitingKey = testWaitingKey('dialog-test')
 
-// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
-// becomes the GUI's on the next
+// The push crosses IPC; the listener hands incoming calls to their handlers on a timer, and a prompt
+// they leave unanswered becomes the GUI's on the next
 const afterTimers = async () => {
+  await tick()
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setTimeout(resolve, 0))
 }
@@ -109,7 +110,7 @@ test('a surfaced prompt carries its typed params and an answer reaches the servi
   await expect(pushed).resolves.toEqual({result: 'd1'})
   expect(dialog.openPrompt(choose)).toBeUndefined()
   held[0]!.reply(undefined)
-  await expect(dialog.done).resolves.toBeUndefined()
+  await expect(dialog.done).resolves.toBeNull()
   expect(dialog.disposed).toBe(false)
 })
 
@@ -182,14 +183,13 @@ describe('an unawaited done', () => {
     const watch = watchHandlers()
     const {dialog, fake} = await startRecover()
     fake.drop()
-    // done rejects within microtasks; a macrotask turn would let jest report it before it is checked
-    for (let i = 0; i < 20; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      await Promise.resolve()
-    }
+    // The link-down frame crosses IPC, and done rejects with nothing handling it
+    await tick()
     watch.stop()
     expect(watch.handled(dialog.done)).toBe(false)
     await expect(settledError(dialog.done)).resolves.toMatchObject({code: errors.EOF})
+    // Node reports the late handler (rejectionHandled) a turn later, which clears jest's record of it
+    await tick()
   })
 
   test('is handled when the dialog was disposed', async () => {
@@ -276,6 +276,7 @@ test('the service cancelling a prompt closes only it; later prompts surface and 
   const e = await nextEvent(it)
   if (e.kind !== 'prompt') throw new Error('expected a prompt')
   fake.cancelPush(choose)
+  await tick()
   expect(e.open).toBe(false)
   expect(e.answer('d1' as never)).toBe(false)
   const pushed = fake.push(choose, {devices}, {sessionID})
@@ -284,7 +285,7 @@ test('the service cancelling a prompt closes only it; later prompts surface and 
   expect(next.answer('d1' as never)).toBe(true)
   await expect(pushed).resolves.toEqual({result: 'd1'})
   held[0]!.reply(undefined)
-  await expect(dialog.done).resolves.toBeUndefined()
+  await expect(dialog.done).resolves.toBeNull()
   await expect(it.next()).resolves.toMatchObject({done: true})
   expect(dialog.disposed).toBe(false)
 })
@@ -299,6 +300,7 @@ test('a service cancel closes the prompt at once, while the RPC goes on', async 
   void dialog.done.then(() => (done = true))
 
   fake.cancelPush(choose)
+  await tick()
 
   expect(e.open).toBe(false)
   expect(dialog.openPrompt(choose)).toBeUndefined()
@@ -316,6 +318,7 @@ test('a link drop closes prompts and rejects done with EOF', async () => {
   const e = await nextEvent(it)
   if (e.kind !== 'prompt') throw new Error('expected a prompt')
   fake.drop()
+  await tick()
   expect(e.open).toBe(false)
   await expect(settledError(dialog.done)).resolves.toMatchObject({code: errors.EOF})
   await expect(it.next()).resolves.toMatchObject({done: true})
@@ -369,7 +372,7 @@ describe('dispose', () => {
       error: inputCanceled,
     })
     await expect(fake.push(choose, {devices}, {sessionID})).resolves.toEqual({error: inputCanceled})
-    await expect(fake.push(explain, {kind: 0, name: 'x'}, {sessionID})).resolves.toEqual({result: undefined})
+    await expect(fake.push(explain, {kind: 0, name: 'x'}, {sessionID})).resolves.toEqual({result: null})
     await afterTimers()
     expect(answered).not.toHaveBeenCalled()
     expect(onEngineIncoming).not.toHaveBeenCalled()
@@ -410,6 +413,7 @@ describe('events', () => {
     void fake.push(choose, {devices}, {sessionID})
     await afterTimers()
     fake.cancelPush(choose)
+    await tick()
     held[0]!.reply(undefined)
     await dialog.done
     const {finished, seen} = collect(dialog.events)
@@ -501,7 +505,7 @@ describe('logout', () => {
     expect(recover.disposed).toBe(false)
     await expect(settledError(pgp.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
     held[0]!.reply(undefined)
-    await expect(recover.done).resolves.toBeUndefined()
+    await expect(recover.done).resolves.toBeNull()
   })
 
   test('the config store disposes on a logout, refusing the open prompt', async () => {
@@ -531,7 +535,7 @@ describe('logout', () => {
     // The recovery outlives the account, so the switch neither disposes nor cancels it
     expect(recover.disposed).toBe(false)
     held[0]!.reply(undefined)
-    await expect(recover.done).resolves.toBeUndefined()
+    await expect(recover.done).resolves.toBeNull()
   })
 
   test('an account switch leaves the prompts of a dialog that survives it open', async () => {
@@ -545,7 +549,7 @@ describe('logout', () => {
     expect(e.answer('d1')).toBe(true)
     await expect(pushed).resolves.toEqual({result: 'd1'})
     held[0]!.reply(undefined)
-    await expect(dialog.done).resolves.toBeUndefined()
+    await expect(dialog.done).resolves.toBeNull()
   })
 
   test('a dialog whose RPC already ended is not disposed', async () => {

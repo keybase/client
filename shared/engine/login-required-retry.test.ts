@@ -8,6 +8,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {testWaitingKey} from '@/test/waiting-key'
+import {tick} from '@/test/flush'
 
 afterEach(() => {
   jest.useRealTimers()
@@ -37,6 +38,17 @@ const answering = (fake: FakeEngine, method: string, ...replies: Array<unknown>)
   fake.answer(method, () => replies[Math.min(n++, replies.length - 1)])
 }
 
+// A call's trip to the service and its reply's back cross IPC, which the fake timers do not run
+const overIPC = async () => {
+  await tick()
+  await tick()
+}
+const advance = async (ms: number) => {
+  await overIPC()
+  await jest.advanceTimersByTimeAsync(ms)
+  await overIPC()
+}
+
 const loggedIn = () => {
   jest.useFakeTimers({doNotFake: ['queueMicrotask']})
   useConfigState.getState().dispatch.setLoggedIn(true)
@@ -47,10 +59,10 @@ test('a login-required failure while logged in is tried again, waiting all along
   const fake = loggedIn()
   answering(fake, settings, loginRequired(), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise(undefined, waitingKey))
-  await jest.advanceTimersByTimeAsync(249)
+  await advance(249)
   expect(attempts(fake)).toBe(1)
   expect(count(fake)).toBe(1)
-  await jest.advanceTimersByTimeAsync(1)
+  await advance(1)
   expect(await p).toEqual({r: {}})
   expect(attempts(fake)).toBe(2)
   expect(count(fake)).toBe(0)
@@ -61,15 +73,15 @@ test('after three login-required failures the caller gets the last one', async (
   const fake = loggedIn()
   answering(fake, settings, loginRequired())
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise(undefined, waitingKey))
-  await jest.advanceTimersByTimeAsync(250)
+  await advance(250)
   expect(attempts(fake)).toBe(2)
-  await jest.advanceTimersByTimeAsync(749)
+  await advance(749)
   expect(attempts(fake)).toBe(2)
   expect(count(fake)).toBe(1)
-  await jest.advanceTimersByTimeAsync(1)
+  await advance(1)
   expect(await p).toEqual({e: expect.objectContaining(byLoginRequired)})
   expect(attempts(fake)).toBe(3)
-  await jest.advanceTimersByTimeAsync(10_000)
+  await advance(10_000)
   expect(attempts(fake)).toBe(3)
   expect(count(fake)).toBe(0)
   expect(useWaitingState.getState().errors.get(waitingKey)).toMatchObject(byLoginRequired)
@@ -80,9 +92,9 @@ test('a logout while it waits to try again rejects it as the account change', as
   const fake = loggedIn()
   answering(fake, settings, loginRequired(), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise(undefined, waitingKey))
-  await jest.advanceTimersByTimeAsync(0)
+  await advance(0)
   useConfigState.getState().dispatch.setLoggedIn(false)
-  await jest.advanceTimersByTimeAsync(250)
+  await advance(250)
   expect(await p).toEqual({e: expect.objectContaining({kind: {reason: 'accountChange', type: 'cancelled'}})})
   expect(attempts(fake)).toBe(1)
   expect(count(fake)).toBe(0)
@@ -93,10 +105,10 @@ test('a cancel while it waits to try again rejects it and makes no more attempts
   const fake = loggedIn()
   answering(fake, settings, loginRequired(), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise(undefined, waitingKey))
-  await jest.advanceTimersByTimeAsync(0)
+  await advance(0)
   fake.engine.cancelSession(fake.calls[0]!.params.sessionID as number)
   expect(await p).toEqual({e: expect.objectContaining({kind: {reason: 'caller', type: 'cancelled'}})})
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(attempts(fake)).toBe(1)
   expect(count(fake)).toBe(0)
   uninstallFakeEngine()
@@ -106,11 +118,11 @@ test('a lost link while it waits to try again rejects it as the lost link', asyn
   const fake = loggedIn()
   answering(fake, settings, loginRequired(), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise(undefined, waitingKey))
-  await jest.advanceTimersByTimeAsync(0)
+  await advance(0)
   fake.drop()
   expect(await p).toEqual({e: expect.objectContaining({kind: {reason: 'disconnect', type: 'cancelled'}})})
   fake.restart()
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(attempts(fake)).toBe(1)
   uninstallFakeEngine()
 })
@@ -121,7 +133,7 @@ test("a listener's call is not tried again: it may already have prompted the use
   const p = outcome(
     T.RPCGen.deviceDeviceAddRpcListener({customResponseIncomingCallMap: {}, incomingCallMap: {}, params: undefined})
   )
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(await p).toEqual({e: expect.objectContaining(byLoginRequired)})
   expect(attempts(fake, 'keybase.1.device.deviceAdd')).toBe(1)
   uninstallFakeEngine()
@@ -131,7 +143,7 @@ test('a call that outlives the account is not tried again', async () => {
   const fake = loggedIn()
   answering(fake, 'keybase.1.login.getConfiguredAccounts', loginRequired(), [])
   const p = outcome(T.RPCGen.loginGetConfiguredAccountsRpcPromise())
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(await p).toEqual({e: expect.objectContaining(byLoginRequired)})
   expect(attempts(fake, 'keybase.1.login.getConfiguredAccounts')).toBe(1)
   uninstallFakeEngine()
@@ -142,7 +154,7 @@ test('logged out, a login-required failure is the answer', async () => {
   const fake = installFakeEngine()
   answering(fake, settings, loginRequired(), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise())
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(await p).toEqual({e: expect.objectContaining(byLoginRequired)})
   expect(attempts(fake)).toBe(1)
   uninstallFakeEngine()
@@ -152,7 +164,7 @@ test('another failure is not tried again', async () => {
   const fake = loggedIn()
   answering(fake, settings, fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'), {})
   const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise())
-  await jest.advanceTimersByTimeAsync(1_000)
+  await advance(1_000)
   expect(await p).toEqual({e: expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric})})
   expect(attempts(fake)).toBe(1)
   uninstallFakeEngine()

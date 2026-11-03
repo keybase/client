@@ -11,6 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import logger from '@/logger'
 import {getConversationClientPrev} from './client-prev'
 import {useConversationExplodingMode, useConversationMessage} from './data-hooks'
@@ -349,8 +350,10 @@ describe('useConversationMessage', () => {
     const warn = jest.spyOn(logger, 'warn')
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
+    // The load's call crosses to the service, and its failure back
+    await flush()
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'service down'))
-    await waitForLoad()
+    await flush()
 
     expect(result.current).toBeUndefined()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('service down'))

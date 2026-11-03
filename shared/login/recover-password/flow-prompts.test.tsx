@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import {setImmediate} from 'node:timers'
 import {flushSync} from 'react-dom'
 import {createRoot, type Root} from 'react-dom/client'
 import * as T from '@/constants/types'
@@ -643,8 +644,10 @@ describe('pgp key warning waiting state', () => {
     return useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
   }
 
-  // The listener runs handlers on a timer, and a prompt left unanswered becomes the GUI's on the next
+  // The push crosses IPC; the listener runs handlers on a timer, and a prompt left unanswered
+  // becomes the GUI's on the next
   const afterTimers = async () => {
+    await new Promise<void>(resolve => setImmediate(resolve))
     await new Promise<void>(resolve => setTimeout(resolve, 0))
     await new Promise<void>(resolve => setTimeout(resolve, 0))
   }

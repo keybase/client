@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import {setImmediate} from 'node:timers'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -26,7 +27,11 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setTimeout(resolve, 0))
+// What crosses to or from the service arrives a turn later (Electron IPC), then the flow's own timers run
+const flush = async () => {
+  await new Promise<void>(resolve => setImmediate(resolve))
+  await new Promise<void>(resolve => setTimeout(resolve, 0))
+}
 
 const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop' | 'backup') =>
   ({

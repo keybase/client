@@ -7,7 +7,7 @@ import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import * as React from 'react'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useShellState} from '@/stores/shell'
@@ -92,10 +92,6 @@ jest.mock('@/constants', () => {
   return {...actual, Router2: {...actual.Router2, navigateAppend: jest.fn()}}
 })
 
-jest.mock('@/engine/action-listener', () => ({
-  useEngineActionListener: jest.fn(),
-}))
-
 jest.mock('../thread-context', () => ({
   useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
   useThreadRpc: () => mockThreadRpc(),
@@ -159,20 +155,12 @@ const flushOrangeLine = async () => {
   })
 }
 
-type ManageChannelsAction = {
-  payload: {params: {teamname: string}}
-}
-
-const getManageChannelsListener = (): ((action: ManageChannelsAction) => void) => {
-  const listener = (useEngineActionListener as jest.Mock).mock.calls.find(
-    ([type]) => type === 'chat.1.chatUi.chatShowManageChannels'
-  )?.[1] as ((action: ManageChannelsAction) => void) | undefined
-  expect(listener).toEqual(expect.any(Function))
-  if (!listener) {
-    throw new Error('Missing manage channels listener')
-  }
-  return listener
-}
+// The engine hands the service's chatShowManageChannels to the action bus the screen subscribes to
+const showManageChannels = (teamname: string) =>
+  notifyEngineActionListeners({
+    payload: {params: {teamname}},
+    type: 'chat.1.chatUi.chatShowManageChannels',
+  } as never)
 
 const expectUnreadlineReadMsgID = (readMsgID: number) => {
   expect(unreadlineCalls().at(-1)).toEqual([convID, T.Chat.numberToMessageID(readMsgID)])
@@ -637,7 +625,7 @@ test('matching manage channels action navigates to add channels for the team', (
 
   render(<NormalWrapper />)
   act(() => {
-    getManageChannelsListener()({payload: {params: {teamname: 'keybase'}}})
+    showManageChannels('keybase')
   })
 
   expect(navigateAppend).toHaveBeenCalledWith({name: 'teamAddToChannels', params: {teamID}})
@@ -650,7 +638,7 @@ test('manage channels action ignores mismatched team names', () => {
 
   render(<NormalWrapper />)
   act(() => {
-    getManageChannelsListener()({payload: {params: {teamname: 'other-team'}}})
+    showManageChannels('other-team')
   })
 
   expect(navigateAppend).not.toHaveBeenCalled()
@@ -663,7 +651,7 @@ test('manage channels action ignores conversations without a real team ID', () =
 
   render(<NormalWrapper />)
   act(() => {
-    getManageChannelsListener()({payload: {params: {teamname: 'keybase'}}})
+    showManageChannels('keybase')
   })
 
   expect(navigateAppend).not.toHaveBeenCalled()
@@ -676,7 +664,7 @@ test('manage channels action ignores empty team names', () => {
 
   render(<NormalWrapper />)
   act(() => {
-    getManageChannelsListener()({payload: {params: {teamname: ''}}})
+    showManageChannels('')
   })
 
   expect(navigateAppend).not.toHaveBeenCalled()

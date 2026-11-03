@@ -63,8 +63,10 @@ const makeInfo = (overrides?: Partial<Parameters<typeof validatePgpInfo>[0]>) =>
   ...overrides,
 })
 
-// The listener hands incoming calls to their handlers on a timer, then React commits the step
+// The push crosses IPC, the listener hands incoming calls to their handlers on a timer, then React
+// commits the step
 const settle = async () => {
+  await flush(1)
   await act(async () => new Promise(resolve => setTimeout(resolve, 0)))
   await flush()
 }
@@ -113,7 +115,7 @@ describe('the generate flow', () => {
     'the key is recorded and acked, then Done answers whether to store it on the server (%s)',
     async store => {
       const {fake, held, sessionID} = await startGenerating()
-      await expect(pushKey(fake, sessionID)).resolves.toEqual({result: undefined})
+      await expect(pushKey(fake, sessionID)).resolves.toEqual({result: null})
       const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
       await settle()
       expect(screen.getByText('Here is your unique public key!')).toBeTruthy()
@@ -145,7 +147,7 @@ describe('the generate flow', () => {
     await settle()
     expect(onEngineIncoming).toHaveBeenCalledTimes(1)
     expect(onEngineIncoming.mock.calls[0]![0].type).toBe('keybase.1.secretUi.getPassphrase')
-    await expect(fake.push('keybase.1.pgpUi.finished', {}, {sessionID})).resolves.toEqual({result: undefined})
+    await expect(fake.push('keybase.1.pgpUi.finished', {}, {sessionID})).resolves.toEqual({result: null})
     held[0]!.reply(undefined)
     await flush()
   })

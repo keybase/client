@@ -10,7 +10,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
-import {settle} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {testWaitingKey} from '@/test/waiting-key'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -106,7 +106,7 @@ describe('a call made during a switch', () => {
     await settle()
     expect(methodsSent(fake)).toEqual([])
     endSwitch()
-    await expect(p).resolves.toBeUndefined()
+    await expect(p).resolves.toBeNull()
     uninstallFakeEngine()
   })
 
@@ -122,7 +122,7 @@ describe('a call made during a switch', () => {
     await settle()
     expect(methodsSent(fake)).toEqual([])
     endSwitch()
-    await expect(dialog.done).resolves.toBeUndefined()
+    await expect(dialog.done).resolves.toBeNull()
     uninstallFakeEngine()
   })
 
@@ -186,6 +186,8 @@ describe('a call made during a switch', () => {
     const p = outcome(T.RPCGen.userLoadMySettingsRpcPromise())
     fake.drop()
     fake.restart()
+    // The renderer hears the link go down and come back before the switch ends
+    await tick()
     endSwitch()
     expect(await p).toEqual({r: {}})
     uninstallFakeEngine()

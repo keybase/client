@@ -8,6 +8,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
+import {errors} from './rpc-transport'
 import {testWaitingKey} from '@/test/waiting-key'
 import type {WaitingKey} from '@/constants/waiting-key-type'
 
@@ -24,14 +25,17 @@ const prompt = 'keybase.1.loginUi.promptPassphraseRecovery'
 const row = 'keybase.1.identify3Ui.identify3UpdateRow'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 
-// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
-// becomes the GUI's on the next
+// The push crosses IPC; the listener hands incoming calls to their handlers on a timer, and a prompt
+// they leave unanswered becomes the GUI's on the next
 const afterTimers = async () => {
+  await tick()
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setTimeout(resolve, 0))
 }
-// What a push has settled to by now, or that it is still waiting on the GUI
-const settledSoFar = async <V>(p: Promise<V>) => Promise.race([p, tick().then(() => 'still waiting' as const)])
+// What a push has settled to by now, or that it is still waiting on the GUI: an answer the GUI has
+// written takes an IPC turn to reach the service
+const settledSoFar = async <V>(p: Promise<V>) =>
+  Promise.race([p, tick().then(tick).then(() => 'still waiting' as const)])
 
 // The transport only logs a second settle, so a double answer shows up here
 const watchErrors = () => jest.spyOn(logger, 'error').mockImplementation(() => {})
@@ -104,10 +108,12 @@ test('a prompt the service cancelled writes nothing when its handler answers lat
   expect(onPrompt).toHaveBeenCalledTimes(1)
   fake.cancelPush(prompt)
   await pushed
+  // The cancel reaches the GUI before its handler answers
+  await tick()
   responses[0]!.result(true)
   await tick()
   held[0]!.reply(undefined)
-  await expect(ended).resolves.toBeUndefined()
+  await expect(ended).resolves.toBeNull()
   // The fake records any response to a seqid it is no longer waiting on
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
@@ -158,7 +164,7 @@ test('an account switch leaves a recovery prompt held: the recovery outlives the
   responses[0]!.result(true)
   await expect(pushed).resolves.toEqual({result: true})
   held[0]!.reply(undefined)
-  await expect(ended).resolves.toBeUndefined()
+  await expect(ended).resolves.toBeNull()
   uninstallFakeEngine()
 })
 
@@ -185,7 +191,7 @@ test('a held prompt writes nothing once its session ended normally', async () =>
   const pushed = push()
   await afterTimers()
   held[0]!.reply(undefined)
-  await expect(ended).resolves.toBeUndefined()
+  await expect(ended).resolves.toBeNull()
   responses[0]!.result(true)
   await tick()
   await expect(settledSoFar(pushed)).resolves.toBe('still waiting')
@@ -218,6 +224,8 @@ test('a prompt queued before a logout is refused instead of reaching its handler
   await tick()
   const sessionID = fake.calls[0]!.params.sessionID as number
   const pushed = fake.push('keybase.1.teamsUi.confirmRootTeamDelete', {teamName: 'testteam'}, {sessionID})
+  // It reaches the GUI and waits on the listener's timer
+  await tick()
   useConfigState.getState().dispatch.setLoggedIn(false)
   await afterTimers()
   expect(onConfirm).not.toHaveBeenCalled()
@@ -232,11 +240,11 @@ test('a notification that arrives just before its session ends normally still re
   const {ended, held, push} = await startIdentify(fake, onRow)
   const pushed = push()
   held[0]!.reply(undefined)
-  await expect(ended).resolves.toBeUndefined()
+  await expect(ended).resolves.toBeNull()
   expect(onRow).not.toHaveBeenCalled()
   await afterTimers()
   expect(onRow).toHaveBeenCalledTimes(1)
-  await expect(pushed).resolves.toEqual({result: undefined})
+  await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()
 })
 
@@ -249,7 +257,7 @@ test('a notification queued before an account switch never reaches its handler',
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   await afterTimers()
   expect(onRow).not.toHaveBeenCalled()
-  await expect(pushed).resolves.toEqual({result: undefined})
+  await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()
 })
 
@@ -259,7 +267,7 @@ test('a raw session acks a call from its incomingCallMap itself', async () => {
   const onRow = jest.fn()
   const session = fake.engine.createSession({incomingCallMap: {[row]: onRow}})
   await expect(settledSoFar(fake.push(row, {row: {}}, {sessionID: session.getId()}))).resolves.toEqual({
-    result: undefined,
+    result: null,
   })
   expect(onRow).toHaveBeenCalledWith(expect.objectContaining({row: {}}))
   expect(onEngineIncoming).not.toHaveBeenCalled()
@@ -302,7 +310,7 @@ test('a session prompt handler that throws is answered once with input canceled'
 
 // A session that was never started has no call for the transport to fail, so only the engine's
 // own disconnect and reset handling settle what it holds.
-const holdPassphrase = (fake: FakeEngine, dangling: boolean) => {
+const holdPassphrase = async (fake: FakeEngine, dangling: boolean) => {
   const responses = new Array<{result: (r: T.RPCGen.GetPassphraseRes) => void}>()
   const session = fake.engine.createSession({
     customResponseIncomingCallMap: {
@@ -313,14 +321,16 @@ const holdPassphrase = (fake: FakeEngine, dangling: boolean) => {
     dangling,
   })
   const pushed = fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {}}, {sessionID: session.getId()})
+  await tick()
   return {pushed, responses, session}
 }
 
 test.each([false, true])('an unstarted session holding a prompt writes nothing when the link drops (dangling %p)', async dangling => {
   const fake = installFakeEngine()
-  const {pushed, responses, session} = holdPassphrase(fake, dangling)
+  const {pushed, responses, session} = await holdPassphrase(fake, dangling)
   fake.drop()
   await pushed
+  await tick()
   // A dangling session outlives the link; only what it held is dropped
   expect(fake.engine._sessionsMap.has(session.getId())).toBe(dangling)
   responses[0]!.result({passphrase: 'testpass', storeSecret: false})
@@ -331,12 +341,17 @@ test.each([false, true])('an unstarted session holding a prompt writes nothing w
 
 test.each([false, true])('a reset drops a held prompt without answering it (dangling %p)', async dangling => {
   const fake = installFakeEngine()
-  const {pushed, responses} = holdPassphrase(fake, dangling)
+  const {pushed, responses} = await holdPassphrase(fake, dangling)
   fake.engine.reset()
+  // engineDropLink reaches the relay, which closes the service's connection, and its link-down
+  // frame comes back
+  await tick()
+  await tick()
+  await expect(pushed).resolves.toMatchObject({error: {code: errors.EOF}})
   responses[0]!.result({passphrase: 'testpass', storeSecret: false})
   await tick()
-  await expect(settledSoFar(pushed)).resolves.toBe('still waiting')
-  uninstallFakeEngine()
+  // The fake would record an answer to the push it no longer waits on
+  expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
 describe('a listener prompt handler that fails', () => {

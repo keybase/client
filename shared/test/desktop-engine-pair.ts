@@ -75,6 +75,7 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   const made: {renderer?: Engine} = {}
   // Electron IPC is asynchronous both ways: what one process sends arrives a turn later, in order.
   // So a renderer call can reach the relay after the socket died but before the renderer has heard.
+  // It structured-clones what is sent at send time, so the receiver never shares the sender's object.
   const inTransit = new Array<() => void>()
   // Set before anything global changes, so a setup that throws part way is still undone
   teardown = () => {
@@ -110,14 +111,20 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   let rendererIncoming: ((data: unknown) => void) | undefined
   // preload: node forwards the service's bytes and the relay's link frames to the main window's
   // 'engineIncoming'
-  const relay = new EngineRelay(data => overIPC(() => rendererIncoming?.(data)))
+  const relay = new EngineRelay(data => {
+    const sent = structuredClone(data)
+    overIPC(() => rendererIncoming?.(sent))
+  })
 
   preload.functions = {
     ...functions,
     // ipc-handlers.desktop.tsx: the renderer's engineSend, engineRestartLink and engineDropLink land on the relay
     engineRestartLink: () => overIPC(() => relay.restartLink({afterDelay: true})),
     engineDropLink: () => overIPC(() => relay.dropLink()),
-    engineSend: send => overIPC(() => relay.send(send)),
+    engineSend: send => {
+      const sent = structuredClone(send)
+      overIPC(() => relay.send(sent))
+    },
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
         rendererIncoming = cb

@@ -67,17 +67,18 @@ jest.mock('@/util/use-local-badging', () => {
     useLocalBadging: () => ({badged: mockBadged}),
   }
 })
-jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
 
 let mockRPCResults: Array<T.RPCGen.DeviceDetail> = []
+const mockReload = jest.fn()
 jest.mock('@/util/use-rpc-load', () => ({
   useRPCLoad: (_call: unknown, _args: unknown, opts: {map: (r: unknown) => unknown}) => ({
     data: opts.map(mockRPCResults),
-    reload: () => {},
+    reload: mockReload,
   }),
 }))
 
-import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import * as Tabs from '@/constants/tabs'
 import {navigationWrapper} from '@/test/navigation'
@@ -119,6 +120,7 @@ const renderedDevices = () =>
 afterEach(() => {
   cleanup()
   resetAllStores()
+  mockReload.mockClear()
   mockRPCResults = []
   mockBadged = new Set<string>()
 })
@@ -209,4 +211,20 @@ test('badging an active device leaves the revoked section collapsed', () => {
   rerender(<Devices />)
 
   expect(renderedDevices()).toEqual(['testuser-mac'])
+})
+
+test('a device history change from the service reloads the list, until the screen unmounts', () => {
+  const deviceHistoryChanged = () =>
+    act(() =>
+      notifyEngineActionListeners({
+        payload: {params: {}},
+        type: 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged',
+      } as never)
+    )
+  const {unmount} = renderDevices()
+  deviceHistoryChanged()
+  expect(mockReload).toHaveBeenCalledTimes(1)
+  unmount()
+  deviceHistoryChanged()
+  expect(mockReload).toHaveBeenCalledTimes(1)
 })

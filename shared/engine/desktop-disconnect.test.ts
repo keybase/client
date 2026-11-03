@@ -18,6 +18,16 @@ test('a renderer call reaches the service through node, and its answer comes bac
   expect(cb).toHaveBeenCalledWith(null, {ok: true})
 })
 
+// ipcRenderer.send structured-clones its argument when it is called
+test('a renderer call carries its params as they were when it was made', async () => {
+  const pair = makeDesktopEnginePair()
+  const params = {nested: {value: 'sent'}}
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [params], jest.fn())
+  params.nested.value = 'changed after'
+  await tick()
+  expect(pair.serviceReceived()[0]![3]).toEqual([{nested: {value: 'sent'}}])
+})
+
 test('after the service comes back a fresh call reaches the new service and is answered', async () => {
   const pair = makeDesktopEnginePair()
   pair.serviceDies()
