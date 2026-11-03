@@ -1,3 +1,5 @@
+import {isPreviewURL} from '@/util/local-server-url'
+
 type TrustedTypes = {
   createPolicy: (name: string, rules: {createScriptURL: (url: string) => string}) => {
     createScriptURL: (url: string) => object
@@ -5,27 +7,14 @@ type TrustedTypes = {
 }
 declare const trustedTypes: TrustedTypes
 
-// Must match the trusted-types allow-list in vite.config.mts
-export const pdfPreviewPolicyName = 'kb-pdf-preview'
-
-// PDF previews come only from the service's local http servers: chat attachments at /at and
-// KBFS files under /files/. Mirrors isSubframeURLAllowed in desktop/app/bridge-rules.desktop.tsx.
-export const isPdfPreviewURL = (url: string) => {
-  if (!URL.canParse(url)) return false
-  const u = new URL(url)
-  return (
-    u.protocol === 'http:' &&
-    u.hostname === '127.0.0.1' &&
-    (u.pathname === '/at' || u.pathname.startsWith('/files/'))
-  )
-}
-
 let policy: ReturnType<TrustedTypes['createPolicy']> | undefined
 const trustedPdfURL = (url: string) => {
-  if (!isPdfPreviewURL(url)) return undefined
-  policy ??= trustedTypes.createPolicy(pdfPreviewPolicyName, {
+  if (!isPreviewURL(url)) return undefined
+  // The name must be in the trusted-types allow-list in vite.config.mts. The policy itself rejects
+  // anything but a local preview URL so it stays safe whoever calls it.
+  policy ??= trustedTypes.createPolicy('kb-pdf-preview', {
     createScriptURL: (u: string) => {
-      if (!isPdfPreviewURL(u)) throw new Error('Not a PDF preview URL')
+      if (!isPreviewURL(u)) throw new Error('Not a PDF preview URL')
       return u
     },
   })
