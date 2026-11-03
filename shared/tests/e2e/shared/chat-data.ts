@@ -3,32 +3,18 @@
 // already there first, so running it again only fills in what is missing. Node-only: shared by
 // the Electron flows and, later, the iOS ones (both drive a host that has the CLI).
 //
-// Accounts and the team come from the environment, never from this file:
+// Accounts and the team come from the environment or ~/.config/keybase-e2e/env, never from this file:
 //   KB_SMOKE_USER  the account the app under test is signed in as, and the team owner
 //   KB_SECOND_USER a second account, a writer in the team (sends "incoming" messages)
 //   KB_E2E_TEAM    the team the e2e channels live in
 import {spawn, execFile, type ChildProcessWithoutNullStreams} from 'child_process'
 import * as path from 'path'
 import * as readline from 'readline'
+import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
+import {keybaseBin} from './keybase-bin.ts'
 
-export type E2EAccounts = {smokeUser: string; secondUser: string; team: string}
-
-export const e2eAccounts = (): E2EAccounts => {
-  const smokeUser = process.env['KB_SMOKE_USER']
-  const secondUser = process.env['KB_SECOND_USER']
-  const team = process.env['KB_E2E_TEAM']
-  const missing = [
-    ['KB_SMOKE_USER', smokeUser],
-    ['KB_SECOND_USER', secondUser],
-    ['KB_E2E_TEAM', team],
-  ]
-    .filter(([, v]) => !v)
-    .map(([k]) => k)
-  if (!smokeUser || !secondUser || !team) {
-    throw new Error(`chat e2e data needs ${missing.join(', ')} set in the environment`)
-  }
-  return {secondUser, smokeUser, team}
-}
+// The same accounts, and the same precedence (environment over the env file), as loadE2EEnv.
+export const e2eAccounts = (): E2EAccounts => loadE2EAccounts()
 
 export const E2E_CHANNELS = {
   long: 'e2e-long',
@@ -104,8 +90,6 @@ const log = (line: string) => {
 }
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-const keybaseBin = () => process.env['KB_CLI'] ?? 'keybase'
 
 // -- chat api -------------------------------------------------------------------------------------
 
