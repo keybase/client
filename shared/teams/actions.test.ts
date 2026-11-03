@@ -64,6 +64,13 @@ describe('handleNotAdded', () => {
 describe('exitTeamTo', () => {
   const confirm = {name: 'teamDeleteTeam', params: {teamID: 'T1'}}
   const team = {name: 'team', params: {teamID: 'T1'}}
+  // The tabs under screens pushed above them on a phone come up a render after the top screen, as
+  // they would have mounted before those screens were pushed.
+  const tabsUp = async () => {
+    for (let i = 0; i < 50 && !nav.getRootState()?.routes?.[0]?.state; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1))
+    }
+  }
   const landed = () => ({
     modals: NavTree.modalStack(nav.getRootState()).map(r => r.name),
     path: NavTree.visiblePath(nav.getRootState()).map(r => r.name),
@@ -94,22 +101,24 @@ describe('exitTeamTo', () => {
   })
 
   // A phone keeps the team page above the tab bar, in the root stack under the confirm.
-  test('on a phone, closes the team page above the tabs too', () => {
+  test('on a phone, closes the team page above the tabs too', async () => {
     nav = installNavigation({
       layout: 'phone',
       rootState: makeRootState({above: [team, {name: 'teamChannel'}, confirm], tab: Tabs.teamsTab}),
     })
+    await tabsUp()
 
     exitTeamTo('teams')
 
     expect(landed()).toEqual({modals: [], path: ['loggedIn', Tabs.teamsTab, 'teamsRoot']})
   })
 
-  test('on a phone, from chat, lands on chatRoot', () => {
+  test('on a phone, from chat, lands on chatRoot', async () => {
     nav = installNavigation({
       layout: 'phone',
       rootState: makeRootState({above: [{name: 'chatConversation'}, team, confirm], tab: Tabs.chatTab}),
     })
+    await tabsUp()
 
     exitTeamTo('chat')
 

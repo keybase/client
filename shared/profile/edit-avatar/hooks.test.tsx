@@ -4,17 +4,19 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
 import useEditAvatar, {type Props} from './hooks'
 import {resetAllStores} from '@/util/zustand'
 
 // hooks.tsx has no module private pure helper to export; the logic under test is
 // the hook itself: error mapping, the team/profile discriminated return, and
-// which save path onSave routes to. useLoadedTeam is left real and fed through
-// its RPC, so the teamname assertions exercise the teamID -> load -> teamMeta
-// chain instead of a stubbed return value.
-const mockTeams = new Map<string, {memberCount: number; name: string}>()
+// which save path onSave routes to. Everything runs for real: the team loads and the
+// avatars upload through the fake service, and the hook is a route of the real tree.
+const teams = new Map<string, {memberCount: number; name: string}>()
 const annotatedTeam = (teamID: string) => {
-  const team = mockTeams.get(teamID)
+  const team = teams.get(teamID)
   return {
     invites: null,
     joinRequests: null,
@@ -29,10 +31,9 @@ const annotatedTeam = (teamID: string) => {
   }
 }
 
-const mockUploadTeamAvatar = jest.fn()
-jest.mock('@/teams/actions', () => ({
-  uploadTeamAvatar: (...args: Array<unknown>) => mockUploadTeamAvatar(...args),
-}))
+const getAnnotatedTeam = 'keybase.1.teams.getAnnotatedTeam'
+const uploadUserAvatar = 'keybase.1.user.uploadUserAvatar'
+const uploadTeamAvatar = 'keybase.1.teams.uploadTeamAvatar'
 
 const setError = (code: number, desc: string) => {
   act(() => {
@@ -43,7 +44,14 @@ const setError = (code: number, desc: string) => {
   })
 }
 
-const render = (props: Props) => renderHook((p: Props) => useEditAvatar(p), {initialProps: props})
+let fake: FakeEngine
+let nav: ReturnType<typeof navigationWrapper>
+
+// The edit-avatar modal, open over the chat tab
+const render = (props: Props) => {
+  nav = navigationWrapper({params: props, route: 'profileEditAvatar'})
+  return renderHook((p: Props) => useEditAvatar(p), {initialProps: props, wrapper: nav.wrapper})
+}
 
 // the team variant only knows its name once useLoadedTeam's RPC has landed
 const renderLoadedTeam = async (props: Props) => {
@@ -52,21 +60,17 @@ const renderLoadedTeam = async (props: Props) => {
   return rendered
 }
 
-let annotatedTeamSpy: jest.SpyInstance
+const callsOf = (method: string) => fake.calls.filter(c => c.method === method).map(c => c.params as unknown)
+const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
 beforeEach(() => {
-  mockTeams.clear()
-  mockUploadTeamAvatar.mockClear()
-  annotatedTeamSpy = jest
-    .spyOn(T.RPCGen, 'teamsGetAnnotatedTeamRpcPromise')
-    .mockImplementation(async ({teamID}: {teamID: string}) =>
-      Promise.resolve(annotatedTeam(teamID) as never)
-    )
+  teams.clear()
+  fake = installFakeEngine()
+  fake.answer(getAnnotatedTeam, ({teamID}: {teamID: string}) => annotatedTeam(teamID))
 })
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
@@ -80,9 +84,9 @@ describe('useEditAvatar shape', () => {
   })
 
   test('with a teamID it returns the team variant carrying the loaded teamname', async () => {
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({teamID: 'team-1'})
-    expect(annotatedTeamSpy).toHaveBeenCalledWith({teamID: 'team-1'})
+    expect(callsOf(getAnnotatedTeam)).toContainEqual(expect.objectContaining({teamID: 'team-1'}))
     expect(result.current.type).toBe('team')
     expect(result.current.teamID).toBe('team-1')
     expect(result.current.createdTeam).toBe(false)
@@ -90,7 +94,7 @@ describe('useEditAvatar shape', () => {
   })
 
   test('the team name is empty until the team has loaded', async () => {
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = render({teamID: 'team-1'})
     expect(result.current.type).toBe('team')
     expect(result.current.teamname).toBe('')
@@ -98,7 +102,7 @@ describe('useEditAvatar shape', () => {
   })
 
   test('createdTeam and wizard flags are passed through on the team variant', async () => {
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({createdTeam: true, teamID: 'team-1', wizard: true})
     expect(result.current.createdTeam).toBe(true)
     expect(result.current.type === 'team' && result.current.wizard).toBe(true)
@@ -149,48 +153,61 @@ describe('useEditAvatar error mapping', () => {
 
 describe('useEditAvatar onSave', () => {
   test('the profile variant uploads the user avatar and navigates up on success', async () => {
-    const navigateUp = jest.spyOn(C.Router2, 'navigateUp').mockImplementation(() => {})
-    const upload = jest
-      .spyOn(T.RPCGen, 'userUploadUserAvatarRpcPromise')
-      .mockImplementation(async () => Promise.resolve())
-
+    const uploaded = fake.hold(uploadUserAvatar)
     const {result} = render({})
     const crop = {x0: 1, x1: 2, y0: 3, y1: 4}
-    await act(async () => {
+    act(() => {
       result.current.onSave('/tmp/a.png', crop)
-      await Promise.resolve()
     })
+    await flush()
 
-    expect(upload).toHaveBeenCalledWith(
-      {crop: expect.objectContaining({x0: 1, x1: 2, y0: 3, y1: 4}), filename: '/tmp/a.png'},
-      C.waitingKeyProfileUploadAvatar
-    )
-    expect(navigateUp).toHaveBeenCalled()
-    expect(mockUploadTeamAvatar).not.toHaveBeenCalled()
+    expect(callsOf(uploadUserAvatar)).toEqual([
+      expect.objectContaining({crop: expect.objectContaining({x0: 1, x1: 2, y0: 3, y1: 4}), filename: '/tmp/a.png'}),
+    ])
+    // still open while the upload runs
+    expect(rootNames()).toContain('profileEditAvatar')
+    uploaded[0]!.reply(null)
+    await flush()
+
+    expect(rootNames()).not.toContain('profileEditAvatar')
+    expect(callsOf(uploadTeamAvatar)).toEqual([])
   })
 
-  test('a non wizard team upload goes to uploadTeamAvatar with the notification flag', async () => {
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+  test('a non wizard team upload goes to the team avatar upload with the notification flag', async () => {
+    fake.answer(uploadTeamAvatar, () => null)
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({sendChatNotification: true, teamID: 'team-1'})
     const crop = {x0: 0, x1: 10, y0: 0, y1: 10}
     act(() => {
       result.current.onSave('/tmp/a.png', crop)
     })
-    expect(mockUploadTeamAvatar).toHaveBeenCalledWith('keybase', '/tmp/a.png', true, crop)
+    await flush()
+    expect(callsOf(uploadTeamAvatar)).toEqual([
+      expect.objectContaining({
+        crop: expect.objectContaining(crop),
+        filename: '/tmp/a.png',
+        sendChatNotification: true,
+        teamname: 'keybase',
+      }),
+    ])
+    expect(rootNames()).not.toContain('profileEditAvatar')
   })
 
   test('sendChatNotification defaults to false', async () => {
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    fake.answer(uploadTeamAvatar, () => null)
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({teamID: 'team-1'})
     act(() => {
       result.current.onSave('/tmp/a.png')
     })
-    expect(mockUploadTeamAvatar).toHaveBeenCalledWith('keybase', '/tmp/a.png', false, undefined)
+    await flush()
+    expect(callsOf(uploadTeamAvatar)).toEqual([
+      expect.objectContaining({crop: null, filename: '/tmp/a.png', sendChatNotification: false, teamname: 'keybase'}),
+    ])
   })
 
-  test('the wizard path never calls uploadTeamAvatar and appends the next wizard route', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+  test('the wizard path uploads nothing and moves the wizard on past the avatar', async () => {
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const newTeamWizard = {
       name: 'keybase',
       parentTeamID: T.Teams.noTeamID,
@@ -201,24 +218,22 @@ describe('useEditAvatar onSave', () => {
     act(() => {
       result.current.onSave('/tmp/a.png', {x0: 0, x1: 10, y0: 0, y1: 10}, 100, 5, 6)
     })
+    await flush()
 
-    expect(mockUploadTeamAvatar).not.toHaveBeenCalled()
-    expect(navigateAppend).toHaveBeenCalledTimes(2)
-    const first = navigateAppend.mock.calls[0]![0] as {name: string; params: {newTeamWizard: unknown}}
-    expect(first.name).toBe('profileEditAvatar')
-    expect(first.params.newTeamWizard).toEqual(
+    expect(callsOf(uploadTeamAvatar)).toEqual([])
+    // the avatar screen keeps what was picked (replaced in place), and the next wizard step is on top
+    expect(rootNames()).toEqual(['loggedIn', 'profileEditAvatar', 'teamWizard4TeamSize'])
+    const avatarRoute = nav.getRootState()?.routes?.find(r => r.name === 'profileEditAvatar')
+    expect((avatarRoute?.params as {newTeamWizard: unknown}).newTeamWizard).toEqual(
       expect.objectContaining({
         avatarCrop: {crop: {x0: 0, x1: 10, y0: 0, y1: 10}, offsetLeft: 5, offsetTop: 6, scaledWidth: 100},
         avatarFilename: '/tmp/a.png',
       })
     )
-    expect(navigateAppend.mock.calls[0]![1]).toBe(true)
-    expect((navigateAppend.mock.calls[1]![0] as {name: string}).name).toBe('teamWizard4TeamSize')
   })
 
   test('the wizard path stores an undefined crop when no crop was given', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const newTeamWizard = {
       name: 'keybase',
       parentTeamID: T.Teams.noTeamID,
@@ -229,20 +244,23 @@ describe('useEditAvatar onSave', () => {
     act(() => {
       result.current.onSave('/tmp/a.png')
     })
+    await flush()
 
-    const first = navigateAppend.mock.calls[0]![0] as {params: {newTeamWizard: {avatarCrop?: unknown}}}
-    expect(first.params.newTeamWizard.avatarCrop).toBeUndefined()
-    expect((navigateAppend.mock.calls[1]![0] as {name: string}).name).toBe('teamWizard5Channels')
+    const avatarRoute = nav.getRootState()?.routes?.find(r => r.name === 'profileEditAvatar')
+    expect((avatarRoute?.params as {newTeamWizard: {avatarCrop?: unknown}}).newTeamWizard.avatarCrop).toBeUndefined()
+    expect(rootNames()).toEqual(['loggedIn', 'profileEditAvatar', 'teamWizard5Channels'])
   })
 
   test('a wizard save with no wizard state is a no op', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
-    mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
+    teams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({teamID: 'team-1', wizard: true})
+    nav.clearActions()
     act(() => {
       result.current.onSave('/tmp/a.png')
     })
-    expect(navigateAppend).not.toHaveBeenCalled()
-    expect(mockUploadTeamAvatar).not.toHaveBeenCalled()
+    await flush()
+    expect(nav.actions).toEqual([])
+    expect(rootNames()).toEqual(['loggedIn', 'profileEditAvatar'])
+    expect(callsOf(uploadTeamAvatar)).toEqual([])
   })
 })

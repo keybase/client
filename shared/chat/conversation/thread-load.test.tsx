@@ -6,8 +6,8 @@ import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
 import {getClientPrevFromThread} from './client-prev'
-import {getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
-import {flush as flushAll} from '@/test/flush'
+import {getChatRpc, makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
+import {flush as flushAll, settle} from '@/test/flush'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {
   getExplodingModeFromGregorItems,
@@ -22,12 +22,7 @@ import {
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {
-  installFakeChatRpc,
-  restoreChatRpc,
-  type ChatRpcScript,
-  type FakeChatRpc,
-} from '@/test/fake-chat-rpc'
+import {answerThreadLoads, getThreadNonblock, paramsOf, type ThreadLoad} from '@/test/fake-thread-load'
 import type {ThreadLoadReconcile} from './thread-message-state'
 import type {
   ConversationThreadActions,
@@ -35,8 +30,9 @@ import type {
   LoadMoreMessagesParams,
 } from './thread-context'
 
-const conversationIDKey = T.Chat.stringToConversationIDKey('conv1')
-const otherConversationIDKey = T.Chat.stringToConversationIDKey('conv2')
+// the service sees the conversation ID, so keys that convert to one
+const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const otherConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
 const gregorItem = (category: string, body: string) => ({
   item: {
@@ -45,24 +41,27 @@ const gregorItem = (category: string, body: string) => ({
   } as T.RPCGen.Gregor1.Item,
 })
 
-let chatRpc: FakeChatRpc
+let fake: FakeEngine
 
 beforeEach(() => {
   // loadThread asks nothing of the service while the chat session is not ready
   useConfigState.setState({loggedIn: true})
-  chatRpc = installFakeChatRpc()
+  fake = installFakeEngine()
 })
 
-afterEach(() => {
-  restoreChatRpc()
-})
+// Scripts the service's side of every thread load; the returned function reads the getThreadNonblock
+// params of the loads made so far.
+const scriptLoadThread = (script?: (load: ThreadLoad) => Promise<void>) => {
+  answerThreadLoads(fake, script)
+  return () => paramsOf(fake, getThreadNonblock)
+}
 
-// Scripts every thread load; the returned function reads the loads made so far.
-const scriptLoadThread = (script?: ChatRpcScript<'loadThread'>) => {
-  if (script) {
-    chatRpc.on('loadThread', script)
+// Lets a chain of loads run out: each load crosses to the service and back, and each stream reaches
+// its handler on the listener's timer, so this waits on turns of the event loop, not microtasks.
+const settleLoads = async () => {
+  for (let i = 0; i < 60; i++) {
+    await settle()
   }
-  return () => chatRpc.calls('loadThread')
 }
 
 describe('getExplodingModeFromGregorItems', () => {
@@ -202,12 +201,6 @@ describe('snapshot helpers', () => {
 })
 
 describe('a back page that adds no ordinals reloads itself', () => {
-  const flushPromises = async () => {
-    for (let i = 0; i < 200; i++) {
-      await Promise.resolve()
-    }
-  }
-
   // A stand-in for the real store that keeps the one behaviour under test: applying a load adds an
   // ordinal per message EXCEPT the ones addMessagesToThreadState drops, which is `deleted`. A fake
   // that grows unconditionally would make every page look productive and hide the bug; one that
@@ -279,15 +272,14 @@ describe('a back page that adds no ordinals reloads itself', () => {
   // Each call walks one page further back, exactly as the service does, until it runs out.
   const mockWalkingBack = (oldestOverall: number) => {
     let next = 7151
-    return scriptLoadThread(async p => {
+    return scriptLoadThread(async l => {
       const from = next
       const to = Math.max(oldestOverall, from - numMessagesOnScrollback + 1)
       next = to - 1
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: tombstones(from, to), pagination: {last: to <= oldestOverall, num: 100}})
       )
-      return undefined as never
     })
   }
 
@@ -316,7 +308,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // 7151 down to 6952 is two pages of 100, so one reload after the first call.
     const rpc = mockWalkingBack(6952)
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(2)
   })
 
@@ -325,8 +317,8 @@ describe('a back page that adds no ordinals reloads itself', () => {
   test('reloads from below the oldest message the empty page carried', async () => {
     const rpc = mockWalkingBack(6952)
     loadBack(trackingActions())
-    await flushPromises()
-    expect(rpc().at(1)?.[0].messageIDControl).toEqual({
+    await settleLoads()
+    expect(rpc().at(1)?.query.messageIDControl).toEqual({
       mode: T.RPCChat.MessageIDControlMode.oldermessages,
       num: numMessagesOnScrollback,
       pivot: T.Chat.numberToMessageID(7052),
@@ -337,7 +329,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const oldest = 6752
     const rpc = mockWalkingBack(oldest)
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(Math.ceil((7151 - oldest + 1) / numMessagesOnScrollback))
   })
 
@@ -347,7 +339,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // fires onStartReached again and starts a fresh chain from where this one stopped.
     const rpc = mockWalkingBack(1)
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(maxPageReloads + 1)
   })
 
@@ -355,10 +347,10 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const rpc = mockWalkingBack(1)
     const actions = trackingActions()
     loadBack(actions)
-    await flushPromises()
+    await settleLoads()
     loadBack(actions)
-    await flushPromises()
-    const pivots = rpc().map(([p]) => p.messageIDControl?.pivot)
+    await settleLoads()
+    const pivots = rpc().map(p => p.query.messageIDControl?.pivot as T.Chat.MessageID | undefined)
     expect(pivots).toHaveLength(2 * (maxPageReloads + 1))
     // No page is asked for twice.
     expect(new Set(pivots).size).toBe(pivots.length)
@@ -367,21 +359,20 @@ describe('a back page that adds no ordinals reloads itself', () => {
   test('keeps paging forward through a run of tombstones', async () => {
     // Newer than the window: 7154 up to 7353 is two pages of 100, then a page of real messages.
     let next = 7154
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       const from = next
       next = from + numMessagesOnScrollback
       await Promise.resolve()
       const page = from > 7353 ? visible(from + 99, from) : tombstones(from + 99, from)
-      p.onFullThread?.(JSON.stringify({messages: page, pagination: {last: false, num: 100}}))
-      return undefined as never
+      await l.full(JSON.stringify({messages: page, pagination: {last: false, num: 100}}))
     })
     loadConversationThreadMessages(
       conversationIDKey,
       {numberOfMessagesToLoad: numMessagesOnScrollback, reason: 'scroll forward', scrollDirection: 'forward'},
       trackingActions()
     )
-    await flushPromises()
-    expect(rpc().map(([p]) => p.messageIDControl?.pivot)).toEqual([
+    await settleLoads()
+    expect(rpc().map(p => p.query.messageIDControl?.pivot as T.Chat.MessageID | undefined)).toEqual([
       undefined,
       T.Chat.numberToMessageID(7253),
       T.Chat.numberToMessageID(7353),
@@ -391,29 +382,27 @@ describe('a back page that adds no ordinals reloads itself', () => {
   test('stops if a page fails to reach further back', async () => {
     // A service that keeps handing back the same window must not spin us forever. Progress in
     // message ID is the only thing permitting another attempt.
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(2)
   })
 
   test('does not reload when the page actually added ordinals', async () => {
     // Renderable messages, so the store grows and the list will ask for the next page itself.
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(1)
   })
 
@@ -422,7 +411,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // wins and the cached pass carries the page - which is entirely tombstones. Judging only the
     // full pass, or refusing to judge at all once a cached pass arrived, leaves this inert.
     let next = 7151
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       const from = next
       const to = Math.max(6952, from - numMessagesOnScrollback + 1)
       next = to - 1
@@ -431,13 +420,12 @@ describe('a back page that adds no ordinals reloads itself', () => {
         messages: tombstones(from, to),
         pagination: {last: to <= 6952, num: 100},
       })
-      p.onCachedThread?.(body)
+      await l.cached(body)
       // The full pass is INCREMENTAL once a cached thread has been sent.
-      p.onFullThread?.(JSON.stringify({messages: tombstones(to, to), pagination: {last: to <= 6952, num: 100}}))
-      return undefined as never
+      await l.full(JSON.stringify({messages: tombstones(to, to), pagination: {last: to <= 6952, num: 100}}))
     })
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(2)
   })
 
@@ -446,18 +434,17 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // and the full pass that follows is INCREMENTAL - only the messages that changed, every one of
     // them already in the window. On ordinal count alone that is indistinguishable from a page of
     // tombstones, and reloading on it walks the client back through the entire conversation.
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onCachedThread?.(
+      await l.cached(
         JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
       )
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: visible(7052, 7052), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadBack(trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(1)
   })
 
@@ -484,38 +471,31 @@ describe('a back page that adds no ordinals reloads itself', () => {
       markThreadAsRead: jest.fn(),
       rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    const rpc = scriptLoadThread(async p => {
+    const rpc = scriptLoadThread(async l => {
       calls++
       await Promise.resolve()
       // Someone hits jump-to-recent while the first page is in flight.
       if (calls === 1) {
         clearVersion = 1
       }
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadBack(actions)
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(1)
   })
 
   test('does not reload an initial load', async () => {
     const rpc = mockWalkingBack(6152)
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, trackingActions())
-    await flushPromises()
+    await settleLoads()
     expect(rpc()).toHaveLength(1)
   })
 })
 
 describe('a load releases the window gate it was issued under', () => {
-  const flushPromises = async () => {
-    for (let i = 0; i < 200; i++) {
-      await Promise.resolve()
-    }
-  }
-
   // clearVersion is the only thing that separates two loads of the same conversation:
   // isThreadLoadCurrent is keyed on a generation that moves only when the conversation changes or
   // the thread unmounts, so both loads call themselves current.
@@ -563,7 +543,7 @@ describe('a load releases the window gate it was issued under', () => {
       {isThreadLoadCurrent: () => false, reason: 'focused'},
       actions
     )
-    await flushPromises()
+    await settleLoads()
 
     expect(rpc()).toEqual([])
     expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
@@ -573,7 +553,7 @@ describe('a load releases the window gate it was issued under', () => {
     const rpc = scriptLoadThread()
     const actions = {...gateActions(() => 3), rpc: makeThreadChatRpc(() => true)}
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(rpc()).toEqual([])
   })
@@ -583,11 +563,10 @@ describe('a load releases the window gate it was issued under', () => {
     // gate down. Left up it drops every notification for the life of the provider.
     scriptLoadThread(async () => {
       await Promise.resolve()
-      return undefined as never
     })
     const actions = gateActions(() => 3)
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
   })
@@ -598,10 +577,10 @@ describe('a load releases the window gate it was issued under', () => {
     // dropped and lowers the gate the new load is relying on, and the two disjoint pages then
     // merge - the stranded-row bug the gate exists to prevent.
     let clearVersion = 3
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
       clearVersion = 4
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({
           messages: [
             {
@@ -612,11 +591,10 @@ describe('a load releases the window gate it was issued under', () => {
           pagination: {last: false, num: 100},
         })
       )
-      return undefined as never
     })
     const actions = gateActions(() => clearVersion)
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.applyThreadLoad).not.toHaveBeenCalled()
     expect(actions.clearWindowGate).not.toHaveBeenCalled()
@@ -652,9 +630,9 @@ describe('a load releases the window gate it was issued under', () => {
       markThreadAsRead: jest.fn(),
       rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({
           messages: [
             {
@@ -665,10 +643,9 @@ describe('a load releases the window gate it was issued under', () => {
           pagination: {last: false, num: 100},
         })
       )
-      return undefined as never
     })
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.applyThreadLoad).not.toHaveBeenCalled()
   })
@@ -699,9 +676,9 @@ describe('a load releases the window gate it was issued under', () => {
       markThreadAsRead: jest.fn(),
       rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({
           messages: [
             {
@@ -712,10 +689,9 @@ describe('a load releases the window gate it was issued under', () => {
           pagination: {last: false, num: 100},
         })
       )
-      return undefined as never
     })
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.applyThreadLoad).toHaveBeenCalled()
   })
@@ -729,22 +705,15 @@ describe('a load releases the window gate it was issued under', () => {
     scriptLoadThread(async () => {
       await Promise.resolve()
       clearVersion = 4
-      return undefined as never
     })
     const actions = gateActions(() => clearVersion)
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.clearWindowGate).not.toHaveBeenCalled()
   })
 })
 describe('only a pass that can account for a whole window reconciles', () => {
-  const flushPromises = async () => {
-    for (let i = 0; i < 200; i++) {
-      await Promise.resolve()
-    }
-  }
-
   const page = (from: number, to: number) =>
     Array.from({length: from - to + 1}, (_, i) => ({
       placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(from - i)},
@@ -772,11 +741,10 @@ describe('only a pass that can account for a whole window reconciles', () => {
     }) as unknown as ConversationThreadActions
 
   const mockPasses = (cached: string, full: string) =>
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onCachedThread?.(cached)
-      p.onFullThread?.(full)
-      return undefined as never
+      await l.cached(cached)
+      await l.full(full)
     })
 
   // Whether the last pass of a load was the one that reconciles. What gets pruned is the store's
@@ -812,7 +780,7 @@ describe('only a pass that can account for a whole window reconciles', () => {
       JSON.stringify({messages: page(7153, 7152), pagination: {last: false, num: 100}})
     )
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(prunedOnLastPass(actions)).toBe(true)
   })
@@ -847,20 +815,21 @@ describe('only a pass that can account for a whole window reconciles', () => {
       markThreadAsRead: jest.fn(),
       rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onCachedThread?.(
+      await l.cached(
         JSON.stringify({messages: page(7153, 7052), pagination: {last: false, num: 100}})
       )
-      // The load that owned the gate settles here, so the full pass is no longer refused.
+      // The service takes its time over the full pass: the cached one has reached its handler, and
+      // then the load that owned the gate settles, so the full pass is no longer refused.
+      await settle()
       ownedByAnother = false
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(actions.applyThreadLoad).not.toHaveBeenCalled()
   })
@@ -871,15 +840,14 @@ describe('only a pass that can account for a whole window reconciles', () => {
     // firing - with a thread, or with the nil a cold cache sends - is the only sign we get that
     // this did not happen.
     const actions = recordingActions()
-    scriptLoadThread(async p => {
+    scriptLoadThread(async l => {
       await Promise.resolve()
-      p.onFullThread?.(
+      await l.full(
         JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
       )
-      return undefined as never
     })
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(prunedOnLastPass(actions)).toBe(false)
   })
@@ -897,7 +865,7 @@ describe('only a pass that can account for a whole window reconciles', () => {
       JSON.stringify({messages: page(7153, 7153), pagination: {last: false, num: 100}})
     )
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
-    await flushPromises()
+    await settleLoads()
 
     expect(prunedOnLastPass(actions)).toBe(true)
   })
@@ -908,12 +876,14 @@ describe('persistExplodingMode', () => {
     ...Meta.makeConversationMeta(),
     retentionPolicy: Teams.makeRetentionPolicy(retention),
   })
+  const updateCategory = 'keybase.1.gregor.updateCategory'
+  const dismissCategory = 'keybase.1.gregor.dismissCategory'
+  const category = `exploding:${conversationIDKey}`
 
-  const flush = async () => {
-    for (let i = 0; i < 10; i++) {
-      await Promise.resolve()
-    }
-  }
+  beforeEach(() => {
+    fake.answer(updateCategory, () => new Uint8Array([9]))
+    fake.answer(dismissCategory, () => undefined)
+  })
 
   afterEach(() => {
     jest.restoreAllMocks()
@@ -921,23 +891,23 @@ describe('persistExplodingMode', () => {
 
   test('a lifetime is stored as the gregor category body', async () => {
     persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
-    await flush()
-    expect(chatRpc.calls('setExplodingMode')).toEqual([[conversationIDKey, 300]])
-    expect(chatRpc.calls('clearExplodingMode')).toEqual([])
+    await settle()
+    expect(paramsOf(fake, updateCategory)).toEqual([{body: '300', category, dtime: {offset: 0, time: 0}}])
+    expect(paramsOf(fake, dismissCategory)).toEqual([])
   })
 
   test('turning it off dismisses the category', async () => {
     persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
-    await flush()
-    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
-    expect(chatRpc.calls('setExplodingMode')).toEqual([])
+    await settle()
+    expect(paramsOf(fake, dismissCategory)).toEqual([{category}])
+    expect(paramsOf(fake, updateCategory)).toEqual([])
   })
 
   test('a lifetime equal to the retention policy is the default, so it dismisses too', async () => {
     persistExplodingMode(conversationIDKey, meta({seconds: 86400, type: 'explode'}), 86400, getChatRpc())
-    await flush()
-    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
-    expect(chatRpc.calls('setExplodingMode')).toEqual([])
+    await settle()
+    expect(paramsOf(fake, dismissCategory)).toEqual([{category}])
+    expect(paramsOf(fake, updateCategory)).toEqual([])
   })
 
   test('an inherited policy compares against the team policy', async () => {
@@ -950,59 +920,60 @@ describe('persistExplodingMode', () => {
       3600,
       getChatRpc()
     )
-    await flush()
-    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
+    await settle()
+    expect(paramsOf(fake, dismissCategory)).toEqual([{category}])
   })
 
   test('a thread that has retired persists nothing', async () => {
     persistExplodingMode(conversationIDKey, meta(), 300, makeThreadChatRpc(() => true))
     persistExplodingMode(conversationIDKey, meta(), 0, makeThreadChatRpc(() => true))
-    await flush()
-    expect(chatRpc.log).toEqual([])
+    await settle()
+    expect(fake.calls).toEqual([])
   })
 
   test('a transient service error is logged and dropped', async () => {
-    chatRpc.fail('setExplodingMode', new RPCError('offline', T.RPCGen.StatusCode.scapinetworkerror))
+    fake.answer(updateCategory, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
-    await flush()
+    await settle()
     expect(error).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to set exploding mode'))
   })
 
   test('any other service error is logged and rethrown', async () => {
-    chatRpc.fail('clearExplodingMode', new RPCError('bad', T.RPCGen.StatusCode.scgeneric))
+    fake.answer(dismissCategory, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'bad'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
-    await flush()
+    await settle()
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to unset exploding mode'))
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
   })
 
+  // Every failure the service adapter reports is an RPCError, so a bug in the caller's own code is
+  // the only other kind; an rpc argument that throws one stands in for that.
   test('a non-service error is rethrown without the service log', async () => {
-    chatRpc.fail('setExplodingMode', new Error('bug'))
+    const buggy: ChatThreadRpc = {
+      ...getChatRpc(),
+      setExplodingMode: async () => Promise.reject(new Error('bug')),
+    }
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
-    await flush()
+    persistExplodingMode(conversationIDKey, meta(), 300, buggy)
+    await settle()
     expect(error).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 })
 
 describe('a failed thread load through the engine listener', () => {
-  let fake: FakeEngine
   let errorLog: jest.SpyInstance
 
   beforeEach(() => {
-    // the service adapter, so the load runs the real getThreadNonblock listener
-    setChatRpc()
     useCurrentUserState.getState().dispatch.setBootstrap({
       deviceID: 'device-id',
       deviceName: 'testuser-mac',
       uid: 'uid',
       username: 'testuser',
     })
-    fake = installFakeEngine()
     errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
   })
 
@@ -1010,9 +981,6 @@ describe('a failed thread load through the engine listener', () => {
     jest.restoreAllMocks()
     resetAllStores()
   })
-
-  // the service adapter sends the real conversation ID, so a key that converts to one
-  const serviceConversationIDKey = T.Chat.stringToConversationIDKey('00'.repeat(32))
 
   const failLoad = async (code: T.RPCGen.StatusCode) => {
     const actions = {
@@ -1022,7 +990,7 @@ describe('a failed thread load through the engine listener', () => {
       rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     const held = fake.hold('chat.1.local.getThreadNonblock')
-    loadConversationThreadMessages(serviceConversationIDKey, {reason: 'focused'}, actions)
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushAll()
     held[0]!.reply(fakeError(code, 'thread load failed'))
     await flushAll()

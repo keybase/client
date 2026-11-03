@@ -1,34 +1,27 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {act, cleanup, render} from '@testing-library/react'
+import {cleanup, render} from '@testing-library/react'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {List} from './channels'
 
-const mockCommonList = jest.fn((_p: unknown) => null)
-
-jest.mock('./common', () => ({
-  List: (p: unknown) => mockCommonList(p),
-  desktopRowHeight: (contentHeight: number) => contentHeight,
-  TeamSuggestion: () => null,
-  standardTransformer: jest.fn(),
-  styles: {
-    fixSuggestionHeight: {},
-    suggestionBase: {},
+type MockSuggestionListProps = {items: Array<unknown>}
+let mockListProps: MockSuggestionListProps | undefined
+jest.mock('./suggestion-list', () => ({
+  __esModule: true,
+  default: (p: MockSuggestionListProps) => {
+    mockListProps = p
+    return null
   },
 }))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
 
 const makeChannelRow = (
   teamname: string,
@@ -89,37 +82,32 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
   resetAllStores()
-  mockCommonList.mockClear()
+  mockListProps = undefined
 })
 
 test('channel suggestions load mutual teams when the suggestor mounts', async () => {
-  jest.spyOn(T.RPCChat, 'localGetMutualTeamsLocalRpcPromise').mockResolvedValue({
-    offline: false,
-    teams: [
-      {name: 'alpha', teamID: 'team-alpha' as T.Teams.TeamID},
-      {name: 'beta', teamID: 'team-beta' as T.Teams.TeamID},
-    ],
-  })
+  const fake = installFakeEngine()
+  const held = fake.hold('chat.1.local.getMutualTeamsLocal')
 
   renderChannels()
+  await flush()
 
-  await act(async () => {
-    await flushPromises()
+  expect(held.map(c => c.params as unknown)).toEqual([expect.objectContaining({usernames: ['bob', 'carol']})])
+  // nothing to suggest until the service says which teams are shared
+  expect(mockListProps?.items).toEqual([])
+
+  held[0]?.reply({
+    offline: false,
+    teams: [
+      {name: 'alpha', teamID: 'team-alpha'},
+      {name: 'beta', teamID: 'team-beta'},
+    ],
   })
+  await flush()
 
-  expect(T.RPCChat.localGetMutualTeamsLocalRpcPromise).toHaveBeenCalledWith(
-    {usernames: ['bob', 'carol']},
-    expect.any(String)
-  )
-  expect(mockCommonList.mock.calls.at(-1)?.[0]).toEqual(
-    expect.objectContaining({
-      items: [
-        {channelname: 'general', teamname: 'alpha'},
-        {channelname: 'random', teamname: 'beta'},
-      ],
-      loading: false,
-    })
-  )
+  expect(mockListProps?.items).toEqual([
+    {channelname: 'general', teamname: 'alpha'},
+    {channelname: 'random', teamname: 'beta'},
+  ])
 })

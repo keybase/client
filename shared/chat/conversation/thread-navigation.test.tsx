@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {installNavigation, navigationWrapper, stateShowing, type InstalledNavigation} from '@/test/navigation'
 import {ConversationThreadProvider} from './thread-context'
 import {
@@ -15,7 +16,6 @@ import {
 } from './thread-navigation'
 
 let mockSplit = true
-let mockPhone = false
 jest.mock('@/constants/chat/layout', () => ({
   get isSplit() {
     return mockSplit
@@ -24,15 +24,20 @@ jest.mock('@/constants/chat/layout', () => ({
     return mockSplit ? 'chatRoot' : 'chatConversation'
   },
 }))
-jest.mock('@/constants/platform', () => {
-  const actual = jest.requireActual<object>('@/constants/platform')
-  return Object.defineProperty({...actual}, 'isPhone', {get: () => mockPhone})
-})
+// isPhone is a plain property set per test: modules the tree imports read it while this file is still
+// loading, before any test-scope variable is initialized.
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isPhone: false}))
+const setPhone = (phone: boolean) => {
+  jest.requireMock<{isPhone: boolean}>('@/constants/platform').isPhone = phone
+}
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 let nav: InstalledNavigation
-let cancelSearch: jest.SpyInstance
+let fake: FakeEngine
+
+// nothing is scripted for it, so a cancel would also fail the test when the fake uninstalls
+const cancelSearchCalls = () => fake.calls.filter(c => c.method === 'chat.1.local.cancelActiveSearch')
 
 const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
@@ -45,8 +50,8 @@ const visibleParams = () => visible()?.params as Record<string, unknown> | undef
 
 beforeEach(() => {
   mockSplit = true
-  mockPhone = false
-  cancelSearch = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue()
+  setPhone(false)
+  fake = installFakeEngine()
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -58,7 +63,6 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
 })
 
 describe('toggleConversationThreadSearch', () => {
@@ -68,7 +72,7 @@ describe('toggleConversationThreadSearch', () => {
     await flushPromises()
     expect(visible()?.name).toBe('chatRoot')
     expect(visibleParams()).toMatchObject({conversationIDKey: convID, threadSearch: {}})
-    expect(cancelSearch).not.toHaveBeenCalled()
+    expect(cancelSearchCalls()).toEqual([])
   })
 
   // the search UI unmounting is what cancels its search
@@ -81,12 +85,12 @@ describe('toggleConversationThreadSearch', () => {
     expect(visible()?.name).toBe('chatRoot')
     expect(visibleParams()?.['threadSearch']).toBeUndefined()
     expect(visibleParams()?.['conversationIDKey']).toBe(convID)
-    expect(cancelSearch).not.toHaveBeenCalled()
+    expect(cancelSearchCalls()).toEqual([])
   })
 
   test('not split: replaces the conversation route with the search params', () => {
     mockSplit = false
-    mockPhone = true
+    setPhone(true)
     nav = installNavigation({
       layout: 'phone',
       rootState: stateShowing('chatConversation', {layout: 'phone', params: {conversationIDKey: convID}}),
@@ -120,7 +124,7 @@ describe('showConversationInfoPanel', () => {
   })
 
   test('phone: showing pushes the panel, replacing one already showing', () => {
-    mockPhone = true
+    setPhone(true)
     nav = installNavigation({
       layout: 'phone',
       rootState: stateShowing('chatConversation', {layout: 'phone', params: {conversationIDKey: convID}}),
@@ -135,7 +139,7 @@ describe('showConversationInfoPanel', () => {
   })
 
   test('phone: hiding pops the panel only when it is the visible screen', () => {
-    mockPhone = true
+    setPhone(true)
     nav = installNavigation({
       layout: 'phone',
       rootState: stateShowing('chatConversation', {layout: 'phone', params: {conversationIDKey: convID}}),

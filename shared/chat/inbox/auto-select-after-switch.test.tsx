@@ -11,7 +11,6 @@ jest.mock('@/chat/conversation/info-panel', () => ({__esModule: true, default: (
 
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import RPCError from '@/util/rpcerror'
 import {act, cleanup} from '@testing-library/react'
 import {getSelectedConversation} from '@/constants/chat/common'
 import {navigateToThread} from '@/constants/router'
@@ -26,9 +25,9 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installNavigation, makeRootState} from '@/test/navigation'
-import {getChatRpc, setChatRpc} from '@/chat/conversation/chat-rpc'
-import {fakeError, installFakeEngine} from '@/test/fake-engine'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {getChatRpc} from '@/chat/conversation/chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
 
 const convKey = (n: number) => T.Chat.stringToConversationIDKey(`0000${n}`.padEnd(64, `${n}`))
@@ -90,7 +89,7 @@ const deliverRequestedLayout = () => {
 const open = (id: T.Chat.ConversationIDKey, reason: Parameters<typeof navigateToThread>[1]) =>
   act(() => navigateToThread(id, reason))
 
-let chatRpc: FakeChatRpc
+let fake: FakeEngine
 let nav: ReturnType<typeof installNavigation> | undefined
 
 // The chat tab of the new account's navigator, not yet mounted: its chat root renders the shell
@@ -122,7 +121,7 @@ const step = (fn: () => void) => {
 // new account, so the chat root starts with nothing selected. The service still remembers the
 // previous account's last-loaded conversation. keptSelected: the previous account's selection,
 // which a split layout keeps selected through the switch.
-const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
+const switchAccount = async (keptSelected?: T.Chat.ConversationIDKey) => {
   if (keptSelected) {
     installChatTab()
     nav?.mount()
@@ -139,7 +138,6 @@ const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
     useConfigState.getState().dispatch.setUserSwitching(false)
   })
   installChatTab()
-  chatRpc = installFakeChatRpc()
   service.lastLoaded = previousAccountConv
   nav?.mount()
   if (keptSelected) {
@@ -149,6 +147,8 @@ const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
   act(() => {
     void useInboxLayoutState.getState().dispatch.refresh('componentNeverLoaded')
   })
+  // the request crosses to the service
+  await flush()
 }
 
 let stopWatchingAccount: () => void
@@ -158,10 +158,12 @@ beforeEach(() => {
   stopWatchingAccount = watchChatSelection()
   service.lastLoaded = ''
   service.requested = []
-  jest.spyOn(T.RPCChat, 'localRequestInboxLayoutRpcPromise').mockImplementation(async ({reselectMode}) => {
-    service.requested.push(reselectMode)
-    return Promise.resolve()
+  fake = installFakeEngine()
+  fake.answer('chat.1.local.requestInboxLayout', (p: {reselectMode: T.RPCChat.InboxLayoutReselectMode}) => {
+    service.requested.push(p.reselectMode)
   })
+  // a layout's rows ask for their metas; the tests deliver those metas themselves
+  fake.answer('chat.1.local.requestInboxUnbox', () => {})
   useCurrentUserState
     .getState()
     .dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'test-device', uid: 'uid-1', username: 'testuser'})
@@ -172,13 +174,12 @@ afterEach(() => {
   stopWatchingAccount()
   cleanup()
   nav?.unmount()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('after a switch, the newest conversation fills the empty selection', () => {
-  switchAccount()
+test('after a switch, the newest conversation fills the empty selection', async () => {
+  await switchAccount()
   expect(selected()).toBe(T.Chat.noConversationIDKey)
 
   // the service pushes the new account's layout on its own right after login
@@ -187,8 +188,8 @@ test('after a switch, the newest conversation fills the empty selection', () => 
   expect(selected()).toBe(newest)
 })
 
-test('a conversation picked right after a switch stays selected when later layouts arrive', () => {
-  switchAccount()
+test('a conversation picked right after a switch stays selected when later layouts arrive', async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   expect(selected()).toBe(newest)
 
@@ -204,8 +205,8 @@ test('a conversation picked right after a switch stays selected when later layou
   expect(selected()).toBe(picked)
 })
 
-test("a selection left over from the previous account is replaced by the new account's newest", () => {
-  switchAccount(previousAccountConv)
+test("a selection left over from the previous account is replaced by the new account's newest", async () => {
+  await switchAccount(previousAccountConv)
   expect(selected()).toBe(previousAccountConv)
 
   step(deliverRequestedLayout)
@@ -213,8 +214,8 @@ test("a selection left over from the previous account is replaced by the new acc
   expect(selected()).toBe(newest)
 })
 
-test('a leftover selection whose only meta is an error is replaced', () => {
-  switchAccount()
+test('a leftover selection whose only meta is an error is replaced', async () => {
+  await switchAccount()
   step(() => open(previousAccountConv, 'misc'))
   // the new account's service could not load it
   meta(previousAccountConv, 'active', 1, 'error')
@@ -225,16 +226,16 @@ test('a leftover selection whose only meta is an error is replaced', () => {
 })
 
 // the new account, with its layout loaded and a conversation the user picked (its row's meta loaded)
-const pickAfterSwitch = () => {
-  switchAccount()
+const pickAfterSwitch = async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   inbox.forEach(id => meta(id, 'active'))
   step(() => open(picked, 'inboxSmall'))
   expect(selected()).toBe(picked)
 }
 
-test("a picked conversation the service's snapshot leaves out stays selected when a layout names it", () => {
-  pickAfterSwitch()
+test("a picked conversation the service's snapshot leaves out stays selected when a layout names it", async () => {
+  await pickAfterSwitch()
 
   // a partial snapshot: the service names the picked conversation as one to replace
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [newest, convKey(3)]))
@@ -242,8 +243,8 @@ test("a picked conversation the service's snapshot leaves out stays selected whe
   expect(selected()).toBe(picked)
 })
 
-test('a conversation still loading, or a channel preview, stays selected when a layout names it', () => {
-  switchAccount()
+test('a conversation still loading, or a channel preview, stays selected when a layout names it', async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   // opened from a link or search: not in the inbox, and its meta has not arrived
   const preview = convKey(7)
@@ -260,8 +261,8 @@ test('a conversation still loading, or a channel preview, stays selected when a 
   expect(selected()).toBe(preview)
 })
 
-test('a reselect naming another conversation leaves the selection alone, even one this account cannot load', () => {
-  switchAccount()
+test('a reselect naming another conversation leaves the selection alone, even one this account cannot load', async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   const unloadable = convKey(7)
   step(() => open(unloadable, 'previewResolved'))
@@ -274,8 +275,8 @@ test('a reselect naming another conversation leaves the selection alone, even on
   expect(selected()).toBe(unloadable)
 })
 
-test('a layout naming a conversation a popup loaded leaves a picked conversation selected', () => {
-  switchAccount()
+test('a layout naming a conversation a popup loaded leaves a picked conversation selected', async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   // picked from its row before its meta has loaded
   step(() => open(picked, 'inboxSmall'))
@@ -287,8 +288,8 @@ test('a layout naming a conversation a popup loaded leaves a picked conversation
   expect(selected()).toBe(picked)
 })
 
-test('leaving the selected conversation moves the selection to the newest other one', () => {
-  pickAfterSwitch()
+test('leaving the selected conversation moves the selection to the newest other one', async () => {
+  await pickAfterSwitch()
 
   // one about a conversation not selected changes nothing
   step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(newest), uid: 'uid-2'}))
@@ -299,8 +300,8 @@ test('leaving the selected conversation moves the selection to the newest other 
   expect(selected()).toBe(newest)
 })
 
-test('being reset out of the selected conversation moves the selection past it', () => {
-  pickAfterSwitch()
+test('being reset out of the selected conversation moves the selection past it', async () => {
+  await pickAfterSwitch()
   step(() => open(newest, 'inboxSmall'))
 
   step(() => notify('chat.1.NotifyChat.ChatResetConversation', {convID: T.Chat.keyToConversationID(newest), uid: 'uid-2'}))
@@ -309,9 +310,13 @@ test('being reset out of the selected conversation moves the selection past it',
   expect(selected()).toBe(picked)
 })
 
-test("a thread load that says the user is not in the conversation moves the selection", async () => {
-  pickAfterSwitch()
-  chatRpc.fail('loadThread', new RPCError('not in conv', T.RPCGen.StatusCode.scchatnotinconv))
+// A load that fails with not-in-conv: the real adapter's getThreadNonblock listener rejects, and
+// the load moves the selection off a conversation this account was in.
+test('a thread load the service fails with not-in-conv moves the selection', async () => {
+  await pickAfterSwitch()
+  const held = fake.hold(getThreadNonblock)
+  // not being in it clears the persisted last route
+  fake.answer('keybase.1.config.guiSetValue', () => {})
   const actions = {
     claimWindowGate: () => {},
     clearWindowGate: () => {},
@@ -321,27 +326,7 @@ test("a thread load that says the user is not in the conversation moves the sele
 
   loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
   await flush()
-
-  expect(selected()).toBe(newest)
-})
-
-test('a thread load the service fails through the engine listener with not-in-conv moves the selection', async () => {
-  pickAfterSwitch()
-  const fake = installFakeEngine()
-  const held = fake.hold('chat.1.local.getThreadNonblock')
-  // the service adapter, so the load runs the real getThreadNonblock listener
-  setChatRpc()
-  const serviceRpc = getChatRpc()
-  setChatRpc(chatRpc)
-  const actions = {
-    claimWindowGate: () => {},
-    clearWindowGate: () => {},
-    getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
-    rpc: serviceRpc,
-  } as unknown as ConversationThreadActions
-
-  loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
-  await flush()
+  expect(held).toHaveLength(1)
   held[0]!.reply(fakeError(T.RPCGen.StatusCode.scchatnotinconv, 'not in conv'))
   await flush()
 
@@ -349,12 +334,13 @@ test('a thread load the service fails through the engine listener with not-in-co
 })
 
 test('a thread load that says the user was never in the conversation leaves it selected', async () => {
-  pickAfterSwitch()
+  await pickAfterSwitch()
   // opened from a link or search: a conversation this account never joined
   const stranger = convKey(7)
   step(() => open(stranger, 'previewResolved'))
   meta(stranger, 'notMember')
-  chatRpc.fail('loadThread', new RPCError('not in conv', T.RPCGen.StatusCode.scchatnotinconv))
+  answerThreadLoads(fake, () => fakeError(T.RPCGen.StatusCode.scchatnotinconv, 'not in conv'))
+  fake.answer('keybase.1.config.guiSetValue', () => {})
   const actions = {
     claimWindowGate: () => {},
     clearWindowGate: () => {},
@@ -368,8 +354,8 @@ test('a thread load that says the user was never in the conversation leaves it s
   expect(selected()).toBe(stranger)
 })
 
-test('a layout naming a selected conversation the user has left moves the selection', () => {
-  switchAccount()
+test('a layout naming a selected conversation the user has left moves the selection', async () => {
+  await switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
   step(() => open(picked, 'inboxSmall'))
   // its first meta already says so, as for a left channel reopened from a link
@@ -381,16 +367,16 @@ test('a layout naming a selected conversation the user has left moves the select
   expect(selected()).toBe(newest)
 })
 
-test("the selected conversation's meta turning to left moves the selection", () => {
-  pickAfterSwitch()
+test("the selected conversation's meta turning to left moves the selection", async () => {
+  await pickAfterSwitch()
 
   step(() => meta(picked, 'youLeft', 2))
 
   expect(selected()).toBe(newest)
 })
 
-test('an inbox sync that removes the selected conversation moves the selection', () => {
-  pickAfterSwitch()
+test('an inbox sync that removes the selected conversation moves the selection', async () => {
+  await pickAfterSwitch()
 
   step(() =>
     notify('chat.1.NotifyChat.ChatInboxSynced', {
@@ -421,8 +407,8 @@ const deliverBigTeamLayout = (channels: ReadonlyArray<T.Chat.ConversationIDKey>)
   notify('chat.1.chatUi.chatInboxLayout', {layout: JSON.stringify(layout)})
 }
 
-test('with only big-team channels, a gone selection moves to the first other channel', () => {
-  switchAccount()
+test('with only big-team channels, a gone selection moves to the first other channel', async () => {
+  await switchAccount()
   const [general, random] = [convKey(5), convKey(6)]
   step(() => deliverBigTeamLayout([general, random]))
   meta(general, 'active')
@@ -435,8 +421,8 @@ test('with only big-team channels, a gone selection moves to the first other cha
   expect(selected()).toBe(random)
 })
 
-test('a layout arriving while a conversation is being created leaves the create flow alone', () => {
-  pickAfterSwitch()
+test('a layout arriving while a conversation is being created leaves the create flow alone', async () => {
+  await pickAfterSwitch()
   const created = convKey(4)
 
   step(() => open(T.Chat.pendingWaitingConversationIDKey, 'justCreated'))

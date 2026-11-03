@@ -6,6 +6,7 @@ import {ignorePromise} from '@/constants/utils'
 import {muteConversationPromise} from '../../status-actions'
 import {useConversationMeta} from '../../data-hooks'
 import {getChatRpc} from '../../chat-rpc'
+import {RPCError} from '@/util/errors'
 
 type UnmutedProps = {
   channelWide: boolean
@@ -134,7 +135,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
       return
     }
     setSaveError(
-      error instanceof Error && error.message ? error.message : 'Failed to save notification settings.'
+      (error instanceof RPCError ? error.desc : '') || 'Failed to save notification settings.'
     )
     setSaving(false)
   }

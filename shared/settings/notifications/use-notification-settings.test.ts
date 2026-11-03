@@ -1,18 +1,11 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-// useRPC is exported as a re-export getter (non-configurable), so we mock the
-// module to make it a plain configurable property that jest.spyOn can wrap.
-jest.mock('@/constants', () => ({
-  ...(jest.requireActual('@/constants') as object),
-  useRPC: jest.fn(),
-}))
-
 import {afterEach, expect, jest, test} from '@jest/globals'
-import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
-import * as C from '@/constants'
-import * as S from '@/constants/strings'
+import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {
   type UseNotificationSettingsResult,
   buildNotificationGroups,
@@ -24,22 +17,22 @@ import {
 const makeChatGlobalSettings = (settings: {[key: string]: boolean} = {}) =>
   ({settings} as T.RPCChat.GlobalAppNotificationSettings)
 
-type SubmitHandler<TArgs, TResult> = (
-  args: TArgs,
-  resolve: (result: TResult) => void,
-  reject: (error: Error) => void
-) => void
+const loadSubscriptionsRpc = 'keybase.1.apiserver.GetWithSession'
+const loadGlobalSettingsRpc = 'chat.1.local.getGlobalAppNotificationSettingsLocal'
+const saveSubscriptionsRpc = 'keybase.1.apiserver.PostJSON'
+const saveGlobalSettingsRpc = 'chat.1.local.setGlobalAppNotificationSettingsLocal'
 
-const createRPCMock = <TArgs, TResult>() => {
-  const pending = new Array<{resolve: (result: TResult) => void; reject: (error: Error) => void}>()
-  const submit = jest.fn<SubmitHandler<TArgs, TResult>>((_, resolve, reject) => {
-    pending.push({reject, resolve})
-  })
-  return {
-    rejectNext: (error: Error) => pending.shift()?.reject(error),
-    resolveNext: (result: TResult) => pending.shift()?.resolve(result),
-    submit,
-  }
+// Every call of the four held, so a test answers each in turn
+const holdAll = (fake: FakeEngine) => ({
+  loadGlobalSettings: fake.hold(loadGlobalSettingsRpc),
+  loadSubscriptions: fake.hold(loadSubscriptionsRpc),
+  saveGlobalSettings: fake.hold(saveGlobalSettingsRpc),
+  saveSubscriptions: fake.hold(saveSubscriptionsRpc),
+})
+
+const reply = async (held: Array<{reply: (a: unknown) => void}>, a: unknown) => {
+  held.shift()!.reply(a)
+  await flush()
 }
 
 const makeSubscriptionsResponse = () =>
@@ -146,73 +139,36 @@ test('toggleNotificationGroup and buildNotificationSavePayload preserve optimist
   })
 })
 
-test('useNotificationSettings refreshes and saves notification settings through RPC hooks', async () => {
-  const loadSubscriptionsRPC = createRPCMock<
-    [{args: Array<string>; endpoint: string}, string],
-    T.RPCGen.APIRes
-  >()
-  const loadGlobalSettingsRPC = createRPCMock<
-    [undefined, string],
-    T.RPCChat.GlobalAppNotificationSettings
-  >()
-  const saveSubscriptionsRPC = createRPCMock<
-    [{JSONPayload: Array<{key: string; value: string}>; args: Array<string>; endpoint: string}, string],
-    T.RPCGen.APIRes
-  >()
-  const saveGlobalSettingsRPC = createRPCMock<
-    [{settings: {[key: string]: boolean}}, string],
-    undefined
-  >()
-  const rpcSubmitters = new Map<unknown, unknown>([
-    [T.RPCGen.apiserverGetWithSessionRpcPromise, loadSubscriptionsRPC.submit],
-    [T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise, loadGlobalSettingsRPC.submit],
-    [T.RPCGen.apiserverPostJSONRpcPromise, saveSubscriptionsRPC.submit],
-    [T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise, saveGlobalSettingsRPC.submit],
-  ])
-  jest.spyOn(C, 'useRPC').mockImplementation(((rpc: unknown) => {
-    const submit = rpcSubmitters.get(rpc)
-    if (!submit) {
-      throw new Error('Unexpected RPC hook')
-    }
-    return submit
-  }) as never)
-
+test('useNotificationSettings refreshes and saves notification settings through the service', async () => {
+  const fake = installFakeEngine()
+  const held = holdAll(fake)
   const {result} = renderHook(() => useNotificationSettings())
 
   act(() => {
     result.current.refresh()
   })
+  await flush()
 
   expect(result.current.allowEdit).toBe(false)
-  expect(loadSubscriptionsRPC.submit).toHaveBeenCalledWith(
-    [{args: [], endpoint: 'account/subscriptions'}, S.refreshNotificationsWaitingKey],
-    expect.any(Function),
-    expect.any(Function)
+  expect(held.loadSubscriptions[0]!.params).toEqual(
+    expect.objectContaining({args: [], endpoint: 'account/subscriptions'})
+  )
+  // the chat settings are asked for only once the subscriptions are in
+  expect(held.loadGlobalSettings).toHaveLength(0)
+
+  await reply(held.loadSubscriptions, makeSubscriptionsResponse())
+  expect(held.loadGlobalSettings).toHaveLength(1)
+
+  await reply(
+    held.loadGlobalSettings,
+    makeChatGlobalSettings({
+      [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
+      [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
+      [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
+    })
   )
 
-  act(() => {
-    loadSubscriptionsRPC.resolveNext(makeSubscriptionsResponse())
-  })
-
-  await waitFor(() =>
-    expect(loadGlobalSettingsRPC.submit).toHaveBeenCalledWith(
-      [undefined, S.refreshNotificationsWaitingKey],
-      expect.any(Function),
-      expect.any(Function)
-    )
-  )
-
-  act(() => {
-    loadGlobalSettingsRPC.resolveNext(
-      makeChatGlobalSettings({
-        [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
-        [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
-        [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
-      })
-    )
-  })
-
-  await waitFor(() => expect(result.current.allowEdit).toBe(true))
+  expect(result.current.allowEdit).toBe(true)
   expect(snapshotGroups(result.current.groups)).toMatchObject({
     email: {
       settings: [{description: 'Email', name: 'newmessages', subscribed: true}],
@@ -235,130 +191,76 @@ test('useNotificationSettings refreshes and saves notification settings through 
   act(() => {
     result.current.toggle('security', 'plaintextmobile')
   })
+  await flush()
 
   expect(result.current.allowEdit).toBe(false)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
-  expect(saveSubscriptionsRPC.submit).toHaveBeenCalledWith(
-    [
-      {
-        JSONPayload: [
-          {key: 'newmessages|email', value: '1'},
-          {key: 'unsub|email', value: '0'},
-        ],
-        args: [],
-        endpoint: 'account/subscribe',
-      },
-      S.waitingKeySettingsGeneric,
-    ],
-    expect.any(Function),
-    expect.any(Function)
-  )
-
-  act(() => {
-    saveSubscriptionsRPC.resolveNext({body: JSON.stringify({status: {code: 0}})} as T.RPCGen.APIRes)
-  })
-
-  await waitFor(() =>
-    expect(saveGlobalSettingsRPC.submit).toHaveBeenCalledWith(
-      [
-        {
-          settings: expect.objectContaining({
-            [`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`]: false,
-            [`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`]: false,
-            [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
-            [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
-            [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
-          }),
-        },
-        S.waitingKeySettingsGeneric,
+  expect(held.saveSubscriptions[0]!.params).toEqual(
+    expect.objectContaining({
+      JSONPayload: [
+        {key: 'newmessages|email', value: '1'},
+        {key: 'unsub|email', value: '0'},
       ],
-      expect.any(Function),
-      expect.any(Function)
-    )
+      args: [],
+      endpoint: 'account/subscribe',
+    })
   )
 
-  act(() => {
-    saveGlobalSettingsRPC.resolveNext(undefined)
-  })
+  await reply(held.saveSubscriptions, {body: JSON.stringify({status: {code: 0}})})
 
-  await waitFor(() => expect(result.current.allowEdit).toBe(true))
+  expect(held.saveGlobalSettings[0]!.params).toEqual(
+    expect.objectContaining({
+      settings: expect.objectContaining({
+        [`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`]: false,
+        [`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`]: false,
+        [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
+        [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
+        [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
+      }),
+    })
+  )
+  expect(result.current.allowEdit).toBe(false)
+
+  await reply(held.saveGlobalSettings, null)
+
+  expect(result.current.allowEdit).toBe(true)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
 })
 
 test('useNotificationSettings restores optimistic state when save fails', async () => {
-  const loadSubscriptionsRPC = createRPCMock<
-    [{args: Array<string>; endpoint: string}, string],
-    T.RPCGen.APIRes
-  >()
-  const loadGlobalSettingsRPC = createRPCMock<
-    [undefined, string],
-    T.RPCChat.GlobalAppNotificationSettings
-  >()
-  const saveSubscriptionsRPC = createRPCMock<
-    [{JSONPayload: Array<{key: string; value: string}>; args: Array<string>; endpoint: string}, string],
-    T.RPCGen.APIRes
-  >()
-  const saveGlobalSettingsRPC = createRPCMock<
-    [{settings: {[key: string]: boolean}}, string],
-    undefined
-  >()
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-  const rpcSubmitters = new Map<unknown, unknown>([
-    [T.RPCGen.apiserverGetWithSessionRpcPromise, loadSubscriptionsRPC.submit],
-    [T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise, loadGlobalSettingsRPC.submit],
-    [T.RPCGen.apiserverPostJSONRpcPromise, saveSubscriptionsRPC.submit],
-    [T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise, saveGlobalSettingsRPC.submit],
-  ])
-  jest.spyOn(C, 'useRPC').mockImplementation(((rpc: unknown) => {
-    const submit = rpcSubmitters.get(rpc)
-    if (!submit) {
-      throw new Error('Unexpected RPC hook')
-    }
-    return submit
-  }) as never)
-
+  const fake = installFakeEngine()
+  const held = holdAll(fake)
   const {result} = renderHook(() => useNotificationSettings())
 
   act(() => {
     result.current.refresh()
   })
-  act(() => {
-    loadSubscriptionsRPC.resolveNext(makeSubscriptionsResponse())
-  })
-  await waitFor(() => expect(loadGlobalSettingsRPC.submit).toHaveBeenCalled())
-  act(() => {
-    loadGlobalSettingsRPC.resolveNext(
-      makeChatGlobalSettings({
-        [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
-        [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
-      })
-    )
-  })
-  await waitFor(() => expect(result.current.allowEdit).toBe(true))
+  await flush()
+  await reply(held.loadSubscriptions, makeSubscriptionsResponse())
+  await reply(
+    held.loadGlobalSettings,
+    makeChatGlobalSettings({
+      [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
+      [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
+    })
+  )
+  expect(result.current.allowEdit).toBe(true)
 
   const previousGroups = snapshotGroups(result.current.groups)
 
   act(() => {
     result.current.toggle('security', 'plaintextmobile')
   })
+  await flush()
 
   expect(result.current.allowEdit).toBe(false)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
 
-  act(() => {
-    saveSubscriptionsRPC.resolveNext({body: JSON.stringify({status: {code: 1}})} as T.RPCGen.APIRes)
-  })
-  await waitFor(() => expect(saveGlobalSettingsRPC.submit).toHaveBeenCalled())
-  act(() => {
-    saveGlobalSettingsRPC.resolveNext(undefined)
-  })
+  await reply(held.saveSubscriptions, {body: JSON.stringify({status: {code: 1}})})
+  await reply(held.saveGlobalSettings, null)
 
-  await waitFor(() => {
-    expect(result.current.allowEdit).toBe(true)
-    expect(snapshotGroups(result.current.groups)).toEqual(previousGroups)
-  })
-  expect(warnSpy).toHaveBeenCalledWith(
-    'Failed to save notification settings',
-    expect.any(Error)
-  )
+  expect(result.current.allowEdit).toBe(true)
+  expect(snapshotGroups(result.current.groups)).toEqual(previousGroups)
+  expect(warnSpy).toHaveBeenCalledWith('Failed to save notification settings', expect.any(Error))
 })

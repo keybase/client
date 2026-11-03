@@ -1,96 +1,36 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import type * as React from 'react'
-
-// useRPC is exported as a re-export getter (non-configurable), so we mock the
-// module to make it a plain configurable property that jest.spyOn can wrap.
-jest.mock('@/constants', () => ({
-  ...(jest.requireActual('@/constants') as object),
-  useRPC: jest.fn(),
-}))
-// the confirmation gate is the logic under test; the chrome around it is
-// native/electron-only
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Avatar: () => React.createElement('div'),
-    Box2: passThrough,
-    Checkbox: ({label, onCheck}: {label?: string; onCheck?: (b: boolean) => void}) =>
-      React.createElement(
-        'button',
-        {onClick: () => onCheck?.(false), type: 'button'},
-        label
-      ),
-    ConfirmButtons: ({
-      confirmDisabled,
-      confirmLabel,
-      onConfirm,
-    }: {
-      confirmDisabled?: boolean
-      confirmLabel?: string
-      onConfirm?: () => void
-    }) =>
-      React.createElement(
-        'button',
-        {disabled: confirmDisabled, onClick: onConfirm, type: 'button'},
-        confirmLabel
-      ),
-    ErrorBanner: ({error}: {error?: string}) => (error ? React.createElement('div', null, error) : null),
-    ImageIcon: () => React.createElement('div'),
-    Input3: ({
-      onChangeText,
-      placeholder,
-      value,
-    }: {
-      onChangeText?: (t: string) => void
-      placeholder?: string
-      value?: string
-    }) =>
-      React.createElement('input', {
-        onChange: (e: {target: {value: string}}) => onChangeText?.(e.target.value),
-        placeholder,
-        value,
-      }),
-    ModalScreen: ({
-      banner,
-      children,
-      footer,
-    }: {
-      banner?: React.ReactNode
-      children?: React.ReactNode
-      footer?: React.ReactNode
-    }) => React.createElement('div', null, banner, children, footer),
-    Styles: {
-      createStyleHook:
-        <S,>(styles: (theme: unknown) => S) =>
-        () =>
-          styles({redDark: 'redDark'}),
-      globalMargins: {large: 24, small: 8},
-      platformStyles: (s: {common?: object; isElectron?: object}) => s.common ?? s.isElectron ?? {},
-    },
-    Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
-  }
-})
-
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {navigateUp} from '@/constants/router'
+
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
+import {useWaitingState} from '@/stores/waiting'
 import {navigationWrapper} from '@/test/navigation'
 import DeleteRepo from './delete-repo'
 
-const mockDeleteRPCs = () => {
-  const personal = jest.fn()
-  const team = jest.fn()
-  jest.spyOn(C, 'useRPC').mockImplementation(((rpc: unknown) =>
-    rpc === T.RPCGen.gitDeleteTeamRepoRpcPromise ? team : personal) as never)
-  return {personal, team}
+const deletePersonal = 'keybase.1.git.deletePersonalRepo'
+const deleteTeam = 'keybase.1.git.deleteTeamRepo'
+
+// The service holds both deletes until the test answers them
+const serve = () => {
+  const fake = installFakeEngine()
+  return {fake, personal: fake.hold(deletePersonal), team: fake.hold(deleteTeam)}
+}
+const params = (p: {params: {sessionID?: number}}) => {
+  const {sessionID: _, ...rest} = p.params
+  return rest
 }
 
-const confirmButton = () => screen.getByText(/Delete this repository|^Delete$/) as HTMLButtonElement
+// the confirm button: the real button around its label, which it marks disabled
+const confirmButton = () => {
+  const button = screen.getByText(/Delete this repository|^Delete$/).closest<HTMLElement>('.button--primary')
+  if (!button) throw new Error('no confirm button')
+  return {disabled: button.classList.contains('button--disabled'), el: button}
+}
 const typeName = (name: string) =>
   fireEvent.change(screen.getByPlaceholderText('Name of the repository'), {target: {value: name}})
 
@@ -103,41 +43,40 @@ const renderDelete = (ui: React.ReactElement) => {
 
 afterEach(() => {
   cleanup()
-  jest.clearAllMocks()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('deleting a personal repo needs the exact repo name typed back', () => {
-  const rpcs = mockDeleteRPCs()
+const routeNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
+test('deleting a personal repo needs the exact repo name typed back', async () => {
+  const {personal, team} = serve()
   renderDelete(<DeleteRepo name="myrepo" />)
 
   expect(confirmButton().disabled).toBe(true)
 
   typeName('myrep')
   expect(confirmButton().disabled).toBe(true)
-  fireEvent.click(confirmButton())
-  expect(rpcs.personal).not.toHaveBeenCalled()
+  fireEvent.click(confirmButton().el)
+  await flush()
+  expect(personal).toHaveLength(0)
 
   typeName('myrepo')
   expect(confirmButton().disabled).toBe(false)
-  fireEvent.click(confirmButton())
-  expect(rpcs.personal).toHaveBeenCalledWith(
-    [{repoName: 'myrepo'}, C.waitingKeyGitLoading],
-    navigateUp,
-    expect.any(Function)
-  )
-  expect(rpcs.team).not.toHaveBeenCalled()
+  fireEvent.click(confirmButton().el)
+  await flush()
+  expect(personal.map(params)).toEqual([{repoName: 'myrepo'}])
+  expect(team).toHaveLength(0)
 
-  // a successful delete closes the confirm
-  const onSuccess = rpcs.personal.mock.calls[0]?.[1] as () => void
-  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'gitDeleteRepo'])
-  act(() => onSuccess())
-  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
+  // the confirm stays up, waiting on the git key, until the service says the delete went through
+  expect(useWaitingState.getState().counts.get(C.waitingKeyGitLoading)).toBe(1)
+  expect(routeNames()).toEqual(['loggedIn', 'gitDeleteRepo'])
+  personal[0]!.reply(null)
+  await flush()
+  expect(routeNames()).toEqual(['loggedIn'])
 })
 
 test('a team repo also accepts the fully qualified teamname/repo form', () => {
-  mockDeleteRPCs()
+  serve()
   renderDelete(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
 
   typeName('myrepo')
@@ -150,50 +89,41 @@ test('a team repo also accepts the fully qualified teamname/repo form', () => {
   expect(confirmButton().disabled).toBe(true)
 })
 
-test('a team delete splits the team name into parts and notifies the team by default', () => {
-  const rpcs = mockDeleteRPCs()
+test('a team delete splits the team name into parts and notifies the team by default', async () => {
+  const {personal, team} = serve()
   renderDelete(<DeleteRepo name="myrepo" teamname="keybase.sub" />)
 
   typeName('keybase.sub/myrepo')
-  fireEvent.click(confirmButton())
+  fireEvent.click(confirmButton().el)
+  await flush()
 
-  expect(rpcs.team).toHaveBeenCalledWith(
-    [
-      {notifyTeam: true, repoName: 'myrepo', teamName: {parts: ['keybase', 'sub']}},
-      C.waitingKeyGitLoading,
-    ],
-    navigateUp,
-    expect.any(Function)
-  )
-  expect(rpcs.personal).not.toHaveBeenCalled()
+  expect(team.map(params)).toEqual([{notifyTeam: true, repoName: 'myrepo', teamName: {parts: ['keybase', 'sub']}}])
+  expect(personal).toHaveLength(0)
 })
 
-test('unchecking notify the team is respected', () => {
-  const rpcs = mockDeleteRPCs()
+test('unchecking notify the team is respected', async () => {
+  const {team} = serve()
   renderDelete(<DeleteRepo name="myrepo" teamname="keybase" />)
 
   fireEvent.click(screen.getByText('Notify the team'))
   typeName('myrepo')
-  fireEvent.click(confirmButton())
+  fireEvent.click(confirmButton().el)
+  await flush()
 
-  expect(rpcs.team).toHaveBeenCalledWith(
-    [{notifyTeam: false, repoName: 'myrepo', teamName: {parts: ['keybase']}}, C.waitingKeyGitLoading],
-    navigateUp,
-    expect.any(Function)
-  )
+  expect(team.map(params)).toEqual([{notifyTeam: false, repoName: 'myrepo', teamName: {parts: ['keybase']}}])
 })
 
-test('failures from the service are shown to the user', () => {
-  const rpcs = mockDeleteRPCs()
+test('failures from the service are shown to the user and leave the confirm up', async () => {
+  const {personal} = serve()
   renderDelete(<DeleteRepo name="myrepo" />)
 
   typeName('myrepo')
-  fireEvent.click(confirmButton())
+  fireEvent.click(confirmButton().el)
+  await flush()
 
-  const onError = rpcs.personal.mock.calls[0]?.[2] as (e: Error) => void
-  act(() => {
-    onError(new Error('repo is locked'))
-  })
+  personal[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'repo is locked'))
+  await flush()
 
-  expect(screen.queryByText('repo is locked')).not.toBeNull()
+  expect(screen.queryByText(/repo is locked/)).not.toBeNull()
+  expect(routeNames()).toEqual(['loggedIn', 'gitDeleteRepo'])
 })

@@ -1,21 +1,72 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as ChatRpcT from './chat-rpc'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {act, render, waitFor} from '@testing-library/react'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {act, cleanup, render as renderUI, waitFor} from '@testing-library/react'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import type {RPCError} from '@/util/errors'
+import {resetAllStores} from '@/util/zustand'
+import {fakeError, installFakeEngine, type FakeAnswer, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
+import {ConversationThreadProvider} from './thread-context'
 import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
 
-let mockRetired = false
-// the composer's thread rpc, which retires with the thread
-let mockRpc: ChatRpcT.ChatThreadRpc | undefined
-jest.mock('./thread-context', () => ({
-  useThreadRpc: () =>
-    (mockRpc ??= jest.requireActual<typeof ChatRpcT>('./chat-rpc').makeThreadChatRpc(() => mockRetired)),
-}))
+const unfurlPreview = 'chat.1.local.unfurlPreviewLocal'
+let fake: FakeEngine
+// the service's answers: `once` ones in order, then the standing `on` one
+let queued: Array<() => FakeAnswer> = []
+let standing: (() => FakeAnswer) | undefined
+const rpc = {
+  calls: () => paramsOf(fake, unfurlPreview),
+  fail: (desc: string) => {
+    standing = () => fakeError(T.RPCGen.StatusCode.scgeneric, desc)
+  },
+  failOnce: (desc: string) => {
+    queued.push(() => fakeError(T.RPCGen.StatusCode.scgeneric, desc))
+  },
+  on: (a: () => FakeAnswer) => {
+    standing = a
+  },
+  once: (a: () => FakeAnswer) => {
+    queued.push(a)
+  },
+}
 
-let rpc: FakeChatRpc
+const startService = () => {
+  queued = []
+  standing = undefined
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+  fake = installFakeEngine()
+  fake.answer(unfurlPreview, () => {
+    const next = queued.shift() ?? standing
+    if (!next) throw new Error('unfurlPreviewLocal: nothing scripted')
+    return next()
+  })
+}
+
+// the hook runs in the composer, inside the conversation's thread
+const render = (ui: React.ReactElement) => {
+  const Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
+  const Thread = ({children}: {children: React.ReactNode}) => (
+    <Nav>
+      <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+    </Nav>
+  )
+  return renderUI(ui, {wrapper: Thread})
+}
+
+// what the logger gets for a failed fetch: the service's error
+const failedWith = (desc: string) => expect.objectContaining({desc}) as unknown as RPCError
 
 const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
@@ -24,7 +75,7 @@ const info = (url: string): T.RPCChat.UnfurlPreviewInfo =>
   ({unfurl: {generic: {title: url, url}, unfurlType: T.RPCChat.UnfurlType.generic}, url}) as T.RPCChat.UnfurlPreviewInfo
 
 // a url the service could not scrape: reported so it can be suppressed, no unfurl on it
-const failedInfo = (url: string): T.RPCChat.UnfurlPreviewInfo => ({url}) as T.RPCChat.UnfurlPreviewInfo
+const failedInfo = (url: string): T.RPCChat.UnfurlPreviewInfo => ({url})
 
 const Harness = (p: {
   text: string
@@ -38,66 +89,69 @@ const Harness = (p: {
 
 describe('unfurl previews', () => {
   beforeEach(() => {
-    mockRetired = false
-    rpc = installFakeChatRpc()
+    startService()
     jest.useFakeTimers()
     useUnfurlPreviewState.getState().dispatch.resetState()
   })
   afterEach(() => {
-    restoreChatRpc()
+    cleanup()
     jest.useRealTimers()
     jest.restoreAllMocks()
+    resetAllStores()
   })
 
-  it('does not call the rpc for text with no link', () => {
-    rpc.on('getUnfurlPreviews', () => [])
+  it('does not call the rpc for text with no link', async () => {
+    rpc.on(() => [])
     render(<Harness text="no links here" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(1000)
     })
-    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
+    await flush()
+    expect(rpc.calls()).toEqual([])
   })
 
-  it('asks for nothing once its thread has retired', () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
-    mockRetired = true
+  // an account switch keeps the composer up until the provider rebuilds its thread for the next account
+  it('asks for nothing once its thread has retired', async () => {
+    rpc.on(() => [info('http://a.com')])
     render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
+      // the debounce comes due after the account left, before the provider rebuilds
+      useCurrentUserState.setState({uid: 'other-uid'})
       jest.advanceTimersByTime(1000)
     })
-    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
+    await flush()
+    expect(rpc.calls()).toEqual([])
   })
 
   it('calls the rpc for an uppercase scheme', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('HTTP://A.COM')])
+    rpc.on(() => [info('HTTP://A.COM')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see HTTP://A.COM" onRender={r => (last = r)} />)
     act(() => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
-    expect(rpc.calls('getUnfurlPreviews')).toHaveLength(1)
+    expect(rpc.calls()).toHaveLength(1)
   })
 
   it('debounces and returns previews', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
-    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
+    expect(rpc.calls()).toEqual([])
     act(() => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
-    expect(rpc.calls('getUnfurlPreviews')).toHaveLength(1)
+    expect(rpc.calls()).toHaveLength(1)
   })
 
   it('drops a stale response', async () => {
     let resolveFirst: ((v: Array<T.RPCChat.UnfurlPreviewInfo>) => void) | undefined
     rpc.once(
-      'getUnfurlPreviews',
       async () => new Promise<Array<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
     )
-    rpc.once('getUnfurlPreviews', () => [info('http://b.com')])
+    rpc.once(() => [info('http://b.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -108,12 +162,14 @@ describe('unfurl previews', () => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews[0]?.url).toBe('http://b.com'))
-    act(() => resolveFirst?.([info('http://a.com')]))
+    resolveFirst?.([info('http://a.com')])
+    await flush()
+    expect(rpc.calls()).toHaveLength(2)
     expect(last?.previews[0]?.url).toBe('http://b.com')
   })
 
   it('dismiss hides the card and records the url for send', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -126,7 +182,7 @@ describe('unfurl previews', () => {
   })
 
   it('suppresses a url the service could not preview, and shows no card for it', async () => {
-    rpc.on('getUnfurlPreviews', () => [failedInfo('http://wsj.com'), info('http://a.com')])
+    rpc.on(() => [failedInfo('http://wsj.com'), info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://wsj.com http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -138,8 +194,8 @@ describe('unfurl previews', () => {
   })
 
   it('offers the card again once a url that failed starts previewing', async () => {
-    rpc.once('getUnfurlPreviews', () => [failedInfo('http://a.com')])
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.once(() => [failedInfo('http://a.com')])
+    rpc.once(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -157,7 +213,7 @@ describe('unfurl previews', () => {
   it('keeps a dismissal that the next fetch still returns', async () => {
     // keepOnly prunes what the fetch no longer mentions; a url still in the result and
     // still dismissed has to survive, or the card the user declined comes back
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -169,14 +225,14 @@ describe('unfurl previews', () => {
     act(() => {
       jest.advanceTimersByTime(500)
     })
-    await waitFor(() => expect(rpc.calls('getUnfurlPreviews')).toHaveLength(2))
+    await waitFor(() => expect(rpc.calls()).toHaveLength(2))
     expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
     expect(last?.previews.length).toBe(0)
   })
 
   it('drops the card for a url the user has typed a query string onto', async () => {
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com?foo=1')])
+    rpc.once(() => [info('http://a.com')])
+    rpc.once(() => [info('http://a.com?foo=1')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -192,7 +248,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps showing a card when the url is followed by a question mark', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -206,8 +262,8 @@ describe('unfurl previews', () => {
   it('drops the card for a url the user has typed on past', async () => {
     // the old url is a prefix of the new one, so a substring test would keep the stale card
     // showing and let its X suppress a link the message does not contain
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com/foo')])
+    rpc.once(() => [info('http://a.com')])
+    rpc.once(() => [info('http://a.com/foo')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -224,7 +280,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps showing a card when the url is followed by punctuation', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -242,8 +298,8 @@ describe('unfurl previews', () => {
   })
 
   it('replaces the failed set wholesale rather than accumulating', async () => {
-    rpc.once('getUnfurlPreviews', () => [failedInfo('http://a.com'), failedInfo('http://b.com')])
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com'), failedInfo('http://b.com')])
+    rpc.once(() => [failedInfo('http://a.com'), failedInfo('http://b.com')])
+    rpc.once(() => [info('http://a.com'), failedInfo('http://b.com')])
     const {rerender} = render(<Harness text="see http://a.com http://b.com" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(500)
@@ -259,7 +315,7 @@ describe('unfurl previews', () => {
   })
 
   it('forgets a failure once the url leaves the text', async () => {
-    rpc.on('getUnfurlPreviews', () => [failedInfo('http://a.com')])
+    rpc.on(() => [failedInfo('http://a.com')])
     const {rerender} = render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(500)
@@ -275,10 +331,9 @@ describe('unfurl previews', () => {
   it('drops a response left in flight by a mount that has gone away', async () => {
     let resolveFirst: (infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => void = () => {}
     rpc.once(
-      'getUnfurlPreviews',
       async () => new Promise<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
     )
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.once(() => [info('http://a.com')])
     // the conversation the user leaves, with a scrape still running
     const first = render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
@@ -292,16 +347,14 @@ describe('unfurl previews', () => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
-    await act(async () => {
-      resolveFirst([failedInfo('http://a.com')])
-      await Promise.resolve()
-    })
+    resolveFirst([failedInfo('http://a.com')])
+    await flush()
     expect(getSuppressedURLs(convID)).toEqual([])
     expect(last?.previews.length).toBe(1)
   })
 
   it('forgets a dismissal once the url leaves the text', async () => {
-    rpc.on('getUnfurlPreviews', () => [])
+    rpc.on(() => [])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -317,8 +370,8 @@ describe('unfurl previews', () => {
   })
 
   it('drops a card once its url leaves the composer, even if the next fetch fails', async () => {
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
-    rpc.failOnce('getUnfurlPreviews', new Error('scrape failed'))
+    rpc.once(() => [info('http://a.com')])
+    rpc.failOnce('scrape failed')
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -338,7 +391,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps dismissals when the conversation is left and returned to', async () => {
-    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.on(() => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const first = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -361,29 +414,30 @@ describe('unfurl previews', () => {
 
 describe('unfurl preview rpc', () => {
   beforeEach(() => {
-    rpc = installFakeChatRpc()
+    startService()
     jest.useFakeTimers()
     useUnfurlPreviewState.getState().dispatch.resetState()
   })
   afterEach(() => {
-    restoreChatRpc()
+    cleanup()
     jest.useRealTimers()
     jest.restoreAllMocks()
+    resetAllStores()
   })
 
   it('asks for previews of the conversation and the full composer text', async () => {
-    rpc.on('getUnfurlPreviews', () => [])
+    rpc.on(() => [])
     render(<Harness text="see http://a.com and more" onRender={() => {}} />)
     await act(async () => {
       jest.advanceTimersByTime(500)
       await Promise.resolve()
     })
-    expect(rpc.calls('getUnfurlPreviews')).toEqual([[convID, 'see http://a.com and more']])
+    expect(rpc.calls()).toEqual([{convID: T.Chat.keyToConversationID(convID), text: 'see http://a.com and more'}])
   })
 
   it('a rejected fetch is logged at info and shows and suppresses nothing', async () => {
-    const failure = new Error('scrape failed')
-    rpc.fail('getUnfurlPreviews', failure)
+    const failure = failedWith('scrape failed')
+    rpc.fail('scrape failed')
     const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error')
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
@@ -399,9 +453,9 @@ describe('unfurl preview rpc', () => {
   })
 
   it('a rejected refetch keeps the earlier cards still in the text and records nothing new', async () => {
-    const failure = new Error('scrape failed')
-    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
-    rpc.failOnce('getUnfurlPreviews', failure)
+    const failure = failedWith('scrape failed')
+    rpc.once(() => [info('http://a.com')])
+    rpc.failOnce('scrape failed')
     const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)

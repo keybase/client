@@ -2,22 +2,22 @@
 /// <reference types="jest" />
 
 import * as React from 'react'
-import {act, fireEvent, render, screen} from '@testing-library/react'
+import {act, fireEvent, render as renderOutsideNav, screen} from '@testing-library/react'
 import {ModalCover} from '../popup/modal-cover.desktop'
 import {OverlayEntry} from './entry.desktop'
 import {GlobalOverlay} from './global-overlay.desktop'
 import {EscapeHandler, overlayEntries, paintOrder, setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {navigationWrapper} from '@/test/navigation'
 
-jest.mock('@/constants', () => ({
-  Router2: {
-    useSafeFocusEffect: (cb: () => (() => void) | undefined) => jest.requireActual<typeof React>('react').useEffect(cb, [cb]),
-  },
-}))
-jest.mock('@/constants/platform', () => ({isMac: true}))
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isMac: true}))
 
 import {useHotKey} from '../hot-key'
 
 setupOverlayDom()
+
+// as the app's screens are: inside a route of the real navigation tree
+const render = (ui: React.ReactElement) =>
+  renderOutsideNav(ui, {wrapper: navigationWrapper({route: 'chatRoot'}).wrapper})
 
 const RouterModal = (p: {children?: React.ReactNode; onEscape?: () => void}) => (
   <OverlayEntry acceptsKeys={true} blocking={true} kind="modal" onEscape={p.onEscape}>

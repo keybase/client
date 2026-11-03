@@ -1,92 +1,44 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import type * as T from '@/constants/types'
 
-// the real list/row chrome is native/electron-only; we only care about which
-// devices end up in the list, in what order, and whether they can be revoked
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Box2: passThrough,
-    BoxGrow2: passThrough,
-    Button: ({label}: {label?: string}) => React.createElement('div', null, label),
-    ClickableBox: passThrough,
-    IconAuto: () => React.createElement('div'),
-    List: ({
-      items,
-      renderItem,
-    }: {
-      items: Array<{key: string}>
-      renderItem: (index: number, item: {key: string}) => React.ReactNode
-    }) =>
-      React.createElement(
-        'div',
-        null,
-        items.map((item, index) => React.createElement('div', {key: item.key}, renderItem(index, item)))
-      ),
-    LoadingOverlay: () => React.createElement('div'),
-    Reloadable: passThrough,
-    SectionDivider: ({label, onToggleCollapsed}: {label?: string; onToggleCollapsed?: () => void}) =>
-      React.createElement('button', {onClick: onToggleCollapsed, type: 'button'}, label),
-    Styles: {
-      border: () => ({}),
-      borderRadius: 4,
-      createStyleHook:
-        <S,>(styles: (theme: unknown) => S) =>
-        () =>
-          styles({black_05: '#0000000d'}),
-      globalMargins: {medium: 16, small: 8, tiny: 4, xsmall: 2, xxtiny: 1},
-      padding: () => ({}),
-      paddingH: () => ({}),
-      platformStyles: (s: {common?: object; isElectron?: object}) => s.common ?? s.isElectron ?? {},
-      transition: () => ({}),
-    },
-    Text: ({children}: {children?: React.ReactNode}) => React.createElement('span', null, children),
-  }
-})
-jest.mock('./row', () => ({
-  __esModule: true,
-  default: ({canRevoke, device}: {canRevoke: boolean; device: T.Devices.Device}) =>
-    require('react').createElement(
-      'div',
-      {'data-can-revoke': String(canRevoke)},
-      `${device.name}${device.revokedAt ? ' (revoked)' : ''}`
-    ),
-}))
-// the badged set drives the revoked-section auto expand, so it has to be able
-// to change between renders rather than being a frozen empty set
-let mockBadged = new Set<string>()
-jest.mock('@/util/use-local-badging', () => {
-  const React = require('react')
-  return {
-    NewItemsContext: React.createContext(new Set<string>()),
-    useIsNew: () => false,
-    useLocalBadging: () => ({badged: mockBadged}),
-  }
-})
-
-let mockRPCResults: Array<T.RPCGen.DeviceDetail> = []
-const mockReload = jest.fn()
-jest.mock('@/util/use-rpc-load', () => ({
-  useRPCLoad: (_call: unknown, _args: unknown, opts: {map: (r: unknown) => unknown}) => ({
-    data: opts.map(mockRPCResults),
-    reload: mockReload,
-  }),
-}))
-
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+// jsdom has no layout engine; the real list only draws rows into a viewport with a size
+const viewport = {height: 600, width: 800}
+Object.defineProperty(HTMLElement.prototype, 'clientHeight', {configurable: true, get: () => viewport.height})
+Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, get: () => viewport.width})
+HTMLElement.prototype.getBoundingClientRect = () =>
+  ({...viewport, bottom: viewport.height, left: 0, right: viewport.width, top: 0, x: 0, y: 0}) as DOMRect
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {_onEngineIncoming} from '@/constants/init/shared'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
 import * as Tabs from '@/constants/tabs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {navigationWrapper} from '@/test/navigation'
 import Devices from './index'
 
-// the desktop devices tab's root, on the real navigation tree
-const renderDevices = () =>
-  render(<Devices />, {wrapper: navigationWrapper({route: 'devicesRoot', tab: Tabs.devicesTab}).wrapper})
+const historyList = 'keybase.1.device.deviceHistoryList'
+const dismissBadges = 'keybase.1.device.dismissDeviceChangeNotifications'
+
+// The service answers the history list with whatever `results` holds when the call arrives, and
+// its notifications go through the app's own incoming handler.
+const serve = (results: () => Array<T.RPCGen.DeviceDetail>) => {
+  const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  fake.answer(historyList, () => results())
+  fake.answer(dismissBadges, () => null)
+  return fake
+}
+const historyCalls = (fake: FakeEngine) => fake.calls.filter(c => c.method === historyList).length
+
+// the desktop devices tab's root, on the real navigation tree, once the list has loaded
+let nav: ReturnType<typeof navigationWrapper>
+const renderDevices = async () => {
+  nav = navigationWrapper({route: 'devicesRoot', tab: Tabs.devicesTab})
+  const r = render(<Devices />, {wrapper: nav.wrapper})
+  await flush()
+  return r
+}
 
 const makeDetail = (
   name: string,
@@ -114,36 +66,56 @@ const makeDetail = (
     revokedByDevice: null,
   }) as T.RPCGen.DeviceDetail
 
+const rows = () => [...document.querySelectorAll<HTMLElement>(`[data-testid="${TestIDs.DEVICES_ROW}"]`)]
+// each row's device name, as the row's first line draws it
 const renderedDevices = () =>
-  [...document.querySelectorAll('[data-can-revoke]')].map(node => node.textContent)
+  rows().map(row => {
+    const name = row.querySelector('.text_BodySemibold')?.firstChild?.textContent?.trim() ?? ''
+    return row.textContent.includes('Revoked ') ? `${name} (revoked)` : name
+  })
+// whether tapping a device's row opens its page offering a revoke
+const canRevoke = (name: string) => {
+  const row = rows().find(r => r.querySelector('.text_BodySemibold')?.firstChild?.textContent?.trim() === name)
+  if (!row) throw new Error(`no row for ${name}`)
+  nav.clearActions()
+  fireEvent.click(row)
+  return (nav.pushes().at(-1)?.params as {canRevoke?: boolean} | undefined)?.canRevoke
+}
 
 afterEach(() => {
   cleanup()
   resetAllStores()
-  mockReload.mockClear()
-  mockRPCResults = []
-  mockBadged = new Set<string>()
 })
 
-test('active devices list the current device first, then alphabetically', () => {
-  mockRPCResults = [
+test('the list starts empty and fills once the service answers the load the screen makes on mount', async () => {
+  const fake = installFakeEngine()
+  const held = fake.hold(historyList)
+  fake.answer(dismissBadges, () => null)
+  render(<Devices />, {wrapper: navigationWrapper({route: 'devicesRoot', tab: Tabs.devicesTab}).wrapper})
+  await flush()
+  expect(held).toHaveLength(1)
+  expect(renderedDevices()).toEqual([])
+  held[0]!.reply([makeDetail('testuser-mac', {currentDevice: true})])
+  await flush()
+  expect(renderedDevices()).toEqual(['testuser-mac'])
+})
+
+test('active devices list the current device first, then alphabetically', async () => {
+  serve(() => [
     makeDetail('testuser-zeta'),
     makeDetail('testuser-alpha'),
     makeDetail('testuser-mac', {currentDevice: true}),
-  ]
+  ])
 
-  renderDevices()
+  await renderDevices()
 
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-alpha', 'testuser-zeta'])
 })
 
-test('revoked devices stay behind the collapsed section until it is expanded', () => {
-  mockRPCResults = [
-    makeDetail('testuser-mac', {currentDevice: true}),
-    makeDetail('testuser-old', {revokedAt: 1000}),
-  ]
+test('revoked devices stay behind the collapsed section until it is expanded', async () => {
+  serve(() => [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1000})])
 
-  renderDevices()
+  await renderDevices()
 
   expect(renderedDevices()).toEqual(['testuser-mac'])
 
@@ -153,78 +125,89 @@ test('revoked devices stay behind the collapsed section until it is expanded', (
   expect(screen.queryByText(/Revoked devices are no longer able/)).not.toBeNull()
 })
 
-test('revoking is only offered when more than one active device would remain', () => {
-  mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1})]
+test('revoking is only offered when more than one active device would remain', async () => {
+  let results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1})]
+  serve(() => results)
 
-  const {unmount} = renderDevices()
+  const {unmount} = await renderDevices()
   // the revoked device does not count towards the active total
-  expect(screen.getByText('testuser-mac').getAttribute('data-can-revoke')).toBe('false')
+  expect(canRevoke('testuser-mac')).toBe(false)
   unmount()
 
-  mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-phone')]
-  renderDevices()
-  expect(screen.getByText('testuser-mac').getAttribute('data-can-revoke')).toBe('true')
+  results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-phone')]
+  await renderDevices()
+  expect(canRevoke('testuser-mac')).toBe(true)
 })
 
-test('the paper key nudge shows only when the user has devices but no paper key', () => {
-  mockRPCResults = []
-  const {unmount} = renderDevices()
+test('the paper key nudge shows only when the user has devices but no paper key', async () => {
+  let results: Array<T.RPCGen.DeviceDetail> = []
+  serve(() => results)
+  const {unmount} = await renderDevices()
   expect(screen.queryAllByText('Create a paper key')).toHaveLength(0)
   unmount()
 
-  mockRPCResults = [makeDetail('testuser-mac', {currentDevice: true})]
-  const second = renderDevices()
+  results = [makeDetail('testuser-mac', {currentDevice: true})]
+  const second = await renderDevices()
   expect(screen.queryAllByText('Create a paper key').length).toBeGreaterThan(0)
   second.unmount()
 
-  mockRPCResults = [
-    makeDetail('testuser-mac', {currentDevice: true}),
-    makeDetail('testuser-paper', {type: 'backup'}),
-  ]
-  renderDevices()
+  results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-paper', {type: 'backup'})]
+  await renderDevices()
   expect(screen.queryAllByText('Create a paper key')).toHaveLength(0)
 })
 
-test('a newly badged revoked device expands the revoked section on its own', () => {
-  mockRPCResults = [
+// The service's badge state names the new and revoked devices; the store keeps them
+const badgeDevices = async (fake: FakeEngine, revokedDevices: Array<string>) => {
+  await fake.push(
+    'keybase.1.NotifyBadges.badgeState',
+    {badgeState: {inboxVers: 0, revokedDevices}},
+    {oneway: true}
+  )
+  await flush()
+}
+
+test('a newly badged revoked device expands the revoked section on its own', async () => {
+  const fake = serve(() => [
     makeDetail('testuser-mac', {currentDevice: true}),
     makeDetail('testuser-old', {revokedAt: 1000}),
-  ]
+  ])
 
-  const {rerender} = renderDevices()
+  await renderDevices()
   expect(renderedDevices()).toEqual(['testuser-mac'])
 
-  mockBadged = new Set(['id-testuser-old'])
-  rerender(<Devices />)
+  await badgeDevices(fake, ['id-testuser-old'])
 
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old (revoked)'])
 })
 
-test('badging an active device leaves the revoked section collapsed', () => {
-  mockRPCResults = [
+test('badging an active device leaves the revoked section collapsed', async () => {
+  const fake = serve(() => [
     makeDetail('testuser-mac', {currentDevice: true}),
     makeDetail('testuser-old', {revokedAt: 1000}),
-  ]
+  ])
 
-  const {rerender} = renderDevices()
-  mockBadged = new Set(['id-testuser-mac'])
-  rerender(<Devices />)
+  await renderDevices()
+  await badgeDevices(fake, ['id-testuser-mac'])
 
   expect(renderedDevices()).toEqual(['testuser-mac'])
 })
 
-test('a device history change from the service reloads the list, until the screen unmounts', () => {
-  const deviceHistoryChanged = () =>
-    act(() =>
-      notifyEngineActionListeners({
-        payload: {params: {}},
-        type: 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged',
-      } as never)
-    )
-  const {unmount} = renderDevices()
-  deviceHistoryChanged()
-  expect(mockReload).toHaveBeenCalledTimes(1)
+test('a device history change from the service reloads the list, until the screen unmounts', async () => {
+  let results = [makeDetail('testuser-mac', {currentDevice: true})]
+  const fake = serve(() => results)
+  const deviceHistoryChanged = async () => {
+    await fake.push('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', {}, {oneway: true})
+    await flush()
+  }
+  const {unmount} = await renderDevices()
+  expect(historyCalls(fake)).toBe(1)
+
+  results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-phone')]
+  await deviceHistoryChanged()
+  expect(historyCalls(fake)).toBe(2)
+  expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-phone'])
+
   unmount()
-  deviceHistoryChanged()
-  expect(mockReload).toHaveBeenCalledTimes(1)
+  await deviceHistoryChanged()
+  expect(historyCalls(fake)).toBe(2)
 })

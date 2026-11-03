@@ -4,7 +4,15 @@ import type * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import type {RefType as InputRef, Selection} from '../normal/input.shared'
 import {useSuggestors} from '.'
+import * as T from '@/constants/types'
 import {ComposerContext, makeComposer} from '../composer'
+import {ConversationInputProvider} from '../input-state'
+import {ConversationThreadProvider} from '../../thread-context'
+import {useCurrentUserState} from '@/stores/current-user'
+import {resetAllStores} from '@/util/zustand'
+import {navigationWrapper} from '@/test/navigation'
+
+const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 type MockCommandsListProps = {
   filter: string
@@ -15,22 +23,22 @@ const mockCommandsList = jest.fn((_p: MockCommandsListProps) => null)
 const mockUsersList = jest.fn((_p: {filter: string}) => null)
 const mockEmojiList = jest.fn((_p: {filter: string}) => null)
 const mockChannelsList = jest.fn((_p: {filter: string}) => null)
-let mockCommandTransform = (): unknown => undefined
 
+// the lists are render stubs that record the filter they were handed; the transformers and the
+// bot-command status are the real ones
 jest.mock('./commands', () => ({
+  ...jest.requireActual<object>('./commands'),
   List: (p: MockCommandsListProps) => mockCommandsList(p),
-  transformer: () => mockCommandTransform(),
-  useBotCommandsUpdateState: () => ({
-    conversationIDKey: 'conv',
-    settings: new Map<string, unknown>(),
-    status: 0,
-  }),
 }))
-jest.mock('./channels', () => ({List: (p: {filter: string}) => mockChannelsList(p), transformer: jest.fn()}))
-jest.mock('./emoji', () => ({List: (p: {filter: string}) => mockEmojiList(p), transformer: jest.fn()}))
-jest.mock('./users', () => ({UsersList: (p: {filter: string}) => mockUsersList(p), transformer: jest.fn()}))
-jest.mock('../../thread-context', () => ({useConversationThreadID: () => 'conv'}))
-jest.mock('../input-state', () => ({useConversationInput: () => false}))
+jest.mock('./channels', () => ({
+  ...jest.requireActual<object>('./channels'),
+  List: (p: {filter: string}) => mockChannelsList(p),
+}))
+jest.mock('./emoji', () => ({...jest.requireActual<object>('./emoji'), List: (p: {filter: string}) => mockEmojiList(p)}))
+jest.mock('./users', () => ({
+  ...jest.requireActual<object>('./users'),
+  UsersList: (p: {filter: string}) => mockUsersList(p),
+}))
 jest.mock('@/common-adapters', () => {
   const actual = jest.requireActual<Record<string, unknown>>('@/common-adapters')
   return {...actual, AnchoredPopup: (p: {children: React.ReactNode}) => <>{p.children}</>}
@@ -60,6 +68,7 @@ const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites
   })
   const view = composer.connect()
   view.setInput(input)
+  const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'})
   const {result} = renderHook(
     () =>
       useSuggestors({
@@ -68,7 +77,17 @@ const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites
         suggestionOverlayStyle: {},
         suggestionSpinnerStyle: {},
       }),
-    {wrapper: (p: {children: React.ReactNode}) => <ComposerContext value={composer}>{p.children}</ComposerContext>}
+    {
+      wrapper: (p: {children: React.ReactNode}) => (
+        <Nav>
+          <ConversationThreadProvider id={convID}>
+            <ConversationInputProvider id={convID}>
+              <ComposerContext value={composer}>{p.children}</ComposerContext>
+            </ConversationInputProvider>
+          </ConversationThreadProvider>
+        </Nav>
+      ),
+    }
   )
   return result
 }
@@ -90,6 +109,12 @@ const renderPopup = (result: {current: ReturnType<typeof useSuggestors>}) => {
 
 beforeEach(() => {
   jest.useFakeTimers()
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
   mockCommandsList.mockClear()
   mockUsersList.mockClear()
   mockEmojiList.mockClear()
@@ -97,9 +122,9 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  mockCommandTransform = () => undefined
   cleanup()
   jest.useRealTimers()
+  resetAllStores()
 })
 
 // bot command names contain a space (`keybot cancel`), so the command-mode word
@@ -191,10 +216,9 @@ test('a preview the input does not show leaves the command snapshot on what was 
   const result = renderSuggestors(() => ({end: text.length, start: text.length}), false)
   typeText(result, text)
   renderPopup(result)
-  mockCommandTransform = () => ({selection: {end: 7, start: 7}, text: '/giphy '})
 
   act(() => {
-    mockCommandsList.mock.calls.at(-1)?.[0].onSelected({name: 'giphy'}, false)
+    mockCommandsList.mock.calls.at(-1)?.[0].onSelected({description: '', hasHelpText: false, name: 'giphy', usage: ''}, false)
   })
   renderPopup(result)
 

@@ -5,18 +5,14 @@ import type * as React from 'react'
 import {resetAllStores} from '@/util/zustand'
 import {navigationWrapper} from '@/test/navigation'
 
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
+
+// The native share slot: a peek reads the held share without clearing it, an ack clears it only when
+// its id is the held one's. react-native-kb's own wrapper runs over it.
 type Held = {id: number; text?: string; localPaths?: Array<string>; droppedCount: number}
 const mockNative = {acks: new Array<number>(), held: undefined as Held | undefined}
-jest.mock('react-native-kb', () => ({
-  ackIncomingShare: (id: number) => {
-    mockNative.acks.push(id)
-    if (mockNative.held?.id === id) mockNative.held = undefined
-  },
-  peekIncomingShare: (id: number) => {
-    const held = mockNative.held
-    return held?.id === id ? {droppedCount: held.droppedCount, localPaths: held.localPaths, text: held.text} : null
-  },
-}))
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
+// a heavy child the notices do not depend on
 jest.mock('../chat/send-to-chat', () => ({
   SendToChat: () => null,
 }))
@@ -33,6 +29,16 @@ beforeEach(() => {
   g.isAndroid = true
   mockNative.acks = []
   mockNative.held = undefined
+  fakeNativeKb.give({
+    ackIncomingShare: (id: number) => {
+      mockNative.acks.push(id)
+      if (mockNative.held?.id === id) mockNative.held = undefined
+    },
+    peekIncomingShare: (id: number) => {
+      const held = mockNative.held
+      return held?.id === id ? {droppedCount: held.droppedCount, localPaths: held.localPaths, text: held.text} : null
+    },
+  })
 })
 
 afterEach(() => {

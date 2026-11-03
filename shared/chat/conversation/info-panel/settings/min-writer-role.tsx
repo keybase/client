@@ -9,6 +9,7 @@ import {useChatTeam} from '../../team-hooks'
 import {ignorePromise} from '@/constants/utils'
 import {useConversationMeta} from '../../data-hooks'
 import {getChatRpc} from '../../chat-rpc'
+import {RPCError} from '@/util/errors'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -56,7 +57,7 @@ const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
       return
     }
     setSaveError(
-      error instanceof Error && error.message ? error.message : 'Failed to save minimum posting role.'
+      (error instanceof RPCError ? error.desc : '') || 'Failed to save minimum posting role.'
     )
     setSelected(latestMinWriterRoleRef.current)
     setSaving(false)

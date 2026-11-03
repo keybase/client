@@ -11,22 +11,6 @@ import {installNavigation, makeRootState, stackKeyOf, type InstalledNavigation} 
 import {answerRecoverPasswordPgp, startRecoverPassword} from './flow'
 import PgpWarning from './pgp-warning'
 
-// The real components need native/electron rendering; only the Continue button matters here.
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Box2: passThrough,
-    Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
-      React.createElement('button', {onClick, type: 'button'}, label),
-    ModalScreen: ({banner, children, footer}: {banner?: React.ReactNode; children?: React.ReactNode; footer?: React.ReactNode}) =>
-      React.createElement('div', null, banner, children, footer),
-    Styles: {isTablet: false},
-    Text: passThrough,
-  }
-})
-
 const warningName = 'recoverPasswordPgpWarning'
 
 let nav: InstalledNavigation

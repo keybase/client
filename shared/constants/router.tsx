@@ -108,15 +108,21 @@ export const useSafeFocusEffect = (fn: React.EffectCallback) => {
       return undefined
     }
     let cleanup: ReturnType<React.EffectCallback>
+    // The library also emits 'focus' for a screen that mounted focused; as its own useFocusEffect
+    // does, a focus while already focused runs nothing.
+    let focused = false
     const runCleanup = () => {
+      focused = false
       if (typeof cleanup === 'function') {
         cleanup()
       }
       cleanup = undefined
     }
     const runEffect = () => {
+      if (focused) return
       runCleanup()
       cleanup = fn()
+      focused = true
     }
     if (navigation.isFocused()) {
       runEffect()

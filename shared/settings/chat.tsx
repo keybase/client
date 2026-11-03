@@ -519,7 +519,9 @@ export const Links = () => {
   const editable = loaded && !saving
   const allowSave = loaded && (mode !== selected || hasEdits(lists, saved))
   const onSave = () => {
-    unfurlSettingsSaved(unfurlSaveArgs(selected, lists), () => setDraft(undefined))
+    // the success clears only the draft it saved: waiting can land after an edit made just after Save
+    const savedDraft = draft
+    unfurlSettingsSaved(unfurlSaveArgs(selected, lists), () => setDraft(d => (d === savedDraft ? undefined : d)))
   }
   const onAdd = (list: UnfurlList) => (input: string, onAdded: () => void) =>
     normalizeDomain(input, domain => {

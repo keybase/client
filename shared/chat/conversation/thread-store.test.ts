@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-// makeThreadStore on its own: no provider, no React. The service goes through the fake chat RPC;
-// the session and conversation meta are the real stores.
+// makeThreadStore on its own: no provider, no React. The service is the fake engine behind the real
+// chat adapter; the session and conversation meta are the real stores.
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -10,14 +10,16 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock, holdHandlerTimers, paramsOf, threadLoaded, threadLoadOf} from '@/test/fake-thread-load'
+import {settle, tick} from '@/test/flush'
 import {deleteMessage, dismissJourneycard, replyPrivately, toggleCollapse, toggleReaction} from './message-commands'
 import {makeThreadStore, type ConversationThreadActions, type LoadMoreMessagesParams} from './thread-store'
 
 const convA = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convB = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
 const setSession = (session: {loggedIn: boolean; uid: string}) => {
   useConfigState.setState({loggedIn: session.loggedIn})
@@ -50,11 +52,31 @@ const textAt = (n: number, over?: Partial<T.Chat.MessageText>, id = convA) =>
     ...over,
   })
 
+// a round trip to the service, and a load's streams reaching their handlers
 const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
+  for (let i = 0; i < 3; i++) {
+    await settle()
   }
 }
+
+// what the store asked has crossed to the service; real hops, so this works under fake timers too
+const sent = async () => {
+  await tick()
+  await tick()
+}
+
+const markAsRead = 'chat.1.local.markAsReadLocal'
+const retryPost = 'chat.1.local.RetryPost'
+const updateCategory = 'keybase.1.gregor.updateCategory'
+const dismissCategory = 'keybase.1.gregor.dismissCategory'
+
+const placeholders = (ids: ReadonlyArray<number>) =>
+  JSON.stringify({
+    messages: ids.map(id => ({
+      placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(id)},
+      state: T.RPCChat.MessageUnboxedState.placeholder,
+    })),
+  })
 
 // whether the reader is looking at the thread, as the provider reports it when asked
 let looking = true
@@ -69,12 +91,33 @@ const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.
     scrollDirection: 'none',
   })
 
-const markReads = () => rpc.params('markRead')
-const loads = () => rpc.params('loadThread')
+type MarkAsReadParams = {conversationID: Uint8Array; forceUnread: boolean; msgID: T.Chat.MessageID}
+type ThreadLoadParams = {
+  conversationID: Uint8Array
+  knownRemotes: ReadonlyArray<string>
+  pagination: T.RPCChat.UIPagination | null
+}
+const markReads = () =>
+  paramsOf(fake, markAsRead).map(({conversationID, forceUnread, msgID}: MarkAsReadParams) => ({
+    conversationIDKey: T.Chat.conversationIDToKey(conversationID),
+    forceUnread,
+    msgID,
+  }))
+const loads = () =>
+  paramsOf(fake, getThreadNonblock).map(({conversationID, knownRemotes, pagination}: ThreadLoadParams) => ({
+    conversationIDKey: T.Chat.conversationIDToKey(conversationID),
+    knownRemotes,
+    pagination,
+  }))
 
 beforeEach(() => {
   looking = true
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  answerThreadLoads(fake)
+  fake.answer(markAsRead, () => undefined)
+  fake.answer(retryPost, () => undefined)
+  fake.answer(updateCategory, () => new Uint8Array([9]))
+  fake.answer(dismissCategory, () => undefined)
   setSession({loggedIn: true, uid: 'uid'})
   setMeta(convA, {})
   setMeta(convB, {})
@@ -83,7 +126,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
-  restoreChatRpc()
   resetAllStores()
 })
 
@@ -320,17 +362,18 @@ describe('setMarkAsUnread', () => {
   test('a window that does not reach the line asks the service for the message before it', async () => {
     // a search jump left the window far below the newest visible message
     setMeta(convA, {maxVisibleMsgID: T.Chat.numberToMessageID(20)})
-    rpc.on('loadThread', async p => {
+    // The service replies once the pass has reached its handler; replying at once marks nothing
+    // (see the test.failing in mark-unread.test.tsx).
+    answerThreadLoads(fake, async l => {
       const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
-      p.onFullThread?.(JSON.stringify({messages: [valid(19), valid(20)]}))
-      await Promise.resolve()
-      return {offline: false}
+      await l.full(JSON.stringify({messages: [valid(19), valid(20)]}))
+      await settle()
     })
     const {actions} = makeThread()
     actions.addMessages([textAt(3), textAt(5)])
     actions.setMarkAsUnread()
     await flushPromises()
-    expect(rpc.params('loadThread')).toHaveLength(1)
+    expect(loads()).toHaveLength(1)
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 19}])
   })
 
@@ -363,23 +406,26 @@ describe('loadMoreMessages', () => {
     scrollDirection: 'back',
   })
 
-  test('asks the service for its conversation and the window the load names', () => {
+  test('asks the service for its conversation and the window the load names', async () => {
     const {actions} = makeThread()
     actions.loadMoreMessages(scroll(1))
+    await sent()
     expect(loads()).toEqual([
       expect.objectContaining({conversationIDKey: convA, pagination: expect.objectContaining({num: 1})}),
     ])
   })
 
-  test('throttles to the first and last call in 500ms', () => {
+  test('throttles to the first and last call in 500ms', async () => {
     jest.useFakeTimers()
     const {actions} = makeThread()
     actions.loadMoreMessages(scroll(1))
     actions.loadMoreMessages(scroll(2))
     actions.loadMoreMessages(scroll(3))
     jest.advanceTimersByTime(499)
+    await sent()
     expect(loads().map(l => l.pagination?.num)).toEqual([1])
     jest.advanceTimersByTime(1)
+    await sent()
     expect(loads().map(l => l.pagination?.num)).toEqual([1, 3])
   })
 
@@ -406,30 +452,84 @@ describe('loadMoreMessages', () => {
       },
     ],
     ['jump to recent', {knownRemotes: ['p'], reason: 'jump to recent'}],
-  ])('%s runs at once and drops the pending call', (_, p) => {
+  ])('%s runs at once and drops the pending call', async (_, p) => {
     jest.useFakeTimers()
     const {actions} = makeThread()
     actions.loadMoreMessages(scroll(1))
     actions.loadMoreMessages(scroll(2))
     actions.loadMoreMessages(p)
-    expect(loads().map(l => l.knownRemotes)).toEqual([undefined, ['p']])
+    await sent()
+    expect(loads().map(l => l.knownRemotes)).toEqual([[], ['p']])
     jest.advanceTimersByTime(1000)
+    await sent()
     expect(loads()).toHaveLength(2)
   })
 
-  test('dispose drops the pending call and leaves the store working', () => {
+  test('dispose drops the pending call and leaves the store working', async () => {
     jest.useFakeTimers()
     const thread = makeThread()
     thread.actions.loadMoreMessages(scroll(1))
     thread.actions.loadMoreMessages(scroll(2))
     thread.dispose()
     jest.advanceTimersByTime(1000)
+    await sent()
     expect(loads()).toHaveLength(1)
     thread.dispose()
     thread.actions.loadMoreMessages(scroll(3))
     thread.actions.addMessages([textAt(1)])
+    await sent()
     expect(loads().map(l => l.pagination?.num)).toEqual([1, 3])
     expect(thread.store.getState().messageOrdinals).toEqual([1])
+  })
+})
+
+describe('the reload a clear issues', () => {
+  // Whether the window gate ever came down while the cleared window was still empty: a notification
+  // arriving then installs itself as the whole window.
+  const watchGate = (store: ReturnType<typeof makeThread>['store']) => {
+    const gaps: Array<boolean> = []
+    store.subscribe(s => {
+      if (!s.windowCleared && s.messageOrdinals === undefined) {
+        gaps.push(true)
+      }
+    })
+    return gaps
+  }
+
+  test('a service slow to reply refills the window before the gate comes down', async () => {
+    answerThreadLoads(fake, async l => {
+      await l.full(placeholders([50, 51]))
+      await settle()
+    })
+    const {actions, store} = makeThread()
+    arm(actions, [textAt(5)])
+    actions.messagesClear()
+    const gaps = watchGate(store)
+    actions.loadMoreMessages({reason: 'jump to recent'})
+    await flushPromises()
+    expect(store.getState().messageOrdinals).toEqual([50, 51])
+    expect(store.getState().windowCleared).toBe(false)
+    expect(gaps).toEqual([])
+  })
+
+  // The load releases the gate in its finally, once loadThread resolves. The session acks the full
+  // pass at once and the listener applies it on a timer, so a service that replies right after
+  // that pass settles the load first: the gate comes down over an empty window, the gap the gate
+  // exists to close. Fails today.
+  test.failing('a service that replies right after its full pass keeps the gate up until the page lands', async () => {
+    answerThreadLoads(fake, async l => {
+      const timers = holdHandlerTimers()
+      await l.full(placeholders([50, 51]))
+      return timers.replyFirst(threadLoaded)
+    })
+    const {actions, store} = makeThread()
+    arm(actions, [textAt(5)])
+    actions.messagesClear()
+    const gaps = watchGate(store)
+    actions.loadMoreMessages({reason: 'jump to recent'})
+    await flushPromises()
+    expect(store.getState().messageOrdinals).toEqual([50, 51])
+    expect(gaps).toEqual([])
   })
 })
 
@@ -582,14 +682,14 @@ describe('store writes', () => {
 
   test('setMessageErrored then retryMessage, which also asks the service', async () => {
     const {actions, store} = makeThread()
-    const outboxID = T.Chat.stringToOutboxID('o1')
+    const outboxID = T.Chat.stringToOutboxID('ab01')
     actions.addMessages([textAt(5, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'pending'})])
     actions.setMessageErrored(outboxID, 'bad', 2)
     expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(5))?.submitState).toBe('failed')
     actions.retryMessage(outboxID)
     await flushPromises()
     expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(5))?.submitState).toBe('pending')
-    expect(rpc.calls('retryPost')).toEqual([[outboxID]])
+    expect(paramsOf(fake, retryPost)).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
   })
 
   test('reactions: a missing target does not bump the live version', () => {
@@ -614,7 +714,7 @@ describe('store writes', () => {
     actions.updateCoinFlipStatuses([{gameID: 'g'} as unknown as T.RPCChat.UICoinFlipStatus])
     const s = store.getState()
     expect(s.accountsInfoMap.size).toBe(2)
-    expect(s.paymentStatusMap.get('p1' as T.Wallets.PaymentID)).toBe(payment)
+    expect(s.paymentStatusMap.get('p1')).toBe(payment)
     expect([...(s.unfurlPrompt.get(T.Chat.numberToMessageID(3)) ?? [])]).toEqual(['a.com'])
     expect(s.flipStatusMap.has('g')).toBe(true)
   })
@@ -652,14 +752,14 @@ describe('store writes', () => {
     const {actions, store} = makeThread()
     actions.setExplodingMode(300, true)
     await flushPromises()
-    expect(rpc.log).toEqual([])
+    expect(fake.calls).toEqual([])
     actions.setExplodingMode(300)
     actions.setExplodingMode(0)
     await flushPromises()
     expect(store.getState().explodingMode).toBe(0)
-    expect(rpc.log.map(l => [l.method, ...l.args])).toEqual([
-      ['setExplodingMode', convA, 300],
-      ['clearExplodingMode', convA],
+    expect(fake.calls.map(c => [c.method, c.params.category, c.params.body])).toEqual([
+      [updateCategory, `exploding:${convA}`, '300'],
+      [dismissCategory, `exploding:${convA}`, undefined],
     ])
   })
 })
@@ -673,7 +773,7 @@ describe('a store whose account has left', () => {
     const {actions, store} = makeThread()
     const outboxID = T.Chat.stringToOutboxID('o1')
     arm(actions, [textAt(5), textAt(6, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'failed'})])
-    rpc.clearLog()
+    const callsBefore = fake.calls.length
     const before = store.getState()
     leave()
     actions.addMessages([textAt(8)])
@@ -695,7 +795,7 @@ describe('a store whose account has left', () => {
     }
     await flushPromises()
     expect(store.getState()).toBe(before)
-    expect(rpc.log).toEqual([])
+    expect(fake.calls.slice(callsBefore)).toEqual([])
   })
 
   test('the message commands given its rows ask the service nothing', async () => {
@@ -704,7 +804,7 @@ describe('a store whose account has left', () => {
       .dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'device', uid: 'uid', username: 'testuser'})
     const {actions, store} = makeThread()
     arm(actions, [textAt(5)])
-    rpc.clearLog()
+    const callsBefore = fake.calls.length
     const before = store.getState()
     leave()
     const row = {conversationIDKey: convA, ordinal: T.Chat.numberToOrdinal(5), thread: actions}
@@ -714,48 +814,45 @@ describe('a store whose account has left', () => {
     replyPrivately(row)
     dismissJourneycard(row, T.RPCChat.JourneycardType.welcome)
     await flushPromises()
-    expect(rpc.log).toEqual([])
+    expect(fake.calls.slice(callsBefore)).toEqual([])
     expect(store.getState()).toBe(before)
   })
 
   test('a load streaming after it left applies nothing', async () => {
-    let stream = () => {}
-    rpc.on('loadThread', async p => {
-      stream = () =>
-        p.onFullThread?.(
-          JSON.stringify({
-            messages: [{placeholder: {hidden: false, messageID: 5}, state: T.RPCChat.MessageUnboxedState.placeholder}],
-          })
-        )
-      return new Promise(() => {})
-    })
+    const held = fake.hold(getThreadNonblock)
     const {actions, store} = makeThread()
     actions.loadMoreMessages({reason: 'jump to recent'})
+    await sent()
     leave()
-    stream()
+    await threadLoadOf(fake, held[0]!.params).full(placeholders([5]))
     await flushPromises()
     expect(store.getState().loaded).toBe(false)
+    held[0]!.reply({offline: false})
   })
 
   test('the service answering a load after it left writes nothing', async () => {
-    let answer: (res: T.RPCChat.NonblockFetchRes) => void = () => {}
-    rpc.on('loadThread', async () => new Promise<T.RPCChat.NonblockFetchRes>(resolve => (answer = resolve)))
+    const held = fake.hold(getThreadNonblock)
     const {actions} = makeThread()
     actions.loadMoreMessages({reason: 'jump to recent'})
     await flushPromises()
-    expect(rpc.params('loadThread')).toHaveLength(1)
+    expect(held).toHaveLength(1)
     leave()
-    answer({offline: true})
+    held[0]!.reply({offline: true})
     await flushPromises()
     expect(useInboxMetadataState.getState().metas.get(convA)?.offline).toBe(false)
   })
 
   test('a mark unread waiting on the service is not sent once it left', async () => {
+    // the load finds a message below the line, so only the retire stops the mark read
+    answerThreadLoads(fake, async l => {
+      await l.full(placeholders([7, 8]))
+      await settle()
+    })
     const {actions} = makeThread()
     actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
     leave()
     await flushPromises()
-    expect(rpc.params('loadThread')).toHaveLength(1)
+    expect(loads()).toHaveLength(1)
     expect(markReads()).toEqual([])
   })
 
@@ -797,7 +894,7 @@ describe('two stores', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: false, msgID: 5}])
   })
 
-  test('throttle and dispose independently', () => {
+  test('throttle and dispose independently', async () => {
     jest.useFakeTimers()
     const a = makeThread(convA)
     const b = makeThread(convB)
@@ -807,6 +904,7 @@ describe('two stores', () => {
     b.actions.loadMoreMessages({reason: 'scroll back', scrollDirection: 'back'})
     a.dispose()
     jest.advanceTimersByTime(1000)
+    await sent()
     expect(loads().map(l => l.conversationIDKey)).toEqual([convA, convB, convB])
   })
 

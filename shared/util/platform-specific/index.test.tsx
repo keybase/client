@@ -29,8 +29,8 @@ jest.mock('expo-file-system', () => ({
 }))
 // mockKb is the native module, under react-native-kb's own wrapper
 jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
-jest.mock('@/logger', () => ({__esModule: true, default: {debug: jest.fn(), info: jest.fn(), warn: jest.fn()}}))
 jest.mock('@/constants/platform', () => ({
+  ...jest.requireActual<object>('@/constants/platform'),
   get isAndroidPreQ() {
     return mockPlatform.isAndroidPreQ
   },

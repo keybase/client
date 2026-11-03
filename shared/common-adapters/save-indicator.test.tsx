@@ -1,31 +1,18 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
 import {act, cleanup, render, screen} from '@testing-library/react'
 
-jest.mock('./box', () => ({
-  Box2: ({children}: {children?: React.ReactNode}) => require('react').createElement('div', null, children),
-}))
-jest.mock('./icon', () => ({
-  __esModule: true,
-  default: ({type}: {type: string}) =>
-    require('react').createElement('span', {'data-testid': 'icon'}, type),
-}))
+// the spinner is a lottie animation; a placeholder stands for it
 jest.mock('./progress-indicator', () => ({
   __esModule: true,
-  default: () => require('react').createElement('span', {'data-testid': 'spinner'}),
-}))
-jest.mock('./text', () => ({
-  __esModule: true,
-  default: ({children}: {children?: React.ReactNode}) =>
-    require('react').createElement('span', null, children),
+  default: () => <span data-testid="spinner" />,
 }))
 
 import SaveIndicator from './save-indicator'
 
 const spinner = () => screen.queryByTestId('spinner')
-const check = () => screen.queryByTestId('icon')
+const check = () => document.querySelector('.icon-gen-iconfont-check')
 
 describe('SaveIndicator', () => {
   beforeEach(() => {
@@ -64,7 +51,6 @@ describe('SaveIndicator', () => {
     rerender(<SaveIndicator saving={true} />)
     rerender(<SaveIndicator saving={false} />)
     expect(check()).not.toBeNull()
-    expect(check()?.textContent).toBe('iconfont-check')
     expect(document.body.textContent).toContain('Saved')
 
     act(() => {

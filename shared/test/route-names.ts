@@ -184,3 +184,13 @@ export const loggedOutRouteNames = [
   'signupSendFeedbackLoggedOut',
   'username',
 ] as const
+
+// The screen options that change how a navigator keeps a covered screen. Only these matter to what
+// is mounted; the rest are drawing. Desktop's routes set none; the phone's unsplit inbox keeps itself
+// (chat/inbox/get-options.tsx).
+export const routeScreenOptions: Readonly<
+  Record<'desktop' | 'phone', Readonly<Record<string, {inactiveBehavior?: 'none' | 'pause' | 'unmount'}>>>
+> = {
+  desktop: {},
+  phone: {chatRoot: {inactiveBehavior: 'none'}},
+}

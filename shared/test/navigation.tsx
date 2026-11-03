@@ -1,10 +1,15 @@
-// The app's navigation tree, mounted on the real React Navigation core on the app's real
-// navigationRef, so C.Router2 and the Navigator run exactly as they do in the app.
+// The app's navigation tree on the real React Navigation library and the app's real navigationRef,
+// so C.Router2 and the Navigator run exactly as they do in the app.
 //
-// Only the views are stand-ins: a navigator draws each mounted route's screen in place, with no
-// native stack, transitions or tab bar. Routers, state, actions, events, focus and the timing of
-// all of them are the library's. Screens are registered as router.tsx registers them, from the
-// real route names (route-names.ts), per layout.
+// The navigators are the real ones too: native-stack's stack (its web view, which jest loads), and on
+// desktop the app's own left tab navigator, which mounts every tab under Activity. A phone's or
+// tablet's native bottom tabs cannot run here, so their stand-in only mounts a tab once focused
+// and keeps it, as the app's `lazy: true` does. Headers are not drawn.
+//
+// Known gap on phone and tablet: the native stack view keeps the screen just below the top (and one
+// under a modal or sheet) running, where the web view pauses it. A phone test that needs a covered
+// screen running should get there by navigating, as a user does, after that screen is up. Screens are registered as
+// router.tsx registers them, from the real route names (route-names.ts), per layout.
 //
 // Recording what the app dispatched (actions, pushes) records our own output; what those
 // actions do to the tree is always the library's answer, read back from getRootState().
@@ -13,8 +18,6 @@ import {act} from 'react'
 import {flushSync} from 'react-dom'
 import {createRoot, type Root} from 'react-dom/client'
 import {
-  BaseNavigationContainer,
-  StackRouter,
   TabRouter,
   createNavigatorFactory,
   useNavigationBuilder,
@@ -23,29 +26,37 @@ import {
   type PartialState,
   type RouteProp,
 } from '@react-navigation/core'
+import {NavigationContainer} from '@react-navigation/native'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import * as NavTree from '@/constants/nav-tree'
 import * as Tabs from '@/constants/tabs'
 import {navigationRef} from '@/constants/navigator'
+import {createLeftTabNavigator} from '@/router-v2/left-tab-navigator'
 import {useRouterState, type NavState} from '@/stores/router'
-import {loggedOutRouteNames, modalRouteNames, routeNames} from './route-names'
+import {loggedOutRouteNames, modalRouteNames, routeNames, routeScreenOptions} from './route-names'
+
+// jsdom has no layout engine, so nothing is ever resized; the navigators measure through this.
+const jsdomGlobals = globalThis as unknown as {
+  ResizeObserver?: unknown
+  HTMLCanvasElement?: {prototype: {getContext: () => null}}
+}
+jsdomGlobals.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+// jsdom has no canvas; it logs before giving null, which the app's text measuring already handles.
+if (jsdomGlobals.HTMLCanvasElement) {
+  jsdomGlobals.HTMLCanvasElement.prototype.getContext = () => null
+}
 
 export type Layout = 'desktop' | 'tablet' | 'phone'
 
 type NavigatorProps = Parameters<typeof useNavigationBuilder>[1]
 
-function StackView(props: NavigatorProps) {
-  const {state, descriptors, render} = useNavigationBuilder(StackRouter, props)
-  return render(
-    <>
-      {state.routes.map(r => (
-        <React.Fragment key={r.key}>{descriptors[r.key]?.render()}</React.Fragment>
-      ))}
-    </>
-  )
-}
-
-// Tabs mount lazily, once focused, and stay mounted, as the app's tab navigators do.
-function TabView(props: NavigatorProps) {
+// Stand-in for native bottom tabs: a tab mounts once focused and stays mounted.
+function NativeTabsStandIn(props: NavigatorProps) {
   const {state, descriptors, render} = useNavigationBuilder(TabRouter, props)
   return render(
     <>
@@ -57,12 +68,11 @@ function TabView(props: NavigatorProps) {
 }
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-const createStack = createNavigatorFactory(StackView)
-const createTabs = createNavigatorFactory(TabView)
-const RootStack: any = createStack()
-const AppTabs: any = createTabs()
-const TabStack: any = createStack()
-const LoggedOutStack: any = createStack()
+const RootStack: any = createNativeStackNavigator()
+const TabStack: any = createNativeStackNavigator()
+const LoggedOutStack: any = createNativeStackNavigator()
+const DesktopTabs: any = createLeftTabNavigator()
+const NativeTabs: any = createNavigatorFactory(NativeTabsStandIn)()
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 type ScreenContent = (route: RouteProp<ParamListBase>) => React.ReactNode
@@ -82,15 +92,28 @@ const tabRootNames = new Set<string>(Object.values(NavTree.tabRoots))
 const tabStackScreens = (layout: Layout, tab: Tabs.AppTab): ReadonlyArray<string> =>
   layout === 'phone' ? [NavTree.tabRoots[tab]] : routeNames
 
+const noHeader = {headerShown: false}
+const screenOptionsOf = (layout: Layout, name: string) => ({
+  ...noHeader,
+  ...routeScreenOptions[layout === 'desktop' ? 'desktop' : 'phone'][name],
+})
+
+// router.tsx's root stack options: desktop draws every root screen as a transparent modal; native
+// presents the modal group as modals.
+const rootScreenOptions = (layout: Layout) =>
+  layout === 'desktop' ? {...noHeader, presentation: 'transparentModal' as const} : noHeader
+const modalOptions = (layout: Layout, name: string) =>
+  layout === 'desktop' ? screenOptionsOf(layout, name) : {...screenOptionsOf(layout, name), presentation: 'modal' as const}
+
 const tabStackComponents = Object.fromEntries(
   Tabs.desktopTabs.map(tab => [
     tab,
     function TabStackScreen() {
       const layout = React.use(LayoutContext)
       return (
-        <TabStack.Navigator initialRouteName={NavTree.tabRoots[tab]}>
+        <TabStack.Navigator initialRouteName={NavTree.tabRoots[tab]} screenOptions={noHeader}>
           {tabStackScreens(layout, tab).map(name => (
-            <TabStack.Screen key={name} name={name} component={Leaf} />
+            <TabStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
           ))}
         </TabStack.Navigator>
       )
@@ -100,20 +123,24 @@ const tabStackComponents = Object.fromEntries(
 
 function LoggedInTabs() {
   const layout = React.use(LayoutContext)
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+  const Navigator = layout === 'desktop' ? DesktopTabs : NativeTabs
   return (
-    <AppTabs.Navigator backBehavior="none">
+    <Navigator.Navigator backBehavior="none" screenOptions={noHeader}>
       {tabsFor(layout).map(tab => (
-        <AppTabs.Screen key={tab} name={tab} component={tabStackComponents[tab]} />
+        <Navigator.Screen key={tab} name={tab} component={tabStackComponents[tab]} />
       ))}
-    </AppTabs.Navigator>
+    </Navigator.Navigator>
   )
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 }
 
 function LoggedOut() {
+  const layout = React.use(LayoutContext)
   return (
-    <LoggedOutStack.Navigator initialRouteName="login">
+    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={noHeader}>
       {loggedOutRouteNames.map(name => (
-        <LoggedOutStack.Screen key={name} name={name} component={Leaf} />
+        <LoggedOutStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
       ))}
     </LoggedOutStack.Navigator>
   )
@@ -124,17 +151,20 @@ function LoggedOut() {
 function RootScreens({layout, loggedIn}: {layout: Layout; loggedIn: boolean}) {
   if (!loggedIn) {
     return (
-      <RootStack.Navigator>
+      <RootStack.Navigator screenOptions={rootScreenOptions(layout)}>
         <RootStack.Screen name="loggedOut" component={LoggedOut} />
       </RootStack.Navigator>
     )
   }
   const above = layout === 'phone' ? routeNames.filter(name => !tabRootNames.has(name)) : []
   return (
-    <RootStack.Navigator>
+    <RootStack.Navigator screenOptions={rootScreenOptions(layout)}>
       <RootStack.Screen name="loggedIn" component={LoggedInTabs} />
-      {[...above, ...modalRouteNames].map(name => (
-        <RootStack.Screen key={name} name={name} component={Leaf} />
+      {above.map(name => (
+        <RootStack.Screen key={name} name={name} component={Leaf} options={screenOptionsOf(layout, name)} />
+      ))}
+      {modalRouteNames.map(name => (
+        <RootStack.Screen key={name} name={name} component={Leaf} options={modalOptions(layout, name)} />
       ))}
     </RootStack.Navigator>
   )
@@ -160,14 +190,14 @@ export function NavigationTree(p: NavigationTreeProps) {
   return (
     <LayoutContext value={layout}>
       <ScreenContentContext value={screen}>
-        <BaseNavigationContainer
+        <NavigationContainer
           ref={navigationRef}
           initialState={initialState as PartialState<NavigationState> | undefined}
           onReady={reportNavState}
           onStateChange={reportNavState}
         >
           <RootScreens layout={layout} loggedIn={loggedIn} />
-        </BaseNavigationContainer>
+        </NavigationContainer>
         {children}
       </ScreenContentContext>
     </LayoutContext>

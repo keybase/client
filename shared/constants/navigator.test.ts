@@ -32,6 +32,9 @@ const until = async (cond: () => boolean) => {
     await new Promise(resolve => setTimeout(resolve, 1))
   }
 }
+// A screen covered from the first render (the tabs under a screen pushed above them) comes up a
+// render after the screen on top, as it would have mounted before that screen was pushed.
+const tabsUp = async () => until(() => !!nav.getRootState()?.routes?.[0]?.state)
 const rendersSettle = async () => {
   for (let i = 0; i < 10; i++) {
     await new Promise(resolve => setTimeout(resolve, 1))
@@ -260,7 +263,7 @@ describe('navUpToScreen on a phone', () => {
     expect(rootNames()).toEqual(['loggedIn', 'settingsTabs.devicesTab'])
   })
 
-  test("after a modal closes, going back to a tab's root closes the screens above the tabs", () => {
+  test("after a modal closes, going back to a tab's root closes the screens above the tabs", async () => {
     nav = installNavigation({
       layout: 'phone',
       rootState: makeRootState({
@@ -268,6 +271,7 @@ describe('navUpToScreen on a phone', () => {
         tab: Tabs.teamsTab,
       }),
     })
+    await tabsUp()
     const root = nav.getRootState()?.key
 
     clearModals()
@@ -282,11 +286,12 @@ describe('navUpToScreen on a phone', () => {
   })
 
   // A team page opened from the Chat tab, then left: teamsRoot is in no stack a phone shows.
-  test("going back to another tab's root closes the screens above the tabs and stops there", () => {
+  test("going back to another tab's root closes the screens above the tabs and stops there", async () => {
     nav = installNavigation({
       layout: 'phone',
       rootState: makeRootState({above: [{name: 'team', params: {teamID: 'T1'}}], tab: Tabs.chatTab}),
     })
+    await tabsUp()
     const root = nav.getRootState()?.key
 
     navUpToScreen('teamsRoot')
@@ -412,6 +417,22 @@ describe('setChatRootParams', () => {
     expect(nav.lastAction()).toMatchObject({target: tabs, type: 'RESET'})
     expect(activeNames()).toEqual(['chatRoot'])
     expect(visible()?.params).toEqual({conversationIDKey: 'NEW'})
+  })
+
+  // A mounted stack's state is taken as given, keys included; a keyless chatRoot made React warn on
+  // every render of the stack, and a new key would remount the chat root.
+  test('the reset keeps the chat root keyed as it was, so it is not remounted', () => {
+    nav = installNavigation({
+      rootState: makeRootState({
+        tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}, {name: 'profile', params: {username: 'testuser'}}],
+      }),
+    })
+    const before = NavTree.activeStack(nav.getRootState())?.routes?.[0]?.key
+    expect(before).toBeTruthy()
+
+    setChatRootParams({conversationIDKey: 'NEW' as never})
+
+    expect(NavTree.activeStack(nav.getRootState())?.routes?.[0]?.key).toBe(before)
   })
 
   // The tab navigator always holds every tab, so the chat tab is there to select from another tab.

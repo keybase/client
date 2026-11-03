@@ -1,6 +1,5 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
@@ -10,43 +9,6 @@ import {flush, tick} from '@/test/flush'
 import {RPCError} from '@/util/errors'
 import Choice, {generatePgp, validatePgpInfo} from './choice'
 
-// The real components need electron rendering; only the text, inputs and buttons matter here.
-jest.mock('@/common-adapters', () => {
-  const React = require('react')
-  const passThrough = ({children}: {children?: React.ReactNode}) =>
-    React.createElement('div', null, children)
-  return {
-    Animation: () => null,
-    Box2: passThrough,
-    Button: ({label, onClick}: {label?: string; onClick?: () => void}) =>
-      React.createElement('button', {onClick, type: 'button'}, label),
-    ConfirmButtons: ({confirmLabel, onCancel, onConfirm}: {confirmLabel: string; onCancel: () => void; onConfirm: () => void}) =>
-      React.createElement(
-        'div',
-        null,
-        React.createElement('button', {onClick: onCancel, type: 'button'}, 'Cancel'),
-        React.createElement('button', {onClick: onConfirm, type: 'button'}, confirmLabel)
-      ),
-    Checkbox: ({checked, label, onCheck}: {checked: boolean; label: string; onCheck: (c: boolean) => void}) =>
-      React.createElement('button', {onClick: () => onCheck(!checked), type: 'button'}, label),
-    IconAuto: () => null,
-    Input3: ({onChangeText, placeholder, value}: {onChangeText: (t: string) => void; placeholder: string; value: string}) =>
-      React.createElement('input', {onChange: (e: {target: {value: string}}) => onChangeText(e.target.value), placeholder, value}),
-    ListItem: ({body, onClick}: {body: React.ReactNode; onClick: () => void}) =>
-      React.createElement('div', {onClick}, body),
-    ModalScreen: ({children, footer}: {children?: React.ReactNode; footer?: React.ReactNode}) =>
-      React.createElement('div', null, children, footer),
-    ScrollView: passThrough,
-    Styles: {
-      castStyleDesktop: (s: unknown) => s,
-      createStyleHook: () => () => ({}),
-      globalMargins: {},
-      globalStyles: {},
-      platformStyles: () => ({}),
-    },
-    Text: passThrough,
-  }
-})
 jest.mock('@/profile/platform-icon', () => () => null)
 
 const pgpRpc = 'keybase.1.pgp.pgpKeyGenDefault'

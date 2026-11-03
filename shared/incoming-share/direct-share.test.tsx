@@ -3,22 +3,33 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
-import {act, cleanup, render, screen} from '@testing-library/react'
+import {cleanup, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {navigationWrapper, type InstalledNavigation} from '@/test/navigation'
+import type * as FsPaths from '@/test/expo-file-system-paths'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 
-// the file system is native: this one records what is written, under a uri with the raw name
+// the file system is native: this one records what is written, under the uri expo-file-system's
+// own path utilities build (native reports a directory's with a trailing slash)
 const mockWrites = new Array<string>()
 let mockWriteFails = false
 jest.mock('expo-file-system', () => {
+  const {PathUtilities} = jest.requireActual<typeof FsPaths>('@/test/expo-file-system-paths')
+  const join = (parts: Array<string | {uri: string}>) =>
+    PathUtilities.join(...parts.map(p => (typeof p === 'string' ? p : p.uri)))
   class Directory {
     uri: string
     constructor(...parts: Array<string | {uri: string}>) {
-      this.uri = parts.map(p => (typeof p === 'string' ? p : p.uri.replace(/\/$/, ''))).join('/') + '/'
+      this.uri = join(parts).replace(/\/?$/, '/')
     }
     create() {}
   }
   class File {
+    uri: string
+    constructor(...parts: Array<string | {uri: string}>) {
+      this.uri = join(parts)
+    }
     async write(text: string) {
       await Promise.resolve()
       if (mockWriteFails) throw new Error('disk full')
@@ -38,6 +49,46 @@ const g = globalThis as unknown as {isIOS: boolean}
 const pendingIntent = () => useInputIntentState.getState().intents.get(conversationIDKey)
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
+// The conversation as the service's inbox has it: a share loads it to read its draft
+const inboxItem = (draft: string): T.RPCChat.InboxUIItem =>
+  ({
+    botAliases: {},
+    botCommands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+    channel: '',
+    commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+    convID: T.Chat.conversationIDKeyToString(conversationIDKey),
+    draft,
+    finalizeInfo: null,
+    headline: '',
+    headlineDecorated: '',
+    isEmpty: false,
+    localVersion: 1,
+    maxMsgID: 10,
+    maxVisibleMsgID: 10,
+    memberStatus: T.RPCChat.ConversationMemberStatus.active,
+    membersType: T.RPCChat.ConversationMembersType.impteamnative,
+    name: 'testuser,testuser-mac',
+    participants: [
+      {assertion: 'testuser', inConvName: true},
+      {assertion: 'testuser-mac', inConvName: true},
+    ],
+    readMsgID: 0,
+    snippet: '',
+    snippetDecorated: '',
+    snippetDecoration: T.RPCChat.SnippetDecoration.none,
+    status: T.RPCChat.ConversationStatus.unfiled,
+    teamType: T.RPCChat.TeamType.simple,
+    time: 1,
+    tlfID: 'tlf-id',
+    version: 1,
+    visibility: T.RPCGen.TLFVisibility.private,
+  }) as unknown as T.RPCChat.InboxUIItem
+
+// the service's answer to the share's conversation load; by default it has nothing for it
+let inboxLoad: () => T.RPCChat.GetInboxAndUnboxUILocalRes = () => ({conversations: null, offline: false})
+let inboxLoads = 0
+
+let fake: FakeEngine
 let lastShareID = 0
 let nav: Pick<InstalledNavigation, 'visibleScreen'>
 // The picker renders as the incomingShareNew modal of the real navigation tree, over `tab`, so
@@ -48,16 +99,25 @@ const shareToSuggestedConversation = async (
   tab?: Tabs.AppTab
 ) => {
   const res = {...share, id: id ?? `share-${++lastShareID}`}
-  jest.spyOn(T.RPCGen, 'incomingShareGetIncomingShareItemsRpcPromise').mockResolvedValue(res)
+  fake.answer('keybase.1.incomingShare.getIncomingShareItems', () => res)
   const {wrapper, ...recorder} = navigationWrapper({route: 'incomingShareNew', tab})
   nav = recorder
   render(<IncomingShareMain selectedConversationIDKey={conversationIDKey} />, {wrapper})
-  await act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0))
-  })
+  // the screen asks for the share once its route has mounted; then the share is handled
+  const asked = () => fake.calls.filter(c => c.method === 'keybase.1.incomingShare.getIncomingShareItems').length
+  const before = asked()
+  for (let i = 0; i < 50 && asked() === before; i++) await flush(1)
+  await flush(12)
 }
 
 beforeEach(() => {
+  inboxLoad = () => ({conversations: null, offline: false})
+  inboxLoads = 0
+  fake = installFakeEngine()
+  fake.answer('chat.1.local.getInboxAndUnboxUILocal', () => {
+    inboxLoads++
+    return inboxLoad()
+  })
   mockWrites.length = 0
   mockWriteFails = false
   g.isIOS = true
@@ -258,18 +318,13 @@ describe('shared text and the draft', () => {
   test('the draft is loaded before anything is decided', async () => {
     // the store has only an untrusted row, its draft not the service's
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft: ''}], undefined, {force: true})
-    const load = jest.spyOn(T.RPCChat, 'localGetInboxAndUnboxUILocalRpcPromise').mockImplementation(async () => {
-      metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, draft, trustedState: 'trusted'}], undefined, {
-        force: true,
-      })
-      return Promise.resolve({conversations: null, offline: false} as never)
-    })
+    inboxLoad = () => ({conversations: [inboxItem(draft)], offline: false})
     await shareToSuggestedConversation({
       droppedCount: 0,
       items: [{content: over, type: T.RPCGen.IncomingShareType.text}],
     })
 
-    expect(load).toHaveBeenCalledTimes(1)
+    expect(inboxLoads).toBe(1)
     expect(getTitles()[0]?.params.pathAndOutboxIDs).toEqual([txt])
     expect(pendingIntent()).toBeUndefined()
   })

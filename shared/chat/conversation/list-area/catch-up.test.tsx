@@ -4,6 +4,17 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {OrangeLineContext} from '../orange-line-context'
+import {makeConversationMeta} from '@/constants/chat/meta'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {resetAllStores} from '@/util/zustand'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
+import {ConversationThreadProvider} from '../thread-context'
+import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
+import {ConversationCenterProvider, useConversationCenter} from '../center-context'
 import {CatchUp, orangeLineInView, shouldShowCatchUp, useCatchUp} from './catch-up'
 
 const ord = T.Chat.numberToOrdinal
@@ -76,38 +87,68 @@ test('the orange line is not in view without a line, a viewport or a loaded thre
   expect(orangeLineInView({...lineInView, loaded: false})).toBe(false)
 })
 
-const mockCenterOnMessage = jest.fn()
-let mockRouteParams: {threadSearch?: {query?: string}} | undefined
-
-jest.mock('../center-context', () => ({
-  useConversationCenterActions: () => ({centerOnMessage: mockCenterOnMessage}),
-}))
-jest.mock('../thread-search-route', () => ({useChatThreadRouteParams: () => mockRouteParams}))
+const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 let seen: ReturnType<typeof useCatchUp> | undefined
+let seenCenter: ReturnType<typeof useConversationCenter> | undefined
 
 const Probe = (p: {lineUncovered?: () => boolean; loaded: boolean}) => {
   const catchUp = useCatchUp({lineUncovered: p.lineUncovered, loaded: p.loaded})
+  const center = useConversationCenter()
   // captured in an effect: assigning module state during render is a side effect the lint rejects
   React.useEffect(() => {
     seen = catchUp
+    seenCenter = center
   })
   return null
 }
 
-const Tree = (p: {lineUncovered?: () => boolean; loaded?: boolean; orangeLineOrdinal: T.Chat.Ordinal}) => (
-  <OrangeLineContext value={p.orangeLineOrdinal}>
-    <Probe lineUncovered={p.lineUncovered} loaded={p.loaded ?? true} />
-  </OrangeLineContext>
+type TreeProps = {lineUncovered?: () => boolean; loaded?: boolean; orangeLineOrdinal: T.Chat.Ordinal}
+
+// the thread's screen: the conversation on the chat root, with thread search open when asked
+let Nav: ReturnType<typeof navigationWrapper>['wrapper']
+const showThread = (threadSearch?: {query?: string}) => {
+  Nav = navigationWrapper({params: {conversationIDKey: convID, threadSearch}, route: 'chatRoot'}).wrapper
+}
+
+const Tree = (p: TreeProps) => (
+  <Nav>
+    <ConversationThreadProvider id={convID}>
+      {/* the tests report the viewport themselves; selecting the thread loads nothing */}
+      <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
+        <ConversationCenterProvider id={convID}>
+          <OrangeLineContext value={p.orangeLineOrdinal}>
+            <Probe lineUncovered={p.lineUncovered} loaded={p.loaded ?? true} />
+          </OrangeLineContext>
+        </ConversationCenterProvider>
+      </ConversationThreadLoadStatusProvider>
+    </ConversationThreadProvider>
+  </Nav>
 )
 
 describe('useCatchUp', () => {
+  let fake: FakeEngine
   beforeEach(() => {
-    mockCenterOnMessage.mockClear()
-    mockRouteParams = undefined
     seen = undefined
+    seenCenter = undefined
+    showThread()
+    // a signed-in account with the chat session up and the conversation's row already unboxed
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id',
+      deviceName: 'testuser-mac',
+      uid: 'uid',
+      username: 'testuser',
+    })
+    useConfigState.setState({loggedIn: true})
+    metasReceived([{...makeConversationMeta(), conversationIDKey: convID, trustedState: 'trusted'}])
+    fake = installFakeEngine()
   })
-  afterEach(cleanup)
+  afterEach(() => {
+    cleanup()
+    act(() => {
+      resetAllStores()
+    })
+  })
 
   test('stays hidden until the list reports a viewport above the orange line', () => {
     render(<Tree orangeLineOrdinal={ord(10)} />)
@@ -173,7 +214,18 @@ describe('useCatchUp', () => {
     expect(seen?.showCatchUp).toBe(true)
   })
 
-  test('tapping centers on the orange line with no highlight', () => {
+  test('hides while thread search is open', () => {
+    showThread({query: 'needle'})
+    render(<Tree orangeLineOrdinal={ord(10)} />)
+    act(() => {
+      seen?.onViewableOrdinalsChanged(ord(50), ord(90))
+    })
+    expect(seen?.showCatchUp).toBe(false)
+  })
+
+  test('tapping centers on the orange line with no highlight', async () => {
+    // the centered load is asked for and left unanswered; the test reads only that it was asked
+    const loads = fake.hold('chat.1.local.getThreadNonblock')
     render(<Tree orangeLineOrdinal={ord(10)} />)
     act(() => {
       seen?.onViewableOrdinalsChanged(ord(50), ord(90))
@@ -181,10 +233,15 @@ describe('useCatchUp', () => {
     act(() => {
       seen?.onCatchUp()
     })
-    expect(mockCenterOnMessage).toHaveBeenCalledWith(T.Chat.numberToMessageID(10), 'none')
+    await flush()
+    expect(seenCenter).toEqual({centeredHighlightOrdinal: undefined, centeredOrdinal: ord(10), hasCenter: true})
+    expect(loads).toHaveLength(1)
+    const params = loads[0]?.params as {query?: {messageIDControl?: {pivot?: number}}} | undefined
+    expect(params?.query?.messageIDControl?.pivot).toBe(10)
   })
 
   test('tapping dismisses the pill even though the viewport has not moved', () => {
+    fake.hold('chat.1.local.getThreadNonblock')
     render(<Tree orangeLineOrdinal={ord(10)} />)
     act(() => {
       seen?.onViewableOrdinalsChanged(ord(50), ord(90))

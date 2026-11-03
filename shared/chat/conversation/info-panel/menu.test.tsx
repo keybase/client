@@ -10,52 +10,26 @@ import {resetAllStores} from '@/util/zustand'
 import {flush} from '@/test/flush'
 import * as NavTree from '@/constants/nav-tree'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {useCurrentUserState} from '@/stores/current-user'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const hexTeamID = '0a1b2cff' as T.Teams.TeamID
 
-let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
-jest.mock('../data-hooks', () => ({
-  useConversationMetadata: () => ({
-    meta: mockMeta,
-    participants: {all: [], contactName: new Map(), name: []},
-  }),
-}))
-jest.mock('../team-hooks', () => ({
-  useChatManageChannelsBadge: () => ({dismiss: async () => {}, showBadge: false}),
-  useChatTeam: () => ({teamname: 'acme', yourOperations: {manageMembers: false}}),
-}))
-type MockMenuItem = {title: string; onClick?: () => void; view?: unknown}
-// the real menu positions itself against a measured anchor and renders nothing in jsdom;
-// a flat list of its titled items is enough to click one, plus the channel header (the team
-// header's avatar does not render in jsdom)
-jest.mock('@/common-adapters', () => {
-  const actual = jest.requireActual<object>('@/common-adapters')
-  const R = jest.requireActual<typeof React>('react')
-  return {
-    ...actual,
-    FloatingMenu: (p: {items: ReadonlyArray<MockMenuItem | null | 'Divider'>}) =>
-      R.createElement(
-        'div',
-        {'data-testid': 'menu'},
-        p.items.flatMap((i): Array<React.ReactElement> =>
-          !i || i === 'Divider'
-            ? []
-            : i.view
-              ? i.title === 'channelHeader'
-                ? [R.createElement(R.Fragment, {key: i.title}, i.view as React.ReactNode)]
-                : []
-              : [R.createElement('button', {key: i.title, onClick: i.onClick}, i.title)]
-        )
-      ),
-  }
-})
-
+import {setupOverlayDom} from '@/test/overlay-dom.desktop'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import InfoPanelMenu from './menu'
 
+// the menu draws in #modal-root, as the app's real menu does
+setupOverlayDom()
+
 let nav: InstalledNavigation
-let rpc: FakeChatRpc
+let fake: FakeEngine
+
+const markTeamRead = 'chat.1.local.markTLFAsReadLocal'
 
 const bigTeamChannelMeta = (teamID: T.Teams.TeamID): T.Chat.ConversationMeta => ({
   ...makeConversationMeta(),
@@ -65,48 +39,85 @@ const bigTeamChannelMeta = (teamID: T.Teams.TeamID): T.Chat.ConversationMeta => 
   teamID,
   teamType: 'big',
   teamname: 'acme',
+  trustedState: 'trusted',
 })
+
+const setMeta = (meta: T.Chat.ConversationMeta) => {
+  metasReceived([meta])
+}
+
+// the menu renders inside the app's teams-list provider, which loads your teams and roles
+const inTeamsList = (children: React.ReactNode) => <LoadedTeamsListProvider>{children}</LoadedTeamsListProvider>
 
 // the info panel's menu for a big team channel, as opened from the channel header
 const renderChannelMenu = (teamID: T.Teams.TeamID) => {
-  mockMeta = bigTeamChannelMeta(teamID)
+  setMeta(bigTeamChannelMeta(teamID))
   return render(
-    <InfoPanelMenu
-      conversationIDKey={conversationIDKey}
-      hasHeader={false}
-      isSmallTeam={false}
-      onHidden={() => {}}
-      visible={true}
-    />
+    inTeamsList(
+      <InfoPanelMenu
+        conversationIDKey={conversationIDKey}
+        hasHeader={false}
+        isSmallTeam={false}
+        onHidden={() => {}}
+        visible={true}
+      />
+    )
   )
 }
 
 // the team-level menu (no conversation), as opened from the inbox's big team row
 const renderTeamMenu = (teamID: T.Teams.TeamID, p?: {hasHeader?: boolean; showPinItems?: boolean}) =>
   render(
-    <InfoPanelMenu
-      hasHeader={p?.hasHeader ?? true}
-      isSmallTeam={false}
-      onHidden={() => {}}
-      showPinItems={p?.showPinItems}
-      teamID={teamID}
-      visible={true}
-    />
+    inTeamsList(
+      <InfoPanelMenu
+        hasHeader={p?.hasHeader ?? true}
+        isSmallTeam={false}
+        onHidden={() => {}}
+        showPinItems={p?.showPinItems}
+        teamID={teamID}
+        visible={true}
+      />
+    )
   )
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
-  nav = installNavigation({rootState: makeRootState({above: [{name: 'chatInfoPanel'}]})})
+  fake = installFakeEngine()
   useConfigState.getState().dispatch.setLoggedIn(true)
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+  // a writer in acme, who may not manage its members
+  fake.answer('keybase.1.teams.teamListUnverified', () => ({
+    teams: [
+      {
+        fqName: 'acme',
+        isMemberShowcased: false,
+        isOpenTeam: false,
+        memberCount: 2,
+        role: T.RPCGen.TeamRole.writer,
+        teamID: hexTeamID,
+        username: 'testuser',
+      },
+    ],
+  }))
+  fake.answer('keybase.1.teams.getTeamRoleMap', () => ({
+    teams: {[hexTeamID]: {implicitRole: T.RPCGen.TeamRole.none, role: T.RPCGen.TeamRole.writer}},
+    version: 1,
+  }))
+  // the team-level menu's header loads the team's members
+  fake.answer('keybase.1.teams.teamGetMembersByID', () => [])
+  // after the account is in place: the desktop tab bar it draws reads it
+  nav = installNavigation({rootState: makeRootState({above: [{name: 'chatInfoPanel'}]})})
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   nav.unmount()
-  restoreChatRpc()
   resetAllStores()
-  mockMeta = makeConversationMeta()
 })
 
 describe('team-level menu', () => {
@@ -132,22 +143,26 @@ describe('team-level menu', () => {
 
 // the menu for one big team channel, as opened from its inbox row
 const renderChannelRowMenu = (meta: Partial<T.Chat.ConversationMeta> = {}) => {
-  mockMeta = {...bigTeamChannelMeta(hexTeamID), ...meta}
+  setMeta({...bigTeamChannelMeta(hexTeamID), ...meta})
   return render(
-    <InfoPanelMenu
-      channelOnly={true}
-      conversationIDKey={conversationIDKey}
-      hasHeader={false}
-      isSmallTeam={false}
-      onHidden={() => {}}
-      visible={true}
-    />
+    inTeamsList(
+      <InfoPanelMenu
+        channelOnly={true}
+        conversationIDKey={conversationIDKey}
+        hasHeader={false}
+        isSmallTeam={false}
+        onHidden={() => {}}
+        visible={true}
+      />
+    )
   )
 }
 
 const modals = () => NavTree.modalStack(nav.getRootState()).map(r => r.name)
 
-const itemTitles = () => screen.getAllByRole('button').map(b => b.textContent)
+// the titles of the open menu's items, top to bottom
+const itemTitles = () =>
+  [...screen.getByTestId(TestIDs.FLOATING_MENU).querySelectorAll('.title')].map(t => t.textContent)
 
 describe('channel row menu', () => {
   test('has only the channel items', () => {
@@ -164,13 +179,18 @@ describe('channel row menu', () => {
   })
 
   test('mute mutes the channel', async () => {
+    fake.answer('chat.1.local.SetConversationStatusLocal', () => ({}))
     renderChannelRowMenu()
 
     fireEvent.click(screen.getByText('Mute'))
     await act(flush)
 
-    expect(rpc.calls('setConversationStatus')).toEqual([
-      [conversationIDKey, T.RPCChat.ConversationStatus.muted],
+    expect(paramsOf(fake, 'chat.1.local.SetConversationStatusLocal')).toEqual([
+      {
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        status: T.RPCChat.ConversationStatus.muted,
+      },
     ])
   })
 
@@ -186,6 +206,7 @@ describe('channel row menu', () => {
 
 describe('onMarkAsRead', () => {
   test('marks the whole team TLF read, sending the team id, and closes the modal', async () => {
+    fake.answer(markTeamRead, () => null)
     renderChannelMenu(hexTeamID)
     expect(modals()).toEqual(['chatInfoPanel'])
 
@@ -193,17 +214,18 @@ describe('onMarkAsRead', () => {
     await act(flush)
 
     // exactly one call, with the team id only
-    expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
+    expect(paramsOf(fake, markTeamRead)).toEqual([{tlfID: new Uint8Array([0x0a, 0x1b, 0x2c, 0xff])}])
     expect(modals()).toEqual([])
   })
 
   test('the team-level menu sends the team id from its teamID prop', async () => {
+    fake.answer(markTeamRead, () => null)
     renderTeamMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
     await act(flush)
 
-    expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
+    expect(paramsOf(fake, markTeamRead)).toEqual([{tlfID: new Uint8Array([0x0a, 0x1b, 0x2c, 0xff])}])
   })
 
   test('logged out, the modal still closes but nothing is sent', async () => {
@@ -214,7 +236,7 @@ describe('onMarkAsRead', () => {
     fireEvent.click(screen.getByText('Mark all as read'))
     await act(flush)
 
-    expect(rpc.calls('markTeamRead')).toEqual([])
+    expect(paramsOf(fake, markTeamRead)).toEqual([])
     expect(modals()).toEqual([])
   })
 
@@ -227,34 +249,38 @@ describe('onMarkAsRead', () => {
 
     expect(screen.queryByText('Mark all as read')).toBeNull()
     expect(screen.getByText('Mark as unread')).toBeTruthy()
-    expect(rpc.calls('markTeamRead')).toEqual([])
+    expect(paramsOf(fake, markTeamRead)).toEqual([])
   })
 
   test('a small team has no mark-all item', () => {
-    mockMeta = {...bigTeamChannelMeta(hexTeamID), teamType: 'small'}
+    setMeta({...bigTeamChannelMeta(hexTeamID), teamType: 'small'})
     render(
-      <InfoPanelMenu
-        conversationIDKey={conversationIDKey}
-        hasHeader={false}
-        isSmallTeam={true}
-        onHidden={() => {}}
-        visible={true}
-      />
+      inTeamsList(
+        <InfoPanelMenu
+          conversationIDKey={conversationIDKey}
+          hasHeader={false}
+          isSmallTeam={true}
+          onHidden={() => {}}
+          visible={true}
+        />
+      )
     )
 
     expect(screen.queryByText('Mark all as read')).toBeNull()
   })
 
   test('a failure is only logged: the modal is already closed and nothing is shown', async () => {
-    const error = new Error('mark read failed')
-    rpc.fail('markTeamRead', error)
+    fake.answer(markTeamRead, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'mark read failed'))
     const logError = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {container} = renderChannelMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
     await act(flush)
 
-    expect(logError).toHaveBeenCalledWith('ignorePromise error', error)
+    expect(logError).toHaveBeenCalledWith(
+      'ignorePromise error',
+      expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric, desc: 'mark read failed'})
+    )
     expect(modals()).toEqual([])
     expect(container.textContent).not.toContain('mark read failed')
   })

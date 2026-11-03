@@ -1,7 +1,5 @@
-// Every chat service call the conversation modules make, as one interface. The production adapter
-// below speaks the generated RPCs; test/fake-chat-rpc.ts is the in-memory one. A thread reaches it
-// through its makeThreadChatRpc, other code through getChatRpc(); both look it up at call time, so
-// a test can swap the adapter with setChatRpc().
+// Every chat service call the conversation modules make, as one interface, spoken over the
+// generated RPCs. A thread reaches it through its makeThreadChatRpc, other code through getChatRpc().
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
 import {enumKeys} from '@/constants/utils'
@@ -294,8 +292,8 @@ const notificationSettings = (
   },
 ]
 
-// loadThread's session rule, shared by every adapter
-export const whenChatSessionReady =
+// loadThread asks the service nothing while the chat session is not ready
+const whenChatSessionReady =
   (load: ChatThreadRpc['loadThread']): ChatThreadRpc['loadThread'] =>
   async p =>
     (isChatSessionReady() ? load(p) : undefined)
@@ -689,12 +687,10 @@ const serviceChatRpc: ChatThreadRpc = {
   },
 }
 
-let currentChatRpc: ChatThreadRpc = serviceChatRpc
-
-export const getChatRpc = () => currentChatRpc
+export const getChatRpc = () => serviceChatRpc
 
 // What a thread asks of the service: its screens, its store and the load pipeline running for it.
-// Each call reaches the current adapter until the thread retires; from then on a call asks nothing
+// Each call reaches the service until the thread retires; from then on a call asks nothing
 // and never settles. So code after its await, a finally included, must be nothing that has to run
 // on a retired thread. A call already in flight when the thread retires settles as usual, and its
 // continuation checks isRetired() where it acts outside the thread's store.
@@ -705,11 +701,6 @@ export const makeThreadChatRpc = (isRetired: () => boolean): ChatThreadRpc =>
       (...args: ReadonlyArray<unknown>) =>
         isRetired()
           ? new Promise(() => {})
-          : (currentChatRpc[key] as (...args: ReadonlyArray<unknown>) => unknown)(...args),
+          : (serviceChatRpc[key] as (...args: ReadonlyArray<unknown>) => unknown)(...args),
     ])
   ) as unknown as ChatThreadRpc
-
-// Swaps in another adapter - the in-memory fake in tests. Passing nothing restores the service one.
-export const setChatRpc = (rpc?: ChatThreadRpc) => {
-  currentChatRpc = rpc ?? serviceChatRpc
-}

@@ -11,6 +11,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {settle, tick} from '@/test/flush'
+import {act} from '@testing-library/react'
 import {testWaitingKey} from '@/test/waiting-key'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -283,24 +284,28 @@ describe('every way a switch ends lets its calls out', () => {
     )
   })
 
+  // The provisioning prompt navigates, so the app's tree is up, and the tab bar it draws renders
+  // from the stores the switch changes: those changes are made inside act.
   test('the account needing provisioning', async () => {
     installNavigation()
     let login: ReturnType<typeof switchLogin> | undefined
     await heldThenEnded(
-      async fake => {
-        login = switchLogin(fake)
-        await login.begin()
-      },
-      async fake => {
-        await fake.push(
-          'keybase.1.provisionUi.PromptNewDeviceName',
-          {errorMessage: '', existingDevices: []},
-          {sessionID: login!.sessionID()}
-        )
-        await settle()
-        login!.held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
-        await settle()
-      }
+      async fake =>
+        act(async () => {
+          login = switchLogin(fake)
+          await login.begin()
+        }),
+      async fake =>
+        act(async () => {
+          await fake.push(
+            'keybase.1.provisionUi.PromptNewDeviceName',
+            {errorMessage: '', existingDevices: []},
+            {sessionID: login!.sessionID()}
+          )
+          await settle()
+          login!.held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
+          await settle()
+        })
     )
   })
 })

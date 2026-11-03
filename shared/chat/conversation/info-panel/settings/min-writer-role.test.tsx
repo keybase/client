@@ -5,18 +5,19 @@ import * as T from '@/constants/types'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {flush} from '@/test/flush'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {paramsOf} from '@/test/fake-thread-load'
+import {metasReceived} from '@/chat/inbox/metadata'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
+import {resetAllStores} from '@/util/zustand'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
-let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
-let mockCanSetMinWriterRole = true
-jest.mock('../../data-hooks', () => ({
-  useConversationMeta: () => mockMeta,
-}))
-jest.mock('../../team-hooks', () => ({
-  useChatTeam: () => ({yourOperations: {setMinWriterRole: mockCanSetMinWriterRole}}),
-}))
+const teamID = 'team-1' as T.Teams.TeamID
+const setMinWriterRole = 'chat.1.local.setConvMinWriterRoleLocal'
+
 // the real menu positions itself against a measured anchor and renders nothing in jsdom;
 // a flat list of its items is enough to pick a role
 jest.mock('@/common-adapters', () => {
@@ -35,10 +36,31 @@ jest.mock('@/common-adapters', () => {
 
 import MinWriterRole from './min-writer-role'
 
-const renderMinWriterRole = (minWriterRole: T.Teams.TeamRoleType = 'reader') => {
-  mockMeta = {...makeConversationMeta(), conversationIDKey, minWriterRole, teamname: 'acme'}
-  return render(<MinWriterRole conversationIDKey={conversationIDKey} />)
+// Your role in acme comes from the role map the app's teams-list provider loads; an admin may set
+// the minimum writer role
+const renderMinWriterRole = async (
+  minWriterRole: T.Teams.TeamRoleType = 'reader',
+  yourRole: T.RPCGen.TeamRole = T.RPCGen.TeamRole.admin
+) => {
+  fake.answer('keybase.1.teams.teamListUnverified', () => ({teams: []}))
+  fake.answer('keybase.1.teams.getTeamRoleMap', () => ({
+    teams: {[teamID]: {implicitRole: T.RPCGen.TeamRole.none, role: yourRole}},
+    version: 1,
+  }))
+  metasReceived([
+    {...makeConversationMeta(), conversationIDKey, minWriterRole, teamID, teamname: 'acme', trustedState: 'trusted'},
+  ])
+  const r = render(
+    <LoadedTeamsListProvider>
+      <MinWriterRole conversationIDKey={conversationIDKey} />
+    </LoadedTeamsListProvider>
+  )
+  await flush()
+  return r
 }
+
+const sentRoles = () =>
+  paramsOf(fake, setMinWriterRole).map((p: {role: T.RPCGen.TeamRole}) => T.RPCGen.TeamRole[p.role])
 
 // opens the dropdown (showing the current role) and picks a role from the menu
 const pickRole = (current: string, next: string) => {
@@ -54,61 +76,63 @@ const shownRole = (container: HTMLElement) =>
 const saveIndicator = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('div[style*="height: 17px"]')!
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
 beforeEach(() => {
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
-  restoreChatRpc()
-  mockMeta = makeConversationMeta()
-  mockCanSetMinWriterRole = true
+  resetAllStores()
 })
 
 describe('setConvMinWriterRole', () => {
   test('picking a new role sends the conversation and the role', async () => {
-    renderMinWriterRole('reader')
+    fake.answer(setMinWriterRole, () => null)
+    await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
     await flush()
 
     // exactly one call, with no waiting key
-    expect(rpc.calls('setMinWriterRole')).toEqual([[conversationIDKey, 'writer']])
+    expect(paramsOf(fake, setMinWriterRole)).toEqual([
+      {convID: T.Chat.keyToConversationID(conversationIDKey), role: T.RPCGen.TeamRole.writer},
+    ])
   })
 
   test('each pick sends its own role', async () => {
-    renderMinWriterRole('reader')
+    fake.answer(setMinWriterRole, () => null)
+    await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
     await flush()
     pickRole('Admin', 'Owner')
     await flush()
 
-    expect(rpc.calls('setMinWriterRole').map(c => c[1])).toEqual(['admin', 'owner'])
+    expect(sentRoles()).toEqual(['admin', 'owner'])
   })
 
   test('picking the role already selected sends nothing', async () => {
-    renderMinWriterRole('writer')
+    await renderMinWriterRole('writer')
 
     pickRole('Writer', 'Writer')
     await flush()
 
-    expect(rpc.calls('setMinWriterRole')).toEqual([])
+    expect(paramsOf(fake, setMinWriterRole)).toEqual([])
   })
 
   test('a successful save shows the spinner while waiting, then Saved with the new role kept', async () => {
-    let resolveSave: (() => void) | undefined
-    rpc.on(
-      'setMinWriterRole',
-      async () =>
-        new Promise<void>(resolve => {
-          resolveSave = resolve
-        })
-    )
-    const {container} = renderMinWriterRole('reader')
+    const held = fake.hold(setMinWriterRole)
+    const {container} = await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
     await flush()
@@ -118,7 +142,7 @@ describe('setConvMinWriterRole', () => {
     expect(saveIndicator(container).childElementCount).toBeGreaterThan(0)
     expect(saveIndicator(container).textContent).not.toContain('Saved')
 
-    resolveSave?.()
+    held[0]!.reply(null)
     await flush()
 
     expect(saveIndicator(container).textContent).toContain('Saved')
@@ -127,8 +151,8 @@ describe('setConvMinWriterRole', () => {
   })
 
   test('a failed save shows the error, reverts the selection to the conversation role and hides the indicator', async () => {
-    rpc.fail('setMinWriterRole', new Error('you are not an admin'))
-    const {container} = renderMinWriterRole('reader')
+    fake.answer(setMinWriterRole, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'you are not an admin'))
+    const {container} = await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
     await flush()
@@ -138,9 +162,9 @@ describe('setConvMinWriterRole', () => {
     expect(saveIndicator(container).style.display).toBe('none')
   })
 
-  test('a failure without a message falls back to generic error text', async () => {
-    rpc.fail('setMinWriterRole', new Error(''))
-    renderMinWriterRole('reader')
+  test('a failure without a description falls back to generic error text', async () => {
+    fake.answer(setMinWriterRole, () => fakeError(T.RPCGen.StatusCode.scgeneric, ''))
+    await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
     await flush()
@@ -148,10 +172,21 @@ describe('setConvMinWriterRole', () => {
     expect(screen.getByText('Failed to save minimum posting role.')).toBeTruthy()
   })
 
+  test('a service failure shows the service\'s reason in the banner', async () => {
+    fake.answer(setMinWriterRole, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'you are not an admin'))
+    await renderMinWriterRole('reader')
+
+    pickRole('Reader', 'Admin')
+    await flush()
+
+    expect(screen.getByText(/you are not an admin/)).toBeTruthy()
+  })
+
   test('the next save clears a previous error banner', async () => {
-    rpc.failOnce('setMinWriterRole', new Error('you are not an admin'))
-    rpc.once('setMinWriterRole', () => undefined)
-    renderMinWriterRole('reader')
+    fake.answer(setMinWriterRole, (p: {role: T.RPCGen.TeamRole}) =>
+      p.role === T.RPCGen.TeamRole.admin ? fakeError(T.RPCGen.StatusCode.scgeneric, 'you are not an admin') : null
+    )
+    await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
     await flush()
@@ -164,34 +199,26 @@ describe('setConvMinWriterRole', () => {
   })
 
   test('a failure of an older save is ignored once a newer save has started', async () => {
-    const rejects: Array<(e: Error) => void> = []
-    rpc.on(
-      'setMinWriterRole',
-      async () =>
-        new Promise<void>((_resolve, reject) => {
-          rejects.push(reject)
-        })
-    )
-    const {container} = renderMinWriterRole('reader')
+    const held = fake.hold(setMinWriterRole)
+    const {container} = await renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
     await flush()
     pickRole('Writer', 'Admin')
     await flush()
 
-    rejects[0]?.(new Error('stale failure'))
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'stale failure'))
     await flush()
 
     expect(screen.queryByText('stale failure')).toBeNull()
     expect(shownRole(container)).toBe('Admin')
   })
 
-  test('without permission the role is only described and nothing can be sent', () => {
-    mockCanSetMinWriterRole = false
-    const {container} = renderMinWriterRole('writer')
+  test('without permission the role is only described and nothing can be sent', async () => {
+    const {container} = await renderMinWriterRole('writer', T.RPCGen.TeamRole.writer)
 
     expect(container.textContent).toContain('You must be at least a “writer” to post in this channel.')
     expect(container.querySelector('.clickable-box2')).toBeNull()
-    expect(rpc.calls('setMinWriterRole')).toEqual([])
+    expect(paramsOf(fake, setMinWriterRole)).toEqual([])
   })
 })

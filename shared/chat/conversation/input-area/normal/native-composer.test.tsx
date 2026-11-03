@@ -14,7 +14,8 @@ import type * as MessageModule from '@/constants/chat/message'
 import type * as HiddenStringModule from '@/util/hidden-string'
 import type * as Metadata from '@/chat/inbox/metadata'
 import type * as MetaModule from '@/constants/chat/meta'
-import type * as FakeInput from '@/test/fake-composer-input'
+import type * as ComposerAttaches from '@/test/record-composer-attaches'
+import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 import type * as LoggerModule from '@/logger'
 import type * as NavigationHarness from '@/test/navigation'
 import type * as RouterModule from '@/constants/router'
@@ -35,11 +36,11 @@ type TextInputProps = {
 }
 let mockTextInput: TextInputProps | undefined
 let mockFocused = false
-let mockHWKey: ((e: {pressedKey: string}) => void) | undefined
 let mockPressables: Array<{children?: unknown; onPress?: () => void; testID?: string}> = []
 let mockSuggestionsShowing = false
 let mockListHasSelection = true
 const mockSelectSuggestion = jest.fn(() => mockListHasSelection)
+const mockSetEnablePasteImage = jest.fn()
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual<Record<string, unknown>>('react-native')
@@ -73,15 +74,7 @@ jest.mock('react-native', () => {
     View: mockHost,
   }
 })
-jest.mock('react-native-kb', () => ({
-  onHWKeyPressed: (cb: (e: {pressedKey: string}) => void) => {
-    mockHWKey = cb
-  },
-  registerPasteImage: () => () => {},
-  removeOnHWKeyPressed: () => {
-    mockHWKey = undefined
-  },
-}))
+jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/test/fake-native-kb').realKb())
 jest.mock('@/common-adapters/reanimated', () => {
   const passthrough = (p: {children: React.ReactNode}): React.ReactNode => p.children
   return {
@@ -141,6 +134,7 @@ const m: Modules = {
   usePickerState: (require('@/chat/emoji-picker/use-picker') as typeof UsePicker).usePickerState,
 }
 const Harness = require('@/test/navigation') as typeof NavigationHarness
+const {Platform} = require('react-native') as {Platform: {OS: string}}
 /* eslint-enable @typescript-eslint/no-require-imports */
 const {act} = m
 const {CHAT_SEND_BUTTON} = require('@/tests/e2e/shared/test-ids') as {CHAT_SEND_BUTTON: string}
@@ -245,6 +239,9 @@ const type = (text: string, caret = text.length) => {
 
 beforeEach(() => {
   jest.useFakeTimers()
+  // react-native-kb's wrapper takes image pastes only on iOS, which turns the native side on
+  jest.replaceProperty(Platform, 'OS', 'ios')
+  fakeNativeKb.give({setEnablePasteImage: mockSetEnablePasteImage})
   jest.spyOn(m.T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
   jest.spyOn(m.T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
   jest.spyOn(m.T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
@@ -271,6 +268,7 @@ afterEach(() => {
   mockSuggestionsShowing = false
   mockListHasSelection = true
   mockSelectSuggestion.mockClear()
+  mockSetEnablePasteImage.mockClear()
   inputDispatch = undefined
   threadActions = undefined
   composer = undefined
@@ -320,11 +318,35 @@ test('hardware shift-enter inserts a newline at the caret', () => {
   type('abcd', 2)
 
   act(() => {
-    mockHWKey?.({pressedKey: 'shift-enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'shift-enter')
   })
 
   expect(input().value).toBe('ab\ncd')
   expect(input().selection).toEqual({end: 3, start: 3})
+})
+
+test('an image pasted into the input opens the attachment titles screen for it', () => {
+  const {nav} = renderComposer()
+  expect(mockSetEnablePasteImage).toHaveBeenLastCalledWith(true)
+
+  act(() => {
+    fakeNativeKb.emit('onPasteImage', ['file:///pasted.png'])
+  })
+
+  expect(nav.visibleScreen()).toMatchObject({
+    name: 'chatAttachmentGetTitles',
+    params: {conversationIDKey: convID, pathAndOutboxIDs: [{path: 'file:///pasted.png'}]},
+  })
+})
+
+test('an input that goes away stops taking image pastes', () => {
+  const {showInput} = renderComposer()
+  expect(fakeNativeKb.count('onPasteImage')).toBe(1)
+
+  showInput(false)
+
+  expect(fakeNativeKb.count('onPasteImage')).toBe(0)
+  expect(mockSetEnablePasteImage).toHaveBeenLastCalledWith(false)
 })
 
 // the native input only shows reflected writes, so a suggestion preview never reaches it
@@ -340,7 +362,7 @@ test('a preview write the input does not show is not what the next send sends', 
   })
   expect(input().value).toBe('hi @te')
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(60)
@@ -366,10 +388,10 @@ test('hardware shift-enter on a read-only composer inserts nothing, so enter has
   renderComposer()
 
   act(() => {
-    mockHWKey?.({pressedKey: 'shift-enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'shift-enter')
   })
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(60)
@@ -388,7 +410,7 @@ test('hardware enter sends the text 60ms later and clears the composer', async (
   type('hello')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(59)
@@ -427,7 +449,7 @@ test('a queued send that fires as thread search hides the input does not come ba
   const {showInput} = renderComposer()
   type('hello')
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
 
   showInput(false, () => {
@@ -458,7 +480,7 @@ test('a queued send still goes out when the composer unmounts inside the 60ms, w
   type('sent while leaving')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   unmount()
   act(() => {
@@ -489,7 +511,7 @@ test('a send that lands while thread search hides the input does not come back a
   type('hello')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   showInput(false)
   expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hello')
@@ -519,7 +541,7 @@ test('the queued send picks up text that changed inside the 60ms', async () => {
   type('helo')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   type('hello')
   act(() => {
@@ -538,7 +560,7 @@ test('hardware enter picks the highlighted suggestion instead of sending', async
   type('hi @te')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(100)
@@ -559,7 +581,7 @@ test('hardware enter with an open list that has nothing to pick queues the send'
   type('hi @te')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(60)
@@ -576,7 +598,7 @@ test('hardware shift-enter inserts a newline even while suggestions are showing'
   type('hi @te')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'shift-enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'shift-enter')
   })
 
   expect(input().value).toBe('hi @te\n')
@@ -588,7 +610,7 @@ test('an unknown hardware key does nothing', async () => {
   type('abcd', 2)
 
   act(() => {
-    mockHWKey?.({pressedKey: 'escape'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'escape')
   })
   act(() => {
     jest.advanceTimersByTime(100)
@@ -631,7 +653,7 @@ test('hardware enter while editing sends the edit', async () => {
   type('fixed my typo')
 
   act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
+    fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
   })
   act(() => {
     jest.advanceTimersByTime(60)
@@ -672,7 +694,7 @@ test('an injected text lands synchronously with the caret at its end', () => {
 })
 
 test('a keystroke or a caret move leaves the same input attached to the composer', () => {
-  const {recordComposerAttaches} = require('@/test/fake-composer-input') as typeof FakeInput
+  const {recordComposerAttaches} = require('@/test/record-composer-attaches') as typeof ComposerAttaches
   const attaches = recordComposerAttaches(m.Composer)
   renderComposer()
   expect(attaches).toHaveLength(1)
@@ -963,7 +985,7 @@ describe('editing and the draft', () => {
     expect(composer?.getText()).toBe('fixed my typo')
     type('fixed my typo!')
     act(() => {
-      mockHWKey?.({pressedKey: 'enter'})
+      fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
     })
     act(() => {
       jest.advanceTimersByTime(60)
@@ -1006,7 +1028,7 @@ describe('editing and the draft', () => {
     expect(input().value).toBe('')
     expect(composer?.getText()).toBe('')
     act(() => {
-      mockHWKey?.({pressedKey: 'enter'})
+      fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
     })
     act(() => {
       jest.advanceTimersByTime(60)
@@ -1114,7 +1136,7 @@ describe('read-only, like desktop', () => {
     expect(input().value).toBe('')
     expect(composer?.getText()).toBe('')
     act(() => {
-      mockHWKey?.({pressedKey: 'enter'})
+      fakeNativeKb.emit('onHardwareKeyPressed', 'enter')
     })
     act(() => {
       jest.advanceTimersByTime(60)

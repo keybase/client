@@ -9,9 +9,9 @@ import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {fakeError, installFakeEngine} from '@/test/fake-engine'
-import {flush} from '@/test/flush'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {answerThreadLoads, getThreadNonblock, holdHandlerTimers, paramsOf, threadLoaded} from '@/test/fake-thread-load'
+import {flush, settle} from '@/test/flush'
 import logger from '@/logger'
 import {getConversationClientPrev} from './client-prev'
 import {useConversationExplodingMode, useConversationMessage} from './data-hooks'
@@ -29,21 +29,31 @@ const setMeta = (over: Partial<T.Chat.ConversationMeta>) => {
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, ...over}], undefined, {force: true})
 }
 
-let rpc: FakeChatRpc
+let fake: FakeEngine
 
-// the walk-back load returns whatever messages the service had around the unread line
-const mockAroundMessages = (ids: ReadonlyArray<number | T.RPCChat.UIMessage>) => {
-  rpc.on('loadThread', async p => {
+// The load streams whatever messages the service had around the message as its full pass, then
+// answers. The GUI acks the pass at once and runs its handler a timer later, so whether the answer
+// lands before or after the handler is a race. These scripts answer once the handler has run (the
+// order useConversationMessage needs); `answerRightAway` holds the handler so the answer lands
+// first, the other order, which useConversationMessage loses (see the failing test below).
+const mockAroundMessages = (
+  ids: ReadonlyArray<number | T.RPCChat.UIMessage>,
+  opts?: {answerRightAway?: boolean}
+) => {
+  answerThreadLoads(fake, async load => {
     const messages = ids.map(id =>
       typeof id === 'number'
         ? {placeholder: {hidden: false, messageID: messageID(id)}, state: T.RPCChat.MessageUnboxedState.placeholder}
         : id
     )
-    await Promise.resolve()
-    p.onFullThread?.(JSON.stringify({messages}))
-    return undefined
+    const timers = opts?.answerRightAway ? holdHandlerTimers() : undefined
+    await load.full(JSON.stringify({messages}))
+    if (!timers) {
+      await settle()
+    }
+    return timers?.replyFirst(threadLoaded)
   })
-  return () => rpc.params('loadThread')
+  return () => paramsOf(fake, getThreadNonblock)
 }
 
 beforeEach(() => {
@@ -54,13 +64,12 @@ beforeEach(() => {
     uid: 'uid',
     username: 'testuser',
   })
-  rpc = installFakeChatRpc()
+  fake = installFakeEngine()
   jest.spyOn(OrangeLine, 'setConversationOrangeLine').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
-  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -114,6 +123,10 @@ describe('useConversationMessage', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
       await flushPromises()
     })
+    await flush()
+    // the full pass's handler timer, then the service's answer and the hops back
+    await act(settle)
+    await flush()
   }
 
   const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -319,12 +332,15 @@ describe('useConversationMessage', () => {
     expect(result.current).toBeUndefined()
     await waitForLoad()
     expect(result.current?.id).toBe(messageID(20))
-    expect(load()).toContainEqual(
+    expect(load()).toEqual([
       expect.objectContaining({
-        messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 20, pivot: messageID(20)},
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
         pagination: null,
-      })
-    )
+        query: expect.objectContaining({
+          messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 20, pivot: messageID(20)},
+        }),
+      }),
+    ])
   })
 
   test('no load for an unsent message', async () => {
@@ -344,8 +360,6 @@ describe('useConversationMessage', () => {
   })
 
   test('a load the service fails through the engine listener leaves nothing and logs why', async () => {
-    restoreChatRpc()
-    const fake = installFakeEngine()
     const held = fake.hold('chat.1.local.getThreadNonblock')
     const warn = jest.spyOn(logger, 'warn')
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
@@ -360,7 +374,7 @@ describe('useConversationMessage', () => {
   })
 
   test('a failed load leaves nothing', async () => {
-    rpc.fail('loadThread', new Error('offline'))
+    answerThreadLoads(fake, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
     expect(result.current).toBeUndefined()
@@ -379,5 +393,16 @@ describe('useConversationMessage', () => {
       await flushPromises()
     })
     expect(load()).toHaveLength(2)
+    await waitForLoad()
+  })
+
+  // loadConversationMessagesAroundMessageID reads what the stream callbacks collected right after
+  // awaiting the load, and the full pass's handler can run after the load resolves.
+  test.failing('returns the message when the service answers as soon as the full pass is acked', async () => {
+    mockAroundMessages([19, 20, 21], {answerRightAway: true})
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    await waitForLoad()
+    await flush()
+    expect(result.current?.id).toBe(messageID(20))
   })
 })

@@ -1,74 +1,27 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+// useInboxState against the real inbox layout, config and current-user stores, the real
+// useOnMountOnce and useRPC, and a fake service answering the layout and GUI config calls.
 
-type MockInboxLayoutState = {
-  dispatch: {
-    refresh: jest.Mock
-    setRetriedOnCurrentEmpty: jest.Mock
-  }
-  hasLoaded: boolean
-  layout: undefined
-  retriedOnCurrentEmpty: boolean
+// isPhone is a plain property set per test: modules the tree imports read it while this file is still
+// loading, before any test-scope variable is initialized.
+jest.mock('@/constants', () => ({...jest.requireActual<object>('@/constants'), isPhone: false}))
+const setPhone = (phone: boolean) => {
+  jest.requireMock<{isPhone: boolean}>('@/constants').isPhone = phone
 }
 
-let mockInboxLayoutState: MockInboxLayoutState
-let mockConfigState = {loggedIn: true, userSwitching: false}
-
-let mockPhone = false
-jest.mock('@/constants', () => {
-  const React = require('react')
-  const actual = jest.requireActual<Record<string, unknown>>('@/constants')
-  const mocked = {
-    ...actual,
-    useOnMountOnce: (cb: () => void) => {
-      const ranRef = React.useRef(false)
-      React.useEffect(() => {
-        if (ranRef.current) {
-          return
-        }
-        ranRef.current = true
-        cb()
-      }, [cb])
-    },
-    useRPC: jest.fn(),
-  }
-  return Object.defineProperty(mocked, 'isPhone', {get: () => mockPhone})
-})
-
-jest.mock('@/constants/chat', () => ({
-  noConversationIDKey: '',
-}))
-
-jest.mock('./layout-state', () => ({
-  useInboxLayout: () => ({
-    hasLoaded: mockInboxLayoutState.hasLoaded,
-    layout: mockInboxLayoutState.layout,
-    refresh: mockInboxLayoutState.dispatch.refresh,
-  }),
-  useInboxRetryState: () => ({
-    retriedOnCurrentEmpty: mockInboxLayoutState.retriedOnCurrentEmpty,
-    setRetriedOnCurrentEmpty: mockInboxLayoutState.dispatch.setRetriedOnCurrentEmpty,
-  }),
-}))
-
-jest.mock('./metadata', () => ({
-  queueMetaToRequest: jest.fn(),
-}))
-
-jest.mock('@/stores/config', () => ({
-  useConfigState: <T>(selector: (state: typeof mockConfigState) => T) => selector(mockConfigState),
-}))
-
-jest.mock('@/stores/current-user', () => ({
-  useCurrentUserState: <T>(selector: (state: {username: string}) => T) => selector({username: 'alice'}),
-}))
-
-import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
+import {afterEach, beforeEach, expect, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as C from '@/constants'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {resetAllStores} from '@/util/zustand'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {makeRootState, navigationWrapper, type Layout} from '@/test/navigation'
+import {useInboxLayoutState} from './layout-state'
 import {useInboxState} from './use-inbox-state'
 
 const g = globalThis as unknown as {isMobile: boolean}
@@ -88,85 +41,132 @@ const renderInbox = (
   return renderHook(() => useInboxState(undefined, false, p.refreshInbox), {wrapper})
 }
 
-let mockLoadInboxNumSmallRows: jest.Mock
-let mockInboxRefresh: jest.Mock
-let mockSetInboxRetriedOnCurrentEmpty: jest.Mock
+const emptyLayout: T.RPCChat.UIInboxLayout = {bigTeams: [], smallTeams: [], totalSmallTeams: 0}
+
+let fake: FakeEngine
+// the stored ui.inboxSmallRows; undefined is a path never set
+let storedRows: number | undefined
+const layoutRequests = () => fake.calls.filter(c => c.method === 'chat.1.local.requestInboxLayout').length
+const savedRows = () => fake.calls.filter(c => c.method === 'keybase.1.config.guiSetValue').map(c => c.params as unknown)
+
+// An inbox that has (or has not) had its layout from the service
+const layoutLoaded = (loaded: boolean, retriedOnCurrentEmpty = true) => {
+  useInboxLayoutState.setState({
+    hasLoaded: loaded,
+    layout: loaded ? emptyLayout : undefined,
+    retriedOnCurrentEmpty,
+  })
+}
 
 beforeEach(() => {
-  mockLoadInboxNumSmallRows = jest.fn()
-  mockInboxRefresh = jest.fn()
-  mockConfigState = {loggedIn: true, userSwitching: false}
-  mockSetInboxRetriedOnCurrentEmpty = jest.fn()
-  mockInboxLayoutState = {
-    dispatch: {
-      refresh: mockInboxRefresh,
-      setRetriedOnCurrentEmpty: mockSetInboxRetriedOnCurrentEmpty,
-    },
-    hasLoaded: true,
-    layout: undefined,
-    retriedOnCurrentEmpty: true,
-  }
-  ;(C.useRPC as jest.Mock).mockReturnValue(mockLoadInboxNumSmallRows)
-  jest.spyOn(T.RPCGen, 'configGuiSetValueRpcPromise').mockResolvedValue(undefined)
+  resetAllStores()
+  storedRows = undefined
+  fake = installFakeEngine()
+  // the service answers the request at once; the layout itself arrives later as a notification
+  fake.answer('chat.1.local.requestInboxLayout', () => null)
+  fake.answer('keybase.1.config.guiGetValue', () =>
+    storedRows === undefined ? {isNull: true} : {i: storedRows, isNull: false}
+  )
+  fake.answer('keybase.1.config.guiSetValue', () => null)
+  useConfigState.setState({loggedIn: true, userSwitching: false})
+  useCurrentUserState.setState({username: 'testuser'})
+  layoutLoaded(true)
 })
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
   g.isMobile = false
-  mockPhone = false
+  setPhone(false)
 })
 
-test('useInboxState ignores non-positive inbox row counts', () => {
+test('useInboxState starts from the stored inbox row count', async () => {
+  storedRows = 9
   const {result} = renderInbox()
+  expect(result.current.inboxNumSmallRows).toBe(5)
+
+  await flush()
+
+  expect(result.current.inboxNumSmallRows).toBe(9)
+})
+
+test('useInboxState ignores non-positive inbox row counts', async () => {
+  const {result} = renderInbox()
+  await flush()
 
   act(() => {
     result.current.setInboxNumSmallRows(0)
     result.current.setInboxNumSmallRows(-3)
   })
+  await flush()
 
   expect(result.current.inboxNumSmallRows).toBe(5)
-  expect(T.RPCGen.configGuiSetValueRpcPromise).not.toHaveBeenCalled()
+  expect(savedRows()).toEqual([])
 })
 
-test('useInboxState persists inbox row count changes when requested', () => {
+test('useInboxState persists inbox row count changes when requested', async () => {
   const {result} = renderInbox()
+  await flush()
 
   act(() => {
     result.current.setInboxNumSmallRows(8)
   })
+  await flush()
 
   expect(result.current.inboxNumSmallRows).toBe(8)
-  expect(T.RPCGen.configGuiSetValueRpcPromise).toHaveBeenCalledWith({
-    path: 'ui.inboxSmallRows',
-    value: {i: 8, isNull: false},
-  })
+  expect(savedRows()).toEqual([expect.objectContaining({path: 'ui.inboxSmallRows', value: {i: 8, isNull: false}})])
 })
 
-test('useInboxState updates inbox row count without persisting when persist is false', () => {
+test('useInboxState updates inbox row count without persisting when persist is false', async () => {
   const {result} = renderInbox()
+  await flush()
 
   act(() => {
     result.current.setInboxNumSmallRows(7, false)
   })
+  await flush()
 
   expect(result.current.inboxNumSmallRows).toBe(7)
-  expect(T.RPCGen.configGuiSetValueRpcPromise).not.toHaveBeenCalled()
+  expect(savedRows()).toEqual([])
 })
 
-// The inbox RPCs refuse to run while a switch is under way, so the first load has to wait for it.
-test('useInboxState loads the inbox once an account switch ends', () => {
-  mockInboxRefresh.mockReturnValue(Promise.resolve())
-  mockInboxLayoutState.hasLoaded = false
-  mockConfigState = {loggedIn: true, userSwitching: true}
-  const {rerender} = renderInbox()
-  // what fired on mount ran into the switch and was refused
-  mockInboxRefresh.mockClear()
+test('a row count the user picks is not overwritten by the stored one arriving later', async () => {
+  storedRows = 9
+  const held = fake.hold('keybase.1.config.guiGetValue')
+  const {result} = renderInbox()
+  await flush()
 
-  mockConfigState = {loggedIn: true, userSwitching: false}
-  rerender()
+  act(() => {
+    result.current.setInboxNumSmallRows(7, false)
+  })
+  held.forEach(h => h.reply({i: 9, isNull: false}))
+  await flush()
 
-  expect(mockInboxRefresh).toHaveBeenCalledWith('componentNeverLoaded')
+  expect(result.current.inboxNumSmallRows).toBe(7)
+})
+
+test('a never-loaded inbox on desktop asks the service for its layout on mount', async () => {
+  layoutLoaded(false)
+  renderInbox()
+  await flush()
+
+  expect(layoutRequests()).toBeGreaterThan(0)
+})
+
+// The inbox refresh does not ask the service while a switch is under way, so the first load has to
+// fire again once it ends.
+test('useInboxState loads the inbox once an account switch ends', async () => {
+  layoutLoaded(false)
+  useConfigState.setState({userSwitching: true})
+  renderInbox()
+  await flush()
+  expect(layoutRequests()).toBe(0)
+
+  act(() => {
+    useConfigState.setState({userSwitching: false})
+  })
+  await flush()
+
+  expect(layoutRequests()).toBeGreaterThan(0)
 })
 
 // On mobile the inbox screen stays mounted under a thread, and loading it there would race the
@@ -174,56 +174,59 @@ test('useInboxState loads the inbox once an account switch ends', () => {
 describe('focus gates loading on mobile', () => {
   const onPhone = () => {
     g.isMobile = true
-    mockPhone = true
+    setPhone(true)
   }
 
-  test('a never-loaded inbox under a thread waits for focus, then loads', () => {
+  test('a never-loaded inbox under a thread waits for focus, then loads', async () => {
     onPhone()
-    mockInboxRefresh.mockReturnValue(Promise.resolve())
-    mockInboxLayoutState.hasLoaded = false
+    layoutLoaded(false)
     renderInbox({covered: true, layout: 'phone'})
-    expect(mockInboxRefresh).not.toHaveBeenCalled()
+    await flush()
+    expect(layoutRequests()).toBe(0)
 
     act(() => C.Router2.navigateUp())
+    await flush()
 
-    expect(mockInboxRefresh).toHaveBeenCalledWith('componentNeverLoaded')
+    expect(layoutRequests()).toBeGreaterThan(0)
   })
 
-  test('a refresh asked for while under a thread runs once the inbox is focused', () => {
+  test('a refresh asked for while under a thread runs once the inbox is focused', async () => {
     onPhone()
-    mockInboxRefresh.mockReturnValue(Promise.resolve())
     renderInbox({covered: true, layout: 'phone', refreshInbox: {nonce: 'n1', reason: 'inboxStale'}})
-    expect(mockInboxRefresh).not.toHaveBeenCalled()
+    await flush()
+    expect(layoutRequests()).toBe(0)
 
     act(() => C.Router2.navigateUp())
+    await flush()
 
-    expect(mockInboxRefresh).toHaveBeenCalledWith('inboxStale')
+    expect(layoutRequests()).toBe(1)
   })
 
-  test('an empty synced inbox under a thread retries only once focused', () => {
+  test('an empty synced inbox under a thread retries only once focused', async () => {
     onPhone()
-    mockInboxRefresh.mockReturnValue(Promise.resolve())
-    mockInboxLayoutState.retriedOnCurrentEmpty = false
+    layoutLoaded(true, false)
     renderInbox({covered: true, layout: 'phone'})
-    expect(mockInboxRefresh).not.toHaveBeenCalled()
+    await flush()
+    expect(layoutRequests()).toBe(0)
 
     act(() => C.Router2.navigateUp())
+    await flush()
 
-    expect(mockSetInboxRetriedOnCurrentEmpty).toHaveBeenCalledWith(true)
-    expect(mockInboxRefresh).toHaveBeenCalledWith('inboxSyncedCurrentButEmpty')
+    expect(useInboxLayoutState.getState().retriedOnCurrentEmpty).toBe(true)
+    expect(layoutRequests()).toBe(1)
   })
 
-  test('a focused inbox loads at once', () => {
+  test('a focused inbox loads at once', async () => {
     onPhone()
-    mockInboxRefresh.mockReturnValue(Promise.resolve())
-    mockInboxLayoutState.hasLoaded = false
+    layoutLoaded(false)
     renderInbox({layout: 'phone'})
-    expect(mockInboxRefresh).toHaveBeenCalledWith('componentNeverLoaded')
+    await flush()
+    expect(layoutRequests()).toBeGreaterThan(0)
   })
 
-  test('on desktop focus does not gate: an inbox under a modal still loads', () => {
-    mockInboxRefresh.mockReturnValue(Promise.resolve())
+  test('on desktop focus does not gate: an inbox under a modal still loads', async () => {
     renderInbox({covered: true, refreshInbox: {nonce: 'n1', reason: 'inboxStale'}})
-    expect(mockInboxRefresh).toHaveBeenCalledWith('inboxStale')
+    await flush()
+    expect(layoutRequests()).toBe(1)
   })
 })

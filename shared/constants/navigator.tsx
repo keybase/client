@@ -77,6 +77,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 // user has moved on to
 const modalsWaitMs = 1000
 
+let nextChatRootKey = 0
+
 const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateUp = () => {
     if (DEBUG_NAV) {
@@ -266,13 +268,16 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
     const currentChatRoot = chatStackRoutes?.[0]
     const updatedRoutes = tabRoutes.map((route, i) => {
       if (i !== chatTabIndex) return route
-      const currentParams = currentChatRoot?.name === 'chatRoot' ? currentChatRoot.params : undefined
+      const reused = currentChatRoot?.name === 'chatRoot' ? currentChatRoot : undefined
+      // A mounted stack's state is stale: false, which the library takes as given, keys included, so
+      // the route needs its own: the chat root keeps its key (its screen is not remounted), and a new
+      // one gets a fresh key.
       return {
         ...route,
         state: {
           ...(route.state ?? {}),
           index: 0,
-          routes: [{name: 'chatRoot', params: {...currentParams, ...params}}],
+          routes: [{key: reused?.key ?? `chatRoot-${nextChatRootKey++}`, name: 'chatRoot', params: {...reused?.params, ...params}}],
         },
       }
     })

@@ -3,17 +3,13 @@
 import {setImmediate} from 'node:timers'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {RPCError} from '@/util/errors'
-
-const mockStartProvision = jest.fn()
-
-jest.mock('@/provision/flow', () => ({
-  startProvision: (...args: Array<unknown>) => mockStartProvision(...args),
-}))
-
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
-import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
+
+const pipeline = 'keybase.1.account.enterResetPipeline'
+const promptReset = 'keybase.1.loginUi.promptResetAccount'
+const resetProgress = 'keybase.1.loginUi.displayResetProgress'
 
 let nav: InstalledNavigation
 
@@ -30,8 +26,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
-  mockStartProvision.mockReset()
   resetAllStores()
 })
 
@@ -39,7 +33,22 @@ afterEach(() => {
 const flush = async () => {
   await new Promise<void>(resolve => setImmediate(resolve))
   await new Promise<void>(resolve => setTimeout(resolve, 0))
+  await new Promise<void>(resolve => setImmediate(resolve))
 }
+
+// Enters the pipeline against the fake service, which holds the call open, as Go does while it prompts
+const enter = async (fake: FakeEngine, onError?: (e: string) => void) => {
+  const held = fake.hold(pipeline)
+  enterResetPipeline({onError, username: 'testuser'})
+  await flush()
+  expect(held).toHaveLength(1)
+  const sessionID = held[0]!.params.sessionID as number
+  return {held, sessionID}
+}
+
+const completePrompt = (hasWallet: boolean) => ({
+  prompt: {complete: {hasWallet}, t: T.RPCGen.ResetPromptType.complete},
+})
 
 test('startAccountReset navigates into the reset flow', () => {
   startAccountReset(true, 'testuser')
@@ -52,182 +61,86 @@ test('startAccountReset navigates into the reset flow', () => {
 })
 
 test('enterResetPipeline exposes a submit handler for the confirm screen and starts provision on confirm', async () => {
-  const result = jest.fn()
-  let finishListener = () => {}
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
+  const answered = fake.push(promptReset, completePrompt(true), {sessionID})
+  await flush()
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
-    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-      {
-        prompt: {
-          complete: {hasWallet: true},
-          t: T.RPCGen.ResetPromptType.complete,
-        },
-      } as any,
-      {result} as any
-    )
-    await new Promise<void>(resolve => {
-      finishListener = resolve
-    })
-    return undefined as any
-  })
+  const resetKey = lastResetKey()
+  expect(resetKey).not.toBe('')
+  expect(nav.visibleScreen()).toMatchObject({name: 'resetConfirm', params: {hasWallet: true, resetKey}})
+  expect(loggedOutStack()).toEqual(['login', 'resetConfirm'])
 
-  try {
-    enterResetPipeline({username: 'testuser'})
-    await flush()
+  submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
 
-    const resetKey = lastResetKey()
-    expect(resetKey).not.toBe('')
-    expect(nav.visibleScreen()).toMatchObject({name: 'resetConfirm', params: {hasWallet: true, resetKey}})
-    expect(loggedOutStack()).toEqual(['login', 'resetConfirm'])
-
-    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
-
-    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
-    expect(mockStartProvision).toHaveBeenCalledWith('testuser', true)
-  } finally {
-    finishListener()
-    await flush()
-  }
+  expect(await answered).toEqual({result: T.RPCGen.ResetPromptResponse.confirmReset})
+  // provisioning starts over for this user, from reset
+  expect(nav.visibleScreen()).toMatchObject({name: 'username', params: {fromReset: true, username: 'testuser'}})
+  held[0]!.reply(null)
+  await flush()
 })
 
 test('enterResetPipeline responds and starts the reset flow for non-complete prompts', async () => {
-  const result = jest.fn()
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
-    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-      {
-        prompt: {
-          t: T.RPCGen.ResetPromptType.enterNoDevices,
-        },
-      } as any,
-      {result} as any
-    )
-    return undefined as any
-  })
+  const answered = await fake.push(promptReset, {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}}, {sessionID})
 
-  enterResetPipeline({username: 'testuser'})
-  await Promise.resolve()
-
-  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
+  expect(answered).toEqual({result: T.RPCGen.ResetPromptResponse.nothing})
   expect(nav.visibleScreen()).toMatchObject({
     name: 'recoverPasswordPromptResetAccount',
     params: {skipPassword: true, username: 'testuser'},
   })
   expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPromptResetAccount'])
+  held[0]!.reply(null)
+  await flush()
 })
 
-test('submitResetPrompt sends cancel responses back to the login flow', async () => {
-  const result = jest.fn()
-  let finishListener = () => {}
+test.each([
+  ['cancel', T.RPCGen.ResetPromptResponse.cancelReset],
+  ['nothing', T.RPCGen.ResetPromptResponse.nothing],
+])('submitResetPrompt sends %s responses back to the login flow', async (_, action) => {
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
+  const answered = fake.push(promptReset, completePrompt(false), {sessionID})
+  await flush()
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
-    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-      {
-        prompt: {
-          complete: {hasWallet: false},
-          t: T.RPCGen.ResetPromptType.complete,
-        },
-      } as any,
-      {result} as any
-    )
-    await new Promise<void>(resolve => {
-      finishListener = resolve
-    })
-    return undefined as any
-  })
+  submitResetPrompt(lastResetKey(), action)
 
-  try {
-    enterResetPipeline({username: 'testuser'})
-    await flush()
-    const resetKey = lastResetKey()
-    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.cancelReset)
-
-    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.cancelReset)
-    expect(nav.visibleScreen()?.name).toBe('login')
-    expect(loggedOutStack()).toEqual(['login'])
-  } finally {
-    finishListener()
-    await flush()
-  }
-})
-
-test('submitResetPrompt sends nothing responses back to the login flow', async () => {
-  const result = jest.fn()
-  let finishListener = () => {}
-
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
-    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-      {
-        prompt: {
-          complete: {hasWallet: false},
-          t: T.RPCGen.ResetPromptType.complete,
-        },
-      } as any,
-      {result} as any
-    )
-    await new Promise<void>(resolve => {
-      finishListener = resolve
-    })
-    return undefined as any
-  })
-
-  try {
-    enterResetPipeline({username: 'testuser'})
-    await flush()
-    const resetKey = lastResetKey()
-    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.nothing)
-
-    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
-    expect(nav.visibleScreen()?.name).toBe('login')
-    expect(loggedOutStack()).toEqual(['login'])
-  } finally {
-    finishListener()
-    await flush()
-  }
+  expect(await answered).toEqual({result: action})
+  expect(nav.visibleScreen()?.name).toBe('login')
+  expect(loggedOutStack()).toEqual(['login'])
+  held[0]!.reply(null)
+  await flush()
 })
 
 test('enterResetPipeline disposes an unconsumed reset prompt when the listener exits', async () => {
-  const result = jest.fn()
-  let finishListener = () => {}
-
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
-    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-      {
-        prompt: {
-          complete: {hasWallet: false},
-          t: T.RPCGen.ResetPromptType.complete,
-        },
-      } as any,
-      {result} as any
-    )
-    await new Promise<void>(resolve => {
-      finishListener = resolve
-    })
-    return undefined as any
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
+  const answered = fake.push(promptReset, completePrompt(false), {sessionID})
+  let settled = false
+  void answered.then(() => {
+    settled = true
   })
-
-  enterResetPipeline({username: 'testuser'})
   await flush()
 
   const resetKey = lastResetKey()
-  finishListener()
+  held[0]!.reply(null)
   await flush()
 
   submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
+  await flush()
 
-  expect(result).not.toHaveBeenCalled()
-  expect(mockStartProvision).not.toHaveBeenCalled()
+  expect(settled).toBe(false)
+  // provisioning did not start: still on the confirm screen
+  expect(nav.visibleScreen()?.name).toBe('resetConfirm')
 })
 
 test('reset progress before verification shows the check-your-email screen', async () => {
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
-    listener.incomingCallMap['keybase.1.loginUi.displayResetProgress']?.(
-      {endTime: 1700000000, needVerify: true, text: ''} as any
-    )
-    return undefined as any
-  })
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
 
-  enterResetPipeline({username: 'testuser'})
+  await fake.push(resetProgress, {endTime: 1700000000, needVerify: true, text: ''}, {sessionID})
   await flush()
 
   expect(nav.visibleScreen()).toMatchObject({
@@ -235,17 +148,15 @@ test('reset progress before verification shows the check-your-email screen', asy
     params: {endTime: undefined, pipelineStarted: false, username: 'testuser'},
   })
   expect(loggedOutStack()).toEqual(['login', 'resetWaiting'])
+  held[0]!.reply(null)
+  await flush()
 })
 
 test('reset progress after verification passes the countdown end time in milliseconds', async () => {
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
-    listener.incomingCallMap['keybase.1.loginUi.displayResetProgress']?.(
-      {endTime: 1700000000, needVerify: false, text: ''} as any
-    )
-    return undefined as any
-  })
+  const fake = installFakeEngine()
+  const {held, sessionID} = await enter(fake)
 
-  enterResetPipeline({username: 'testuser'})
+  await fake.push(resetProgress, {endTime: 1700000000, needVerify: false, text: ''}, {sessionID})
   await flush()
 
   expect(nav.visibleScreen()).toMatchObject({
@@ -253,38 +164,14 @@ test('reset progress after verification passes the countdown end time in millise
     params: {endTime: 1700000000000, pipelineStarted: true, username: 'testuser'},
   })
   expect(loggedOutStack()).toEqual(['login', 'resetWaiting'])
-})
-
-test('an rpc failure clears then reports the error to the caller', async () => {
-  jest
-    .spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener')
-    .mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scbadloginpassword))
-  const onError = jest.fn()
-
-  enterResetPipeline({onError, username: 'testuser'})
+  held[0]!.reply(null)
   await flush()
-
-  expect(onError).toHaveBeenNthCalledWith(1, '')
-  expect(onError).toHaveBeenLastCalledWith('nope')
 })
 
-test('a non-rpc failure is not reported as a user facing error', async () => {
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockRejectedValue(new Error('boom'))
-  const onError = jest.fn()
-
-  enterResetPipeline({onError, username: 'testuser'})
-  await flush()
-
-  expect(onError).toHaveBeenCalledTimes(1)
-  expect(onError).toHaveBeenCalledWith('')
-})
-
-test('a service failure through the engine listener reports its message to the caller', async () => {
+test('a service failure reports its message to the caller', async () => {
   const fake = installFakeEngine()
-  const held = fake.hold('keybase.1.account.enterResetPipeline')
   const onError = jest.fn()
-  enterResetPipeline({onError, password: 'password', username: 'testuser'})
-  await flush()
+  const {held} = await enter(fake, onError)
   held[0]!.reply(fakeError(T.RPCGen.StatusCode.scbadloginpassword, 'bad password'))
   await flush()
 
@@ -295,16 +182,27 @@ test('a service failure through the engine listener reports its message to the c
 test.each([
   ['a session cancel', T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
   ['an input cancel', T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
-])('%s through the engine listener reports no error', async (_, code, desc) => {
+])('%s reports no error', async (_, code, desc) => {
   const fake = installFakeEngine()
-  const held = fake.hold('keybase.1.account.enterResetPipeline')
   const onError = jest.fn()
-  enterResetPipeline({onError, password: 'password', username: 'testuser'})
-  await flush()
+  const {held} = await enter(fake, onError)
   held[0]!.reply(fakeError(code, desc))
   await flush()
 
   // only the clear at the start
+  expect(onError).toHaveBeenCalledTimes(1)
+  expect(onError).toHaveBeenCalledWith('')
+})
+
+// The engine only ever rejects with an RPCError; this is the guard for anything else thrown on the way
+test('a non-rpc failure is not reported as a user facing error', async () => {
+  const spy = jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockRejectedValue(new Error('boom'))
+  const onError = jest.fn()
+
+  enterResetPipeline({onError, username: 'testuser'})
+  await flush()
+  spy.mockRestore()
+
   expect(onError).toHaveBeenCalledTimes(1)
   expect(onError).toHaveBeenCalledWith('')
 })

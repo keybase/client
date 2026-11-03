@@ -2,132 +2,199 @@
 /// <reference types="jest" />
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {act, cleanup, render} from '@testing-library/react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import HiddenString from '@/util/hidden-string'
+import {makeConversationMeta} from '@/constants/chat/meta'
+import {makeMessageText} from '@/constants/chat/message'
+import {act, cleanup, render, screen} from '@testing-library/react'
+import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {tick} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
+import {ConversationCenterProvider, useConversationCenter} from './center-context'
+import {ConversationThreadProvider, useConversationThreadActions} from './thread-context'
+import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
+import {closeConversationThreadSearch, toggleConversationThreadSearch} from './thread-navigation'
+import {ConversationInputProvider} from './input-area/input-state'
+import {useComposerInput} from './input-area/composer'
+import {Input} from './input-area/normal/input'
+import {setInputIntent, useInputIntentState} from './input-intent-store'
+
+// input.tsx pulls in the native-only halves of the input bar at module scope
+jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
+jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
+jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
 
 const convX = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convY = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
-const mockLoadMessagesCentered = jest.fn()
-const mockJumpToRecentThread = jest.fn()
-const mockSetMarkReadBlocked = jest.fn()
-const mockThreadLoadStatusOptions = {isThreadLoadCurrent: () => true, onThreadLoadStatus: () => {}}
-let mockRouteParams: {threadSearch?: {query?: string}} | undefined
+const getThreadNonblock = 'chat.1.local.getThreadNonblock'
+const markAsRead = 'chat.1.local.markAsReadLocal'
+const updateUnsentText = 'chat.1.local.updateUnsentText'
 
-// Both providers under test pull thread/engine plumbing they don't exercise here.
-jest.mock('./thread-context', () => ({
-  // the input provider saves drafts through its thread's rpc; nothing here types one
-  useConversationThreadActions: () => ({isRetired: () => false, rpc: {}}),
-  useConversationThreadJumpToRecent: () => mockJumpToRecentThread,
-  useConversationThreadLoadMessagesCentered: () => mockLoadMessagesCentered,
-  useConversationThreadNotifications: () => {},
-  useConversationThreadSetMarkReadBlocked: () => mockSetMarkReadBlocked,
-  useConversationThreadStore: () => ({getState: () => ({})}),
-  useThreadMeta: (selector: (meta: object) => unknown) => selector({}),
-}))
-jest.mock('./send-actions', () => ({
-  useConversationSendActions: () => ({sendGiphyResult: jest.fn(), sendMessage: jest.fn()}),
-}))
-jest.mock('./thread-load-status-context', () => ({
-  useThreadLoadStatusOptionsGetter: () => () => mockThreadLoadStatusOptions,
-}))
-// the route params as the navigator holds them: a change re-renders the screen that reads them
-const mockRouteListeners = new Set<() => void>()
-const mockSubscribeRoute = (l: () => void) => {
-  mockRouteListeners.add(l)
-  return () => {
-    mockRouteListeners.delete(l)
-  }
+let fake: FakeEngine
+// the thread loads the center provider asks the service for; held, as only the asking is read here
+let loads: ReturnType<FakeEngine['hold']>
+// the asks reach the service a macrotask after they are made
+const delivered = async () => {
+  await act(async () => {
+    for (let i = 0; i < 4; i++) await tick()
+  })
 }
-jest.mock('./thread-search-route', () => ({
-  useChatThreadRouteParams: () =>
-    jest.requireActual<typeof React>('react').useSyncExternalStore(mockSubscribeRoute, () => mockRouteParams),
-}))
-
-import {ConversationCenterProvider, useConversationCenter} from './center-context'
-import {ConversationInputProvider} from './input-area/input-state'
-import {FakeComposerInputView, makeFakeComposerInput} from '@/test/fake-composer-input'
-import {setInputIntent, useInputIntentState} from './input-intent-store'
+const pivots = async () => {
+  await delivered()
+  return loads.map(l => (l.params as {query: {messageIDControl: T.RPCChat.MessageIDControl}}).query.messageIDControl)
+}
 
 let seenHighlightOrdinal: T.Chat.Ordinal | undefined
 let seenCenteredOrdinal: T.Chat.Ordinal | undefined
-// what reaches the composer's input
-let composerInput = makeFakeComposerInput()
+let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
 
 const Probe = () => {
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const actions = useConversationThreadActions()
   // captured in an effect, not during render: assigning module state while rendering is the
   // side effect react-hooks/globals rejects
   React.useEffect(() => {
     seenHighlightOrdinal = centeredHighlightOrdinal
     seenCenteredOrdinal = centeredOrdinal
+    threadActions = actions
   })
   return null
 }
 
+// the composer's input as the input bar mounts it, which shows what reaches the composer
+const ComposerInput = () => {
+  const {setInput, textChanged} = useComposerInput(undefined, false)
+  return <Input multiline={true} onChangeText={textChanged} ref={setInput} />
+}
+const composerText = () => (screen.getByTestId(TestIDs.CHAT_INPUT) as unknown as {value: string}).value
+
 // The real tree order: ConversationCenterProvider wraps ConversationInputProvider, so the input
 // provider's consume effect runs FIRST. If either provider claimed the other's intent types, the
 // input provider would silently eat every highlight.
-const Tree = ({id}: {id: T.Chat.ConversationIDKey}) => (
-  <ConversationCenterProvider id={id}>
-    <ConversationInputProvider id={id}>
-      <Probe />
-      <FakeComposerInputView fake={composerInput} />
-    </ConversationInputProvider>
-  </ConversationCenterProvider>
-)
+const renderTree = (threadSearch?: {query?: string}) => {
+  const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey: convX, threadSearch}, route: 'chatRoot'})
+  return render(
+    <Nav>
+      <ConversationThreadProvider id={convX}>
+        {/* the thread's window is not what is under test, so selecting it loads nothing itself */}
+        <ConversationThreadLoadStatusProvider id={convX} skipThreadLoadOnSelection={true}>
+          <ConversationCenterProvider id={convX}>
+            <ConversationInputProvider id={convX}>
+              <Probe />
+              <ComposerInput />
+            </ConversationInputProvider>
+          </ConversationCenterProvider>
+        </ConversationThreadLoadStatusProvider>
+      </ConversationThreadProvider>
+    </Nav>
+  )
+}
 
 const highlight = (n: number) => ({messageID: T.Chat.numberToMessageID(n), type: 'highlight'}) as const
 
+// How many times the thread marks read once a latest-page load arms it: none while mark read is
+// blocked.
+const markReadsAfterLatestLoad = async () => {
+  act(() => {
+    threadActions?.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: true,
+      fullPass: true,
+      messages: [
+        makeMessageText({
+          author: 'testuser2',
+          conversationIDKey: convX,
+          id: T.Chat.numberToMessageID(10),
+          ordinal: T.Chat.numberToOrdinal(10),
+          text: new HiddenString('message 10'),
+        }),
+      ],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+  act(() => {
+    threadActions?.markThreadAsRead()
+  })
+  await delivered()
+  return fake.calls.filter(c => c.method === markAsRead).length
+}
+
 beforeEach(() => {
-  mockRouteParams = undefined
+  fake = installFakeEngine()
+  loads = fake.hold(getThreadNonblock)
+  fake.answer(markAsRead, () => undefined)
+  fake.answer(updateUnsentText, () => undefined)
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+  metasReceived([
+    {
+      ...makeConversationMeta(),
+      conversationIDKey: convX,
+      maxVisibleMsgID: T.Chat.numberToMessageID(20),
+      readMsgID: T.Chat.numberToMessageID(0),
+      trustedState: 'trusted',
+    },
+  ])
   seenHighlightOrdinal = undefined
   seenCenteredOrdinal = undefined
-  composerInput = makeFakeComposerInput()
+  threadActions = undefined
 })
 
 afterEach(() => {
   cleanup()
-  jest.clearAllMocks()
-  resetAllStores()
+  act(() => {
+    resetAllStores()
+  })
 })
 
-test('a highlight written before mount is consumed on mount', () => {
+test('a highlight written before mount is consumed on mount', async () => {
   setInputIntent(convX, highlight(42))
 
-  render(<Tree id={convX} />)
+  renderTree()
 
-  expect(mockSetMarkReadBlocked).toHaveBeenCalledWith(true)
-  expect(mockLoadMessagesCentered).toHaveBeenCalledTimes(1)
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(42),
-    'flash',
-    expect.anything()
-  )
+  expect(await pivots()).toEqual([
+    expect.objectContaining({mode: T.RPCChat.MessageIDControlMode.centered, pivot: T.Chat.numberToMessageID(42)}),
+  ])
   expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(42))
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
+  // a highlight blocks mark read, so landing on an old message does not read the thread
+  expect(await markReadsAfterLatestLoad()).toBe(0)
 })
 
-test('a highlight written after mount is delivered by the subscription', () => {
-  render(<Tree id={convX} />)
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+// the other side of the mark read check above
+test('with no highlight a latest-page load marks the thread read', async () => {
+  renderTree()
+
+  expect(await markReadsAfterLatestLoad()).toBe(1)
+})
+
+test('a highlight written after mount is delivered by the subscription', async () => {
+  renderTree()
+  expect(await pivots()).toEqual([])
 
   act(() => {
     setInputIntent(convX, highlight(7))
   })
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(7),
-    'flash',
-    expect.anything()
-  )
+  expect(await pivots()).toEqual([expect.objectContaining({pivot: T.Chat.numberToMessageID(7)})])
   expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(7))
 })
 
 // The old route-param path deduped on the messageID *value*, so jumping to a message you had
 // already jumped to was a silent no-op. Delete-on-consume keys delivery to the write instead.
-test('jumping twice to the same message centers both times', () => {
-  render(<Tree id={convX} />)
+test('jumping twice to the same message centers both times', async () => {
+  renderTree()
 
   act(() => {
     setInputIntent(convX, highlight(11))
@@ -136,70 +203,63 @@ test('jumping twice to the same message centers both times', () => {
     setInputIntent(convX, highlight(11))
   })
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledTimes(2)
-  expect(mockLoadMessagesCentered).toHaveBeenNthCalledWith(
-    2,
-    T.Chat.numberToMessageID(11),
-    'flash',
-    expect.anything()
-  )
+  expect(await pivots()).toEqual([
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
+  ])
 })
 
 // The two-consumer collision the store's `types` filter exists for.
-test('the input provider does not consume a highlight meant for the center provider', () => {
+test('the input provider does not consume a highlight meant for the center provider', async () => {
   setInputIntent(convX, highlight(5))
 
-  render(<Tree id={convX} />)
+  renderTree()
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(5),
-    'flash',
-    expect.anything()
-  )
-  expect(composerInput.text).toBe('')
+  expect(await pivots()).toEqual([expect.objectContaining({pivot: T.Chat.numberToMessageID(5)})])
+  expect(composerText()).toBe('')
 })
 
-test('the center provider does not consume an injectText meant for the input provider', () => {
+test('the center provider does not consume an injectText meant for the input provider', async () => {
   setInputIntent(convX, {text: 'hello', type: 'injectText'})
 
-  render(<Tree id={convX} />)
+  renderTree()
 
-  expect(composerInput.text).toBe('hello')
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+  expect(composerText()).toBe('hello')
+  expect(await pivots()).toEqual([])
+  // an injected text is the draft now
+  expect(fake.calls.filter(c => c.method === updateUnsentText).map(c => (c.params as {text: string}).text)).toEqual([
+    'hello',
+  ])
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
 })
 
-test('a highlight for another conversation is left alone', () => {
+test('a highlight for another conversation is left alone', async () => {
   setInputIntent(convY, highlight(3))
 
-  render(<Tree id={convX} />)
+  renderTree()
 
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+  expect(await pivots()).toEqual([])
   expect(useInputIntentState.getState().intents.get(convY)).toEqual(highlight(3))
 })
 
 describe('closing thread search', () => {
-  const setRouteParams = (params: typeof mockRouteParams) => {
-    act(() => {
-      mockRouteParams = params
-      mockRouteListeners.forEach(l => l())
-    })
-  }
-
   // every close (the search's own Cancel, a Reply, a send) only changes the route
   test('drops the hit it centred, and opening search again does not bring it back', () => {
-    mockRouteParams = {threadSearch: {query: 'needle'}}
-    render(<Tree id={convX} />)
+    renderTree({query: 'needle'})
     act(() => {
       setInputIntent(convX, highlight(42))
     })
     expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(42))
 
-    setRouteParams({threadSearch: undefined})
+    act(() => {
+      closeConversationThreadSearch(convX)
+    })
     expect(seenHighlightOrdinal).toBeUndefined()
     expect(seenCenteredOrdinal).toBeUndefined()
 
-    setRouteParams({threadSearch: {}})
+    act(() => {
+      toggleConversationThreadSearch(convX)
+    })
     expect(seenHighlightOrdinal).toBeUndefined()
     expect(seenCenteredOrdinal).toBeUndefined()
   })
