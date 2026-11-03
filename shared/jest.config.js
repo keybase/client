@@ -12,9 +12,15 @@ process.env.TZ = 'Pacific/Chatham'
 // Add new native packages to native-only-modules.js, not here.
 const nativeOnlyModules = require('./native-only-modules')
 
+// The desktop build's own stubs (vite.config.mts stubbedModules), so jest runs what desktop runs.
+const desktopStubs = {
+  '@react-native-picker/picker': '<rootDir>/desktop/stubs/react-native-picker.js',
+  'react-native-safe-area-context': '<rootDir>/desktop/stubs/react-native-safe-area-context.js',
+}
+const escapeRe = name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const nativeModuleStub = '<rootDir>/test/mocks/native-module.js'
 const nativeModuleMapper = Object.fromEntries(
-  nativeOnlyModules.map(name => [`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, nativeModuleStub])
+  nativeOnlyModules.map(name => [`^${escapeRe(name)}$`, desktopStubs[name] ?? nativeModuleStub])
 )
 
 module.exports = {
@@ -35,12 +41,12 @@ module.exports = {
     '\\.(css)$': '<rootDir>/test/mocks/style.js',
     '\\.(png|jpe?g|gif|svg)$': '<rootDir>/test/mocks/file.js',
     '^@/(.*)$': '<rootDir>/$1',
-    '^@/logger$': '<rootDir>/test/mocks/logger.js',
     '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
     '^@react-navigation/native$': '<rootDir>/test/mocks/react-navigation-native.js',
     '^expo-glass-effect$': '<rootDir>/test/mocks/expo-glass-effect.js',
     '^lottie-web$': '<rootDir>/test/mocks/lottie-web.js',
-    '^react-native$': '<rootDir>/test/mocks/react-native.js',
+    // the library desktop runs (vite.config.mts), not a model of it
+    '^react-native$': '<rootDir>/node_modules/react-native-web/dist/cjs/index.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
   setupFilesAfterEnv: ['<rootDir>/test/fail-on-console.js'],
