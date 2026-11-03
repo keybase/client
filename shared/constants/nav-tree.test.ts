@@ -4,6 +4,7 @@ import {
   activeStack,
   currentTab,
   isLoggedIn,
+  isModalKeyUp,
   isModalUp,
   modalStack,
   modalState,
@@ -12,6 +13,7 @@ import {
   setModalRouteNames,
   tabNavigatorState,
   tabState,
+  topModalKey,
   upToScreenTarget,
   visiblePath,
   visibleScreen,
@@ -161,6 +163,24 @@ test('isModalUp matches a modal by name and the params given', () => {
   expect(isModalUp(navState, 'team', {teamID: 'T1'})).toBe(false)
   expect(isModalUp(makePhoneNavState([{name: 'team', params: {teamID: 'T1'}}]), 'teamDeleteTeam', {teamID: 'T1'})).toBe(false)
   expect(isModalUp(undefined, 'teamDeleteTeam')).toBe(false)
+})
+
+// A bot popup's mutation closes only the popup instance it started from.
+test('topModalKey names the topmost matching modal, and isModalKeyUp finds that instance', () => {
+  setModalRouteNames(['chatInstallBot'])
+  const navState = makePhoneNavState([
+    {name: 'chatInstallBot', params: {botUsername: 'helperbot'}},
+    {name: 'chatInstallBot', params: {botUsername: 'otherbot'}},
+    {name: 'chatInstallBot', params: {botUsername: 'helperbot'}},
+  ])
+
+  expect(topModalKey(navState, 'chatInstallBot', {botUsername: 'helperbot'})).toBe('extra-2')
+  expect(topModalKey(navState, 'chatInstallBot', {botUsername: 'nobot'})).toBeUndefined()
+  expect(isModalKeyUp(navState, 'extra-0')).toBe(true)
+  // the same bot's popup reopened gets a new key
+  expect(isModalKeyUp(makePhoneNavState([{name: 'chatInstallBot', params: {botUsername: 'helperbot'}}]), 'extra-2')).toBe(false)
+  expect(isModalKeyUp(navState, 'loggedIn')).toBe(false)
+  expect(topModalKey(undefined, 'chatInstallBot')).toBeUndefined()
 })
 
 test('tabNavigatorState is the tab navigator, and nothing when logged out', () => {
