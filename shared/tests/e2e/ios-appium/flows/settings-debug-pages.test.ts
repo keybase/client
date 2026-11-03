@@ -10,10 +10,10 @@ import * as T from '../../shared/test-ids'
 import {settingShown} from '../gate/persisted-lib.ts'
 import {step} from '../gate/step'
 import {el} from '../helpers/elements'
-import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
-import {escapeToTabs, navigateToMore, tapSettingsRow} from '../helpers/navigate'
+import {escapeToTabs} from '../helpers/navigate'
+import {openSettingsPage} from '../helpers/settings'
 
 // Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window.
 const MARKDOWN_SCREENS = 8
@@ -153,11 +153,7 @@ describe('settings debug pages', function () {
   // The debug page from the More list, freshly opened at its first screenful; the typography page
   // with its controls at the defaults. Bound: open 142.
   const openDebugPage = async (page: DebugPage) => {
-    await escapeToTabs()
-    await navigateToMore()
-    await tapSettingsRow(page.row)
-    await expectScreen(`the ${page.row} debug page`, page.route)
-    await el(page.marker).waitForExist({timeout: 10_000, timeoutMsg: `the ${page.row} debug page never drew`})
+    await openSettingsPage(page.row, page.route, page.marker)
     await waitFor(`the ${page.row} page's first screenful`, async () => ((await shown(page.top)) ? true : undefined), {
       interval: 250,
       timeout: 10_000,

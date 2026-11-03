@@ -179,7 +179,7 @@ const settles = async <V,>(what: string, read: () => Promise<V>, want: V) =>
 
 // -- pages ---------------------------------------------------------------------------------------
 
-const openChat = async () => openSettingsPage('Chat', 'settingsTabs.chatTab', T.SETTINGS_CHAT)
+const openChat = async () => openSettingsPage('Chat', 'settingsTabs.chatTab', T.SETTINGS_CHAT, T.SETTINGS_ROW_CHAT)
 const openNotifications = async () => openSettingsPage('Notifications', 'settingsTabs.notificationsTab', T.SETTINGS_NOTIFICATIONS)
 const openDisplay = async () => openSettingsPage('Display', 'settingsTabs.displayTab', T.SETTINGS_DISPLAY)
 const openAdvanced = async () => openSettingsPage('Advanced', 'settingsTabs.advancedTab', T.SETTINGS_ADVANCED)

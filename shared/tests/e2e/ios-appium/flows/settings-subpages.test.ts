@@ -9,7 +9,8 @@ import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement, onScreen} from '../helpers/menus'
-import {escapeToTabs, goBack, navigateToMore, scrollToTestID, tapSettingsRow} from '../helpers/navigate'
+import {escapeToTabs, goBack} from '../helpers/navigate'
+import {openSettingsPage} from '../helpers/settings'
 
 const TERMS = 'https://keybase.io/_/webview/terms'
 const WEB_VIEW = '-ios predicate string:type == "XCUIElementTypeWebView"'
@@ -49,25 +50,11 @@ describe('settings subpages', function () {
     await escapeToTabs()
   })
 
-  // The page from the More list. Bound: more 50, row 55, screen 11, marker 10 = 126.
-  const openPage = async ({marker, route, row, rowTestID}: Page) => {
-    await escapeToTabs()
-    await navigateToMore()
-    if (rowTestID) {
-      await scrollToTestID(rowTestID)
-      await el(rowTestID).click()
-    } else {
-      await tapSettingsRow(row)
-    }
-    await expectScreen(`the ${row} settings page`, route)
-    await el(marker).waitForExist({timeout: 10_000, timeoutMsg: `the ${row} settings page never drew`})
-  }
-
   for (const page of PAGES) {
     it(`the More list's ${page.row} row opens its page`, async function () {
-      // worst case (s): openPage 126, the keyboard 5, the Send 6, step 2 = 139
+      // worst case (s): openSettingsPage 126, the keyboard 5, the Send 6, step 2 = 139
       this.timeout(150_000)
-      await openPage(page)
+      await openSettingsPage(page.row, page.route, page.marker, page.rowTestID)
       // the page's own Send, seen on screen and never pressed: it sends the phone's logs. The page
       // focuses its field (the keyboard can cover Send), and XCUITest can report the page's button
       // visible=false, so its frame on screen stands for visible.
@@ -88,11 +75,11 @@ describe('settings subpages', function () {
   }
 
   it("About's Terms and Conditions open the in-app keybase.io view, and back to About", async function () {
-    // worst case (s): openPage 126, step 2, the link 6 and its tap 1, screen 11, the web view 10, step
+    // worst case (s): openSettingsPage 126, step 2, the link 6 and its tap 1, screen 11, the web view 10, step
     // 2, back 3, screen 11, marker 10, the web view read 1, step 2 = 185
     this.timeout(200_000)
     const about = PAGES.find(p => p.marker === T.SETTINGS_ABOUT)!
-    await openPage(about)
+    await openSettingsPage(about.row, about.route, about.marker)
     await step('About')
     const link = await waitFor(
       'the Terms and Conditions link',
