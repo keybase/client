@@ -22,39 +22,15 @@ import {getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
 
-export const useRefreshBotMembershipOnSuccess = (
-  conversationIDKey: T.Chat.ConversationIDKey | undefined,
-  waitingKey: T.Waiting.WaitingKeys,
-  error: RPCError | undefined,
-  shouldRefreshMembership: boolean,
-  onSuccess: () => void
-) => {
-  const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const wasWaitingRef = React.useRef(waiting)
-
-  React.useEffect(() => {
-    if (!waiting && wasWaitingRef.current && !error) {
-      if (!shouldRefreshMembership) {
-        onSuccess()
-      } else if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-        onSuccess()
-      } else {
-        getChatRpc()
-          .previewConversation(conversationIDKey)
-          .then(conv => {
-            participantInfoReceived(
-              conversationIDKey,
-              ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
-            )
-            onSuccess()
-          })
-          .catch(() => {
-            onSuccess()
-          })
-      }
-    }
-    wasWaitingRef.current = waiting
-  }, [conversationIDKey, error, onSuccess, shouldRefreshMembership, waiting])
+// Run after a bot mutation succeeds; a failed preview leaves the stored participants as they were.
+export const refreshBotMembership = async (conversationIDKey: T.Chat.ConversationIDKey | undefined) => {
+  if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+    return
+  }
+  try {
+    const conv = await getChatRpc().previewConversation(conversationIDKey)
+    participantInfoReceived(conversationIDKey, ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? []))
+  } catch {}
 }
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
@@ -127,10 +103,12 @@ const addBotMember = async (p: {
       username: botUsername,
       waitingKey: C.waitingKeyChatBotAdd,
     })
+    return true
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info('addBotMember: failed to add bot member: ' + error.message)
     }
+    return false
   }
 }
 
@@ -195,11 +173,9 @@ const InstallBotPopup = (props: Props) => {
   const channelsKnown = channelMetas.size > 0
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
-  const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
   // dispatch
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
     void openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
@@ -212,9 +188,8 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
-    setPendingMutation('add')
-    C.ignorePromise(
-      addBotMember({
+    const f = async () => {
+      const added = await addBotMember({
         botUsername,
         conversationIDKey,
         installInConvs: convsToSave,
@@ -222,14 +197,18 @@ const InstallBotPopup = (props: Props) => {
         installWithMentions,
         installWithRestrict,
       })
-    )
+      if (added) {
+        await refreshBotMembership(conversationIDKey)
+        clearModals()
+      }
+    }
+    C.ignorePromise(f())
   }
   const onEdit = () => {
     if (!conversationIDKey || noConvsChosen) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
-    setPendingMutation('edit')
     const f = async () => {
       try {
         await getChatRpc().setBotSettings({
@@ -242,7 +221,10 @@ const InstallBotPopup = (props: Props) => {
         if (error instanceof RPCError) {
           logger.info('addBotMember: failed to edit bot settings: ' + error.message)
         }
+        return
       }
+      await refreshBotMembership(conversationIDKey)
+      clearModals()
     }
     C.ignorePromise(f())
   }
@@ -259,17 +241,6 @@ const InstallBotPopup = (props: Props) => {
   const onFeedback = () => {
     navigateAppend({name: 'feedback', params: {}})
   }
-
-  useRefreshBotMembershipOnSuccess(
-    conversationIDKey,
-    C.waitingKeyChatBotAdd,
-    mutationError,
-    pendingMutation !== undefined,
-    () => {
-      setPendingMutation(undefined)
-      clearModals()
-    }
-  )
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const botPublicCommandsRequestIDRef = React.useRef(0)

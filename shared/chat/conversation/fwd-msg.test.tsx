@@ -327,8 +327,8 @@ describe('forward', () => {
     })
 
     // useConversationMessage's load reads what its stream callbacks collected right after awaiting
-    // the load, and the full pass's handler runs after the load resolves here: the message is lost
-    test.failing('forwards the message its own load found when the service answers right after the ack', async () => {
+    // the load, so the load must not resolve before the full pass's handler has run
+    test('forwards the message its own load found when the service answers right after the ack', async () => {
       fake.answer(search, () => [hit('testuser-mac')])
       loadFinds(true)
       const {getByText} = await renderPicker(null)

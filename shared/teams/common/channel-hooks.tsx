@@ -36,7 +36,7 @@ export const useAllChannelMetas = (
 } => {
   const {
     teamMeta: {teamname},
-  } = useLoadedTeam(teamID)
+  } = useLoadedTeam(teamID, !dontCallRPC)
   const {channelMetas, channelParticipants, loading, reload} = useLoadedTeamChannels(
     teamID,
     undefined,

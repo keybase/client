@@ -49,7 +49,6 @@ import * as Meta from '@/constants/chat/meta'
 import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -60,9 +59,8 @@ import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {testWaitingKey} from '@/test/waiting-key'
 import {useBotSettings} from './settings'
-import InstallBotPopup, {useBotTeamRole, useRefreshBotMembershipOnSuccess} from './install'
+import InstallBotPopup, {refreshBotMembership, useBotTeamRole} from './install'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -171,40 +169,10 @@ const previewResult = (participants: Array<string>) => ({
   } as unknown as T.RPCChat.InboxUIItem,
 })
 
-describe('useRefreshBotMembershipOnSuccess', () => {
-  const waitingKey = testWaitingKey('test:botMutation')
-  const run = (p: {
-    conversationIDKey: T.Chat.ConversationIDKey | undefined
-    error?: RPCError
-    shouldRefresh: boolean
-  }) => {
-    const onSuccess = jest.fn()
-    renderHook(() =>
-      useRefreshBotMembershipOnSuccess(p.conversationIDKey, waitingKey, p.error, p.shouldRefresh, onSuccess)
-    )
-    return onSuccess
-  }
-  const waitThenFinish = async () => {
-    act(() => {
-      useWaitingState.getState().dispatch.increment(waitingKey)
-    })
-    act(() => {
-      useWaitingState.getState().dispatch.decrement(waitingKey)
-    })
-    await settle()
-  }
-
-  test('does nothing on mount or while nothing was waiting', async () => {
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await settle()
-    expect(onSuccess).not.toHaveBeenCalled()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-  })
-
-  test('previews the conversation, stores its participants, then calls onSuccess', async () => {
+describe('refreshBotMembership', () => {
+  test('previews the conversation and stores its participants', async () => {
     fake.answer(previewConversation, () => previewResult(['testuser', 'helperbot']))
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(convID)
 
     expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
     expect(useInboxMetadataState.getState().participants.get(convID)).toEqual({
@@ -212,41 +180,20 @@ describe('useRefreshBotMembershipOnSuccess', () => {
       contactName: new Map(),
       name: ['testuser', 'helperbot'],
     })
-    expect(onSuccess).toHaveBeenCalledTimes(1)
   })
 
-  test('a failed preview still calls onSuccess and stores nothing', async () => {
+  test('a failed preview resolves and stores nothing', async () => {
     fake.answer(previewConversation, () => fakeError(2, 'offline'))
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(convID)
 
+    expect(paramsOf(fake, previewConversation)).toEqual([{convID: convIDOf(convID)}])
     expect(useInboxMetadataState.getState().participants.get(convID)).toBeUndefined()
-    expect(onSuccess).toHaveBeenCalledTimes(1)
-  })
-
-  test('skips the preview when no refresh is wanted', async () => {
-    const onSuccess = run({conversationIDKey: convID, shouldRefresh: false})
-    await waitThenFinish()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(onSuccess).toHaveBeenCalledTimes(1)
   })
 
   test('skips the preview for a missing or invalid conversation', async () => {
-    const onMissing = run({conversationIDKey: undefined, shouldRefresh: true})
-    await waitThenFinish()
-    const onInvalid = run({conversationIDKey: T.Chat.noConversationIDKey, shouldRefresh: true})
-    await waitThenFinish()
+    await refreshBotMembership(undefined)
+    await refreshBotMembership(T.Chat.noConversationIDKey)
     expect(paramsOf(fake, previewConversation)).toEqual([])
-    // the first hook sees both waiting cycles
-    expect(onMissing).toHaveBeenCalledTimes(2)
-    expect(onInvalid).toHaveBeenCalledTimes(1)
-  })
-
-  test('does nothing when the mutation ended in an error', async () => {
-    const onSuccess = run({conversationIDKey: convID, error: new RPCError('nope', 1), shouldRefresh: true})
-    await waitThenFinish()
-    expect(paramsOf(fake, previewConversation)).toEqual([])
-    expect(onSuccess).not.toHaveBeenCalled()
   })
 })
 
@@ -293,9 +240,8 @@ describe('InstallBotPopup service calls', () => {
       visibility: T.RPCGen.TLFVisibility.private,
     }) as unknown as T.RPCChat.InboxUIItem
 
-  // A person takes longer than the engine's 500ms waiting throttle between opening the popup and
-  // pressing a button, so the press's waiting "on" reaches the store at once rather than in the
-  // batch that also carries its "off".
+  // The engine throttles waiting increments (500ms), so a press soon after the popup's own loads
+  // reaches the store late; waiting this out lets a test read the in-flight count.
   const waitOutWaitingThrottle = async () => {
     await act(async () => new Promise(resolve => setTimeout(resolve, 510)))
   }
@@ -411,7 +357,6 @@ describe('InstallBotPopup service calls', () => {
       await renderPopup()
       await click('Unrestricted bot')
       await click('Review')
-      await waitOutWaitingThrottle()
       await click('Install')
       held[0]!.reply(null)
       await settle()
@@ -423,12 +368,9 @@ describe('InstallBotPopup service calls', () => {
       expect(clearModals).toHaveBeenCalledTimes(1)
     })
 
-    // Suspected bug: the engine throttles a waiting "on" (500ms, across every key) but flushes an
-    // "off" at once. An install started within 500ms of another waiting-keyed call (here the teams
-    // list the popup loads on mount) that settles before the throttle fires reaches the store as
-    // one batch, on and off together, so useRefreshBotMembershipOnSuccess never sees waiting and
-    // the popup neither refreshes the membership nor closes.
-    test.failing('an install that settles inside the waiting throttle window still refreshes and closes', async () => {
+    // The engine throttles a waiting "on" (500ms) but flushes an "off" at once, so an install this
+    // quick is never seen as waiting; the close has to follow the call itself.
+    test('an install that settles inside the waiting throttle window still refreshes and closes', async () => {
       answerRole(T.RPCGen.TeamRole.none)
       answerPublicCommands([])
       fake.answer(addBotMember, () => null)

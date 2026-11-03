@@ -6,9 +6,11 @@ import {
   navToProfile,
   navUpToScreen,
   previewConversation,
+  pushInTab,
   switchTab,
 } from './router'
 import * as Tabs from './tabs'
+import {isTablet} from './platform'
 import {settingsDevicesTab} from './settings'
 import {showTeamByName} from '@/teams/team-page-actions'
 
@@ -90,12 +92,14 @@ const handleKeybaseLink = (link: string) => {
         navUpToScreen('devicesRoot')
         return
       }
+      if (isTablet) {
+        pushInTab(Tabs.settingsTab, {name: settingsDevicesTab, params: {}})
+        return
+      }
       switchTab(Tabs.settingsTab)
-      // navUpToScreen pins its popTo to the deepest active stack, which at a tab root on a
-      // phone is the Settings tab stack -- and that stack knows only settingsRoot there, so
-      // StackRouter returned null and the action was dropped. An untargeted push lands
-      // wherever the route is registered: the root stack above the tabs on a phone, the
-      // Settings tab stack on a tablet. Same call the phone settings list itself makes.
+      // On a phone the screen is registered only on the root stack above the tabs, which an
+      // untargeted push reaches; navUpToScreen would pin its popTo to the Settings tab stack,
+      // where the route does not exist. Same call the phone settings list itself makes.
       navigateAppend({name: settingsDevicesTab, params: {}})
       return
     case 'settingsAddPhone':

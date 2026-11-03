@@ -1,5 +1,16 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+// isTablet is read at module load; this lets each test pick the device.
+jest.mock('./platform', () => {
+  const device = {isTablet: false}
+  return {
+    ...jest.requireActual<object>('./platform'),
+    device,
+    get isTablet() {
+      return device.isTablet
+    },
+  }
+})
 import * as Tabs from './tabs'
 import {settingsDevicesTab} from './settings'
 import {handleAppLink} from './deeplinks'
@@ -14,14 +25,17 @@ import {
 } from '@/test/navigation'
 
 let nav: MountedNavigation
+const {device} = jest.requireMock<{device: {isTablet: boolean}}>('./platform')
 
-const withIsMobile = (isMobile: boolean, f: () => void) => {
+const withIsMobile = (isMobile: boolean, f: () => void, isTablet = false) => {
   const was = global.isMobile
   global.isMobile = isMobile
+  device.isTablet = isTablet
   try {
     f()
   } finally {
     global.isMobile = was
+    device.isTablet = false
   }
 }
 
@@ -73,19 +87,43 @@ test('a devices link opens the devices tab on desktop', async () => {
 // keybase://devices, so on mobile every producer routes it to the linking config instead (the
 // phone shape it builds is covered by router-v2/linking-phone.test.ts). It still has to be
 // phone-correct, because the config is the thing that can stop claiming a URL.
-// One call covers phone and tablet: the push carries no target, so it is handled by whichever
-// navigator registers the route -- the root stack above the tabs on a phone, the Settings tab
-// stack on a tablet. navUpToScreen cannot do that; it pins its popTo to the active stack, which
-// at a tab root on a phone is the Settings tab stack, where the route does not exist.
-// The tablet case starts with Settings already visited: from a never-visited Settings tab the push
-// is not handled (the tab's stack is not mounted yet when it is dispatched).
-test.each<Layout>(['phone', 'tablet'])('a devices link shows the devices screen on a %s', async layout => {
-  await atChat(layout, layout === 'tablet' ? [Tabs.settingsTab] : [])
-  withIsMobile(true, () => {
-    handleAppLink('keybase://devices')
-  })
+test.each<[Layout, ReadonlyArray<Tabs.AppTab>]>([
+  ['phone', []],
+  ['tablet', [Tabs.settingsTab]],
+  // the native tab navigator has not mounted a never-focused tab's stack, so a push right after
+  // switching to it would be dropped
+  ['tablet', []],
+])('a devices link shows the devices screen on a %s, having visited %j', async (layout, visited) => {
+  await atChat(layout, visited)
+  withIsMobile(
+    true,
+    () => {
+      handleAppLink('keybase://devices')
+    },
+    layout === 'tablet'
+  )
+  await renders()
   expect(tabOf()).toBe(Tabs.settingsTab)
   expect(nav.visibleScreen()?.name).toBe(settingsDevicesTab)
+})
+
+test('on a tablet the devices screen sits on the Settings tab stack, above settings root', async () => {
+  await atChat('tablet')
+  withIsMobile(
+    true,
+    () => {
+      handleAppLink('keybase://devices')
+    },
+    true
+  )
+  await renders()
+  const loggedIn = nav.getRootState()?.routes?.[0]?.state as
+    | {routes: ReadonlyArray<{name: string; state?: {index?: number; routes: ReadonlyArray<{name: string}>}}>}
+    | undefined
+  const settings = loggedIn?.routes.find(r => r.name === Tabs.settingsTab)?.state
+  expect(settings?.routes.map(r => r.name)).toEqual(['settingsRoot', settingsDevicesTab])
+  expect(settings?.index).toBe(1)
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
 })
 
 test('on a phone the devices screen sits on the root stack above the tabs', async () => {

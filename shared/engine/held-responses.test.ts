@@ -234,15 +234,25 @@ test('a prompt queued before a logout is refused instead of reaching its handler
   await ended
 })
 
-test('a notification that arrives just before its session ends normally still reaches its handler', async () => {
+test('a prompt handler that answers and then waits on the user does not hold the call', async () => {
+  const fake = installFakeEngine()
+  const {ended, held, push} = await startRecover(fake, async (_, response) => {
+    response.result(true)
+    await new Promise(() => {})
+  })
+  await expect(push()).resolves.toEqual({result: true})
+  held[0]!.reply(undefined)
+  await expect(settledSoFar(ended)).resolves.toBeNull()
+  uninstallFakeEngine()
+})
+
+test('a notification that arrives just before its session ends normally reaches its handler before the call settles', async () => {
   const fake = installFakeEngine()
   const onRow = jest.fn()
   const {ended, held, push} = await startIdentify(fake, onRow)
   const pushed = push()
   held[0]!.reply(undefined)
   await expect(ended).resolves.toBeNull()
-  expect(onRow).not.toHaveBeenCalled()
-  await afterTimers()
   expect(onRow).toHaveBeenCalledTimes(1)
   await expect(pushed).resolves.toEqual({result: null})
   uninstallFakeEngine()

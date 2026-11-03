@@ -50,6 +50,7 @@ describe('readiness', () => {
     popStack()
     expect(navigateAppend({name: 'profile', params: {username: 'testuser'}})).toBe(false)
     expect(getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})).toBe(false)
+    expect(getNavigator().pushInTab(Tabs.settingsTab, {name: 'settingsTabs.devicesTab'})).toBe(false)
     expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(false)
 
     expect(nav.actions).toEqual([])

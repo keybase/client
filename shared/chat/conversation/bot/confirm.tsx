@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {getChatRpc} from '../chat-rpc'
-import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
+import {refreshBotMembership, useBotConversationIDKey} from './install'
 
 type Props = {
   botUsername: string
@@ -18,7 +18,6 @@ const ConfirmBotRemoveImpl = (props: {
 }) => {
   const {botUsername, conversationIDKey} = props
   const clearModals = C.Router2.clearModals
-  const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
   const onClose = () => {
     clearModals()
   }
@@ -34,17 +33,13 @@ const ConfirmBotRemoveImpl = (props: {
         if (error instanceof RPCError) {
           logger.info('removeBotMember: failed to remove bot member: ' + error.message)
         }
+        return
       }
+      await refreshBotMembership(conversationIDKey)
+      clearModals()
     }
     C.ignorePromise(f())
   }
-  useRefreshBotMembershipOnSuccess(
-    conversationIDKey,
-    C.waitingKeyChatBotRemove,
-    error,
-    true,
-    clearModals
-  )
   return (
     <Kb.ConfirmModal
       confirmText="Uninstall"

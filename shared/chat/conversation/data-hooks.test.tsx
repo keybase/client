@@ -391,8 +391,8 @@ describe('useConversationMessage', () => {
   })
 
   // loadConversationMessagesAroundMessageID reads what the stream callbacks collected right after
-  // awaiting the load, and the full pass's handler can run after the load resolves.
-  test.failing('returns the message when the service answers as soon as the full pass is acked', async () => {
+  // awaiting the load, so the load must not resolve before the full pass's handler has run
+  test('returns the message when the service answers as soon as the full pass is acked', async () => {
     mockAroundMessages([19, 20, 21], {answerRightAway: true})
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()

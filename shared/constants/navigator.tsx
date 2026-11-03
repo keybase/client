@@ -64,6 +64,10 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Phone: select `tab` on its root screen and push `screen` above the tab bar, in one reset.
   // Returns whether it dispatched.
   showAboveTabs: (tab: Tabs.AppTab, screen: NavTree.ScreenSpec) => boolean
+  // Split layouts: select `tab` and push `screen` on its stack, in one reset of the tab navigator.
+  // A push dispatched after switchTab to a tab never focused before is dropped, since that tab's
+  // stack has not mounted yet. Returns whether it dispatched.
+  pushInTab: (tab: Tabs.AppTab, screen: NavTree.ScreenSpec) => boolean
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
@@ -77,7 +81,7 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 // user has moved on to
 const modalsWaitMs = 1000
 
-let nextChatRootKey = 0
+let nextRouteKey = 0
 
 const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateUp = () => {
@@ -277,7 +281,7 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
         state: {
           ...(route.state ?? {}),
           index: 0,
-          routes: [{key: reused?.key ?? `chatRoot-${nextChatRootKey++}`, name: 'chatRoot', params: {...reused?.params, ...params}}],
+          routes: [{key: reused?.key ?? `chatRoot-${nextRouteKey++}`, name: 'chatRoot', params: {...reused?.params, ...params}}],
         },
       }
     })
@@ -319,6 +323,42 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
     ref.dispatch({
       ...CommonActions.reset(NavTree.pushedAboveTabs(tab, screen) as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
+    })
+    return true
+  }
+
+  const pushInTab = (tab: Tabs.AppTab, screen: NavTree.ScreenSpec): boolean => {
+    if (DEBUG_NAV) {
+      console.log('[Nav] pushInTab', {screen, tab})
+    }
+    if (!ref.isReady()) return false
+    const tabNavState = NavTree.tabNavigatorState(ref.getRootState())
+    if (!tabNavState?.key) return false
+    const tabRoutes = tabNavState.routes as Array<NavTree.Route>
+    const tabIndex = tabRoutes.findIndex(r => r.name === tab)
+    if (tabIndex < 0) return false
+    // A mounted stack's state is stale: false, so every route in it needs its own key.
+    const stackRoutes = (tabRoutes[tabIndex]?.state?.routes ?? [{name: NavTree.tabRoots[tab]}]).map(r => ({
+      ...r,
+      key: r.key ?? `${r.name}-${nextRouteKey++}`,
+    }))
+    const updatedRoutes = tabRoutes.map((route, i) =>
+      i === tabIndex
+        ? {
+            ...route,
+            state: {
+              ...(route.state ?? {}),
+              index: stackRoutes.length,
+              routes: [...stackRoutes, {key: `${screen.name}-${nextRouteKey++}`, ...screen}],
+            },
+          }
+        : route
+    )
+    ref.dispatch({
+      ...CommonActions.reset({...tabNavState, index: tabIndex, routes: updatedRoutes} as Parameters<
+        typeof CommonActions.reset
+      >[0]),
+      target: tabNavState.key,
     })
     return true
   }
@@ -372,6 +412,7 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
+    pushInTab,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,

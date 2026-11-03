@@ -469,6 +469,9 @@ export const previewConversation = (p: PreviewConversationParams) => {
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
   getNavigator().setChatRootParams(params)
 
+export const pushInTab = (tab: Tabs.AppTab, screen: {name: RouteKeys; params?: Record<string, unknown>}): boolean =>
+  getNavigator().pushInTab(tab, screen)
+
 // Merges params into the route with this key, even when it is not the focused one.
 export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>
   getNavigator().setRouteParams(routeKey, params)
