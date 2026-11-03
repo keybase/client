@@ -186,6 +186,17 @@ export const waitForPeerService = async (role: PeerRole, home: string, deps: Pee
   )
 }
 
+// Starts the service of a fresh home a flow provisions (one per run id), on the file secret store
+// from before it ever starts: peer homes share the Keychain by username, so a home on it would
+// overwrite the main service's stored secret.
+export const startFileStoreHome = async (role: PeerRole, home: string) => {
+  fs.mkdirSync(home, {mode: 0o700, recursive: true})
+  setPeerFileSecretStore(home)
+  if (!peerUsesFileSecretStore(home)) throw new Error(`${home} does not keep its secret in a file; refusing to start it`)
+  await waitForPeerService(role, home)
+  if (!peerUsesFileSecretStore(home)) throw new Error(`${home}'s running service dropped the file secret store; refusing to log in`)
+}
+
 export const ensurePeer = async (role: PeerRole, env: E2EEnv, deps: PeerDeps = {}): Promise<Peer> => {
   const {home, user} = env.peers[role]
   const rawCli = deps.cli ?? peerCli(home)

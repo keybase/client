@@ -1,12 +1,15 @@
 // The new device's side of adding a computer: `keybase --home <h> login <user> --devicename <name>`
-// in a fresh peer home, picking `fromDevice` (the main service's device, which the app provisions
-// from) when it asks which existing device to use, and handing back the verification phrase it
-// prints for the other device. The CLI prompts on a terminal, so it runs under `expect` (a
-// pseudo-terminal) with its output kept inside expect. Only fixed stage markers and the phrase leave
-// it, and this side keeps nothing else it reads: the CLI's output holds the phrase, the account's
-// device list and its name, and no error or log may carry any of them.
+// in a fresh peer home, picking `fromDevice` (the computer or phone whose app approves it: the main
+// service's device for the desktop app, the phone's own for the iOS app) when it asks which existing
+// device to use, and handing back the verification phrase it prints for the other device. The CLI
+// prompts on a terminal, so it runs under `expect` (a pseudo-terminal) with its output kept inside
+// expect. Only fixed stage markers and the phrase leave it, and this side keeps nothing else it
+// reads: the CLI's output holds the phrase, the account's device list and its name, and no error or
+// log may carry any of them.
 // Relative imports only: plain node loads this too.
 import {spawn} from 'child_process'
+import * as fs from 'fs'
+import * as path from 'path'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
 
 // `--devicename` makes the CLI ask for a paper key, answered empty: it then provisions from a device.
@@ -14,12 +17,14 @@ const script = String.raw`
 set timeout 60
 log_user 0
 spawn -noecho {*}$env(KB_PROV_CMD)
+# the device list comes before the prompt, and the account lists hundreds of devices
+match_max 1000000
 expect {
   -re {paper key: ?} { send "\r"; exp_continue }
   -re {Choose a device[^\n]*} {
     set choice ""
     foreach line [split $expect_out(buffer) "\n"] {
-      if {[regexp {^\s*(\d+)\. \[computer\]\t(.*)$} $line -> n name] && [string trimright $name "\r "] eq $env(KB_PROV_FROM)} {
+      if {[regexp {^\s*(\d+)\. \[(?:computer|mobile)\]\t(.*)$} $line -> n name] && [string trimright $name "\r "] eq $env(KB_PROV_FROM)} {
         set choice $n
       }
     }
@@ -85,11 +90,19 @@ export type Provisionee = {
 
 export const startProvisionee = (p: {home: string; user: string; deviceName: string; fromDevice: string}): Provisionee => {
   const argv = [keybaseBin(), '--no-auto-fork', '--home', p.home, 'login', p.user, '--devicename', p.deviceName]
+  // refused before anything is made
+  const cmd = expectSpawnList(argv, 'keybase login')
+  // For a phone approver the CLI also writes a QR of the phrase to $TMPDIR/keybase_qr.png: kept in
+  // the home and removed once the CLI exits.
+  const tmp = path.join(p.home, 'tmp')
+  fs.mkdirSync(tmp, {mode: 0o700, recursive: true})
+  const removeTmp = () => fs.rmSync(tmp, {force: true, recursive: true})
   const env = {
     ...process.env,
-    KB_PROV_CMD: expectSpawnList(argv, 'keybase login'),
+    KB_PROV_CMD: cmd,
     KB_PROV_FROM: p.fromDevice,
     KEYBASE_SECRET_STORE_FILE: '1',
+    TMPDIR: tmp,
   }
   // expect's stderr (a script error) is not read either: it can quote what it matched
   const proc = spawn('expect', ['-c', script], {detached: true, env, stdio: ['ignore', 'pipe', 'ignore']})
@@ -108,11 +121,13 @@ export const startProvisionee = (p: {home: string; user: string; deviceName: str
   })
   const done = new Promise<void>((resolve, reject) => {
     proc.on('error', e => {
+      removeTmp()
       const err = new Error(`keybase login (under expect) could not run: ${e.message}`)
       noPhrase(err)
       reject(err)
     })
     proc.on('exit', code => {
+      removeTmp()
       const err = out.exitError(code)
       noPhrase(err)
       if (code === 0) resolve()

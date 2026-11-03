@@ -157,6 +157,21 @@ export const homeServicePids = (ps: string, home: string) =>
 export const serviceProcessesFor = (home: string) =>
   homeServicePids(execFileSync('ps', ['-A', '-o', 'pid=,command='], {encoding: 'utf8', timeout: 5_000}), home)
 
+// Stops everything still running for a provisioning home: its service (`ctl stop --shutdown`), then
+// any process started with `--home <home>`, such as a login CLI a killed worker's expect left
+// waiting for the phone (detached, so it outlived the worker). Throws if one is still alive after.
+export const stopProvisionHome = async (home: string) => {
+  const abs = checkStoppablePeerHome(home)
+  if (realPath(abs) !== abs) throw new Error(`refusing to stop what runs for ${home}: it is, or is reached through, a symlink`)
+  if (await socketAnswers(socketPathFor(abs))) await stopPeerHomeService(abs)
+  for (const pid of serviceProcessesFor(abs)) {
+    try {
+      process.kill(pid, 'SIGKILL')
+    } catch {}
+  }
+  await waitUntil(`every process for ${abs} to exit`, 10_000, () => !serviceProcessesFor(abs).length)
+}
+
 export type DirectRevokeDeps = {
   answers: (home: string) => Promise<boolean>
   // the live processes started for `home`

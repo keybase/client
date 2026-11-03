@@ -4,6 +4,7 @@ import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {submitRecoverPasswordPaperKey} from './flow'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {route: {params: {error?: string}}}
 
@@ -44,6 +45,7 @@ const PaperKey = ({route}: Props) => {
             multiline={true}
             rowsMax={3}
             placeholder="Type your paper key"
+            testID={TestIDs.RECOVER_PASSWORD_PAPER_KEY_INPUT}
             textType="Header"
             containerStyle={styles.inputContainer2}
             inputStyle={styles.inputText}

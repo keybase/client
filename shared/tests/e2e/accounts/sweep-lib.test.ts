@@ -1,6 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {checkDelete, kbfsRoots, listedEmojiAlias, parseKbfsLs, selectSweepTargets, type SweepCandidate, type SweepContext} from './sweep-lib'
+import {
+  checkDelete,
+  kbfsRoots,
+  listedEmojiAlias,
+  parseKbfsLs,
+  selectSweepTargets,
+  staleRunIds,
+  type SweepCandidate,
+  type SweepContext,
+} from './sweep-lib'
 
 const before = Date.UTC(2026, 9, 27, 12, 0)
 // run ids (see run-id.ts): 98s0 is 12:00Z on 2026-10-27, 98rz 11:59, 98qc 11:00
@@ -329,5 +338,13 @@ describe('parseKbfsLs', () => {
   })
   test('an empty directory lists nothing', () => {
     expect(parseKbfsLs('')).toEqual([])
+  })
+})
+
+describe('staleRunIds', () => {
+  test("every folder of the prefix but the current run's and a just-started run's, named for a run", () => {
+    const before = Date.parse('2026-10-27T12:00:30Z')
+    const names = ['prov-98rza1', 'prov-98s0a1', 'prov-98qcb2', 'prov-98qca1', 'prov-notarun', 'second-98qcb2', 'x-98rza1']
+    expect(staleRunIds(names, 'prov-', '98qca1', before)).toEqual(['98rza1', '98qcb2'])
   })
 })

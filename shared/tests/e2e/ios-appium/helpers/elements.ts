@@ -144,7 +144,26 @@ export const anyExist = async (id: string, timeout = 3000): Promise<boolean> => 
 
 // Backslashes and double quotes would otherwise terminate/alter the quoted
 // predicate literal and make the selector invalid.
-const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+export const escapePredicate = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+
+// Runs `f`, and when it throws, throws a copy of its error with `name` replaced by `label`: for a
+// name that may go into no error (a paper key's is the first two words of its phrase), when `f`'s
+// selectors or messages hold it. Replacing the name as it is works because a paper key's words are
+// plain lowercase letters: no selector or message escapes them into another form.
+export const maskingName = async <T,>(name: string, label: string, f: () => Promise<T>): Promise<T> => {
+  if (label === name) return f()
+  try {
+    return await f()
+  } catch (e) {
+    // a masked copy: the raw error, as a cause too, may carry the name
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error((e instanceof Error ? e.message : String(e)).split(name).join(label))
+  }
+}
+
+// iOS: the element of `type` whose label is exactly `label`.
+export const labeled = (type: 'Button' | 'Other' | 'StaticText', label: string): ChainablePromiseElement =>
+  browser.$(`-ios predicate string:type == "XCUIElementType${type}" AND label == "${escapePredicate(label)}"`)
 
 // CONTAINS, not ==, on purpose: many tappable rows (More menu items, team tabs)
 // are ClickableBoxes whose accessibility label is a merge of child labels, e.g.

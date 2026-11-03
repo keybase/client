@@ -3,11 +3,12 @@ import {ProvisioneeOutput} from './provisionee'
 // what a CLI might print around its phrase: the device list, the account name, the phrase itself
 const buffer = [
   '\t1. [computer]\tMac Deviceair',
+  '\t2. [mobile]\ttestuser-iphone',
   'Logged in as testuser',
   'Type this verification code into your other device:',
   '\talpha bravo charlie delta echo foxtrot golf hotel',
 ]
-const words = ['Deviceair', 'testuser', 'alpha', 'hotel', 'verification']
+const words = ['Deviceair', 'testuser-iphone', 'testuser', 'alpha', 'hotel', 'verification']
 
 describe('ProvisioneeOutput', () => {
   test('an end before the phrase gives an error holding none of the CLI output', () => {

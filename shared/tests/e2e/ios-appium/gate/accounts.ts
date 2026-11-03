@@ -2,12 +2,13 @@
 // account. Each wrapper checks the app is back on the smoke account before it returns.
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
-import {byText, el} from '../helpers/elements'
+import {el, labeled} from '../helpers/elements'
 import {openAccountSwitcher, signedInAs, switchAppAccount} from '../helpers/chat'
-import {waitFor} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs} from '../helpers/navigate'
 import {thenRestoring} from '../../shared/restore.ts'
-import {notSmokeProblem, settledAccount} from './app-account-lib.ts'
+import {pressBackToLoginList, tapUntil} from './screens'
+import {notSmokeProblem, settledAccount, PHONE_DEVICE_BODY, type PhoneDevice, phoneDeviceProblem} from './app-account-lib.ts'
 
 // signing in from a stored secret takes seconds; the bound covers a slow service
 const SIGN_IN_MS = 60_000
@@ -59,7 +60,12 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
   thenRestoring(
     async () => {
       await openAccountSwitcher()
-      await byText('Log in as another user').click()
+      // The button is disabled while a login or an account switch is still settling (just after
+      // asSecond's restore, say), and a disabled button renders a plain view with the same text: a
+      // tap on that text does nothing. Only the enabled button is a Button element.
+      const loginAsOther = labeled('Button', 'Log in as another user')
+      await loginAsOther.waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the switcher\'s "Log in as another user" never became tappable'})
+      await loginAsOther.click()
       await el(T.LOGIN_USER_LIST).waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen never showed its account list'})
       return f()
     },
@@ -67,35 +73,56 @@ export const signedOutThenBack = async <R,>(f: () => Promise<R>): Promise<R> =>
     'signing the smoke account back in'
   )
 
-// Back to the smoke account: signed in as another account, through the account switcher; signed
-// out, from the login screen (backing out of any screen pushed over it) by picking the smoke
-// account in its list, which signs in with the stored secret (no password). Does nothing when the
-// app is already on the smoke account.
-export const restoreToSmoke = async () => {
-  const {smokeUser} = loadE2EAccounts()
-  // a switch or sign-in already under way lands first
-  const a = await waitFor('the app to finish switching', async () => {
+// On the login screen, signs `username` in by its row, which signs an account with a stored secret
+// in at once (no password), and waits until the app is signed in as it.
+export const signInFromStoredSecret = async (username: string) => {
+  // the login screen ignores a tap for a moment after a sign-out: tap again until the sign-in starts
+  await tapUntil(
+    async () => el(T.LOGIN_USER_ROW_PREFIX + username).click().catch(() => {}),
+    async () => {
+      const now = await signedInAs().catch(() => undefined)
+      return !!(now?.loggedIn || now?.switching)
+    },
+    `the row of ${username} in the login list started no sign-in`
+  )
+  await waitFor(`${username} to sign in`, async () => {
+    const now = await signedInAs().catch(() => undefined)
+    return now?.loggedIn && !now.switching && now.username === username ? true : undefined
+  }, {interval: 1_000, timeout: SIGN_IN_MS})
+}
+
+// Waits out a switch or sign-in already under way, and returns where it landed.
+export const settledAppAccount = async () =>
+  waitFor('the app to finish switching', async () => {
     const now = await signedInAs()
     return now.switching ? undefined : now
   }, {interval: 500, timeout: SIGN_IN_MS})
+
+// Back to the smoke account: signed in as another account, through the account switcher; signed
+// out, from the login screen by picking the smoke account in its list, which signs in with the
+// stored secret (no password). Does nothing when the app is already on the smoke account.
+export const restoreToSmoke = async () => {
+  const {smokeUser} = loadE2EAccounts()
+  const a = await settledAppAccount()
   if (a.loggedIn) {
     if (a.username !== smokeUser) await switchAppAccount(smokeUser)
   } else {
-    const list = el(T.LOGIN_USER_LIST)
-    // a signed-out flow that failed part way leaves a screen pushed over the login screen
-    for (let i = 0; i < 6 && !(await list.isExisting()); i++) {
-      const back = el('backButton')
-      if (!(await back.isExisting())) break
-      await back.click().catch(() => {})
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-    await list.waitForExist({timeout: SIGN_IN_MS, timeoutMsg: 'the login screen to show its account list (restoreToSmoke starts from it)'})
-    await el(T.LOGIN_USER_ROW_PREFIX + smokeUser).click()
-    await waitFor('the smoke account to sign in', async () => {
-      const now = await signedInAs().catch(() => undefined)
-      return now?.loggedIn && !now.switching && now.username === smokeUser ? true : undefined
-    }, {interval: 1_000, timeout: SIGN_IN_MS})
+    await pressBackToLoginList()
+    await signInFromStoredSecret(smokeUser)
     await escapeToTabs()
   }
   await requireAppIsSmoke()
 }
+
+// The phone's own device on the smoke account, read from the app (the host's CLI knows only the
+// host's device): what a flow on the phone must never revoke (shared/devices.ts
+// requireRevocableFromPhone), and what a peer picks as the device it provisions from.
+export const phoneDevice = async (): Promise<{deviceID: string; deviceName: string}> => {
+  const {smokeUser} = loadE2EAccounts()
+  const d = await jsEval<PhoneDevice>(PHONE_DEVICE_BODY)
+  const problem = phoneDeviceProblem(d, smokeUser)
+  if (problem) throw new Error(problem)
+  return {deviceID: d.deviceID, deviceName: d.deviceName}
+}
+
+export const phoneDeviceId = async (): Promise<string> => (await phoneDevice()).deviceID

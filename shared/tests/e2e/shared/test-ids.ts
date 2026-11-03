@@ -183,6 +183,8 @@ export const DEVICES_ROW_LAST_USED = 'devices-row-last-used'
 export const DEVICE_PAGE_LAST_USED = 'device-page-last-used'
 // the new paper key's words box on the devicePaperKey screen (flows hide it before any screenshot)
 export const DEVICES_PAPER_KEY_WORDS = 'devices-paper-key-words'
+// its "Yes, I wrote this down." switch (on the phone its label takes no tap)
+export const DEVICES_PAPER_KEY_WROTE_IT_DOWN = 'devices-paper-key-wrote-it-down'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
@@ -304,6 +306,15 @@ export const LOGIN_USER_LIST = 'login-user-list'
 export const LOGIN_PASSWORD_INPUT = 'login-password-input'
 // the new-password field of Settings' change/set password screen
 export const SETTINGS_NEW_PASSWORD_INPUT = 'settings-new-password-input'
+// the signed-out screens' fields: signup's username, policy checkbox (its toggle on the phone) and
+// device name, the username screen "Someone else..." opens, Recover username's email, and the
+// paper key a password recovery asks for
+export const SIGNUP_USERNAME_INPUT = 'signup-username-input'
+export const SIGNUP_EULA_CHECKBOX = 'signup-eula-checkbox'
+export const SIGNUP_DEVICE_NAME_INPUT = 'signup-device-name-input'
+export const PROVISION_USERNAME_INPUT = 'provision-username-input'
+export const FORGOT_USERNAME_EMAIL_INPUT = 'forgot-username-email-input'
+export const RECOVER_PASSWORD_PAPER_KEY_INPUT = 'recover-password-paper-key-input'
 
 // Debug overlays: the global error bar and the runtime stats the service sends when turned on
 export const GLOBAL_ERROR = 'global-error'
@@ -315,3 +326,5 @@ export const RUNTIME_STATS = 'runtime-stats'
 // account's username
 export const ACCOUNT_SWITCHER_ROW_PREFIX = 'account-switcher-row-'
 export const LOGIN_USER_ROW_PREFIX = 'login-user-row-'
+// the provisioning code page's container, whichever tab (QR, view or enter the phrase) it shows
+export const PROVISION_CODE_PAGE = 'provision-code-page'

@@ -31,6 +31,8 @@ type Props = {
   on: boolean
   onClick: () => void
   style?: Styles.StylesCrossPlatform
+  // on the toggle
+  testID?: string
 }
 
 const LabelContainer = (props: Props) =>
@@ -68,7 +70,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   const {ref} = props
   const content = (
     <>
-      <Kb.ClickableBox alignSelf="center" onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical">
+      <Kb.ClickableBox alignSelf="center" onClick={props.disabled ? undefined : props.onClick} ref={ref} direction="vertical" testID={props.testID}>
         <SwitchToggle
           on={props.on}
           color={props.color || 'blue'}

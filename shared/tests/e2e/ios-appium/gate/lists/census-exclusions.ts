@@ -4,12 +4,29 @@
 import type {Exclusions} from '../../../shared/gate/census-lib.ts'
 
 const desktopOnly = 'desktop only: the phone has no such screen'
+// provisioning the signed-in phone as a new device needs a fresh install
+const phoneNew = 'manual-only: phone-new-device (the screens that provision this phone as a new device)'
+// the signed-out flows stop at "Start account reset" (flows/account-signed-out.test.ts)
+const resetStart = 'owner: excluded (account reset start and cancel)'
 
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     kextPermission: `${desktopOnly} (the macOS kernel extension permission popup; Settings > Files shows its entry only on macOS and Windows)`,
+    paperkey: phoneNew,
+    recoverPasswordPgpWarning:
+      'unreachable: it closes itself unless a password recovery started with a real paper key is waiting on it, and no real paper key is ever submitted',
+    recoverPasswordPromptResetPassword: 'unreachable: the service asks it only of an account with no active key; every test account has devices',
+    resetConfirm: resetStart,
+    resetEnterPassword: resetStart,
+    resetKnowPassword: resetStart,
+    resetWaiting: resetStart,
+    selectOtherDevice: phoneNew,
+    setPublicName: phoneNew,
+    signupError: 'manual-only: signup-submit (shown only when the final submit fails)',
   },
   rpcs: {
+    'keybase.1.account.cancelReset': resetStart,
+    'keybase.1.account.enterResetPipeline': resetStart,
     'keybase.1.config.startUpdateIfNeeded': `${desktopOnly}: the desktop app updater (desktop/renderer/remote-event-handler.desktop.tsx)`,
     'keybase.1.ctl.stop': `${desktopOnly}: the desktop tab bar quit menu and the desktop quit event`,
     'keybase.1.identify3.identify3IgnoreUser': `${desktopOnly}: the desktop tracker popup (tracker/remote-proxy.desktop.tsx)`,
@@ -17,6 +34,7 @@ export const IOS_EXCLUSIONS: Exclusions = {
     'keybase.1.install.installKBFS': `${desktopOnly}: the KBFS install (util/fs-platform.tsx returns before it on mobile)`,
     'keybase.1.install.uninstallKBFS': `${desktopOnly}: the KBFS uninstall (util/fs-platform.tsx returns before it on mobile)`,
     'keybase.1.rekey.rekeyStatusFinish': `${desktopOnly}: the desktop unlock-folders window (desktop/renderer/remote-event-handler.desktop.tsx)`,
+    'keybase.1.signup.signup': 'manual-only: signup-submit',
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {

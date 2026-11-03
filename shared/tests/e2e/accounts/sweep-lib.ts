@@ -13,7 +13,7 @@
 //                                 and unchanged name
 // Anything outside its scope is dropped, never judged. Other `e2e` names (seeded data, flows still
 // on older naming) are reported and kept.
-import {parseStampedName, parseStampedText} from './run-id.ts'
+import {parseRunId, parseStampedName, parseStampedText} from './run-id.ts'
 import type {PaperKeyEntry} from './paper-key-ledger.ts'
 
 export type SweepAccount = 'smoke' | 'second'
@@ -277,3 +277,13 @@ export const maskAccounts = (s: string, ctx: Pick<SweepContext, 'team' | 'users'
     .filter(([name]) => !!name)
     .sort((a, b) => (b[0]?.length ?? 0) - (a[0]?.length ?? 0))
     .reduce((acc, [name, role]) => acc.split(name ?? '').join(role), s)
+
+// The run ids of the folders named `<prefix><runid>` among `names` (an earlier run's provisioning
+// homes, prov-<runid>) that the sweep removes: every one but the current run's and one of a run
+// started under a minute before `before`. A folder not named for a run is left.
+export const staleRunIds = (names: ReadonlyArray<string>, prefix: string, currentRunId: string, before: number) =>
+  names.flatMap(n => {
+    const runId = n.startsWith(prefix) ? n.slice(prefix.length) : undefined
+    const startMs = runId === undefined ? undefined : parseRunId(runId, before)?.startMs
+    return runId === undefined || startMs === undefined || runId === currentRunId || startMs + 60_000 > before ? [] : [runId]
+  })

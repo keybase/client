@@ -8,6 +8,7 @@ import * as T from '@/constants/types'
 import {isQuietCancel, RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {
   clearSignupDeviceNameDraft,
@@ -183,6 +184,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
+            testID={TestIDs.SIGNUP_DEVICE_NAME_INPUT}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
             value={deviceName}

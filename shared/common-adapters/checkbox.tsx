@@ -18,6 +18,8 @@ type Props = {
   checked: boolean
   style?: Styles.StylesCrossPlatform
   disabled?: boolean
+  // on the element a tap toggles: on mobile only the switch takes one, not its label
+  testID?: string
 }
 
 const CHECKBOX_SIZE = 13
@@ -38,6 +40,7 @@ const Checkbox = (props: Props) => {
     labelType,
     onCheck,
     style,
+    testID,
   } = props
 
   if (!isMobile) {
@@ -52,6 +55,7 @@ const Checkbox = (props: Props) => {
           !disabled && styles.clickable,
           style,
         ])}
+        testID={testID}
         onClick={e =>
           disabled || e?.defaultPrevented ? undefined : onCheck?.(!checked)
         }
@@ -97,6 +101,7 @@ const Checkbox = (props: Props) => {
       }}
       style={Styles.collapseStyles([styles.mobileContainer, style])}
       labelSubtitle={labelSubtitle}
+      testID={testID}
     />
   )
 }

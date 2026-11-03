@@ -1,5 +1,5 @@
 // Which device a flow may revoke on the smoke account: only the one it made, never the main
-// service's own device and never the paper key the env file holds for the account.
+// service's own device or the phone's, and never the paper key the env file holds for the account.
 // Relative imports only: plain node loads this too.
 
 export type ListedDevice = {deviceID: string; name: string; type: string}
@@ -41,20 +41,23 @@ export const protectedPaperKeyIn = (listed: ReadonlyArray<ListedDevice>, paperKe
   return {deviceID: named.length === 1 ? named[0]?.deviceID : undefined, name}
 }
 
-// Throws unless `target` is exactly `expected` (by id and name), is not the main service's device and
-// is not `protectedPaperKey` (by id when it is listed, and by name). An empty id fails the check
-// rather than letting a comparison pass vacuously.
+// Throws unless `target` is exactly `expected` (by id and name), is not the main service's device,
+// is not the phone's own device when a flow runs on the phone (`phoneDeviceID` given), and is not
+// `protectedPaperKey` (by id when it is listed, and by name). An empty id fails the check rather
+// than letting a comparison pass vacuously.
 export const checkFlowRevokeTarget = (p: {
   expected: DeviceRef
   mainDeviceID: string
+  phoneDeviceID?: string
   protectedPaperKey: {deviceID?: string; name: string}
   target: DeviceRef
 }) => {
-  const {expected, mainDeviceID, protectedPaperKey, target} = p
-  if (!target.deviceID || !expected.deviceID || !mainDeviceID || !protectedPaperKey.name) {
-    throw new Error('refusing to revoke: the target, expected or main device id, or the protected paper key, is unknown')
+  const {expected, mainDeviceID, phoneDeviceID, protectedPaperKey, target} = p
+  if (!target.deviceID || !expected.deviceID || !mainDeviceID || phoneDeviceID === '' || !protectedPaperKey.name) {
+    throw new Error('refusing to revoke: the target, expected, main or phone device id, or the protected paper key, is unknown')
   }
   if (target.deviceID === mainDeviceID) throw new Error("refusing to revoke: it is the main service's own device")
+  if (target.deviceID === phoneDeviceID) throw new Error("refusing to revoke: it is the phone's own device")
   checkNotProtectedPaperKey(target, protectedPaperKey)
   if (target.deviceID !== expected.deviceID || target.name !== expected.name) {
     throw new Error(`refusing to revoke ${target.deviceID}: not the expected device this run made`)

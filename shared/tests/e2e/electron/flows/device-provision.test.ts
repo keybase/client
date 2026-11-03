@@ -8,7 +8,7 @@ import {
   expectRevokedInList,
   findDeviceRow,
   mainDevice,
-  requireRevocable,
+  requireRevocableFromHost,
   revokeInApp,
   scrollToDeviceRow,
 } from '@/tests/e2e/electron/helpers/devices'
@@ -20,15 +20,8 @@ import {startProvisionee, type Provisionee} from '@/tests/e2e/accounts/provision
 import {emptyFocusedField, insertSecret, pressReturn, withoutSecret} from '@/tests/e2e/electron/helpers/secret-input'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import {withDeadline} from '@/tests/e2e/shared/deadline'
-import {
-  peerCli,
-  peerUsesFileSecretStore,
-  requireMainIsSmoke,
-  setPeerFileSecretStore,
-  socketAnswers,
-  socketPathFor,
-  waitForPeerService,
-} from '@/tests/e2e/shared/peer-service'
+import {provDeviceName} from '@/tests/e2e/shared/devices'
+import {peerCli, requireMainIsSmoke, socketAnswers, socketPathFor, startFileStoreHome} from '@/tests/e2e/shared/peer-service'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 // Adds a computer from the app: a new peer home (homes/prov-<runid>, the file secret store) runs
@@ -86,17 +79,11 @@ test('add a computer from the app, then revoke it', async ({page}, testInfo) => 
   const env = loadE2EEnv()
   const runId = e2eRunId()
   const home = provisionHomeFor(runId)
-  const name = `e2e-${runId}-prov`
+  const name = provDeviceName(runId)
   const keep = env.peers.owner.home
   if (fs.existsSync(home)) throw new Error(`${home} already exists: this run id already provisioned its device (one per run id)`)
 
-  // The file secret store before the home's service ever starts: peer homes share the Keychain by
-  // username, so a home on it would overwrite the main service's stored secret.
-  fs.mkdirSync(home, {mode: 0o700, recursive: true})
-  setPeerFileSecretStore(home)
-  if (!peerUsesFileSecretStore(home)) throw new Error(`${home} does not keep its secret in a file; refusing to start it`)
-  await waitForPeerService('owner', home)
-  if (!peerUsesFileSecretStore(home)) throw new Error(`${home}'s running service dropped the file secret store; refusing to log in`)
+  await startFileStoreHome('owner', home)
 
   const main = await mainDevice()
   let provisionee: Provisionee | undefined
@@ -128,7 +115,7 @@ test('add a computer from the app, then revoke it', async ({page}, testInfo) => 
       expect(await socketAnswers(socketPathFor(home))).toBe(false)
 
       const deviceID = readPeerConfig(home).users?.[env.smokeUser]?.device ?? ''
-      await requireRevocable(env, {deviceID, name})
+      await requireRevocableFromHost(env, {deviceID, name})
       const before = await deviceCounts(page)
       // sends revoke.revokeDevice
       await revokeInApp(page, name, 'computer', async () => step(page, testInfo, 'revoke confirm names the device'))

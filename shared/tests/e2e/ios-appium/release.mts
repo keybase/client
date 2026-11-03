@@ -39,6 +39,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {childEnvVars, loadE2EEnv, peerRoles, type E2EEnv} from '../accounts/env.ts'
+import {forgetRunPaperKeyNames, SCAN_PAPER_KEY_NAMES_VAR, withPaperKeyNames} from '../accounts/paper-key-ledger.ts'
 import {newRunId} from '../accounts/run-id.ts'
 import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
@@ -106,11 +107,22 @@ const cleanup = async (code: number) => {
     stopWhatItStarted,
     () =>
       run.holdsLock()
-        ? scanResults(secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}), watch ? () => watch.secrets() : envSecrets, log)
+        ? scanResults(
+            secretScanDirs({logsDir, preflightPassed, renderRoot, resultsDir}),
+            // and the device names of the paper keys this run made and of the env file's own: each is
+            // the first two words of its phrase
+            () => withPaperKeyNames(watch ? watch.secrets() : envSecrets(), process.env['KB_E2E_RUN_ID'] ?? ''),
+            log
+          )
         : undefined,
     log
   )
   watch?.stop()
+  try {
+    forgetRunPaperKeyNames(process.env['KB_E2E_RUN_ID'] ?? '')
+  } catch (e) {
+    log(`could not forget this run's paper key names: ${e instanceof Error ? e.message : String(e)}`)
+  }
   if (!stopped) {
     phases.push({line: 'something it started would not stop (see above)', name: 'cleanup', ok: false})
     if (code === 0) code = 1
@@ -337,6 +349,8 @@ const preflight = async (): Promise<{env: E2EEnv; problems: Array<string>}> => {
 const main = async () => {
   const runId = newRunId(runStart)
   process.env['KB_E2E_RUN_ID'] = runId
+  // the flows it starts record the names of the paper keys they make, for its secret scan
+  process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
   log(`run ${runId} on ${device}${only ? `, only flows matching ${JSON.stringify(only)} and settings/* tour entries` : ''}`)
 
   const e2eEnv = await preflightPhase(run, '[ios-release]', preflight)

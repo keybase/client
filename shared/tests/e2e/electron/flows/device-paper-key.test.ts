@@ -7,7 +7,7 @@ import {
   deviceHistory,
   expectRevokedInList,
   listedDevices,
-  requireRevocable,
+  requireRevocableFromHost,
   revokeInApp,
   scrollToDeviceRow,
 } from '@/tests/e2e/electron/helpers/devices'
@@ -103,7 +103,7 @@ test('make a paper key, then revoke it', async ({page}, testInfo) => {
   if (!readPaperKeys().some(e => e.deviceID === key.deviceID && e.runId === runId)) {
     throw new Error('refusing to revoke: the paper key ledger has no entry for it from this run')
   }
-  await requireRevocable(env, made)
+  await requireRevocableFromHost(env, made)
   const beforeRevoke = await deviceCounts(page)
   // sends revoke.revokeDevice
   await revokeInApp(page, made.name, 'paper key', async () => step(page, testInfo, 'revoke confirm names the paper key'))
