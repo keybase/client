@@ -41,7 +41,7 @@ import {readCorpusRecord, recordCorpusItem} from './photo-corpus.ts'
 import {simulatorDataBirth} from './sim-data.ts'
 import {PICKER_CACHES, pickedFilePath, type PickerCache} from './picker-lib.ts'
 import {parseStampedName} from '../../accounts/run-id.ts'
-import {APP_POISON, clearGatePoison, poisonGate} from './poison-lib.ts'
+import {APP_POISON, clearGatePoison, guarded, poisonGate} from './poison-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 import {withDeadline} from '../../shared/deadline.ts'
 import {pasteboardHolds} from './pasteboard-lib.ts'
@@ -212,6 +212,10 @@ const quietFs = <R,>(what: string, f: () => R): R => {
   }
 }
 
+// Where each seed folder this run made is, kept so a removal cut off by its attempt's end (which
+// refuses the container lookup) can still read whether the folder is gone.
+const seededDirs = new Map<string, string>()
+
 // Makes a new folder of this run in On My iPhone (e2e-<runid>-<label>-<hex>, so a retry has its own)
 // holding the corpus files `names`, for the document picker to pick from. The flow's afterEach removes
 // it (removeSeedFolder); one that failed part way is removed here.
@@ -221,6 +225,7 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
   const dir = requireSeedFolder(folder)
   const files = names.map(corpusEntry)
   quietFs('making the seed folder', () => fs.mkdirSync(dir))
+  seededDirs.set(folder, dir)
   try {
     for (const c of files) quietFs('seeding a corpus file', () => fs.copyFileSync(c.file, path.join(dir, c.name)))
   } catch (e) {
@@ -233,22 +238,26 @@ export const seedDocumentFolder = (label: string, names: ReadonlyArray<string>) 
 // The path of a seed folder of this run in On My iPhone, for the link the Files app opens it by.
 export const seedFolderPath = (folder: string) => requireSeedFolder(folder)
 
-const SEED_FOLDER = 'a seed folder in On My iPhone'
-
 // Removes a seed folder of this run and reads back that it is gone; one already gone is left be. A
-// folder left there poisons the gate (every later document picker shows it); a removal that lands
-// clears that.
-export const removeSeedFolder = (folder: string) => {
-  try {
-    const dir = requireSeedFolder(folder)
-    quietFs('removing the seed folder', () => fs.rmSync(dir, {force: true, recursive: true}))
-    if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
-  } catch (e) {
-    poisonGate(SEED_FOLDER, `remove the folder ${folder} from the Files app's On My iPhone on the simulator`)
-    throw e
-  }
-  clearGatePoison(SEED_FOLDER)
-}
+// folder left there poisons the gate (every later document picker shows it), each folder under its
+// own name, as a retry seeds its own; a removal that lands clears that. One that did not finish
+// poisons only when the folder is still there, or when where it is was never known.
+export const removeSeedFolder = async (folder: string) =>
+  guarded(
+    `the seed folder ${folder} in On My iPhone`,
+    `remove the folder ${folder} from the Files app's On My iPhone on the simulator`,
+    () => {
+      const dir = requireSeedFolder(folder)
+      quietFs('removing the seed folder', () => fs.rmSync(dir, {force: true, recursive: true}))
+      if (fs.existsSync(dir)) throw new Error('a seed folder is still in On My iPhone after its removal')
+      seededDirs.delete(folder)
+    },
+    () => {
+      const dir = seededDirs.get(folder)
+      if (dir === undefined) throw new Error('where the seed folder is was never known')
+      return fs.existsSync(dir)
+    }
+  )
 
 export type PickedFile = {path: string; sha256: string; size: number}
 

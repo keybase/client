@@ -116,21 +116,36 @@ describe('save to photos', function () {
     `delete the photo library asset(s) ${ids.join(', ')} that this run added (Photos > Recently Saved: a 64x48 or 3800x3800 image saved today), and no other photo`
 
   // Deletes exactly the ids recorded as proven saves; an asset new since the test began that was never
-  // recorded is reported, never deleted. Bound: ask 25, delete 60 a photo (one at most).
+  // recorded is reported, never deleted. A delete that did not finish (cut off by its attempt's end
+  // too) reads the library again and poisons the gate unless nothing this run added is left; the
+  // library from before stays the earliest unfinished test's, so a retry's delete covers what an
+  // earlier attempt left. Bound: ask 25, delete 60 a photo (one at most), the read again 25.
   const deleteSaved = async () => {
     const before = libraryBefore
     if (!before) return
     let left: Array<string> = [...saved]
-    await guarded(SAVED_PHOTO, () => byHand(left), async () => {
+    const leftNow = async () => {
       const plan = cleanupPlan(saved, before, await libraryAssetIds())
       left = [...plan.toDelete, ...plan.unrecorded]
-      for (const id of plan.toDelete) {
-        await deleteSavedPhoto(id, before)
-        saved.delete(id)
-        left = left.filter(l => l !== id)
+      return plan
+    }
+    await guarded(
+      SAVED_PHOTO,
+      () => byHand(left),
+      async () => {
+        const plan = await leftNow()
+        for (const id of plan.toDelete) {
+          await deleteSavedPhoto(id, before)
+          saved.delete(id)
+          left = left.filter(l => l !== id)
+        }
+        if (plan.unrecorded.length) throw new Error(`the photo library holds ${plan.unrecorded.length} asset(s) new since the test began that it never recorded as saved: not deleted`)
+      },
+      async () => {
+        await leftNow()
+        return left.length > 0
       }
-      if (plan.unrecorded.length) throw new Error(`the photo library holds ${plan.unrecorded.length} asset(s) new since the test began that it never recorded as saved: not deleted`)
-    })
+    )
     saved.clear()
     libraryBefore = undefined
   }
@@ -173,8 +188,8 @@ describe('save to photos', function () {
     await requireSecondNotBlocked()
   })
 
-  // Worst case (s): the menu 19, ask 25, the saved photos 60 each (one at most), privacy 582,
-  // launchIfGone 272, a folder 195, the channel 120, escapeToTabs 30 = 1303.
+  // Worst case (s): the menu 19, ask 25, the saved photos 60 each (one at most), the read again 25,
+  // privacy 582, launchIfGone 272, a folder 195, the channel 120, escapeToTabs 30 = 1328.
   afterEach(async function () {
     this.timeout(1_340_000)
     await withCleanup(closeMessageMenu, [deleteSaved, putBackPrivacy, launchIfGone, removeMadePaths, deleteChannel, removeLocalDirs, escapeToTabs])
@@ -193,7 +208,7 @@ describe('save to photos', function () {
     const first = await libraryAssetIds()
     await new Promise(resolve => setTimeout(resolve, 1_000))
     const before = requireWholeLibraryRead(first, await libraryAssetIds(), CORPUS_MEDIA)
-    libraryBefore = before
+    libraryBefore ??= before
     return before
   }
 

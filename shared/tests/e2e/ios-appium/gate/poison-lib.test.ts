@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {clearGatePoison, gatePoisoned, isGatePoisonedBy, poisonCheckedFirst, poisonGate, requireGateNotPoisoned} from './poison-lib'
+import {attemptOverMessage} from './attempt-binding-lib'
+import {clearGatePoison, gatePoisoned, guarded, isGatePoisonedBy, poisonCheckedFirst, poisonGate, requireGateNotPoisoned} from './poison-lib'
 
 afterEach(() => {
   clearGatePoison('the proxy settings')
@@ -33,6 +34,37 @@ test('poisoning the same setting twice keeps one entry, with the latest owner ac
   expect(gatePoisoned()).toBe(
     'refusing to run: an earlier flow could not put back lockdown mode (second), so the phone may be broken for every later flow; put it back by hand and run the gate again'
   )
+})
+
+test('a guarded restore poisons on a failure, not when its attempt is over, and a success clears it', async () => {
+  const boom = async () => Promise.reject(new Error('boom'))
+  await expect(guarded('the proxy', 'set it by hand', boom)).rejects.toThrow('boom')
+  expect(isGatePoisonedBy('the proxy')).toBe(true)
+  clearGatePoison('the proxy')
+  await expect(guarded('the proxy', 'set it by hand', async () => Promise.reject(new Error(attemptOverMessage('t'))))).rejects.toThrow('attempt over')
+  expect(isGatePoisonedBy('the proxy')).toBe(false)
+  poisonGate('the proxy', 'set it by hand')
+  await guarded('the proxy', 'set it by hand', () => {})
+  expect(isGatePoisonedBy('the proxy')).toBe(false)
+})
+
+test('a guarded cleanup with a leftover check poisons, cut off or not, only when what it removes is still there or cannot be read', async () => {
+  const cutOff = async () => Promise.reject(new Error(attemptOverMessage('t')))
+  const failed = async () => Promise.reject(new Error('boom'))
+  for (const cleanup of [cutOff, failed]) {
+    await expect(guarded('a folder', 'remove it', cleanup, () => true)).rejects.toThrow()
+    expect(isGatePoisonedBy('a folder')).toBe(true)
+    clearGatePoison('a folder')
+    await expect(
+      guarded('a folder', 'remove it', cleanup, () => {
+        throw new Error('cannot read')
+      })
+    ).rejects.toThrow()
+    expect(isGatePoisonedBy('a folder')).toBe(true)
+    clearGatePoison('a folder')
+    await expect(guarded('a folder', 'remove it', cleanup, async () => Promise.resolve(false))).rejects.toThrow()
+    expect(isGatePoisonedBy('a folder')).toBe(false)
+  }
 })
 
 test('a hook wrapped by poisonCheckedFirst refuses before it runs, with its context, until the gate is put back', async () => {

@@ -46,9 +46,9 @@ describe('files uploads from the phone', function () {
   afterEach(async function () {
     this.timeout(380_000)
     await withCleanup(closeSystemPickers, [
-      () => {
+      async () => {
         if (!seeded) return
-        removeSeedFolder(seeded)
+        await removeSeedFolder(seeded)
         seeded = undefined
       },
       async () => {

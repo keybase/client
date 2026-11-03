@@ -22,16 +22,33 @@ export const clearGatePoison = (what: string) => {
   poisons.delete(what)
 }
 
+// Whether `leftover` says what a cleanup was removing is still there: one that throws (it cannot be
+// read) counts as there.
+const stillThere = async (leftover: () => unknown) => {
+  try {
+    return Boolean(await leftover())
+  } catch {
+    return true
+  }
+}
+
 // Runs `restore`: a failure poisons the gate under `what` (the phone or the account is left changed
-// for every later flow), a success clears that poison. An attempt that is over poisons nothing: its
-// late work must not undo what a later restore of the same thing cleared. `byHand` may be read only
-// once the restore has failed, when it depends on how far the restore got.
-export const guarded = async (what: string, byHand: string | (() => string), restore: () => unknown) => {
+// for every later flow), a success clears that poison. `byHand` may be read only once the restore
+// has failed, when it depends on how far the restore got.
+// Without `leftover`, an attempt that is over poisons nothing: its late work must not undo what a
+// later restore of the same thing cleared. With it, a restore that did not finish, cut off by its
+// attempt's end or not, poisons only when `leftover` finds what it was removing still there or
+// cannot tell; it poisons nothing when that is verifiably gone.
+export const guarded = async (
+  what: string,
+  byHand: string | (() => string),
+  restore: () => unknown,
+  leftover?: () => unknown
+) => {
   try {
     await restore()
   } catch (e) {
-    if (isAttemptOver(e)) throw e
-    poisonGate(what, typeof byHand === 'string' ? byHand : byHand())
+    if (leftover ? await stillThere(leftover) : !isAttemptOver(e)) poisonGate(what, typeof byHand === 'string' ? byHand : byHand())
     throw e
   }
   clearGatePoison(what)

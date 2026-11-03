@@ -22,7 +22,7 @@ import {e2eMarker} from '../../shared/run-marker'
 import {unfurlSettings} from '../../shared/settings'
 import * as T from '../../shared/test-ids'
 import {creditSurface} from '../gate/attempt'
-import {FILES_APP, imageProps, pastedImage, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
+import {FILES_APP, imageProps, pastedImage, pasteboardText, removeSeedFolder, seedDocumentFolder, setPasteboard} from '../gate/device'
 import {APPLE_PARK} from '../gate/location-lib.ts'
 import {guarded} from '../gate/poison-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
@@ -73,8 +73,8 @@ describe('share extension', function () {
   //   unfurl    the host read 60
   //   step      2 (its 1s settle and the attach)
   //   cleanup   leaveShareHosts 6, leaveSharePicker 17, the payloads 120, the seed 120, the pasteboard
-  //             50, the page server 1, the Maps message 180 (the read 60, its delete 60, the read
-  //             back 60) = 494
+  //             80 (its write 50, the read again 30), the page server 1, the Maps message 180 (the
+  //             read 60, its delete 60, the read back 60) = 524
 
   let seeded: string | undefined
   let pasted = false
@@ -83,21 +83,26 @@ describe('share extension', function () {
   let mapsPlace: string | undefined
   let server: Awaited<ReturnType<typeof startPageServer>> | undefined
 
-  // Worst case (s): 494.
+  // Worst case (s): 524.
   afterEach(async function () {
-    this.timeout(510_000)
+    this.timeout(540_000)
     await withCleanup(leaveShareHosts, [
       leaveSharePicker,
       removeSharePayloads,
-      () => {
+      async () => {
         if (!seeded) return
-        removeSeedFolder(seeded)
+        await removeSeedFolder(seeded)
         seeded = undefined
       },
       async () => {
         if (!pasted) return
-        await guarded(PASTEBOARD, "copy any text on the simulator, over the corpus image the share flow's paste left on its pasteboard", async () =>
-          setPasteboard(e2eMarker('share-paste-over'))
+        // an overwrite that did not finish poisons the gate unless the pasteboard reads back the text
+        const over = e2eMarker('share-paste-over')
+        await guarded(
+          PASTEBOARD,
+          "copy any text on the simulator, over the corpus image the share flow's paste left on its pasteboard",
+          async () => setPasteboard(over),
+          async () => (await pasteboardText()) !== over
         )
         pasted = false
       },

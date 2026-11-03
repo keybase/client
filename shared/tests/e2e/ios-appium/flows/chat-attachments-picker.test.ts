@@ -53,9 +53,9 @@ describe('chat attachments picked on the phone', function () {
   afterEach(async function () {
     this.timeout(180_000)
     await withCleanup(closeSystemPickers, [
-      () => {
+      async () => {
         if (!seeded) return
-        removeSeedFolder(seeded)
+        await removeSeedFolder(seeded)
         seeded = undefined
       },
     ])
