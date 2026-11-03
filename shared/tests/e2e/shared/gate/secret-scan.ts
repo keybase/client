@@ -97,7 +97,7 @@ export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray
 export const SCAN_INVITE_LINKS_VAR = 'KB_E2E_SCAN_INVITE_LINKS'
 const scansInviteLinks = () => process.env[SCAN_INVITE_LINKS_VAR] === '1'
 const links = runRecord('invite-links.json', 'links')
-export const inviteLinksPath = links.defaultPath
+const inviteLinksPath = links.defaultPath
 
 // What a scan looks for of one link: the link, as the app holds it once typed or pasted (its join
 // field lowercases what it is given), and its key (the part after "#"), plain and as a URL encodes it.
