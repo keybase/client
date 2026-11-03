@@ -2,7 +2,7 @@
 import * as T from '../../shared/test-ids'
 import {openLink} from '../gate/device'
 import {waitForTestID} from './elements'
-import {expectScreen} from './files'
+import {expectScreen} from '../gate/screens'
 import {escapeToTabs} from './navigate'
 
 // the profile's "Add more identities" button, drawn below its identity rows

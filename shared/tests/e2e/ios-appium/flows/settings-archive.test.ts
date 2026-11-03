@@ -51,9 +51,10 @@ import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen, hideKeyboard, openConversation, openInfoPanel} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, expectScreen, filesRowNamed, onScreen, openFolder, openRowMenu, press, tapButton, visibleScreen} from '../helpers/files'
+import {filesRowNamed, openFolder, openRowMenu, tapButton} from '../helpers/files'
+import {expectScreen, visibleScreen} from '../gate/screens'
 import {appDataContainer, waitFor} from '../helpers/lifecycle'
-import {check, chooseMenuItem, dragBetween, elementWithLabelPart} from '../helpers/menus'
+import {BUTTON_ELEMENTS, check, chooseMenuItem, dragBetween, elementWithLabelPart, onScreen, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
@@ -396,7 +397,7 @@ describe('settings archive', function () {
     // the button's label holds its icon's glyph too
     const backup = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label CONTAINS "Backup channel" AND visible == 1')
     await dragUntilOnScreen('Backup channel', backup)
-    await (await elementWithLabelPart(BUTTONS, 'Backup channel', "the info panel's Backup channel")).click()
+    await (await elementWithLabelPart(BUTTON_ELEMENTS, 'Backup channel', "the info panel's Backup channel")).click()
     await expectScreen('the backup modal for the self conversation', 'archiveModal', p => p['type'] === 'chatID' && p['conversationIDKey'] === convID)
     await expectPhoneModal()
     await step('The backup modal for the self conversation')

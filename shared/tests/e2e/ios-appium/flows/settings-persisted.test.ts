@@ -83,11 +83,11 @@ import {proxySaveWrites, rectsOverlap, settingSelector, settingShown, vdebugDeta
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
 import {step} from '../gate/step'
-import {dragUntilOnScreen} from '../helpers/chat'
+import {dragUntilOnScreen, waitSignedIn} from '../helpers/chat'
 import {el} from '../helpers/elements'
-import {BUTTONS, tapButton, waitSignedIn} from '../helpers/files'
+import {tapButton} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
-import {check, labelledElement} from '../helpers/menus'
+import {BUTTON_ELEMENTS, check, labelledElement} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openMore, openSettingsPage} from '../helpers/settings'
 import {masked, TEXT_TYPES} from '../helpers/teams'
@@ -797,7 +797,7 @@ describe('settings persisted', function () {
       const lineRect = await rectOf(text)
       check(lineRect !== undefined, 'the developer line has no frame, so it cannot be seen clear of the buttons')
       for (const label of ['DB Nuke', 'Clear Logs']) {
-        const button = await labelledElement(BUTTONS, label, `the ${label} button`).catch(() => undefined)
+        const button = await labelledElement(BUTTON_ELEMENTS, label, `the ${label} button`).catch(() => undefined)
         check(label !== 'DB Nuke' || button !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
         if (!button) continue
         // a drawn button with no frame cannot be seen clear of the line

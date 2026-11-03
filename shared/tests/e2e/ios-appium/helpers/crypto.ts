@@ -5,7 +5,7 @@
 import * as T from '../../shared/test-ids'
 import {jsEval} from '../gate/app-ask'
 import {el, pasteFromMenu, tapForTestID, waitForTestID} from './elements'
-import {expectScreen} from './files'
+import {expectScreen} from '../gate/screens'
 import {fiberPrelude} from './fiber-prelude'
 import {waitFor} from './lifecycle'
 import {check} from './menus'
