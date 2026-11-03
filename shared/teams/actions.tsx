@@ -1,7 +1,7 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {clearModals, isModalUp, navigateAppend, navigateUp, navUpToScreen} from '@/constants/router'
+import {clearModals, isModalUp, navigateAppend, navigateUp, navUpToScreen, whenModalsGone} from '@/constants/router'
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
@@ -88,10 +88,11 @@ export const clearNavBadges = () => {
 export type TeamExitContext = 'teams' | 'chat'
 
 // Out of a team that was just left or deleted: closes its modals and goes back to the root of the tab
-// the leave or delete was started from.
+// the leave or delete was started from. The pop waits for the modal reset to commit: with the modal
+// still in the tree, navUpToScreen would target the modal's own stack.
 export const exitTeamTo = (context: TeamExitContext) => {
   clearModals()
-  navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+  whenModalsGone(() => navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot'))
 }
 
 export const deleteTeam = (teamID: T.Teams.TeamID, context: TeamExitContext) => {
