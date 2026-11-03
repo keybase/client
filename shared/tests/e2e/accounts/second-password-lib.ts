@@ -10,18 +10,10 @@
 // connection, go/engine/engine.go delegateUIs), and the app answers none while signed out, so a
 // prompt on a harness connection is never asked.
 import {randomBytes} from 'crypto'
-import {
-  defaultEnvPath,
-  loadE2EAccounts,
-  readEnvFile,
-  refuseWhileSecondPasswordChangePending,
-  secondPasswordCommand,
-  setEnvVars,
-  type E2EEnv,
-} from './env.ts'
+import {defaultEnvPath, readEnvFile, refuseWhileSecondPasswordChangePending, secondPasswordCommand, setEnvVars, type E2EEnv} from './env.ts'
 import {restoreMainAccount} from './peer-homes.ts'
 import {runIdFromEnv} from './run-id.ts'
-import {maskAccounts} from './sweep-lib.ts'
+import {maskE2E} from './sweep-lib.ts'
 import type {PeerRpc} from '../shared/peer-rpc.ts'
 import {ensurePeer, mainWhoami, runKeybase, runKeybaseDetached} from '../shared/peer-service.ts'
 
@@ -79,8 +71,7 @@ export const CHECK_OR_REPAIR_WORST_MS = CHECK_WORST_MS + REPAIR_WORST_MS + CHECK
 // console.log with the account and team names masked (a failed `login --switch` names its account):
 // stdout lands in run logs.
 export const sayMasked = (s: string) => {
-  const {secondUser, smokeUser, team} = loadE2EAccounts()
-  console.log(maskAccounts(s, {team, users: {second: secondUser, smoke: smokeUser}}))
+  console.log(maskE2E(s))
 }
 
 export const liveMain = (): MainSide => ({

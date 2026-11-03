@@ -45,6 +45,7 @@ import {filesRowNamed, fillHiddenField, tapButton, typeInFilter} from '../helper
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
+import {labelHas, labelParts} from '../gate/page-source-lib'
 import {escapeToTabs} from '../helpers/navigate'
 import {masked, tapHeaderAction, TEXTS} from '../helpers/teams'
 
@@ -55,12 +56,6 @@ const VERIFY = 'keybase.1.saltpack.saltpackVerifyString'
 
 const FOR_SOMEONE_ELSE = "This message was encrypted for someone else or for a key you don't have."
 const FAILED_TO_DECRYPT = 'Failed to decrypt text.'
-
-const labelParts = (label: string | null) =>
-  (label ?? '')
-    .replace(/\u00a0/g, ' ')
-    .split(', ')
-    .map(p => p.trim())
 
 type Cli = (args: Array<string>) => Promise<string>
 
@@ -275,7 +270,7 @@ describe('crypto roundtrip', function () {
   const namesDrawn = async (names: ReadonlyArray<string>) => {
     const counts = names.map(() => 0)
     for (const e of await browser.$$(TEXTS).getElements()) {
-      const parts = labelParts(await e.getAttribute('label').catch(() => null))
+      const parts = labelParts((await e.getAttribute('label').catch(() => null)) ?? '')
       names.forEach((n, i) => {
         if (parts.includes(n)) counts[i]!++
       })
@@ -304,7 +299,7 @@ describe('crypto roundtrip', function () {
       what,
       async () => {
         for (const e of await browser.$$(TEXTS).getElements()) {
-          if (labelParts(await e.getAttribute('label').catch(() => null)).includes(text)) return true
+          if (labelHas((await e.getAttribute('label').catch(() => null)) ?? '', text)) return true
         }
         return undefined
       },

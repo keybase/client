@@ -21,7 +21,7 @@ import {
   type E2EEnv,
 } from '../../accounts/env'
 import {sayMasked, secondPasswordIsCurrent, type RotateDeps} from '../../accounts/second-password-lib'
-import {maskAccounts} from '../../accounts/sweep-lib'
+import {maskE2E} from '../../accounts/sweep-lib'
 import {ensurePeer} from '../../shared/peer-service'
 import {appAccount, asSecond, restoreToSmoke} from './accounts'
 import {restoreSecondSecret, storedSecretOf, withLoginPasswordMarked} from './sign-in'
@@ -69,9 +69,6 @@ const OWNER_CHECK = `${secondPasswordCommand} --check`
 // A check failure the phone's repair cannot fix.
 class NotRepairable extends Error {}
 
-const masked = (e: unknown, {secondUser, smokeUser, team}: E2EEnv) =>
-  maskAccounts(e instanceof Error ? e.message : String(e), {team, users: {second: secondUser, smoke: smokeUser}})
-
 // The RotateDeps for a password change made on the phone.
 export const iosRotateDeps = (sides: PhoneSides = liveSides(), envFile = defaultEnvPath()): RotateDeps => ({
   check: async (env, password) => {
@@ -84,7 +81,7 @@ export const iosRotateDeps = (sides: PhoneSides = liveSides(), envFile = default
     } catch (e) {
       // the cause is not attached: its message may name an account
       // eslint-disable-next-line preserve-caught-error
-      throw new Error(`the phone cannot switch to the second account without a password: ${masked(e, env)}`)
+      throw new Error(`the phone cannot switch to the second account without a password: ${maskE2E(e)}`)
     }
   },
   envFile,

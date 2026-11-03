@@ -78,7 +78,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
 import {relaunchApp} from '../gate/device'
-import {rectOf} from '../gate/chat-lib.ts'
+import {frameInside, rectOf} from '../gate/chat-lib.ts'
 import {proxySaveWrites, rectsOverlap, settingSelector, settingShown, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import type {CallMark} from '../gate/recorder-lib'
@@ -87,11 +87,11 @@ import {dragUntilOnScreen, waitSignedIn} from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {tapButton} from '../helpers/files'
 import {goLogMark, goLogSince, waitFor} from '../helpers/lifecycle'
-import {BUTTON_ELEMENTS, check, labelledElement} from '../helpers/menus'
+import {BUTTON_ELEMENTS, check, labelledElement, screenRect} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openMore, openSettingsPage} from '../helpers/settings'
 import {masked, TEXT_TYPES} from '../helpers/teams'
-import {sourceElements} from '../gate/page-source-lib'
+import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
 const SET_CONTACT = 'keybase.1.account.userSetContactSettings'
@@ -272,15 +272,14 @@ const levelSetSince = async (mark: ReturnType<typeof goLogMark>, level: string, 
 // runtime stats are on) the tree holds. XCUITest can report the whole list visible=false (seen live),
 // so a frame on screen stands for visible. Bound: the source and the window 2.
 const moreListDraws = async () => {
-  const {height, width} = await browser.getWindowRect()
+  const screen = await screenRect()
   let crypto = 0
   let perf = 0
   for (const {attrs, type} of sourceElements(await browser.getPageSource())) {
     const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
     if (type === 'XCUIElementTypeButton' && label === 'PerfLog') perf++
-    if (!TEXT_TYPES.includes(type) || !label.split(', ').some(p => p.trim() === 'Crypto')) continue
-    const [x, y, w, h] = ['x', 'y', 'width', 'height'].map(k => Number(attrs[k]))
-    if (w! > 0 && h! > 0 && x! >= 0 && y! >= 0 && x! + w! <= width && y! + h! <= height) crypto++
+    if (!TEXT_TYPES.includes(type) || !labelHas(label, 'Crypto')) continue
+    if (frameInside(sourceRect(attrs), screen)) crypto++
   }
   return {crypto, perf}
 }

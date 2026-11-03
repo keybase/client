@@ -38,7 +38,7 @@ import * as T from '../../shared/test-ids'
 import {asSecond, restoreToSmoke} from '../gate/accounts'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {elementInRow, innermost, type Rect} from '../gate/chat-lib.ts'
-import {sourceElements} from '../gate/page-source-lib'
+import {sourceElements, sourceRect} from '../gate/page-source-lib'
 import {currentCallSeq, uiCallCount, waitForUiCall} from '../gate/recorder'
 import {manualEdge, retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, dragUntilOnScreen} from '../helpers/chat'
@@ -174,7 +174,7 @@ describe('profile proofs', function () {
       const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
       const value = (attrs['value'] ?? '').replace(/\u00a0/g, ' ')
       if (!match(label) && !match(value)) continue
-      rects.push({height: Number(attrs['height']), width: Number(attrs['width']), x: Number(attrs['x']), y: Number(attrs['y'])})
+      rects.push(sourceRect(attrs))
     }
     return innermost(rects).map(i => rects[i]!)
   }

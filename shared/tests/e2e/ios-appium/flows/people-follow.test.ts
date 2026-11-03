@@ -38,6 +38,7 @@ import {el} from '../helpers/elements'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check, chooseMenuItem, menuLabels, menuOffers, openMenuFrom} from '../helpers/menus'
+import {labelParts} from '../gate/page-source-lib'
 import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
 
@@ -73,8 +74,7 @@ describe('people follow', function () {
       async () => {
         const button = el(T.PROFILE_FOLLOW_BUTTON)
         if (!(await button.isExisting())) return undefined
-        const label = ((await button.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' ')
-        const parts = label.split(', ').map(p => p.trim())
+        const parts = labelParts((await button.getAttribute('label').catch(() => null)) ?? '')
         return labels.some(l => parts.includes(l)) ? true : undefined
       },
       {interval: 250, timeout}
