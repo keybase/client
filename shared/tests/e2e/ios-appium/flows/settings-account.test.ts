@@ -27,7 +27,7 @@ import {el} from '../helpers/elements'
 import {fillField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {cardTitledIn, check, chooseMenuItem, openMenuFrom, press, waitForSheetGone} from '../helpers/menus'
+import {check, chooseMenuItem, elementWithLabelPartIn, openMenuFrom, press, waitForSheetGone} from '../helpers/menus'
 import {dismissKeyboard, escapeToTabs, HEADER_CANCEL} from '../helpers/navigate'
 import {ACCOUNT_TAB, openAccountPage} from '../helpers/settings'
 import {masked, TEXT_TYPES, textShown} from '../helpers/teams'
@@ -188,12 +188,12 @@ describe('settings account', function () {
     await openMenuFrom(what, async () => gear.click())
   }
 
-  // Picks the open menu's item `title` that draws a subtitle under it (its label "<title>,
+  // Picks the open menu's item `title` that draws a subtitle under it (its label "<icon>, <title>,
   // <subtitle>"), by that label part, compared in memory. Bound: 22.
   const chooseSubtitled = async (title: string) => {
     const item = await waitFor(
       `"${title}" in the menu`,
-      async () => cardTitledIn(['XCUIElementTypeOther'], title, `"${title}" in the menu`, {forTap: true}),
+      async () => elementWithLabelPartIn(['XCUIElementTypeOther'], title, `"${title}" in the menu`, {forTap: true}),
       {interval: 300, timeout: 10_000}
     )
     await press(item, `the menu's "${title}"`)
