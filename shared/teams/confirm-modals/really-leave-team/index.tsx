@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import LastOwnerDialog from './last-owner'
 import AvatarBadge from '../avatar-badge'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import type {TeamExitContext} from '@/teams/actions'
+import {exitTeamTo, type TeamExitContext} from '@/teams/actions'
 
 type Props = {
   error: string
@@ -104,10 +104,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     }
     leaveTeamRPC(
       [{name: teamname, permanent}, waitingKey],
-      () => {
-        C.Router2.clearModals()
-        C.Router2.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
-      },
+      () => exitTeamTo(context),
       () => {}
     )
   }

@@ -87,6 +87,13 @@ export const clearNavBadges = () => {
 
 export type TeamExitContext = 'teams' | 'chat'
 
+// Out of a team that was just left or deleted: closes its modals and goes back to the root of the tab
+// the leave or delete was started from.
+export const exitTeamTo = (context: TeamExitContext) => {
+  clearModals()
+  navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+}
+
 export const deleteTeam = (teamID: T.Teams.TeamID, context: TeamExitContext) => {
   const f = async () => {
     try {
@@ -101,8 +108,7 @@ export const deleteTeam = (teamID: T.Teams.TeamID, context: TeamExitContext) => 
       })
       // the user may have gone elsewhere while the delete ran; only the confirm takes them away
       if (!isModalUp('teamDeleteTeam', {teamID})) return
-      clearModals()
-      navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+      exitTeamTo(context)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('error:', error.message)
@@ -130,8 +136,7 @@ export const leaveTeam = (teamname: string, permanent: boolean, context: TeamExi
         S.waitingKeyTeamsLeaveTeam(teamname)
       )
       logger.info(`leaveTeam: left ${teamname} successfully`)
-      clearModals()
-      navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+      exitTeamTo(context)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('error:', error.message)
