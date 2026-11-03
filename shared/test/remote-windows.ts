@@ -9,7 +9,7 @@ type WindowKey = {windowComponent?: string; windowParam?: string}
 const keyOf = (w: WindowKey) => `${w.windowComponent ?? ''}:${w.windowParam ?? ''}`
 
 const open = new Set<string>()
-export const sentProps: Array<{propsStr: string; windowComponent: string; windowParam: string}> = []
+const sentProps: Array<{propsStr: string; windowComponent: string; windowParam: string}> = []
 
 functions['makeRenderer'] = (w: WindowKey) => {
   open.add(keyOf(w))

@@ -23,11 +23,7 @@ const markAsRead = 'chat.1.local.markAsReadLocal'
 const conversationID = T.Chat.keyToConversationID(conversationIDKey)
 
 // a mark unread is a load or two, then a mark read, each a round trip to the service
-const flushPromises = async () => {
-  for (let i = 0; i < 4; i++) {
-    await settle()
-  }
-}
+const flushPromises = async () => settle(4)
 
 let fake: FakeEngine
 const markReads = () => paramsOf(fake, markAsRead)

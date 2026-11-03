@@ -32,15 +32,10 @@ import {
 import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
 import {toggleReaction} from './message-commands'
 import {useConversationParticipants} from './data-hooks'
+import {microtasks} from '@/test/flush'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const emptyStringSet = new Set<string>()
-
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
 
 const textAt = (n: number) =>
   Message.makeMessageText({
@@ -362,7 +357,7 @@ test('centered load clears stale thread state and requests a centered load', asy
     result.current.loadMessagesCentered(T.Chat.numberToMessageID(999), 'flash')
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current.staleMessage).toBeUndefined()
@@ -408,7 +403,7 @@ test('jumpToRecent reloads recent messages through the mounted thread action', a
     result.current({onThreadLoadStatus})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(onThreadLoadStatus).toHaveBeenCalledWith(convID, T.RPCChat.UIChatThreadStatusTyp.server)
@@ -451,7 +446,7 @@ test('mark-read disabled latest load does not arm active or explicit mark read',
     result.current.loadMoreMessages({allowMarkAsRead: false, reason: 'focused'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 
@@ -459,7 +454,7 @@ test('mark-read disabled latest load does not arm active or explicit mark read',
     useShellState.getState().dispatch.setActive(true)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 
@@ -467,7 +462,7 @@ test('mark-read disabled latest load does not arm active or explicit mark read',
     result.current.markThreadAsRead()
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 })
@@ -510,7 +505,7 @@ test('scrollback loads older messages without marking the thread read', async ()
     result.current.loadOlderMessagesDueToScroll(1)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(markAsRead).not.toHaveBeenCalled()
@@ -624,7 +619,7 @@ test('a stale reload after a jump and a scroll to the bottom marks the thread re
     routeChatNotification(staleThreadUpdate)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(markAsRead).toHaveBeenCalledTimes(1)
@@ -638,7 +633,7 @@ test('a stale reload that disallows mark read leaves the thread unread even once
     routeChatNotification(staleThreadUpdate)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(markAsRead).not.toHaveBeenCalled()
@@ -675,7 +670,7 @@ test('mounted thread listener applies incoming messages for the active conversat
     result.current.loadMoreMessages({reason: 'focused'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   markAsRead.mockClear()
 
@@ -699,7 +694,7 @@ test('mounted thread listener applies incoming messages for the active conversat
   ])
   expect(result.current.message?.id).toBe(firstMsgID)
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).toHaveBeenCalledTimes(1)
   expect(markAsRead).toHaveBeenCalledWith({
@@ -752,7 +747,7 @@ test('mounted thread listener applies incoming messages while inactive without m
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(602)])
   expect(result.current.message?.id).toBe(firstMsgID)
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 })
@@ -789,7 +784,7 @@ test('an unlocalized conversation defers mark read until localization lands', as
     result.current({reason: 'tab selected'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 
@@ -808,7 +803,7 @@ test('an unlocalized conversation defers mark read until localization lands', as
     )
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).toHaveBeenCalledWith({
     conversationID: T.Chat.keyToConversationID(convID),
@@ -843,7 +838,7 @@ test('active change marks read after an eligible mounted thread load', async () 
     result.current({reason: 'tab selected'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 
@@ -851,7 +846,7 @@ test('active change marks read after an eligible mounted thread load', async () 
     useShellState.getState().dispatch.setActive(true)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).toHaveBeenCalledWith({
     conversationID: T.Chat.keyToConversationID(convID),
@@ -884,7 +879,7 @@ test('a thread still on screen after an account switch does not mark read for th
     result.current({reason: 'tab selected'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   act(() => {
@@ -897,7 +892,7 @@ test('a thread still on screen after an account switch does not mark read for th
     useShellState.getState().dispatch.setActive(true)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 })
@@ -955,7 +950,7 @@ test('active change does not mark read after a centered thread load', async () =
     result.current(msgID, 'flash')
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 
@@ -963,7 +958,7 @@ test('active change does not mark read after a centered thread load', async () =
     useShellState.getState().dispatch.setActive(true)
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).not.toHaveBeenCalled()
 })
@@ -1101,7 +1096,7 @@ test('mounted thread listener applies reaction updates for the active conversati
     result.current.loadMoreMessages({reason: 'focused'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   markAsRead.mockClear()
 
@@ -1142,7 +1137,7 @@ test('mounted thread listener applies reaction updates for the active conversati
 
   expect(Message.getReactionOrder(result.current.message?.reactions ?? new Map())).toEqual([':+1:'])
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
   expect(markAsRead).toHaveBeenCalledWith({
     conversationID: T.Chat.keyToConversationID(convID),
@@ -1185,7 +1180,7 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
     result.current.loadMoreMessages({reason: 'tab selected'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(incomingCallMap).toBeDefined()
@@ -1278,7 +1273,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
   expect(result.current.store.getState().messageMap.get(targetOrdinal)?.reactions).toBeUndefined()
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   const outboxID = postReaction.mock.calls[0]?.[0].outboxID
@@ -1611,7 +1606,7 @@ test('a warm-cache load prunes against both passes, not either one alone', async
     result.current.loadMoreMessages({reason: 'test'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current.ordinals).toEqual([301, 302, 303, 304])
@@ -1703,7 +1698,7 @@ test('a warm-cache load does not prune a message sitting on its outbox ordinal',
     result.current.loadMoreMessages({reason: 'test'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current.ordinals).toEqual([301, 302, sentOrdinal])
@@ -1767,7 +1762,7 @@ test('a full pass that changed nothing still reconciles the window', async () =>
     result.current.loadMoreMessages({reason: 'test'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current.ordinals).toEqual([301, 303])
@@ -1830,7 +1825,7 @@ test('a warm-cache load still prunes a row neither pass carries', async () => {
     result.current.loadMoreMessages({reason: 'test'})
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   expect(result.current.ordinals).toEqual([301, 302, 304])
@@ -1929,7 +1924,7 @@ test('jumpToRecent drops the old window instead of merging a disjoint one into i
     result.current.jumpToRecent()
   })
   await act(async () => {
-    await flushPromises()
+    await microtasks()
   })
 
   // Only the newest window survives. If the old one were merged in, ordinals would read

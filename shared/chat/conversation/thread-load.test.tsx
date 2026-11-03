@@ -58,11 +58,7 @@ const scriptLoadThread = (script?: (load: ThreadLoad) => Promise<void>) => {
 
 // Lets a chain of loads run out: each load crosses to the service and back, and each stream reaches
 // its handler on the listener's timer, so this waits on turns of the event loop, not microtasks.
-const settleLoads = async () => {
-  for (let i = 0; i < 60; i++) {
-    await settle()
-  }
-}
+const settleLoads = async () => settle(60)
 
 describe('getExplodingModeFromGregorItems', () => {
   test('no exploding items at all means no exploding mode', () => {

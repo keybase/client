@@ -13,7 +13,7 @@ import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState, type NavState} from '@/stores/router'
 import {resetAllStores} from '@/util/zustand'
 import {navigationRef} from '@/constants/navigator'
-import {installNavigation, makeRootState, type MountedNavigation} from '@/test/navigation'
+import {installNavigation, makeRootState, renders, type MountedNavigation} from '@/test/navigation'
 import {fakeNativeKb, type FakeNativeKbModule} from '@/test/fake-native-kb'
 
 // The share native holds, as far as these tests are concerned: one at a time, read by id, cleared by
@@ -27,13 +27,6 @@ jest.mock('react-native-kb', () => jest.requireActual<FakeNativeKbModule>('@/tes
 import {onAndroidShareHeld, readAndroidShare, resetAndroidShareForTest, subscribeAndroidShareOpener} from './android-share'
 
 let nav: MountedNavigation
-
-// The library reports a state once React has rendered it, on React's schedule.
-const settle = async () => {
-  for (let i = 0; i < 10; i++) {
-    await new Promise(resolve => setTimeout(resolve, 1))
-  }
-}
 
 // Each share the opener showed above the chat tab, in order: our own dispatches, recorded.
 const opened = () =>
@@ -89,7 +82,7 @@ test('a held share opens over the chat tab once logged in with the navigator rea
   expect(opened()).toEqual([])
   ready()
   expect(opened()).toEqual([1])
-  await settle()
+  await renders()
   expect(rootNames()).toEqual(['loggedIn', 'incomingShareNew'])
   expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
   expect(shareShowing()?.androidShareID).toBe(1)
@@ -107,10 +100,10 @@ test('a share held before JS listened is asked for once it does, and opens', () 
 test('a share resets to the chat tab with the share above it, whatever was pushed', async () => {
   ready()
   navigateAppend({name: 'chatConversation', params: {conversationIDKey: 'C'}} as never)
-  await settle()
+  await renders()
   expect(rootNames()).toEqual(['loggedIn', 'chatConversation'])
   hold(1)
-  await settle()
+  await renders()
   expect(opened()).toEqual([1])
   expect(rootNames()).toEqual(['loggedIn', 'incomingShareNew'])
 })
@@ -118,9 +111,9 @@ test('a share resets to the chat tab with the share above it, whatever was pushe
 test('a newer share replaces the screen of the one it supersedes', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   hold(2)
-  await settle()
+  await renders()
   expect(rootNames()).toEqual(['loggedIn', 'incomingShareNew'])
   expect(shareShowing()?.androidShareID).toBe(2)
   expect(opened()).toEqual([1, 2])
@@ -133,7 +126,7 @@ test('a pending link or tap for this account goes first; the share opens once it
   hold(1)
   expect(opened()).toEqual([])
   navigateAppend({name: 'chatConversation', params: {conversationIDKey: '0000ab'}} as never)
-  await settle()
+  await renders()
   dispatch.acknowledge(useNavigationIntentsState.getState().intent!.id)
   expect(opened()).toEqual([1])
 })
@@ -149,9 +142,9 @@ test('a tap waiting on a switch to another account does not hold the share up', 
 test('a share is opened once: it is shown while its route is in the state', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   pushPickers()
-  await settle()
+  await renders()
   useConfigState.getState().dispatch.setLoggedIn(true)
   expect(opened()).toEqual([1])
 })
@@ -163,7 +156,7 @@ test('a share navigated to is not navigated to again before its state is reporte
   hold(1)
   useConfigState.setState(s => ({allowAnimatedEmojis: !s.allowAnimatedEmojis}))
   expect(opened()).toEqual([1])
-  await settle()
+  await renders()
   useConfigState.setState(s => ({allowAnimatedEmojis: !s.allowAnimatedEmojis}))
   expect(opened()).toEqual([1])
 })
@@ -171,37 +164,37 @@ test('a share navigated to is not navigated to again before its state is reporte
 test('a share screen paused under pushed screens keeps its share; clearModals then finishes it', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   pushPickers()
-  await settle()
+  await renders()
   expect(rootNames()).toEqual(['loggedIn', 'incomingShareNew', 'destinationPicker', 'destinationPicker'])
   expect(mockNative.acks).toEqual([])
   clearModals()
-  await settle()
+  await renders()
   expect(rootNames()).toEqual(['loggedIn'])
   expect(mockNative.acks).toEqual([1])
   expect(readAndroidShare(1)).toBeUndefined()
   // a new navigator does not bring a finished share back
   nav.setRootState(makeRootState())
-  await settle()
+  await renders()
   expect(opened()).toEqual([1])
 })
 
 test('a reset that drops the share route finishes the share', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   navigationRef.dispatch(CommonActions.reset({index: 0, routes: [{name: 'loggedIn'}]}))
-  await settle()
+  await renders()
   expect(mockNative.acks).toEqual([1])
 })
 
 test('a new navigator is not leaving the share: it is opened again there', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   nav.setRootState(makeRootState())
-  await settle()
+  await renders()
   expect(mockNative.acks).toEqual([])
   expect(opened()).toEqual([1, 1])
 })
@@ -209,7 +202,7 @@ test('a new navigator is not leaving the share: it is opened again there', async
 test('no state is no navigator: nothing is left or opened again', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   useRouterState.getState().dispatch.setNavState(undefined as unknown as NavState)
   useConfigState.getState().dispatch.setLoggedIn(true)
   expect(mockNative.acks).toEqual([])
@@ -219,15 +212,15 @@ test('no state is no navigator: nothing is left or opened again', async () => {
 test('logging out ends a held share: whoever logs in next may not be who it was shared to', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   useConfigState.getState().dispatch.setLoggedIn(false)
   nav.setLoggedIn(false)
-  await settle()
+  await renders()
   expect(mockNative.acks).toEqual([1])
 
   ready()
   nav.setLoggedIn(true)
-  await settle()
+  await renders()
   expect(opened()).toEqual([1])
 })
 
@@ -242,18 +235,18 @@ test('a share made while logged out is not ended by staying logged out, and open
 test('an account switch is not leaving the share: it opens again in the account switched to', async () => {
   ready()
   hold(1)
-  await settle()
+  await renders()
   useConfigState.setState({userSwitching: true})
   useConfigState.getState().dispatch.setLoggedIn(false)
   nav.setLoggedIn(false)
-  await settle()
+  await renders()
   expect(mockNative.acks).toEqual([])
 
   // The switch ends once the new account's navigator is up, which is after login.
   ready()
   useConfigState.setState({userSwitching: false})
   nav.setRootState(makeRootState())
-  await settle()
+  await renders()
   expect(mockNative.acks).toEqual([])
   expect(opened()).toEqual([1, 1])
 })

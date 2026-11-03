@@ -2,7 +2,6 @@
 // Engine, Session, listener and RPCTransport all run. What crosses between them goes as it does on
 // the desktop wire: msgpack-encoded when sent, so nothing is shared by reference and undefined
 // arrives as null, and delivered in order one macrotask later each way, as Electron IPC delivers.
-import {setImmediate} from 'node:timers'
 import {decode, encode} from '@msgpack/msgpack'
 import {Engine, type MakeClient} from '@/engine'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort, type CallPort} from '@/engine/call-port'
@@ -22,6 +21,7 @@ import {
 import {useWaitingState} from '@/stores/waiting'
 import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type * as EngineGen from '@/constants/rpc'
+import {IpcChannel} from './ipc-channel'
 
 const fakeErrorBrand = Symbol('fakeError')
 type FakeError = {[fakeErrorBrand]: true; error: {code: number; desc: string}}
@@ -67,23 +67,6 @@ const quietly = (f: () => void) => {
   } finally {
     console.log = log
     console.warn = warn
-  }
-}
-
-// One direction of Electron IPC: each message arrives a macrotask after it was sent, in order
-class Channel {
-  private _inTransit = new Array<() => void>()
-  send(deliver: () => void) {
-    this._inTransit.push(deliver)
-    setImmediate(() => this._inTransit.shift()?.())
-  }
-  deliverAll() {
-    while (this._inTransit.length) {
-      this._inTransit.shift()?.()
-    }
-  }
-  clear() {
-    this._inTransit.length = 0
   }
 }
 
@@ -157,8 +140,8 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
   let nextPushSeqid = 1
   let transport: FakeTransport | undefined
   let dead = false
-  const toService = new Channel()
-  const toRenderer = new Channel()
+  const toService = new IpcChannel()
+  const toRenderer = new IpcChannel()
   // The service's connection, as the relay counts them (its epoch), and the one the renderer last
   // heard come up. The relay drops a send stamped with a connection that is no longer current.
   let serviceConnection = 1

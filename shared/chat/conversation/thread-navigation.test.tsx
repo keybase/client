@@ -14,6 +14,7 @@ import {
   useConversationShowInfoPanel,
   useConversationThreadToggleSearch,
 } from './thread-navigation'
+import {microtasks} from '@/test/flush'
 
 let mockSplit = true
 jest.mock('@/constants/chat/layout', () => ({
@@ -39,12 +40,6 @@ let fake: FakeEngine
 // nothing is scripted for it, so a cancel would also fail the test when the fake uninstalls
 const cancelSearchCalls = () => fake.calls.filter(c => c.method === 'chat.1.local.cancelActiveSearch')
 
-const flushPromises = async () => {
-  for (let i = 0; i < 5; i++) {
-    await Promise.resolve()
-  }
-}
-
 const visible = () => nav.visibleScreen()
 const visibleParams = () => visible()?.params as Record<string, unknown> | undefined
 
@@ -69,7 +64,7 @@ describe('toggleConversationThreadSearch', () => {
   test('split: opens search on the chat root when the visible screen has none', async () => {
     nav = installNavigation({rootState: stateShowing('chatRoot', {params: {conversationIDKey: convID}})})
     act(() => toggleConversationThreadSearch(convID))
-    await flushPromises()
+    await microtasks()
     expect(visible()?.name).toBe('chatRoot')
     expect(visibleParams()).toMatchObject({conversationIDKey: convID, threadSearch: {}})
     expect(cancelSearchCalls()).toEqual([])
@@ -81,7 +76,7 @@ describe('toggleConversationThreadSearch', () => {
       rootState: stateShowing('chatRoot', {params: {conversationIDKey: convID, threadSearch: {query: 'x'}}}),
     })
     act(() => toggleConversationThreadSearch(convID))
-    await flushPromises()
+    await microtasks()
     expect(visible()?.name).toBe('chatRoot')
     expect(visibleParams()?.['threadSearch']).toBeUndefined()
     expect(visibleParams()?.['conversationIDKey']).toBe(convID)

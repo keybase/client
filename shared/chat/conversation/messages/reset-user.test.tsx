@@ -30,8 +30,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {navigationWrapper} from '@/test/navigation'
-import {ConversationThreadProvider} from '../thread-context'
+import {threadWrapper} from '@/test/thread-tree'
 import ResetUser, {addTeamMemberAfterReset} from './reset-user'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -107,14 +106,7 @@ describe('the Let them in button', () => {
       contactName: new Map(),
       name: [],
     })
-    const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'})
-    render(
-      <Nav>
-        <ConversationThreadProvider id={conversationIDKey}>
-          <ResetUser />
-        </ConversationThreadProvider>
-      </Nav>
-    )
+    render(<ResetUser />, {wrapper: threadWrapper(conversationIDKey).wrapper})
   }
 
   test('re-adds the first reset participant, then refreshes participants', async () => {

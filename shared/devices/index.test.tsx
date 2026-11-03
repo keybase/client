@@ -1,13 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import type * as T from '@/constants/types'
-
-// jsdom has no layout engine; the real list only draws rows into a viewport with a size
-const viewport = {height: 600, width: 800}
-Object.defineProperty(HTMLElement.prototype, 'clientHeight', {configurable: true, get: () => viewport.height})
-Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, get: () => viewport.width})
-HTMLElement.prototype.getBoundingClientRect = () =>
-  ({...viewport, bottom: viewport.height, left: 0, right: viewport.width, top: 0, x: 0, y: 0}) as DOMRect
+import '@/test/viewport.desktop'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {_onEngineIncoming} from '@/constants/init/shared'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'

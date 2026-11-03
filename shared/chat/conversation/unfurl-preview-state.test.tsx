@@ -11,8 +11,7 @@ import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, type FakeAnswer, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {navigationWrapper} from '@/test/navigation'
-import {ConversationThreadProvider} from './thread-context'
+import {threadWrapper} from '@/test/thread-tree'
 import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
 
 const unfurlPreview = 'chat.1.local.unfurlPreviewLocal'
@@ -55,15 +54,7 @@ const startService = () => {
 }
 
 // the hook runs in the composer, inside the conversation's thread
-const render = (ui: React.ReactElement) => {
-  const Nav = navigationWrapper({params: {conversationIDKey: convID}, route: 'chatRoot'}).wrapper
-  const Thread = ({children}: {children: React.ReactNode}) => (
-    <Nav>
-      <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
-    </Nav>
-  )
-  return renderUI(ui, {wrapper: Thread})
-}
+const render = (ui: React.ReactElement) => renderUI(ui, {wrapper: threadWrapper(convID).wrapper})
 
 // what the logger gets for a failed fetch: the service's error
 const failedWith = (desc: string) => expect.objectContaining({desc}) as unknown as RPCError

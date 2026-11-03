@@ -3,7 +3,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle as settleTimers, tick} from '@/test/flush'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 
 import {
@@ -60,15 +60,7 @@ const modalsCleared = () => !rootNames()?.includes(openModal)
 
 // What the service sent crosses IPC, the listener hands incoming calls to their handlers on a timer,
 // and a flow reading a dialog's events sees its end on another
-const settle = async () => {
-  await tick()
-  for (let i = 0; i < 2; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise(resolve => setTimeout(resolve, 0))
-    // eslint-disable-next-line no-await-in-loop
-    await tick()
-  }
-}
+const settle = async () => settleTimers(2)
 
 const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop' | 'backup') => ({
   deviceID,

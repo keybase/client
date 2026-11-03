@@ -1,9 +1,11 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import type * as React from 'react'
+import '@/test/viewport.desktop'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import type {RefType as InputRef, Selection} from '../normal/input.shared'
 import {useSuggestors} from '.'
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {ComposerContext, makeComposer} from '../composer'
 import {ConversationInputProvider} from '../input-state'
@@ -11,6 +13,12 @@ import {ConversationThreadProvider} from '../../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {navigationWrapper} from '@/test/navigation'
+import {setupOverlayDom} from '@/test/overlay-dom.desktop'
+import {installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
@@ -20,29 +28,14 @@ type MockCommandsListProps = {
   onSelected: (item: unknown, final: boolean) => void
 }
 const mockCommandsList = jest.fn((_p: MockCommandsListProps) => null)
-const mockUsersList = jest.fn((_p: {filter: string}) => null)
-const mockEmojiList = jest.fn((_p: {filter: string}) => null)
-const mockChannelsList = jest.fn((_p: {filter: string}) => null)
 
-// the lists are render stubs that record the filter they were handed; the transformers and the
-// bot-command status are the real ones
+// the command list is a render stub that records what it was handed: the snapshot it filters on is
+// not something its rows show. Its transformer and the bot-command status are the real ones, and
+// the other lists are the real ones, over the conversation set up below
 jest.mock('./commands', () => ({
   ...jest.requireActual<object>('./commands'),
   List: (p: MockCommandsListProps) => mockCommandsList(p),
 }))
-jest.mock('./channels', () => ({
-  ...jest.requireActual<object>('./channels'),
-  List: (p: {filter: string}) => mockChannelsList(p),
-}))
-jest.mock('./emoji', () => ({...jest.requireActual<object>('./emoji'), List: (p: {filter: string}) => mockEmojiList(p)}))
-jest.mock('./users', () => ({
-  ...jest.requireActual<object>('./users'),
-  UsersList: (p: {filter: string}) => mockUsersList(p),
-}))
-jest.mock('@/common-adapters', () => {
-  const actual = jest.requireActual<Record<string, unknown>>('@/common-adapters')
-  return {...actual, AnchoredPopup: (p: {children: React.ReactNode}) => <>{p.children}</>}
-})
 
 // the suggestors read the caret through the composer's input; drive it directly so the
 // test exercises the word-splitting rather than a real textarea
@@ -103,9 +96,23 @@ const typeText = (result: {current: ReturnType<typeof useSuggestors>}, text: str
   })
 }
 
-const renderPopup = (result: {current: ReturnType<typeof useSuggestors>}) => {
+// the popup as it shows once the service has answered what the lists load
+const renderPopup = async (result: {current: ReturnType<typeof useSuggestors>}) => {
   render(<>{result.current.popup}</>)
+  await flush()
 }
+
+// the suggestion rows on screen, by what each reads
+const rows = () =>
+  [...document.querySelectorAll(`[data-testid^="${TestIDs.CHAT_SUGGESTION_ROW}"]`)].map(r => r.textContent)
+
+const channelRow = (teamname: string, channelname: string): T.RPCChat.UIInboxBigTeamRow => ({
+  channel: {channelname, convID: `${teamname}-${channelname}`, draft: null, isMuted: false, teamname},
+  state: T.RPCChat.UIInboxBigTeamRowTyp.channel,
+})
+
+// the popup is the real one, portaled where the desktop app portals it
+setupOverlayDom()
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -116,9 +123,20 @@ beforeEach(() => {
     username: 'testuser',
   })
   mockCommandsList.mockClear()
-  mockUsersList.mockClear()
-  mockEmojiList.mockClear()
-  mockChannelsList.mockClear()
+  // a group chat with alice and bob, who share the team alpha with testuser
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, teamType: 'adhoc'}])
+  const participants = ['testuser', 'alice', 'bob']
+  participantInfoReceived(convID, {all: participants, contactName: new Map(), name: participants})
+  useInboxLayoutState.getState().dispatch.updateLayout(
+    JSON.stringify({
+      bigTeams: [channelRow('alpha', 'general'), channelRow('alpha', 'random')],
+      smallTeams: [],
+      totalSmallTeams: 0,
+    } satisfies T.RPCChat.UIInboxLayout)
+  )
+  const fake = installFakeEngine()
+  fake.answer('chat.1.local.getMutualTeamsLocal', () => ({offline: false, teams: [{name: 'alpha', teamID: 'team-alpha'}]}))
+  fake.answer('chat.1.local.userEmojis', () => ({emojis: {emojis: []}}))
 })
 
 afterEach(() => {
@@ -130,18 +148,18 @@ afterEach(() => {
 // bot command names contain a space (`keybot cancel`), so the command-mode word
 // split has to be on for the very first trigger. pasted text arrives in a single
 // change event and never gets a follow-up keystroke to widen the word
-test('a pasted multi-word bot command filters on the whole command name', () => {
+test('a pasted multi-word bot command filters on the whole command name', async () => {
   const text = '!keybot cancel'
   const result = renderSuggestors(() => ({end: text.length, start: text.length}))
 
   typeText(result, text)
-  renderPopup(result)
+  await renderPopup(result)
 
   expect(mockCommandsList).toHaveBeenCalled()
   expect(mockCommandsList.mock.calls.at(-1)?.[0].filter).toBe('keybot cancel')
 })
 
-test('typing a multi-word bot command a character at a time ends on the same filter', () => {
+test('typing a multi-word bot command a character at a time ends on the same filter', async () => {
   const full = '!keybot cancel'
   let text = ''
   const result = renderSuggestors(() => ({end: text.length, start: text.length}))
@@ -150,7 +168,7 @@ test('typing a multi-word bot command a character at a time ends on the same fil
     text += c
     typeText(result, text)
   }
-  renderPopup(result)
+  await renderPopup(result)
 
   expect(mockCommandsList.mock.calls.at(-1)?.[0].filter).toBe('keybot cancel')
 })
@@ -158,7 +176,7 @@ test('typing a multi-word bot command a character at a time ends on the same fil
 // the command word split must not swallow a later word: with it on, the word at
 // the cursor was '@bob hey', the unanchored users marker matched it, and the
 // overlay stayed mounted forever swallowing ArrowUp/ArrowDown
-test('an @mention inside a command message stops suggesting once the word no longer matches', () => {
+test('an @mention inside a command message stops suggesting once the word no longer matches', async () => {
   let text = ''
   const result = renderSuggestors(() => ({end: text.length, start: text.length}))
 
@@ -166,9 +184,9 @@ test('an @mention inside a command message stops suggesting once the word no lon
     text = t
     typeText(result, text)
   }
-  renderPopup(result)
+  await renderPopup(result)
 
-  expect(mockUsersList).not.toHaveBeenCalled()
+  expect(rows()).toEqual([])
   expect(result.current.suggestionsShowing).toBe(false)
 })
 
@@ -185,42 +203,41 @@ test('a pasted command message with a trailing word suggests nothing', () => {
 // lookahead where it can never match, and their capture groups make String.split
 // interleave captures with words
 test.each([
-  [':smi', () => mockEmojiList, 'smi'],
-  ['@bob', () => mockUsersList, 'bob'],
-  ['#gen', () => mockChannelsList, 'gen'],
-])('a command message splits before a later %s marker', (tail, list, filter) => {
+  [':smi', (shown: Array<string | null>) => expect(shown).toContainEqual(expect.stringMatching(/smile$/))],
+  ['@bob', (shown: Array<string | null>) => expect(shown).toEqual(['bob'])],
+  ['#gen', (shown: Array<string | null>) => expect(shown).toEqual(['alpha #general'])],
+])('a command message splits before a later %s marker', async (tail, expectRows) => {
   const text = `/me ${tail}`
   const result = renderSuggestors(() => ({end: text.length, start: text.length}))
 
   typeText(result, text)
-  renderPopup(result)
+  await renderPopup(result)
 
-  expect(list().mock.calls.at(-1)?.[0].filter).toBe(filter)
+  expectRows(rows())
   expect(mockCommandsList).not.toHaveBeenCalled()
 })
 
-test('non-command text still splits on plain spaces', () => {
+test('non-command text still splits on plain spaces', async () => {
   const text = 'hello there @test'
   const result = renderSuggestors(() => ({end: text.length, start: text.length}))
 
   typeText(result, text)
-  renderPopup(result)
+  await renderPopup(result)
 
-  expect(mockUsersList).toHaveBeenCalled()
-  expect(mockUsersList.mock.calls.at(-1)?.[0].filter).toBe('test')
+  expect(rows()).toEqual(['testuser'])
 })
 
 // the command list filters on the snapshot, so it has to be the text the input shows
-test('a preview the input does not show leaves the command snapshot on what was typed', () => {
+test('a preview the input does not show leaves the command snapshot on what was typed', async () => {
   const text = '/gi'
   const result = renderSuggestors(() => ({end: text.length, start: text.length}), false)
   typeText(result, text)
-  renderPopup(result)
+  await renderPopup(result)
 
   act(() => {
     mockCommandsList.mock.calls.at(-1)?.[0].onSelected({description: '', hasHelpText: false, name: 'giphy', usage: ''}, false)
   })
-  renderPopup(result)
+  await renderPopup(result)
 
   expect(mockCommandsList.mock.calls.at(-1)?.[0].inputSnapshot.text).toBe('/gi')
 })

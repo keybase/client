@@ -96,3 +96,14 @@ test('no request while the chat session is not ready', async () => {
   await expect(getChatRpc().loadThread({conversationIDKey})).resolves.toBeUndefined()
   expect(fake.calls).toEqual([])
 })
+
+test('a held timer cleared after the release, before it runs, does not run', async () => {
+  const timers = holdHandlerTimers()
+  const ran = jest.fn()
+  const handle = setTimeout(ran, 0)
+  timers.release()
+  clearTimeout(handle)
+  await new Promise(resolve => setImmediate(resolve))
+  await new Promise(resolve => setTimeout(resolve, 5))
+  expect(ran).not.toHaveBeenCalled()
+})

@@ -1,11 +1,13 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import '@/test/viewport.desktop'
 import {act, cleanup, render} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import type {EmojiData} from '@/common-adapters/emoji'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {ListHandle} from './common'
 import {List} from './emoji'
 
@@ -24,19 +26,14 @@ const mockUserEmojis = (): Array<T.RPCChat.Emoji> => [
     teamname: 'testteam',
   },
 ]
-type MockSuggestionListProps = {items: Array<EmojiData>; selectedIndex: number}
-let mockListProps: MockSuggestionListProps | undefined
-jest.mock('./suggestion-list', () => ({
-  __esModule: true,
-  default: (p: MockSuggestionListProps) => {
-    mockListProps = p
-    return null
-  },
-}))
+
+// the suggestion rows on screen: each one's name, and which is highlighted
+const rows = () => [...document.querySelectorAll(`[data-testid^="${TestIDs.CHAT_SUGGESTION_ROW}"]`)]
+const names = () => rows().map(r => r.querySelector('.text_BodySmallSemibold')?.textContent)
+const selectedIndex = () => rows().findIndex(r => r.getAttribute('data-testid') === TestIDs.CHAT_SUGGESTION_ROW_SELECTED)
 
 afterEach(() => {
   cleanup()
-  mockListProps = undefined
   resetAllStores()
 })
 
@@ -58,11 +55,11 @@ test('two emoji with the same name do not trap the highlight', async () => {
     />
   )
   // the team's emoji arrive from the service after the stock ones are already listed
-  expect(mockListProps?.items.filter(e => e.short_name === 'smile')).toHaveLength(1)
+  expect(names().filter(n => n === 'smile')).toHaveLength(1)
   await flush()
   expect(fake.calls.map(c => c.method)).toEqual(['chat.1.local.userEmojis'])
-  const names = mockListProps?.items.map(e => e.short_name) ?? []
-  expect(names.filter(n => n === 'smile')).toHaveLength(2)
+  const shown = names()
+  expect(shown.filter(n => n === 'smile')).toHaveLength(2)
 
   const move = () => {
     act(() => handle?.move(false))
@@ -71,6 +68,6 @@ test('two emoji with the same name do not trap the highlight', async () => {
   move()
   move()
 
-  expect(mockListProps?.selectedIndex).toBe(3)
-  expect(onSelected.mock.calls.map(c => c[0].short_name)).toEqual(names.slice(1, 4))
+  expect(selectedIndex()).toBe(3)
+  expect(onSelected.mock.calls.map(c => c[0].short_name)).toEqual(shown.slice(1, 4))
 })

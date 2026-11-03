@@ -326,10 +326,14 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
   // Targets the route's own navigator: React Navigation hands an action to the focused navigator,
   // and SET_PARAMS never travels down from it, so under a modal a route in a tab stack is out of reach.
   const setRouteParams = (routeKey: string | undefined, params: object): boolean => {
-    if (!ref.isReady() || !routeKey) return false
-    const holder = NavTree.navigatorHoldingRoute(ref.getRootState(), routeKey)
-    if (!holder?.key) return false
-    ref.dispatch({...CommonActions.setParams(params), source: routeKey, target: holder.key})
+    if (!ref.isReady()) return false
+    const holder = routeKey ? NavTree.navigatorHoldingRoute(ref.getRootState(), routeKey) : undefined
+    // A navigator a reset just rebuilt has no key until it renders; the focused one gets it then.
+    ref.dispatch({
+      ...CommonActions.setParams(params),
+      source: routeKey,
+      ...(holder?.key ? {target: holder.key} : {}),
+    })
     return true
   }
 

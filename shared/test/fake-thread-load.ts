@@ -97,10 +97,15 @@ export const holdHandlerTimers = () => {
   }) as typeof clearTimeout)
   const release = () => {
     setSpy.mockRestore()
-    clearSpy.mockRestore()
-    for (const timer of held.splice(0)) {
+    for (const timer of held) {
       realSetTimeout(() => !timer.cancelled && timer.run(), 0)
     }
+    // a held handle can still be cleared until it has run; these real timers fire in order, so the
+    // spy comes off after the last held one
+    realSetTimeout(() => {
+      held.length = 0
+      clearSpy.mockRestore()
+    }, 0)
   }
   return {
     release,

@@ -20,8 +20,7 @@ import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {navigationWrapper} from '@/test/navigation'
-import {ConversationThreadProvider} from '../thread-context'
+import {threadWrapper} from '@/test/thread-tree'
 import Preview from './preview'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -31,14 +30,7 @@ const refreshParticipants = 'chat.1.local.refreshParticipants'
 let fake: FakeEngine
 
 const renderPreview = () => {
-  const Nav = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'}).wrapper
-  render(
-    <Nav>
-      <ConversationThreadProvider id={conversationIDKey}>
-        <Preview />
-      </ConversationThreadProvider>
-    </Nav>
-  )
+  render(<Preview />, {wrapper: threadWrapper(conversationIDKey).wrapper})
 }
 
 const click = async (label: string) => {

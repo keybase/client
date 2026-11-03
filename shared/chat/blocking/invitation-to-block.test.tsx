@@ -39,8 +39,8 @@ import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush} from '@/test/flush'
-import {navigationWrapper} from '@/test/navigation'
-import {ConversationThreadProvider, useConversationThreadActions} from '../conversation/thread-context'
+import {threadWrapper} from '@/test/thread-tree'
+import {useConversationThreadActions} from '../conversation/thread-context'
 import BlockButtons from './invitation-to-block'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -77,14 +77,12 @@ const ThreadActions = (p: {ownMessage: boolean}) => {
 }
 
 const renderBanner = async (opts?: {ownMessage?: boolean}) => {
-  const {wrapper: Nav} = navigationWrapper({params: {conversationIDKey}, route: 'chatRoot'})
   render(
-    <Nav>
-      <ConversationThreadProvider id={conversationIDKey}>
-        <ThreadActions ownMessage={!!opts?.ownMessage} />
-        <BlockButtons />
-      </ConversationThreadProvider>
-    </Nav>
+    <>
+      <ThreadActions ownMessage={!!opts?.ownMessage} />
+      <BlockButtons />
+    </>,
+    {wrapper: threadWrapper(conversationIDKey).wrapper}
   )
   // the block-buttons state the banner loads from gregor
   await flush()

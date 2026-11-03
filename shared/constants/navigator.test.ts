@@ -18,7 +18,15 @@ import {
   whenModalsGone,
 } from '@/constants/router'
 import {getNavigator, navigationRef} from '@/constants/navigator'
-import {installNavigation, makeRootState, stackKeyOf, type MountedNavigation} from '@/test/navigation'
+import {
+  installNavigation,
+  makeRootState,
+  renders,
+  rendersUntil,
+  routeByKey,
+  stackKeyOf,
+  type MountedNavigation,
+} from '@/test/navigation'
 
 let nav: MountedNavigation
 
@@ -26,20 +34,9 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-// The library emits 'state' after React renders the dispatch, on React's schedule.
-const until = async (cond: () => boolean) => {
-  for (let i = 0; i < 100 && !cond(); i++) {
-    await new Promise(resolve => setTimeout(resolve, 1))
-  }
-}
 // A screen covered from the first render (the tabs under a screen pushed above them) comes up a
 // render after the screen on top, as it would have mounted before that screen was pushed.
-const tabsUp = async () => until(() => !!nav.getRootState()?.routes?.[0]?.state)
-const rendersSettle = async () => {
-  for (let i = 0; i < 10; i++) {
-    await new Promise(resolve => setTimeout(resolve, 1))
-  }
-}
+const tabsUp = async () => rendersUntil(() => !!nav.getRootState()?.routes?.[0]?.state)
 
 const visible = () => nav.visibleScreen()
 const activeNames = () => NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)
@@ -147,7 +144,7 @@ describe('navigateAppend', () => {
 
   test('and so is one after the first has rendered', async () => {
     navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
-    await rendersSettle()
+    await renders()
     navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
 
     expect(nav.pushes()).toHaveLength(1)
@@ -174,7 +171,7 @@ describe('navigateAppend', () => {
   // visible-route dupe check miss on key count and push a second screen.
   test('the library keeps undefined-valued param keys, so a repeat push is still a dupe', async () => {
     navigateAppend({name: 'profile', params: {extra: undefined, username: 'testuser-mac'}} as never)
-    await rendersSettle()
+    await renders()
     navigateAppend({name: 'profile', params: {extra: undefined, username: 'testuser-mac'}} as never)
 
     expect(nav.pushes()).toHaveLength(1)
@@ -443,7 +440,7 @@ describe('setChatRootParams', () => {
     expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(true)
 
     expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
-    await until(() => visible()?.name === 'chatRoot')
+    await rendersUntil(() => visible()?.name === 'chatRoot')
     expect(visible()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
   })
 
@@ -467,7 +464,7 @@ describe('switchTab', () => {
     expect(nav.lastAction()).toMatchObject({payload: {name: Tabs.teamsTab}, target: tabs, type: 'JUMP_TO'})
     expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.teamsTab)
     // a tab's stack is in the tree once it has mounted
-    await until(() => visible()?.name === 'teamsRoot')
+    await rendersUntil(() => visible()?.name === 'teamsRoot')
     expect(visible()?.name).toBe('teamsRoot')
   })
 
@@ -495,7 +492,7 @@ describe('showAboveTabs', () => {
 
     expect(nav.lastAction()).toMatchObject({target: root, type: 'RESET'})
     expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: 'C'}})
-    await until(() => NavTree.currentTab(nav.getRootState()) !== undefined)
+    await rendersUntil(() => NavTree.currentTab(nav.getRootState()) !== undefined)
     expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
     expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: 'C'}})
   })
@@ -524,7 +521,7 @@ describe('navigateAppendOnceRootHas', () => {
     expect(nav.actions).toEqual([])
 
     nav.setLoggedIn(true)
-    await until(() => nav.pushes().length > 0)
+    await rendersUntil(() => nav.pushes().length > 0)
 
     expect(nav.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
     expect(visible()).toMatchObject({name: 'profile', params: {username: 'testuser'}})
@@ -538,7 +535,7 @@ describe('navigateAppendOnceRootHas', () => {
     navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 20)
 
     nav.setRootState(makeRootState())
-    await until(() => warn.mock.calls.length > 0)
+    await rendersUntil(() => warn.mock.calls.length > 0)
 
     expect(nav.pushes()).toEqual([])
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedIn never mounted, dropping profile'))
@@ -577,7 +574,7 @@ describe('whenModalsGone', () => {
     expect(NavTree.modalStack(nav.getRootState())).toEqual([])
     expect(cb).not.toHaveBeenCalled()
 
-    await until(() => cb.mock.calls.length > 0)
+    await rendersUntil(() => cb.mock.calls.length > 0)
     expect(cb).toHaveBeenCalledTimes(1)
   })
 })
@@ -593,20 +590,6 @@ test('navigate to a name below the current screen pushes a new one', () => {
 
   expect(activeNames()).toEqual(['chatRoot', 'profile', 'chatRoot'])
 })
-
-// ---- bugs the hand-written fake hid ----
-
-const routeByKey = (key: string): NavTree.Route | undefined => {
-  const find = (st?: NavTree.NavState): NavTree.Route | undefined => {
-    for (const r of (st?.routes ?? []) as ReadonlyArray<NavTree.Route>) {
-      if (r.key === key) return r
-      const inner = find(r.state as NavTree.NavState | undefined)
-      if (inner) return inner
-    }
-    return undefined
-  }
-  return find(nav.getRootState())
-}
 
 describe('found on the real library', () => {
   // Desktop and tablet keep the thread in the tab stack; React Navigation hands an action to the

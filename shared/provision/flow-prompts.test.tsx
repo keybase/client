@@ -7,7 +7,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle as settleTimers, tick} from '@/test/flush'
 import logger from '@/logger'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 
@@ -49,15 +49,7 @@ afterEach(() => {
 
 // What the service sent crosses IPC, the listener hands incoming calls to their handlers on a timer,
 // and a flow reading a dialog's events sees its end on another
-const settle = async () => {
-  await tick()
-  for (let i = 0; i < 2; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise(resolve => setTimeout(resolve, 0))
-    // eslint-disable-next-line no-await-in-loop
-    await tick()
-  }
-}
+const settle = async () => settleTimers(2)
 
 const startAttempt = async () => {
   const held = fake.hold(login)

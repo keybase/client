@@ -28,6 +28,7 @@ import {
   NavigationTree,
   installNavigation,
   makeRootState,
+  renders,
   uninstallNavigation,
   type InstalledNavigation,
 } from '@/test/navigation'
@@ -62,11 +63,6 @@ const mountLoggedOutThenLogIn = () => {
   flushSync(() => root.render(tree(false)))
   return {logIn: () => flushSync(() => root.render(tree(true)))}
 }
-const settleRender = async () => {
-  for (let i = 0; i < 5; i++) {
-    await new Promise<void>(resolve => setTimeout(resolve, 1))
-  }
-}
 const rootWarningId = () =>
   (navigationRef.getRootState()?.routes.find(r => r.name === 'recoverPasswordPgpWarning')?.params as
     | {id: number}
@@ -85,7 +81,7 @@ afterEach(async () => {
   // The navigator holds a push as in flight until the 'state' event after its commit, and drops an
   // identical push inside that window; let the commit land before the next test pushes the same screen.
   jest.useRealTimers()
-  await settleRender()
+  await renders(5)
   if (flippableRoot) {
     const root = flippableRoot
     flippableRoot = undefined
@@ -437,7 +433,7 @@ describe('pgp key warning', () => {
     expect(rootRouteNames()).toEqual(['loggedOut'])
 
     logIn()
-    await settleRender()
+    await renders(5)
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
     const id = rootWarningId()!
@@ -581,7 +577,7 @@ describe('pgp key warning', () => {
     expect(response.result).toHaveBeenCalledWith(false)
     jest.useRealTimers()
     logIn()
-    await settleRender()
+    await renders(5)
     expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 

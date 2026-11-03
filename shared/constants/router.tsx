@@ -169,8 +169,8 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
-// Free-function facade over the default Navigator. Every call site in the app goes
-// through these; the adapter underneath is what tests swap.
+// Free-function facade over the Navigator. Every call site in the app goes through these; tests run
+// them on the real library (test/navigation.tsx).
 export const clearModals = () => {
   getNavigator().clearModals()
 }

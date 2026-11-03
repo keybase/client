@@ -18,6 +18,13 @@ import {act} from '@testing-library/react'
 // node:timers because the jsdom environment does not put setImmediate on globalThis.
 export const tick = async () => new Promise<void>(resolve => setImmediate(resolve))
 
+// `n` microtask turns and nothing else: for promise chains that never touch a timer or the engine
+export const microtasks = async (n = 5) => {
+  for (let i = 0; i < n; i++) {
+    await Promise.resolve()
+  }
+}
+
 // Turns inside act(), so React commits what each one scheduled
 export const flush = async (turns = 4) => {
   for (let i = 0; i < turns; i++) {
@@ -30,8 +37,11 @@ export const flush = async (turns = 4) => {
 // Both are armed by microtasks a reply or push sets off, so those drain first: Node fires
 // equal-delay timers in creation order, so ours has to be created after theirs. Armed earlier, ours
 // can come due a millisecond before theirs and let the caller's check run ahead of them.
-export const settle = async () => {
-  await tick()
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
+// `passes` runs it that many times over, for a chain of hops that each arm the next.
+export const settle = async (passes = 1) => {
+  for (let i = 0; i < passes; i++) {
+    await tick()
+    await new Promise(resolve => setTimeout(resolve, 0))
+    await tick()
+  }
 }

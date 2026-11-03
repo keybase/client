@@ -55,13 +55,21 @@ export type Layout = 'desktop' | 'tablet' | 'phone'
 
 type NavigatorProps = Parameters<typeof useNavigationBuilder>[1]
 
-// Stand-in for native bottom tabs: a tab mounts once focused and stays mounted.
+// Stand-in for native bottom tabs (lazy): a tab mounts once it is focused and then stays mounted. A
+// tab that only had state written into it, never focused, is not mounted.
 function NativeTabsStandIn(props: NavigatorProps) {
   const {state, descriptors, render} = useNavigationBuilder(TabRouter, props)
+  const focusedKey = state.routes[state.index]?.key
+  const [visited, setVisited] = React.useState<ReadonlySet<string>>(() => new Set())
+  if (focusedKey && !visited.has(focusedKey)) {
+    setVisited(new Set([...visited, focusedKey]))
+  }
   return render(
     <>
-      {state.routes.map((r, i) =>
-        i === state.index || r.state ? <React.Fragment key={r.key}>{descriptors[r.key]?.render()}</React.Fragment> : null
+      {state.routes.map(r =>
+        r.key === focusedKey || visited.has(r.key) ? (
+          <React.Fragment key={r.key}>{descriptors[r.key]?.render()}</React.Fragment>
+        ) : null
       )}
     </>
   )
@@ -83,7 +91,7 @@ function Leaf({route}: {route: RouteProp<ParamListBase>}): React.ReactNode {
   return React.use(ScreenContentContext)(route)
 }
 
-export const tabsFor = (layout: Layout): ReadonlyArray<Tabs.AppTab> =>
+const tabsFor = (layout: Layout): ReadonlyArray<Tabs.AppTab> =>
   layout === 'desktop' ? Tabs.desktopTabs : layout === 'tablet' ? Tabs.tabletTabs : Tabs.phoneTabs
 
 const tabRootNames = new Set<string>(Object.values(NavTree.tabRoots))
@@ -170,7 +178,7 @@ function RootScreens({layout, loggedIn}: {layout: Layout; loggedIn: boolean}) {
   )
 }
 
-export type NavigationTreeProps = {
+type NavigationTreeProps = {
   layout: Layout
   loggedIn: boolean
   initialState?: NavTree.NavState
@@ -205,7 +213,7 @@ export function NavigationTree(p: NavigationTreeProps) {
 }
 
 // What the app dispatched through navigationRef, in order.
-export type RecordedAction = {
+type RecordedAction = {
   type: string
   payload?: Record<string, unknown>
   target?: string
@@ -250,7 +258,7 @@ export type MountedNavigation = InstalledNavigation & {
 
 let mounted: {root: Root; host: HTMLElement} | undefined
 
-export type InstallNavigationOptions = {
+type InstallNavigationOptions = {
   rootState?: NavTree.NavState
   layout?: Layout
   // What a route's screen renders. Defaults to nothing.
@@ -259,7 +267,7 @@ export type InstallNavigationOptions = {
   ready?: boolean
 }
 
-// Mounts the tree in its own root. For a component under test, use renderInNavigation instead, which
+// Mounts the tree in its own root. For a component under test, use navigationWrapper instead, which
 // renders that component as a route of the same tree.
 export const installNavigation = (p?: InstallNavigationOptions): MountedNavigation => {
   uninstallNavigation()
@@ -411,12 +419,11 @@ const routeOf = (r: RouteSpec, suffix: string) => ({
   ...(r.params ? {params: r.params} : {}),
 })
 
-// The navigator key of the stack a route is in, read from the library's state.
-export const stackKeyOf = (routeName: string): string | undefined => {
-  const find = (s?: NavTree.NavState): string | undefined => {
-    if (!s?.routes) return undefined
-    for (const r of s.routes as ReadonlyArray<NavTree.Route>) {
-      if (r.name === routeName) return s.key
+// The first route in the library's state that `match` picks, and the key of the stack it is in.
+const findRoute = (match: (r: NavTree.Route) => boolean) => {
+  const find = (s?: NavTree.NavState): {route: NavTree.Route; stackKey?: string} | undefined => {
+    for (const r of (s?.routes ?? []) as ReadonlyArray<NavTree.Route>) {
+      if (match(r)) return {route: r, stackKey: s?.key}
       const inner = find(r.state as NavTree.NavState | undefined)
       if (inner) return inner
     }
@@ -424,6 +431,21 @@ export const stackKeyOf = (routeName: string): string | undefined => {
   }
   return find(navigationRef.isReady() ? (navigationRef.getRootState() as NavTree.NavState) : undefined)
 }
+
+// The navigator key of the stack a route is in, read from the library's state.
+export const stackKeyOf = (routeName: string) => findRoute(r => r.name === routeName)?.stackKey
+
+export const routeByKey = (key: string) => findRoute(r => r.key === key)?.route
+
+// The library emits 'state' and mounts screens after React renders a dispatch, on React's schedule:
+// under jsdom that is a 1ms timer, so these wait in real 1ms turns. rendersUntil stops once `cond`
+// holds; renders waits out a fixed number of turns, for a check that nothing (more) happens.
+export const rendersUntil = async (cond: () => boolean, turns = 100) => {
+  for (let i = 0; i < turns && !cond(); i++) {
+    await new Promise(resolve => setTimeout(resolve, 1))
+  }
+}
+export const renders = async (turns = 10) => rendersUntil(() => false, turns)
 
 // A tree whose visible route is `route`: a modal goes above the tabs, a phone's non-root screen goes
 // above the tabs, and anything else goes on top of `tab`'s stack.

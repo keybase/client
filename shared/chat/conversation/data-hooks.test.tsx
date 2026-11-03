@@ -11,19 +11,13 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {answerThreadLoads, getThreadNonblock, holdHandlerTimers, paramsOf, threadLoaded} from '@/test/fake-thread-load'
-import {flush, settle} from '@/test/flush'
+import {flush, microtasks, settle} from '@/test/flush'
 import logger from '@/logger'
 import {getConversationClientPrev} from './client-prev'
 import {useConversationExplodingMode, useConversationMessage} from './data-hooks'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const messageID = (n: number) => T.Chat.numberToMessageID(n)
-
-const flushPromises = async () => {
-  for (let i = 0; i < 10; i++) {
-    await Promise.resolve()
-  }
-}
 
 const setMeta = (over: Partial<T.Chat.ConversationMeta>) => {
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, ...over}], undefined, {force: true})
@@ -121,7 +115,7 @@ describe('useConversationMessage', () => {
   const waitForLoad = async () => {
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 0))
-      await flushPromises()
+      await microtasks(10)
     })
     await flush()
     // the full pass's handler timer, then the service's answer and the hops back
@@ -207,7 +201,7 @@ describe('useConversationMessage', () => {
     expect(load()).toHaveLength(1)
     await act(async () => {
       routeChatNotification(events[event])
-      await flushPromises()
+      await microtasks(10)
     })
     await waitForLoad()
     return load().length - 1
@@ -295,7 +289,7 @@ describe('useConversationMessage', () => {
       expect(result.current?.type === 'text' ? result.current.replyTo?.id : undefined).toBe(messageID(15))
       await act(async () => {
         routeChatNotification(event)
-        await flushPromises()
+        await microtasks(10)
       })
       await waitForLoad()
       return load().length - 1
@@ -390,7 +384,7 @@ describe('useConversationMessage', () => {
         payload: {params: {convID: T.Chat.keyToConversationID(conversationIDKey), msgID: 20}},
         type: 'chat.1.NotifyChat.ChatAttachmentDownloadComplete',
       } as never)
-      await flushPromises()
+      await microtasks(10)
     })
     expect(load()).toHaveLength(2)
     await waitForLoad()

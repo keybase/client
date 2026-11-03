@@ -1,36 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import * as T from '@/constants/types'
-
-// each button's first onClick (the wave button's onWave, as 'Wave'): the handler a screen kept
-// through an account switch still holds
-const mockFirstOnClick = new Map<string, () => void>()
-// the card's team avatar needs the local http server, which a test does not run
-jest.mock('@/common-adapters', () => {
-  const actual = jest.requireActual<{
-    Button: React.ComponentType<{label?: string; onClick?: () => void}>
-    WaveButton: React.ComponentType<{onWave: () => void}>
-  }>('@/common-adapters')
-  const R = jest.requireActual<typeof React>('react')
-  return {
-    ...actual,
-    Avatar: () => null,
-    Button: (p: {label?: string; onClick?: () => void}) => {
-      if (p.label && p.onClick && !mockFirstOnClick.has(p.label)) {
-        mockFirstOnClick.set(p.label, p.onClick)
-      }
-      return R.createElement(actual.Button, p)
-    },
-    WaveButton: (p: {onWave: () => void}) => {
-      if (!mockFirstOnClick.has('Wave')) {
-        mockFirstOnClick.set('Wave', p.onWave)
-      }
-      return R.createElement(actual.WaveButton, p)
-    },
-  }
-})
-
 import * as Meta from '@/constants/chat/meta'
 import {useEffect} from 'react'
 import {makeMessageJourneycard} from '@/constants/chat/message'
@@ -92,7 +62,6 @@ const click = async (text: string) => {
 }
 
 beforeEach(() => {
-  mockFirstOnClick.clear()
   fake = installFakeEngine()
   // the teams list the app's provider loads, with the one team this card is in
   fake.answer('keybase.1.teams.teamListUnverified', () => ({
@@ -163,7 +132,8 @@ test('the welcome card publishes the team on your profile once the teams list sa
   expect(paramsOf(fake, setShowcase)).toEqual([{isShowcased: true, teamID}])
 })
 
-// an account switch keeps the screen up until the provider rebuilds its thread for the next account
+// an account switch retires the thread at once, but the screen stays up until React rebuilds it for
+// the next account: a click landing in between reaches the old card's button
 describe('a welcome card whose thread has retired', () => {
   test('waves nothing', async () => {
     await renderCard()
@@ -174,10 +144,7 @@ describe('a welcome card whose thread has retired', () => {
         uid: 'uid2',
         username: 'testuser2',
       })
-    })
-    expect(mockFirstOnClick.has('Wave')).toBe(true)
-    act(() => {
-      mockFirstOnClick.get('Wave')?.()
+      fireEvent.click(screen.getByText('Wave'))
     })
     await flush()
     expect(paramsOf(fake, postText)).toEqual([])

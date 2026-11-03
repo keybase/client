@@ -1,10 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Tabs from './tabs'
-import * as NavTree from './nav-tree'
 import {settingsDevicesTab} from './settings'
 import {handleAppLink} from './deeplinks'
-import {installNavigation, makeRootState, type Layout, type MountedNavigation} from '@/test/navigation'
+import {switchTab} from './router'
+import {
+  installNavigation,
+  makeRootState,
+  renders,
+  rendersUntil,
+  type Layout,
+  type MountedNavigation,
+} from '@/test/navigation'
 
 let nav: MountedNavigation
 
@@ -18,35 +25,18 @@ const withIsMobile = (isMobile: boolean, f: () => void) => {
   }
 }
 
-// The tree as it stands when a link arrives: chat's tab root showing, nothing above it.
-// The native tab navigator mounts a tab on first focus, so `visited` tabs start with their stacks
-// up. The desktop one mounts every tab, each in a hidden Activity that React renders after the
+// The tree as it stands when a link arrives: chat's tab root showing, nothing above it, having
+// visited `visited` first, as a user does. The native tab navigator mounts a tab once it has been
+// focused. The desktop one mounts every tab, each in a hidden Activity that React renders after the
 // visible tab, so a desktop app is settled once every tab's stack has come up.
-const atChat = (layout: Layout, visited: ReadonlyArray<Tabs.AppTab> = []) => {
-  const base = makeRootState({tab: Tabs.chatTab}) as {routes: Array<NavTree.Route>}
-  const loggedIn = base.routes[0]!
-  const tabs = loggedIn.state as {index: number; routes: Array<object>}
-  const rootState = {
-    ...base,
-    routes: [
-      {
-        ...loggedIn,
-        state: {
-          ...tabs,
-          routes: [
-            ...tabs.routes,
-            ...visited.map(tab => ({
-              key: tab,
-              name: tab,
-              state: {index: 0, routes: [{key: `${NavTree.tabRoots[tab]}-0`, name: NavTree.tabRoots[tab]}]},
-            })),
-          ],
-        },
-      },
-      ...base.routes.slice(1),
-    ],
-  } as NavTree.NavState
-  nav = installNavigation({layout, rootState})
+const atChat = async (layout: Layout, visited: ReadonlyArray<Tabs.AppTab> = []) => {
+  nav = installNavigation({layout, rootState: makeRootState({tab: Tabs.chatTab})})
+  for (const tab of visited) {
+    switchTab(tab)
+    await renders()
+  }
+  switchTab(Tabs.chatTab)
+  await renders()
 }
 
 const tabStacksUp = () => {
@@ -55,10 +45,8 @@ const tabStacksUp = () => {
 }
 
 const atChatOnDesktop = async () => {
-  atChat('desktop')
-  for (let i = 0; i < 50 && !tabStacksUp(); i++) {
-    await new Promise(resolve => setTimeout(resolve, 1))
-  }
+  await atChat('desktop')
+  await rendersUntil(tabStacksUp, 50)
   expect(tabStacksUp()).toBe(true)
 }
 
@@ -91,8 +79,8 @@ test('a devices link opens the devices tab on desktop', async () => {
 // at a tab root on a phone is the Settings tab stack, where the route does not exist.
 // The tablet case starts with Settings already visited: from a never-visited Settings tab the push
 // is not handled (the tab's stack is not mounted yet when it is dispatched).
-test.each<Layout>(['phone', 'tablet'])('a devices link shows the devices screen on a %s', layout => {
-  atChat(layout, layout === 'tablet' ? [Tabs.settingsTab] : [])
+test.each<Layout>(['phone', 'tablet'])('a devices link shows the devices screen on a %s', async layout => {
+  await atChat(layout, layout === 'tablet' ? [Tabs.settingsTab] : [])
   withIsMobile(true, () => {
     handleAppLink('keybase://devices')
   })
@@ -100,8 +88,8 @@ test.each<Layout>(['phone', 'tablet'])('a devices link shows the devices screen 
   expect(nav.visibleScreen()?.name).toBe(settingsDevicesTab)
 })
 
-test('on a phone the devices screen sits on the root stack above the tabs', () => {
-  atChat('phone')
+test('on a phone the devices screen sits on the root stack above the tabs', async () => {
+  await atChat('phone')
   withIsMobile(true, () => {
     handleAppLink('keybase://devices')
   })

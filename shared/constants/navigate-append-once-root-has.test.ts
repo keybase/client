@@ -4,7 +4,7 @@
 // the logged-out stack, mounted by the session logging out.
 import logger from '@/logger'
 import {navigateAppend, navigateAppendOnceRootHas, navigateUp} from '@/constants/router'
-import {installNavigation, makeRootState, type MountedNavigation} from '@/test/navigation'
+import {installNavigation, makeRootState, renders, rendersUntil, type MountedNavigation} from '@/test/navigation'
 
 let nav: MountedNavigation
 
@@ -12,12 +12,6 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-const until = async (cond: () => boolean) => {
-  for (let i = 0; i < 100 && !cond(); i++) {
-    await new Promise(resolve => setTimeout(resolve, 1))
-  }
-}
-const rendersSettle = async () => until(() => false)
 
 const usernamePush = (username: string) => ({name: 'username', params: {username}})
 const pushesOfUsername = () => nav.pushes().filter(p => p.name === 'username')
@@ -39,16 +33,16 @@ test('waits for the root route to mount, then pushes once', async () => {
 
   // a state change that does not mount the group
   navigateAppend({name: 'profile', params: {username: 'testuser-mac'}})
-  await rendersSettle()
+  await renders(100)
   expect(pushesOfUsername()).toEqual([])
 
   nav.setLoggedIn(false)
-  await until(() => pushesOfUsername().length > 0)
+  await rendersUntil(() => pushesOfUsername().length > 0)
   expect(pushesOfUsername()).toEqual([usernamePush('testuser')])
   expect(nav.visibleScreen()).toMatchObject(usernamePush('testuser'))
 
   navigateUp()
-  await rendersSettle()
+  await renders(100)
   expect(pushesOfUsername()).toHaveLength(1)
 })
 
@@ -57,11 +51,11 @@ test('gives up if the root route does not mount before the timeout', async () =>
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
 
   navigateAppendOnceRootHas('loggedOut', usernamePush('testuser') as never, 20)
-  await until(() => warn.mock.calls.length > 0)
+  await rendersUntil(() => warn.mock.calls.length > 0)
   expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedOut never mounted, dropping username'))
 
   nav.setLoggedIn(false)
-  await rendersSettle()
+  await renders(100)
   expect(nav.pushes()).toEqual([])
   expect(nav.visibleScreen()?.name).toBe('login')
 })

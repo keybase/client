@@ -2,9 +2,12 @@
 import type {CodegenTypes} from 'react-native'
 import type {Spec} from 'react-native-kb/src/NativeKb'
 
-// The Kb TurboModule is the native edge. realKb runs react-native-kb's own JS wrapper
-// (rnmodules/react-native-kb/src/index.tsx) over this fake, so its logic (subscription removal,
-// the paste-image refcount, the platform gates on Platform.OS) runs as it does in the app.
+// The Kb TurboModule is the native edge. realKb runs react-native-kb's own JS wrapper over this fake,
+// so its logic (subscription removal, the paste-image refcount, the platform gates on Platform.OS)
+// runs as it does in the app. The wrapper is the copy in shared/node_modules/react-native-kb, the one
+// the app builds: after an edit in rnmodules/react-native-kb, run `yarn sync:kb-modules` first.
+// Subscriptions live as long as the test file's modules, as in the app, where the code under test
+// subscribes as it loads.
 //
 //   jest.mock('react-native-kb', () => require('@/test/fake-native-kb').realKb())
 //   import {fakeNativeKb} from '@/test/fake-native-kb'

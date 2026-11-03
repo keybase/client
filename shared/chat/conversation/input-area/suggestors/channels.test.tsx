@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import '@/test/viewport.desktop'
 import {cleanup, render} from '@testing-library/react'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
@@ -9,17 +10,8 @@ import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {installFakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {List} from './channels'
-
-type MockSuggestionListProps = {items: Array<unknown>}
-let mockListProps: MockSuggestionListProps | undefined
-jest.mock('./suggestion-list', () => ({
-  __esModule: true,
-  default: (p: MockSuggestionListProps) => {
-    mockListProps = p
-    return null
-  },
-}))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
@@ -36,6 +28,10 @@ const makeChannelRow = (
   },
   state: T.RPCChat.UIInboxBigTeamRowTyp.channel,
 })
+
+// the suggestion rows on screen, by what each reads
+const rows = () =>
+  [...document.querySelectorAll(`[data-testid^="${TestIDs.CHAT_SUGGESTION_ROW}"]`)].map(r => r.textContent)
 
 const renderChannels = () =>
   render(
@@ -83,7 +79,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetAllStores()
-  mockListProps = undefined
 })
 
 test('channel suggestions load mutual teams when the suggestor mounts', async () => {
@@ -95,7 +90,7 @@ test('channel suggestions load mutual teams when the suggestor mounts', async ()
 
   expect(held.map(c => c.params as unknown)).toEqual([expect.objectContaining({usernames: ['bob', 'carol']})])
   // nothing to suggest until the service says which teams are shared
-  expect(mockListProps?.items).toEqual([])
+  expect(rows()).toEqual([])
 
   held[0]?.reply({
     offline: false,
@@ -106,8 +101,5 @@ test('channel suggestions load mutual teams when the suggestor mounts', async ()
   })
   await flush()
 
-  expect(mockListProps?.items).toEqual([
-    {channelname: 'general', teamname: 'alpha'},
-    {channelname: 'random', teamname: 'beta'},
-  ])
+  expect(rows()).toEqual(['alpha #general', 'beta #random'])
 })

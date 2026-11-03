@@ -53,11 +53,7 @@ const textAt = (n: number, over?: Partial<T.Chat.MessageText>, id = convA) =>
   })
 
 // a round trip to the service, and a load's streams reaching their handlers
-const flushPromises = async () => {
-  for (let i = 0; i < 3; i++) {
-    await settle()
-  }
-}
+const flushPromises = async () => settle(3)
 
 // what the store asked has crossed to the service; real hops, so this works under fake timers too
 const sent = async () => {
