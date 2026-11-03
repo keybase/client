@@ -5,7 +5,7 @@
 // - check: the second peer takes the new password (passphraseCheck, which only compares), and the
 //   phone still keeps a stored secret for the second account and switches to it with no prompt;
 // - repair: the phone only, signing the second account in with the new password from its login screen.
-// The host's main service is never switched here (controller ruling, PR 7 live): right after a change
+// The host's main service is never switched here: right after a change
 // made on the phone, the host's login switch deadlocks in a logout hook, so whether the host's stored
 // secret for the second account survived is left to the owner (the manual-only edge
 // second-password-host-check, manual-only.ts). A peer that does not

@@ -11,10 +11,10 @@ const resetStart = 'owner: excluded (account reset start and cancel)'
 
 // the phone's crypto screens take text only: crypto/input.tsx draws the file picker only on desktop
 // (`!isMobile && browseButton`), and crypto/output.tsx offers "Save as TXT" only on desktop
-const cryptoTextOnly = 'the phone encrypts, decrypts, signs and verifies text only (ruling): crypto/input.tsx draws no file picker on mobile and crypto/output.tsx offers no "Save as TXT" there'
+const cryptoTextOnly = 'the phone encrypts, decrypts, signs and verifies text only: crypto/input.tsx draws no file picker on mobile and crypto/output.tsx offers no "Save as TXT" there'
 // the wallet (stellar payments were dropped from the app; a wallet account is never made by the gate)
 const walletRemove = 'needs a stellar wallet account to remove, and removing one cannot be undone; the gate makes none (wallets/index.tsx opens removeAccount, then reallyRemoveAccount)'
-// the Backup page's whole-account backups (controller ruling, PR 7 live)
+// the Backup page's whole-account backups
 const backupAll =
   "manual-only: backup-all (a whole-account backup copies every folder and repo of the account onto the phone, non-test teams' too, and the phone's backup status lists only some of the jobs it starts, so they cannot all be proven cancelled and removed)"
 

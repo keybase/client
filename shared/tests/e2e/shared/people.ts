@@ -57,7 +57,7 @@ export const setFollowSecondFromCli = async (want: boolean) => {
 const uidPattern = /^[0-9a-f]{32}$/
 
 // The uid in a `keybase apicall user/lookup` answer for one user (fields=basics); it must parse.
-export const lookedUpUid = (out: string) => {
+const lookedUpUid = (out: string) => {
   const parsed: unknown = JSON.parse(out)
   const them = (parsed as {them?: {id?: unknown}} | null)?.them
   const id = them?.id
