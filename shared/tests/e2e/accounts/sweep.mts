@@ -16,6 +16,7 @@
 // deletes, rejecting with the signal's reason.
 import {spawn} from 'child_process'
 import * as fs from 'fs'
+import * as path from 'path'
 import {pathToFileURL} from 'url'
 import {parseArgs} from 'util'
 import {checkNotProtectedPaperKey, protectedPaperKeyIn} from './device-targets.ts'
@@ -29,6 +30,7 @@ import {
   revokeWithHomeStopped,
   serviceProcessesFor,
   stopPeerHomeService,
+  stopProvisionHome,
 } from './peer-homes.ts'
 import {
   candidateKey,
@@ -39,6 +41,7 @@ import {
   maskAccounts,
   parseKbfsLs,
   selectSweepTargets,
+  staleRunIds,
   type SweepAccount,
   type SweepCandidate,
   type SweepKind,
@@ -83,6 +86,8 @@ export type SweepResult = {
   notes: Array<string>
   // a listing or a delete that failed, each naming what it was
   errors: Array<string>
+  // the provisioning homes earlier runs left, removed
+  homes: Array<string>
 }
 
 const rpcTimeoutMs = 30_000
@@ -411,6 +416,24 @@ const retireProvisioned = async (actor: Actor, c: SweepCandidate, env: E2EEnv) =
   })
 }
 
+// Removes every provisioning home an earlier run left (staleRunIds), whether or not it made
+// a device: a login cut off before the phone approved it makes none, and leaves the QR of its phrase
+// in the home's tmp. A device it did make was retired above, as a listed device; one whose retire
+// failed is still revoked by a later sweep with its home gone (revokeWithHomeStopped).
+const removeStaleProvisionHomes = async (currentRunId: string, before: number, result: SweepResult) => {
+  const root = path.dirname(provisionHomeFor(currentRunId))
+  for (const runId of staleRunIds(fs.existsSync(root) ? fs.readdirSync(root) : [], 'prov-', currentRunId, before)) {
+    const home = provisionHomeFor(runId)
+    try {
+      await stopProvisionHome(home)
+      fs.rmSync(home, {recursive: true})
+      result.homes.push(home)
+    } catch (e) {
+      result.errors.push(`${home}: not removed: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+}
+
 const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv) => {
   switch (c.kind) {
     case 'channel': {
@@ -568,7 +591,7 @@ export const sweep = async (
 ): Promise<SweepResult> => {
   const {signal} = opts
   await requireMainIsSmoke(env)
-  const result: SweepResult = {deleted: [], errors: [], kept: [], listOnly: [], notes: [], wouldDelete: []}
+  const result: SweepResult = {deleted: [], errors: [], homes: [], kept: [], listOnly: [], notes: [], wouldDelete: []}
   const main = mainActor(env)
   const ctx: SweepContext = {
     before: opts.before,
@@ -616,6 +639,7 @@ export const sweep = async (
     result.errors.push(...after.errors.map(e => `re-checking deletes: ${e}`))
     for (const c of after.left) result.errors.push(`${describeCandidate(c)}: still there ${recheckMs / 1000}s after its delete`)
   }
+  if (!opts.dryRun) await removeStaleProvisionHomes(opts.runId, opts.before, result)
   // a run that died before its secret scan left its paper key names; the ledger has its keys
   if (!opts.dryRun) forgetStalePaperKeyNames(opts.runId, opts.before)
   return result
@@ -629,6 +653,7 @@ export const formatSweep = (r: SweepResult, env: E2EEnv, dryRun: boolean) => {
     for (const row of rows) lines.push(`  ${mask(row)}`)
   }
   block(dryRun ? 'would delete' : 'deleted', (dryRun ? r.wouldDelete : r.deleted).map(describeCandidate))
+  if (!dryRun) block('removed homes', r.homes)
   block('listed, not deleted', r.listOnly.map(n => `${describeCandidate(n.candidate)}: ${n.reason}`))
   // messages kept are many (seeded history, this run's): counted per account and reason
   const keptMessages = new Map<string, number>()
