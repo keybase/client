@@ -5,21 +5,32 @@
 // service's stored secret for the second account works, and changes nothing when it does not: that
 // needs the owner. The password is never printed.
 //
-// --check only runs that check.
+// --check only runs that check, after settling a KB_SECOND_PASSWORD_NEXT a change left pending (the
+// second peer says which password the server holds; that one becomes KB_SECOND_PASSWORD).
 //
 // The check switches the main service (and the app on it) to the second account and back, so run
 // this only while no flow is running.
 import {parseArgs} from 'util'
-import {loadE2EEnv, refuseWhileSecondPasswordChangePending} from './env.ts'
+import {defaultEnvPath, loadE2EEnv, refuseWhileSecondPasswordChangePending} from './env.ts'
 import {withSignalsDeferred} from './peer-homes.ts'
 import {ensureRunId} from './run-id.ts'
-import {checkSecondSecretSurvives, rotateSecondPassword, sayMasked, setSecondPasswordViaPeer} from './second-password-lib.ts'
+import {
+  checkSecondSecretSurvives,
+  rotateSecondPassword,
+  sayMasked,
+  setSecondPasswordViaPeer,
+  settlePendingSecondPassword,
+} from './second-password-lib.ts'
 import {mainWhoami, requireMainIsSmoke, runKeybaseDetached} from '../shared/peer-service.ts'
 
 const say = (s: string) => sayMasked(`[second-password] ${s}`)
 
 const run = async () => {
   const {values} = parseArgs({options: {check: {type: 'boolean'}}})
+  if (values.check) {
+    const settled = await settlePendingSecondPassword(loadE2EEnv(), defaultEnvPath())
+    if (settled !== 'none') say(`KB_SECOND_PASSWORD_NEXT was pending: ${settled === 'promoted' ? 'the server holds it, so it is now KB_SECOND_PASSWORD' : 'the server holds KB_SECOND_PASSWORD, so it was dropped'}`)
+  }
   const env = loadE2EEnv()
   // before the check switches accounts; rotateSecondPassword refuses again just before it writes
   if (!values.check) refuseWhileSecondPasswordChangePending(env)

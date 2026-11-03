@@ -176,6 +176,7 @@ const TextInput = (props: TextProps) => {
           spellCheck={textInputType !== 'cipher'}
           onChangeText={onChangeText}
           ref={inputRef}
+          testID={TestIDs.CRYPTO_TEXT_INPUT}
         />
         {!isMobile && browseButton}
       </Kb.Box2>

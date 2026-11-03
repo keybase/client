@@ -118,6 +118,7 @@ const LockdownCheckbox = (p: {
       checked={checked}
       disabled={disabled}
       onCheck={setLockdownMode}
+      testID={TestIDs.settingTestID(TestIDs.SETTINGS_LOCKDOWN_SWITCH, checked, disabled || lockdownModeEnabled === undefined)}
       labelComponent={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
@@ -254,6 +255,7 @@ const Advanced = () => {
                   </Kb.Box2>
                 }
                 onCheck={onChangeRememberPassword}
+                testID={TestIDs.SETTINGS_REMEMBER_PASSWORD_SWITCH}
               />
             )}
             {C.isLinux ? <UseNativeFrame /> : null}

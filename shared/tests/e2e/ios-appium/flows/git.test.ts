@@ -52,7 +52,7 @@ describe('git', function () {
   //   host      a retried host read (readBack) of the CLI 255 (four of 60);  polled  30s of reads,
   //             overrun by one read: of the CLI 285
   //   subteam   makeOwnSubteamWithID 915 (600 and the id read 315);  seed  makeSubteamChannel 510
-  //   app       requireAppIsSmoke 15;  git  openGit 90 (escapeToTabs 30, the More tab 15, the row 25,
+  //   app       requireAppIsSmoke 15;  git  openGit 119 (escapeToTabs 30, the More tab 15, the row 54,
   //             the screen 11, the list 5, slack 4)
   //   team      openTeamFromList: 60s of tries, overrun by one 109 = 169
   //   screen    a screen waited for 11 (10, read 1);  pin  requireOnSubteam 1
@@ -170,10 +170,10 @@ describe('git', function () {
   const announceCount = async () => (await browser.$$(`~${T.GIT_REPO_ANNOUNCE}`).getElements()).length
 
   it('a personal repo made, its clone URL copied, and deleted', async function () {
-    // worst case (s): app 15, host 255, git 90, new repo 52, field 11, fill 26, step 2, calls 2,
+    // worst case (s): app 15, host 255, git 119, new repo 52, field 11, fill 26, step 2, calls 2,
     // button 6, waited for 12, screen 11, polled 285, row 31, its tap 1, filler 50, the button 10 and
     // its tap 1, pasteboard 40, filler 50, step 2, button 6, screen 11, field 11, fill 26, step 2,
-    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1327
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 1356
     this.timeout(1_400_000)
     await requireAppIsSmoke()
     const repo = personalRepo()
@@ -222,13 +222,13 @@ describe('git', function () {
   })
 
   it('a team repo made in a subteam, announced in a channel, its announcements turned off, and deleted', async function () {
-    // worst case (s): app 15, subteam 600 and its id 315, seed 510, host 255, team 169, git 90, new repo 52, the
+    // worst case (s): app 15, subteam 600 and its id 315, seed 510, host 255, team 169, git 119, new repo 52, the
     // dropdown 12 (its wait 10, the press 2), pick 31 and its tap 2, picked 6, field 11, fill 26, notify 16,
     // step 2, calls 2, button 6, waited for 12, screen 11, polled 285, chat 255, row 31, its tap 1,
     // announce 11, link 16 and its tap 1, screen 11, channel 6 and its tap 1, step 2, pin 1, calls 2,
     // button 6, waited for 12, polled 285, screen 11, link 16, step 2, count 1, calls 2, its tap 1,
     // waited for 12, polled 285, step 2, button 6, screen 11, notify 16, field 11, fill 26, step 2,
-    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3792
+    // pin 1, calls 2, button 6, waited for 12, screen 11, polled 285, step 2 = 3821
     this.timeout(4_000_000)
     await requireAppIsSmoke()
     const {name, teamID} = await makeOwnSubteamWithID('git', madeNames)

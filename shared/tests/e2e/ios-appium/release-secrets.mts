@@ -6,13 +6,14 @@ import {errText} from '../shared/gate/release-run.mts'
 import {scanAndPurge} from '../shared/gate/secret-scan.ts'
 
 // Scans everything under `dirs` for `secrets()` (the run's ledger, or the env file's values when
-// the run stopped before starting one), deletes each file that holds one and logs it. A hit, or a scan
+// the run stopped before starting one) and for saltpack armor (the crypto flows), deletes each file
+// that holds one and logs it. A hit, or a scan
 // that could not run, fails the run's secrets phase, which this returns.
 export const scanResults = (dirs: ReadonlyArray<string>, secrets: () => ReadonlyArray<string>, log: (s: string) => void): Phase => {
   const start = Date.now()
   let p: Omit<Phase, 'ms' | 'name'>
   try {
-    const scan = scanAndPurge(dirs, secrets())
+    const scan = scanAndPurge(dirs, secrets(), {armor: true})
     for (const f of scan.hits) log(`secret found, deleted: ${f}`)
     p = {line: scan.line, ok: !scan.hits.length}
   } catch (e) {

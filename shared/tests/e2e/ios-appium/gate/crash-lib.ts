@@ -5,7 +5,8 @@
 // The root hooks (hooks.ts) call recover() at a test's end and before the next test. An app that is
 // gone is relaunched (the hang watch's relaunch) and read back on the smoke account, and the newest
 // crash report the app wrote since it was last seen running names the crash. A relaunch or read-back
-// that fails stops the gate: every later recover() refuses with why.
+// that fails stops the gate (deps.stop poisons it, so every later test is refused), and no recover()
+// tries again while it is stopped.
 
 export type CrashReport = {path: string; mtimeMs: number}
 
@@ -17,6 +18,10 @@ export type CrashDeps = {
   relaunch: () => Promise<void>
   // waits for the relaunched app to settle and throws unless it is on the smoke account, bounded
   smoke: () => Promise<void>
+  // the gate could not bring the app back: every later test is refused until it is back
+  stop: () => void
+  // whether the gate is stopped for the app (an earlier stop that nothing has cleared)
+  stopped: () => boolean
   log: (line: string) => void
   now: () => number
   sleep: (ms: number) => Promise<void>
@@ -37,7 +42,6 @@ export const makeCrashRecovery = (deps: CrashDeps, runStart: number) => {
   // when the app was last seen running: a crash after it writes its report after it
   let upAt = runStart
   const claimed = new Set<string>()
-  let stopped: string | undefined
   let inFlight: Promise<string | undefined> | undefined
 
   const newestReport = () =>
@@ -72,28 +76,27 @@ export const makeCrashRecovery = (deps: CrashDeps, runStart: number) => {
       await relaunch(deps.relaunch)
       await deps.smoke()
     } catch (e) {
-      stopped =
-        `stopping the gate: the app was gone${report ? ` (its crash report: ${report})` : ''} and bringing it back failed: ${message(e)}; ` +
-        'launch the Keybase app on the simulator, check it shows the smoke account, and run the gate again'
-      deps.log(stopped)
-      throw new Error(stopped, {cause: e})
+      const why = `stopping the gate: the app was gone${report ? ` (its crash report: ${report})` : ''} and bringing it back failed: ${message(e)}`
+      deps.log(why)
+      deps.stop()
+      return why
     }
     upAt = deps.now()
     return report ? crashMessage(report) : GONE_MESSAGE
   }
 
   return {
-    // Brings a gone app back, and says why it was gone; undefined when it was running (or, with
-    // `crashOnly`, gone without a crash report). Throws once the gate has stopped. A call while one
-    // runs waits for it and gets its answer, unless that one left a gone app for a call without
-    // `crashOnly`. `relaunch` runs the relaunch (inside the attempt, when one is open, so its
-    // recording moves to the new runtime).
+    // Brings a gone app back, and says why it was gone, or that bringing it back failed and stopped
+    // the gate; undefined when it was running (or, with `crashOnly`, gone without a crash report), and
+    // while the gate is stopped. A call while one runs waits for it and gets its answer, unless that
+    // one left a gone app for a call without `crashOnly`. `relaunch` runs the relaunch (inside the
+    // attempt, when one is open, so its recording moves to the new runtime).
     recover: async (opts: {crashOnly: boolean; relaunch?: (f: () => Promise<void>) => Promise<void>}) => {
       while (inFlight) {
         const why = await inFlight
         if (why !== undefined || opts.crashOnly) return why
       }
-      if (stopped) throw new Error(stopped)
+      if (deps.stopped()) return undefined
       // cleared before any caller resumes, so a waiter that loops finds it gone
       const mine = run(opts.crashOnly, opts.relaunch ?? (async f => f())).finally(() => {
         if (inFlight === mine) inFlight = undefined

@@ -26,6 +26,7 @@ import {
 } from './attempt.ts'
 import {requireAppIsSmoke, restoreToSmoke} from './accounts.ts'
 import {finishAttempt} from './finish.ts'
+import {APP_POISON, isGatePoisonedBy, poisonCheckedFirst, requireGateNotPoisoned} from './poison-lib.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
@@ -158,10 +159,12 @@ const settledFirst = (fn: Mocha.AsyncFunc): Mocha.AsyncFunc =>
     return fn.call(this)
   }
 
-const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, settle = false) =>
+// A flow's before and beforeEach hooks refuse first while the gate is poisoned (poison-lib.ts): they
+// run ahead of the root beforeEach's check in the test body, and set the phone up for their file.
+const declareHook = (h: Mocha.HookFunction<Mocha.Hook>, first?: 'settle' | 'poison') =>
   function (a: string | Mocha.AsyncFunc, b?: Mocha.AsyncFunc) {
     insideDescribe('a hook')
-    const wrap = (fn: Mocha.AsyncFunc) => kept(settle ? settledFirst(fn) : fn)
+    const wrap = (fn: Mocha.AsyncFunc) => kept(first === 'settle' ? settledFirst(fn) : first === 'poison' ? poisonCheckedFirst(fn) : fn)
     if (typeof a === 'function') return h(wrap(a))
     if (!b) throw new Error(`the hook "${a}" has no function`)
     return h(a, wrap(b))
@@ -194,9 +197,9 @@ const runLeftCleanup = async (token: AttemptToken, steps: Array<() => unknown>):
   return errors.length ? `the cleanup its body left, run once the gate ended the body, failed: ${errors.join('; ')}` : undefined
 }
 
-globalThis.before = declareHook(plain.before)
-globalThis.beforeEach = declareHook(plain.beforeEach)
-globalThis.afterEach = declareHook(plain.afterEach, true)
+globalThis.before = declareHook(plain.before, 'poison')
+globalThis.beforeEach = declareHook(plain.beforeEach, 'poison')
+globalThis.afterEach = declareHook(plain.afterEach, 'settle')
 globalThis.after = declareHook(plain.after)
 
 const flowFileOf = (test: Mocha.Test) => {
@@ -227,8 +230,8 @@ plain.beforeEach(
     const test = this.currentTest
     if (!test?.fn) throw new Error('the gate hooks ran outside a test')
     // The app went away after the root afterEach saw it (a flow's after or before hook): it is brought
-    // back before this test's hooks drive it. A recovery that fails throws here, which ends the run,
-    // so every later test is recorded as never run with why.
+    // back before this test's hooks drive it. A recovery that fails poisons the gate (crash.ts), so this
+    // test and every later one is refused with why.
     const gone = await recoverGoneApp()
     if (gone) recordRunError(`before "${test.fullTitle()}": ${gone}`)
     const retry = (test as unknown as {currentRetry: () => number}).currentRetry()
@@ -249,6 +252,8 @@ plain.beforeEach(
         // AsyncLocalStorage.run, which calls the callback at once, and nothing awaits before either),
         // so the race below already has the watch's promise.
         hung = startHangWatch()
+        // a phone an earlier flow could not put back (poison-lib.ts) is never driven again
+        requireGateNotPoisoned()
         await requireAppIsSmoke()
         await body.call(this)
       })
@@ -334,26 +339,16 @@ plain.afterEach(
     const token = test && attempts.get(test)
     // An app gone now went away during this test where its body's own check did not see it (mocha
     // timed the body out, or a flow afterEach): it is brought back, inside the attempt while that is
-    // open, and the test fails of it. A recovery that fails is thrown once the attempt has ended,
-    // which ends the run, so every later test is recorded as never run with why.
-    let gone: string | undefined
-    let stop: Error | undefined
-    try {
-      gone = await recoverGoneApp(token)
-    } catch (e) {
-      stop = e instanceof Error ? e : new Error(String(e))
-    }
-    if (!test || !token) {
-      if (stop) throw stop
-      return
-    }
-    // What an ended body's cleanup left runs on the app brought back, never once the gate is stopping.
+    // open, and the test fails of it. A recovery that fails poisons the gate (crash.ts), so every later
+    // test is refused with why.
+    const gone = await recoverGoneApp(token)
+    if (!test || !token) return
+    // What an ended body's cleanup left runs on the app brought back, never on one the gate could not.
     const left = takeLeftCleanup(token)
-    const cleanupError = left && !stop ? await runLeftCleanup(token, left) : undefined
+    const cleanupError = left && !isGatePoisonedBy(APP_POISON) ? await runLeftCleanup(token, left) : undefined
     // the next test refuses on its own (requireAppIsSmoke) when the app is not back on smoke
     if (cleanupError) recordRunError(`${test.fullTitle()}: ${cleanupError}`)
-    await endTheAttempt(test, token, [gone, stop?.message].filter(Boolean).join('; ') || undefined, cleanupError)
-    if (stop) throw stop
+    await endTheAttempt(test, token, gone, cleanupError)
   })
 )
 

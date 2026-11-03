@@ -5,7 +5,7 @@ import * as path from 'path'
 import {defaultEnvPath, loadE2EEnv, readEnvFile} from '../../accounts/env.ts'
 import {runRecord} from '../../accounts/run-record.ts'
 import {parseRunId} from '../../accounts/run-id.ts'
-import {holdsSecret, secretLedger, secretScanLine} from './secret-scan-lib.ts'
+import {holdsSecretOrArmor, secretLedger, secretScanLine} from './secret-scan-lib.ts'
 
 const passwordVars = ['KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
 
@@ -81,9 +81,14 @@ export const unscannedProblem = (dir: string, results = 'results.json'): string 
   return undefined
 }
 
-export const scanAndPurge = (dirs: ReadonlyArray<string>, secrets: ReadonlyArray<string> = envSecrets()): SecretScan => {
+// With `armor`, a file that holds a saltpack message's armor is a hit too.
+export const scanAndPurge = (
+  dirs: ReadonlyArray<string>,
+  secrets: ReadonlyArray<string> = envSecrets(),
+  opts: {armor?: boolean} = {}
+): SecretScan => {
   const files = dirs.flatMap(filesUnder)
-  const hits = files.filter(f => holdsSecret(fs.readFileSync(f), secrets))
+  const hits = files.filter(f => holdsSecretOrArmor(fs.readFileSync(f), secrets, !!opts.armor))
   for (const f of hits) fs.rmSync(f, {force: true})
   return {hits, line: secretScanLine(hits, files.length), scanned: files.length}
 }

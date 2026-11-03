@@ -90,6 +90,20 @@ test('a clean scan passes and names how many files it read', () => {
   assert.deepEqual(logs, ['secrets: ok: no secret in 2 artifacts'])
 })
 
+test('saltpack armor in a result file or a log fails the scan and is deleted', () => {
+  const dir = resultsWith({
+    'ios-logs/metro.log': 'BEGIN SALTPACK SIGNED MESSAGE. kiOUtMhcc4NXXRb.',
+    'ios-appium/run.json': '{"title": "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb."}',
+    'ios-appium/clean.json': '{"output": "<saltpack message>"}',
+  })
+  const phase = scanResults([dir], () => ['some-secret-value'], () => {})
+  assert.equal(phase.ok, false)
+  assert.match(phase.line, /^secret found in 2 artifacts \(deleted\)/)
+  assert.equal(fs.existsSync(path.join(dir, 'ios-logs/metro.log')), false)
+  assert.equal(fs.existsSync(path.join(dir, 'ios-appium/run.json')), false)
+  assert.equal(fs.existsSync(path.join(dir, 'ios-appium/clean.json')), true)
+})
+
 test('a scan whose secrets cannot be read fails', () => {
   const phase = scanResults([resultsWith({})], () => {
     throw new Error('no env file')

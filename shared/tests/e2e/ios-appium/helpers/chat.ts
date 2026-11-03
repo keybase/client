@@ -7,7 +7,7 @@
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, els, fieldText, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, els, fieldText, pasteFromMenu, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -1918,24 +1918,12 @@ export const explodingModeSeconds = async () =>
 
 // -- the composer's pasteboard -------------------------------------------------------------------
 
-// The edit menu's Paste: only its tappable MenuItem or Button, not the StaticText it also exposes.
-const PASTE_ITEM =
-  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
-
 // Long-presses the composer until its edit menu shows Paste, and taps it: what a person does to paste.
-// The pasteboard is set before (gate/device.ts setPasteboard). Bound: six tries of about 3s.
+// The pasteboard is set before (gate/device.ts setPasteboard). Bound: the field and its tap 3, pasteFromMenu 18 = 21.
 export const pasteIntoComposer = async () => {
   const input = await el(T.CHAT_INPUT).getElement()
   await input.click()
-  for (let i = 0; i < 6; i++) {
-    await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: input.elementId})
-    if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).catch(() => false)) {
-      await browser.$(PASTE_ITEM).click()
-      return
-    }
-    await sleep(300)
-  }
-  throw new Error("the composer's edit menu never offered Paste")
+  await pasteFromMenu({elementId: input.elementId}, 'the composer')
 }
 
 // -- the GIF picker ------------------------------------------------------------------------------

@@ -1,173 +1,219 @@
-import {expect} from '@wdio/globals'
-import {escapeToTabs, navigateToMore, scrollDownToText, tapSettingsRow} from '../helpers/navigate'
-import {el, byText, waitForTestID} from '../helpers/elements'
-import {skipArtifact} from '../helpers/artifact'
+// Typography and Markdown are the dev-only debug pages (their More rows render under __DEV__, and the
+// gate runs a dev build): long scrolling catalogs, one test per screenful, each opening the page fresh
+// and scrolling to its own screenful. Every screenful test also checks the page still has exactly
+// the count below: the page's last line is drawn on its last screenful and on no screenful before it,
+// so a page that grows or shrinks fails and says which count to set. The typography controls (the
+// Dark background, a decoration, the next sample) change every sample row below them, so each
+// non-default state has a test of its own; the afterEach puts the controls back while the page is up
+// (each read off its testID first, so it only acts on what is changed), and the page then leaves.
 import * as T from '../../shared/test-ids'
+import {settingShown} from '../gate/persisted-lib.ts'
+import {step} from '../gate/step'
+import {el} from '../helpers/elements'
+import {waitFor} from '../helpers/lifecycle'
+import {check, labelledElement} from '../helpers/menus'
+import {escapeToTabs} from '../helpers/navigate'
+import {openSettingsPage} from '../helpers/settings'
 
-// Typography and Markdown are the __DEV__-only debug pages: long scrolling
-// catalogs. The harness screenshots AFTER each test, so covering a whole page
-// means one test per screenful — each opens the page and scrolls to its own
-// offset, ending on the state it wants shot.
-
-// Upper bounds. A test whose predecessor already reached the bottom skips
-// itself, so these can stay ahead of the pages growing without piling up
-// duplicate shots of the last screen.
+// Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window.
 const MARKDOWN_SCREENS = 8
-const TYPOGRAPHY_SCREENS = 8
+const TYPOGRAPHY_SCREENS = 6
 
-// Text on the final screenful of each page — the bottom sentinel.
-const MARKDOWN_END = 'english control'
-const TYPOGRAPHY_END = 'italic bold italic italic'
+type DebugPage = {
+  // the More list row, the page's route and testID
+  row: string
+  route: string
+  marker: string
+  // a line on the first screenful, and the page's last line (a part of its label)
+  top: string
+  end: string
+  screens: number
+  // the constant that holds `screens`, for the count's error
+  constName: string
+}
 
-// Text on the first screenful — the top sentinel scrollToTop rewinds to.
-const MARKDOWN_TOP = 'Inline'
-const TYPOGRAPHY_TOP = 'Background'
+const MARKDOWN: DebugPage = {
+  constName: 'MARKDOWN_SCREENS',
+  end: 'english control',
+  marker: T.SETTINGS_MARKDOWN,
+  route: 'settingsTabs.markdownTab',
+  row: 'Markdown',
+  screens: MARKDOWN_SCREENS,
+  top: 'Inline',
+}
 
-// First entry is the page's default sample — the reset below cycles back to it.
-const sampleStrings = [
-  'Hamburgefontsiv',
-  'Hxpxgy',
-  '0123456789',
-  'gjpqy ÁÉÍÓÚ ÅÄÖ',
-  'The quick brown fox',
-] as const
+const TYPOGRAPHY: DebugPage = {
+  constName: 'TYPOGRAPHY_SCREENS',
+  end: 'italic bold italic italic',
+  marker: T.SETTINGS_TYPOGRAPHY,
+  route: 'settingsTabs.typographyTab',
+  row: 'Typography',
+  screens: TYPOGRAPHY_SCREENS,
+  top: 'Background',
+}
 
-// EXACT-label control, unlike byText's CONTAINS: the decoration buttons are
-// 'underline' and 'underline+strikethrough', and the section headers repeat the
-// same words, so a contains-match picks the wrong element.
-const control = (label: string) =>
-  browser.isAndroid
-    ? browser.$(`//*[@text="${label}" or @content-desc="${label}"]`)
-    : browser.$(`-ios predicate string:label == "${label}" OR name == "${label}"`)
+// The typography page's samples, in the order Next steps through them (settings/typography.tsx)
+const SAMPLES = 5
+
+// The one control drawn with exactly `label`: the decoration buttons are 'underline' and
+// 'underline+strikethrough', and the section headers repeat the same words, so a contains-match
+// would pick the wrong one. Bound: one read 1.
+const control = async (label: string) =>
+  labelledElement(`-ios predicate string:label == ${JSON.stringify(label)} AND visible == 1`, label, `the ${label} control`)
 
 // Scroll the debug page's own content column.
 //
-// Two traps here. The shared scrollDownToText/scrollToTestID helpers swipe at
-// x=15% of the window — that column is the tablet settings LeftNav, so on these
-// pages they scroll the nav while the content sits still. And driving the
-// ScrollView with `mobile: scroll` press-drags, which on these pages (every
-// sample is selectable={true}) summons the copy/Select-All edit menu instead of
-// scrolling. A slow drag at the content column does neither.
+// Driving the ScrollView with `mobile: scroll` press-drags, which on these pages (every sample is
+// selectable) summons the copy/Select All edit menu instead of scrolling. A slow drag at the content
+// column does not. A fast swipe flicks: momentum carries the list on past where the finger stopped.
+// Dragging slowly and holding still before lifting kills the momentum, so one drag moves the page by
+// its own travel and nothing more.
 const CONTENT_X = 0.7
-// One drag per step, covering ~2/3 of the screen: enough overlap that nothing
-// lands in a seam, while keeping the swipe count (which grows with the screen
-// index) low enough that the last tests don't crawl.
-const SWIPES_PER_SCREEN = 1
 const FROM_Y = 0.85
 const TO_Y = 0.18
-// A fast swipe flicks: momentum carries the list several screens past where the
-// finger stopped, so screen 3 already showed the end of the page. Dragging
-// slowly and holding still before lift kills the momentum, making one swipe
-// worth its own travel (~45% of the screen) and nothing more.
 const DRAG_MS = 600
 const HOLD_MS = 250
 
-async function swipeContent(direction: 'up' | 'down', times: number): Promise<void> {
-  if (times <= 0) return
+// One drag toward the page's end. Bound: the drag 1.
+const dragTowardEnd = async () => {
   const {width, height} = await browser.getWindowRect()
   const x = Math.round(width * CONTENT_X)
-  // 'up' = finger up = content moves toward its end.
-  const from = Math.round(height * (direction === 'up' ? FROM_Y : TO_Y))
-  const to = Math.round(height * (direction === 'up' ? TO_Y : FROM_Y))
-  for (let i = 0; i < times; i++) {
-    await browser
-      .action('pointer')
-      .move({x, y: from})
-      .down()
-      .move({duration: DRAG_MS, x, y: to})
-      .pause(HOLD_MS)
-      .up()
-      .perform()
-  }
+  await browser
+    .action('pointer')
+    .move({x, y: Math.round(height * FROM_Y)})
+    .down()
+    .move({duration: DRAG_MS, x, y: Math.round(height * TO_Y)})
+    .pause(HOLD_MS)
+    .up()
+    .perform()
 }
 
-// Rewind to the top of the page. Phones pop these pages between tests (fresh
-// mount, already at the top — this exits after zero swipes), but the tablet
-// two-pane keeps the page mounted with its offset, so a screenful index would
-// otherwise mean something different on each.
-async function scrollToTop(topMarker: string): Promise<void> {
-  for (let i = 0; i < 25; i++) {
-    if (await byText(topMarker).isDisplayed().catch(() => false)) return
-    await swipeContent('down', 2)
-  }
+// Whether a text holding `part` in its label is on screen. Bound: one read 1.
+const shown = async (part: string) =>
+  (await browser.$$(`-ios predicate string:label CONTAINS ${JSON.stringify(part)} AND visible == 1`).length) > 0
+
+// The index of the sample the typography page shows, read off its Next button. Bound: one read 1.
+const sampleShown = async () => {
+  const found = await browser.$$(`-ios predicate string:name BEGINSWITH "${T.SETTINGS_TYPOGRAPHY_NEXT_PREFIX}"`).getElements()
+  check(found.length === 1, `${found.length} typography Next buttons drawn, not one`)
+  const id = (await found[0]!.getAttribute('name')) ?? ''
+  const at = Number(id.slice(T.SETTINGS_TYPOGRAPHY_NEXT_PREFIX.length))
+  check(id.startsWith(T.SETTINGS_TYPOGRAPHY_NEXT_PREFIX) && Number.isInteger(at), "the typography Next button's testID holds no sample")
+  return at
 }
 
-// Open a dev debug page from the settings root. Returns false in a production
-// build, where the row is gated behind __DEV__ and never renders.
-async function openDebugPage(row: string, marker: string): Promise<boolean> {
-  await escapeToTabs()
-  await navigateToMore()
-  await waitForTestID(T.SETTINGS_ACCOUNT, 3000)
-  await scrollDownToText(row).catch(() => {})
-  if (!(await byText(row).isExisting().catch(() => false))) return false
-  await tapSettingsRow(row)
-  await waitForTestID(marker, 5000)
-  await scrollToTop(marker === T.SETTINGS_TYPOGRAPHY ? TYPOGRAPHY_TOP : MARKDOWN_TOP)
-  if (marker === T.SETTINGS_TYPOGRAPHY) await resetTypographyControls()
-  return true
-}
+const DARK = T.SETTINGS_TYPOGRAPHY_DARK
+const decoration = (d: string) => `${T.SETTINGS_TYPOGRAPHY_DECORATION_PREFIX}${d}`
 
-// Put the typography controls back to their defaults (light background,
-// strikethrough, first sample). State survives between tests wherever the page
-// stays mounted, and every sample row below the controls reflects it. A test
-// can't clean up after itself — the harness screenshots when the test ENDS —
-// so normalization runs on entry.
-async function resetTypographyControls(): Promise<void> {
-  const dark = control('Dark')
-  // The switch reports its state through the label's accessibility value.
-  if ((await dark.getAttribute('value').catch(() => '')) === '1') await dark.click()
-  await control('strikethrough').click().catch(() => {})
-  // sampleIdx only counts up, so cycle forward until the default sample is back.
-  for (const _ of sampleStrings) {
-    if (await byText(sampleStrings[0]).isExisting().catch(() => false)) return
-    await control('Next').click()
-  }
-}
+// Waits for the control `base` to show `want`. Bound: 5s of reads, overrun by one 1 = 6.
+const expectShown = async (base: string, want: 'on' | 'off', what: string) =>
+  waitFor(`${what} to show ${want}`, async () => ((await settingShown(base)) === want ? true : undefined), {interval: 250, timeout: 5_000})
 
-// Scroll to screenful `index`, stopping one short first: if the page bottom was
-// already on screen there, this index shows nothing new, so the test suppresses
-// its report card instead of duplicating the last screen.
-async function scrollToScreen(index: number, endMarker: string): Promise<void> {
-  if (index === 0) return
-  await swipeContent('up', (index - 1) * SWIPES_PER_SCREEN)
-  if (await byText(endMarker).isDisplayed().catch(() => false)) {
-    skipArtifact()
-    return
-  }
-  await swipeContent('up', SWIPES_PER_SCREEN)
-}
+// Waits for the page to show sample `want`. Bound: 6.
+const expectSample = async (want: number, what: string) =>
+  waitFor(what, async () => ((await sampleShown()) === want ? true : undefined), {interval: 250, timeout: 5_000})
 
-describe('settings debug pages', () => {
-  for (let i = 0; i < MARKDOWN_SCREENS; i++) {
-    it(`markdown debug page screen ${i + 1}`, async () => {
-      if (!(await openDebugPage('Markdown', T.SETTINGS_MARKDOWN))) return skipArtifact()
-      await expect(el(T.SETTINGS_MARKDOWN)).toExist()
-      await scrollToScreen(i, MARKDOWN_END)
-    })
+describe('settings debug pages', function () {
+  // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
+  //   open      openDebugPage 142 (escapeToTabs 30, the More tab 20, the row 54 and its tap 1, the
+  //             screen 11, its marker 10, the top line 10 and its read 1, the controls 5)
+  //   drag      one drag 1, then a read 1;  control  a control read 1 and its tap 1;  shown  6
+  //   step      2 (its 1s settle and the attach)
+
+  // The typography controls a test changed, put back while the page is still up: each read off its
+  // testID and tapped only when it is not the default (a page that is not drawn holds nothing: its
+  // controls are the page's own state, which a fresh open starts at the defaults).
+  // Bound: the Dark switch read 1, its tap 2 and shown 6; strikethrough 1, 2, 6; the samples (a read
+  // 1, then up to SAMPLES - 1 taps of 2) 9 and shown 6 = 34.
+  const restoreTypography = async () => {
+    if (!(await el(T.SETTINGS_TYPOGRAPHY).isExisting())) return
+    if ((await settingShown(DARK)) === 'on') {
+      await (await control('Dark')).click()
+      await expectShown(DARK, 'off', 'the Dark background put back')
+    }
+    if ((await settingShown(decoration('strikethrough'))) !== 'on') {
+      await (await control('strikethrough')).click()
+      await expectShown(decoration('strikethrough'), 'on', 'the strikethrough decoration put back')
+    }
+    // Next only steps forward, so it goes on around to the first sample
+    const at = await sampleShown()
+    if (at !== 0) {
+      for (let i = at; i < SAMPLES; i++) await (await control('Next')).click()
+      await expectSample(0, 'the first sample put back')
+    }
   }
 
-  for (let i = 0; i < TYPOGRAPHY_SCREENS; i++) {
-    it(`typography debug page screen ${i + 1}`, async () => {
-      if (!(await openDebugPage('Typography', T.SETTINGS_TYPOGRAPHY))) return skipArtifact()
-      await expect(el(T.SETTINGS_TYPOGRAPHY)).toExist()
-      await scrollToScreen(i, TYPOGRAPHY_END)
-    })
-  }
-
-  // The typography controls change every sample row below them, so the
-  // non-default states get their own shots.
-  it('typography debug page dark background', async () => {
-    if (!(await openDebugPage('Typography', T.SETTINGS_TYPOGRAPHY))) return
-    await control('Dark').click()
+  // Worst case (s): restoreTypography 34, escapeToTabs 30 = 64.
+  afterEach(async function () {
+    this.timeout(90_000)
+    await restoreTypography()
+    await escapeToTabs()
   })
 
-  it('typography debug page underline decoration', async () => {
-    if (!(await openDebugPage('Typography', T.SETTINGS_TYPOGRAPHY))) return
-    await control('underline').click()
+  // The debug page from the More list, freshly opened at its first screenful; the typography page
+  // with its controls at the defaults. Bound: open 142.
+  const openDebugPage = async (page: DebugPage) => {
+    await openSettingsPage(page.row, page.route, page.marker)
+    await waitFor(`the ${page.row} page's first screenful`, async () => ((await shown(page.top)) ? true : undefined), {
+      interval: 250,
+      timeout: 10_000,
+    })
+    if (page !== TYPOGRAPHY) return
+    check((await settingShown(DARK)) === 'off', 'the typography page opened with a dark background')
+    check((await settingShown(decoration('strikethrough'))) === 'on', 'the typography page opened with another decoration')
+    check((await sampleShown()) === 0, 'the typography page opened on another sample')
+  }
+
+  // Screenful `index` (from 0): `index` drags from the top, with the page's last line drawn there
+  // only on its last screenful. Bound: open 142, a drag 1 and its read 1 per screenful, the end read
+  // 1, step 2.
+  const screenTests = (page: DebugPage) => {
+    for (let i = 0; i < page.screens; i++) {
+      it(`${page.row.toLowerCase()} debug page screen ${i + 1}`, async function () {
+        // worst case (s): open 142, 2 per drag (at most 7) 14, the end read 1, step 2 = 159
+        this.timeout(180_000)
+        await openDebugPage(page)
+        for (let d = 0; d < i; d++) {
+          check(!(await shown(page.end)), `the ${page.row} page ends on screenful ${d + 1}: set ${page.constName} to ${d + 1}`)
+          await dragTowardEnd()
+        }
+        const last = i === page.screens - 1
+        const atEnd = await shown(page.end)
+        if (last) check(atEnd, `the ${page.row} page goes on past screenful ${page.screens}: set ${page.constName} to its count`)
+        else check(!atEnd, `the ${page.row} page ends on screenful ${i + 1}: set ${page.constName} to ${i + 1}`)
+        await step(`${page.row} debug page screen ${i + 1}`, {card: true})
+      })
+    }
+  }
+
+  screenTests(MARKDOWN)
+  screenTests(TYPOGRAPHY)
+
+  it('typography debug page dark background', async function () {
+    // worst case (s): open 142, control 2, shown 6, step 2 = 152
+    this.timeout(180_000)
+    await openDebugPage(TYPOGRAPHY)
+    await (await control('Dark')).click()
+    await expectShown(DARK, 'on', 'the Dark background')
+    await step('Typography dark background', {card: true})
   })
 
-  it('typography debug page next sample', async () => {
-    if (!(await openDebugPage('Typography', T.SETTINGS_TYPOGRAPHY))) return
-    await control('Next').click()
+  it('typography debug page underline decoration', async function () {
+    // worst case (s): open 142, control 2, shown 6 x2, step 2 = 158
+    this.timeout(180_000)
+    await openDebugPage(TYPOGRAPHY)
+    await (await control('underline')).click()
+    await expectShown(decoration('underline'), 'on', 'the underline decoration')
+    await expectShown(decoration('strikethrough'), 'off', 'the strikethrough decoration')
+    await step('Typography underline decoration', {card: true})
+  })
+
+  it('typography debug page next sample', async function () {
+    // worst case (s): open 142, control 2, shown 6, step 2 = 152
+    this.timeout(180_000)
+    await openDebugPage(TYPOGRAPHY)
+    await (await control('Next')).click()
+    await expectSample(1, 'the next sample')
+    await step('Typography next sample', {card: true})
   })
 })

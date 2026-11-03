@@ -259,6 +259,27 @@ test('route params lose inviteKey and every key the RPC log redacts', () => {
   })
 })
 
+// Each saltpack call that carries text, with what it sends and what it returns.
+const saltpackCalls: Array<[string, object, unknown]> = [
+  ['keybase.1.saltpack.saltpackEncryptString', {opts: {includeSelf: true, recipients: ['testuser']}, plaintext: fixture}, {ciphertext: fixture, unresolvedSBSAssertion: '', usedUnresolvedSBS: false}],
+  ['keybase.1.saltpack.saltpackDecryptString', {ciphertext: fixture}, {info: {sender: {username: 'testuser'}}, plaintext: fixture, signed: true}],
+  ['keybase.1.saltpack.saltpackSignString', {plaintext: fixture}, fixture],
+  ['keybase.1.saltpack.saltpackVerifyString', {signedMsg: fixture}, {plaintext: fixture, sender: {username: 'testuser'}, signingKID: 'kid', verified: true}],
+  ['keybase.1.saltpack.saltpackSaveCiphertextToFile', {ciphertext: fixture}, '/tmp/out.saltpack'],
+  ['keybase.1.saltpack.saltpackSaveSignedMsgToFile', {signedMsg: fixture}, '/tmp/out.saltpack'],
+]
+
+test.each(saltpackCalls)('%s: logged params and result hold no saltpack text', (method, params, result) => {
+  expect(JSON.stringify(redactRpcParams(params))).not.toContain(fixture)
+  expect(JSON.stringify(redactRpcResult(method, result))).not.toContain(fixture)
+})
+
+test('saltpack results keep what is not text', () => {
+  const out = redactRpcResult('keybase.1.saltpack.saltpackDecryptString', {info: {sender: {username: 'testuser'}}, plaintext: fixture, signed: true})
+  expect(out).toEqual({info: {sender: {username: 'testuser'}}, plaintext: '<redacted>', signed: true})
+  expect(redactRpcResult('keybase.1.saltpack.saltpackSaveCiphertextToFile', '/tmp/out.saltpack')).toBe('/tmp/out.saltpack')
+})
+
 describe('rpcLog and invoke end to end', () => {
   const lines = new Array<unknown[]>()
   let rpcLog: typeof TS.rpcLog
@@ -278,6 +299,12 @@ describe('rpcLog and invoke end to end', () => {
     lines.length = 0
   })
 
+  test.each(saltpackCalls)('rpcLog params of %s', (method, params) => {
+    rpcLog({extra: params, method, reason: '[+calling]', type: 'engineToServer'})
+    expect(lines).toHaveLength(1)
+    expect(JSON.stringify(lines)).not.toContain(fixture)
+  })
+
   test('rpcLog params path', () => {
     rpcLog({extra: {passphrase: fixture, sessionID: 1}, method: 'account.passphraseCheck', reason: '[+calling]', type: 'engineToServer'})
     expect(lines).toHaveLength(1)
@@ -291,6 +318,7 @@ describe('rpcLog and invoke end to end', () => {
     ['keybase.1.signup.getInvitationCode', fixture],
     ['keybase.1.account.passphrasePrompt', {passphrase: fixture}],
     ['keybase.1.device.deviceHistoryList', [{device: {name: fixture, type: 'backup'}}]],
+    ...saltpackCalls.map(([method, , result]) => [method, result] as [string, unknown]),
   ])('invoke [-calling] result of %s', (method, result) => {
     class T extends TransportShared {
       protected override writeMessage() {}
@@ -301,6 +329,42 @@ describe('rpcLog and invoke end to end', () => {
     spy.mockRestore()
     expect(cb).toHaveBeenCalledWith(null, result)
     expect(lines.length).toBeGreaterThan(0)
+    expect(JSON.stringify(lines)).not.toContain(fixture)
+  })
+
+  // The phone's Change password (settings/password.tsx) sends the new password with an empty old one
+  // and gets nothing back; the call and its answer each log a line, and neither holds the password.
+  test('invoke of the phone password change logs no password', () => {
+    class T extends TransportShared {
+      protected override writeMessage() {}
+    }
+    const spy = jest.spyOn(RPCTransport.prototype, 'invoke').mockImplementation((_m, _a, cb) => cb(null, null))
+    const cb = jest.fn()
+    new T().invoke('keybase.1.account.passphraseChange', [{force: true, oldPassphrase: '', passphrase: fixture, sessionID: 1}], cb)
+    spy.mockRestore()
+    expect(cb).toHaveBeenCalledWith(null, null)
+    expect(lines).toHaveLength(2)
+    expect(JSON.stringify(lines)).not.toContain(fixture)
+    expect(JSON.stringify(lines[0])).toContain('<redacted>')
+  })
+
+  // A sign-in with a password answers the service's getPassphrase with it: the incoming call and the
+  // answer each log a line, and neither holds the password.
+  test('the answer to getPassphrase logs no password', () => {
+    class T extends TransportShared {
+      protected override writeMessage() {}
+    }
+    const answered = jest.fn()
+    const payload = {
+      method: 'keybase.1.secretUi.getPassphrase',
+      param: [{pinentry: {prompt: 'Password', type: 1}, sessionID: 1}],
+      response: {cancelled: false, error: jest.fn(), result: answered, seqid: 1},
+    }
+    rpcLog({extra: payload.param[0], method: payload.method, reason: '[incoming]', type: 'serverToEngine'})
+    new T().injectInstrumentedResponse(payload as unknown as Parameters<TS.TransportShared['injectInstrumentedResponse']>[0])
+    payload.response.result({passphrase: fixture, storeSecret: false})
+    expect(answered).toHaveBeenCalledWith({passphrase: fixture, storeSecret: false})
+    expect(lines).toHaveLength(2)
     expect(JSON.stringify(lines)).not.toContain(fixture)
   })
 })

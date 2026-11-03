@@ -45,6 +45,22 @@ const writeEnv = () => {
   return p
 }
 
+test('with armor, a file holding saltpack armor is a hit and is deleted; without, it is left', () => {
+  const results = path.join(dir, 'results')
+  fs.mkdirSync(path.join(results, 'ios-logs'), {recursive: true})
+  const armored = path.join(results, 'ios-logs', 'flows.log')
+  const clean = path.join(results, 'run.json')
+  fs.writeFileSync(armored, 'step: BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb XMxIeCbf5rCmoht.\n')
+  fs.writeFileSync(clean, '{"output": "<saltpack message>"}\n')
+  expect(scanAndPurge([results], [first]).hits).toEqual([])
+  expect(fs.existsSync(armored)).toBe(true)
+  const scan = scanAndPurge([results], [first], {armor: true})
+  expect(scan.hits).toEqual([armored])
+  expect(scan.line).not.toMatch(/SALTPACK/)
+  expect(fs.existsSync(armored)).toBe(false)
+  expect(fs.existsSync(clean)).toBe(true)
+})
+
 test('envSecrets includes a pending KB_SECOND_PASSWORD_NEXT', () => {
   const file = writeEnv()
   setEnvVars(file, {KB_SECOND_PASSWORD_NEXT: next})
@@ -70,6 +86,22 @@ test('a rotation mid-run leaves both passwords scanned for: the old one, the pen
     const scan = scanAndPurge([results], secrets)
     expect(scan.hits).toEqual([path.join(results, 'early.md')])
     expect(fs.existsSync(path.join(results, 'early.md'))).toBe(false)
+  } finally {
+    watch.stop()
+  }
+})
+
+test("the scan keeps the value rotated away even when no sample fell between the change and the promotion", () => {
+  const file = writeEnv()
+  const watch = watchEnvSecrets(() => envSecrets(file, noEnv), 60_000)
+  try {
+    // the whole rotation between two samples: the scan's own read sees only the promoted value
+    setEnvVars(file, {KB_SECOND_PASSWORD_NEXT: next})
+    setEnvVars(file, {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null})
+    const results = path.join(dir, 'results')
+    fs.mkdirSync(results)
+    fs.writeFileSync(path.join(results, 'metro.log'), `submitSecret ${first}\n`)
+    expect(scanAndPurge([results], watch.secrets()).hits).toEqual([path.join(results, 'metro.log')])
   } finally {
     watch.stop()
   }

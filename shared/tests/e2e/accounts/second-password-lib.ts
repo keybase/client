@@ -10,17 +10,10 @@
 // connection, go/engine/engine.go delegateUIs), and the app answers none while signed out, so a
 // prompt on a harness connection is never asked.
 import {randomBytes} from 'crypto'
-import {
-  defaultEnvPath,
-  loadE2EAccounts,
-  readEnvFile,
-  refuseWhileSecondPasswordChangePending,
-  setEnvVars,
-  type E2EEnv,
-} from './env.ts'
+import {defaultEnvPath, readEnvFile, refuseWhileSecondPasswordChangePending, secondPasswordCommand, setEnvVars, type E2EEnv} from './env.ts'
 import {restoreMainAccount} from './peer-homes.ts'
 import {runIdFromEnv} from './run-id.ts'
-import {maskAccounts} from './sweep-lib.ts'
+import {maskE2E} from './sweep-lib.ts'
 import type {PeerRpc} from '../shared/peer-rpc.ts'
 import {ensurePeer, mainWhoami, runKeybase, runKeybaseDetached} from '../shared/peer-service.ts'
 
@@ -78,8 +71,7 @@ export const CHECK_OR_REPAIR_WORST_MS = CHECK_WORST_MS + REPAIR_WORST_MS + CHECK
 // console.log with the account and team names masked (a failed `login --switch` names its account):
 // stdout lands in run logs.
 export const sayMasked = (s: string) => {
-  const {secondUser, smokeUser, team} = loadE2EAccounts()
-  console.log(maskAccounts(s, {team, users: {second: secondUser, smoke: smokeUser}}))
+  console.log(maskE2E(s))
 }
 
 export const liveMain = (): MainSide => ({
@@ -133,13 +125,21 @@ const liveRoundTrip = async (env: E2EEnv) => {
 
 const liveCheck = (): CheckDeps => ({...liveMain(), roundTrip: liveRoundTrip})
 
-// Back to the smoke account (retried) and checked; throws with the command to run by hand.
-const backToSmoke = async (env: E2EEnv, main: MainSide) => {
-  await restoreMainAccount(env.smokeUser, `keybase login --switch <KB_SMOKE_USER from ${defaultEnvPath()}>`, {
-    say: main.say,
-    switchTo: main.switchMain,
-    whoami: main.whoami,
-  })
+// A `keybase login --switch` that gave no answer: the main service may be waiting on something only
+// the owner can answer.
+const HUNG = /: no answer in \d+s/
+export const KEYCHAIN_NOTE = 'a macOS Keychain dialog may be waiting on the Mac'
+
+// Back to the smoke account (retried) and checked; throws with the command to run by hand. After a
+// switch that gave no answer it tries once: three more on a hung service only queue behind it.
+const backToSmoke = async (env: E2EEnv, main: MainSide, {hung = false}: {hung?: boolean} = {}) => {
+  const fix = `keybase login --switch <KB_SMOKE_USER from ${defaultEnvPath()}>`
+  await restoreMainAccount(
+    env.smokeUser,
+    hung ? `${fix} (the main service gave no answer: ${KEYCHAIN_NOTE})` : fix,
+    {say: main.say, switchTo: main.switchMain, whoami: main.whoami},
+    hung ? {attempts: 1} : {}
+  )
 }
 
 // `work`, then always `restore`. A restore that fails after `work` failed keeps both errors (the
@@ -175,6 +175,7 @@ export const thenRestore = async <T,>(work: () => Promise<T>, restore: () => Pro
 // peer still works. Switching the main service switches the app too, so this runs only between
 // tests (a file's beforeAll/afterAll, or the setup command).
 export const checkSecondSecretSurvives = async (env: E2EEnv, deps: CheckDeps = liveCheck()) => {
+  let hung = false
   await thenRestore(
     async () => {
       try {
@@ -184,10 +185,11 @@ export const checkSecondSecretSurvives = async (env: E2EEnv, deps: CheckDeps = l
           throw new Error(`the main service is ${who || 'signed out'} after switching to the second account`)
         }
       } catch (e) {
+        hung = HUNG.test(message(e))
         throw new Error(`the main service cannot switch to the second account without a password: ${message(e)}`, {cause: e})
       }
     },
-    async () => backToSmoke(env, deps)
+    async () => backToSmoke(env, deps, {hung})
   )
   await deps.roundTrip(env)
 }
@@ -260,8 +262,11 @@ export const secondPasswordIsCurrent = async (
 }
 
 export type RepairDeps = {
-  check: (env: E2EEnv) => Promise<void>
+  // `password` is the one the stored secret should be for (the iOS check also asks the second peer)
+  check: (env: E2EEnv, password: string) => Promise<void>
   repair: (env: E2EEnv, password: string) => Promise<void>
+  // false for a check failure the repair cannot fix (the iOS gate's host check): it is thrown at once
+  repairable?: (e: unknown) => boolean
   say?: (s: string) => void
 }
 
@@ -285,12 +290,15 @@ export const checkOrRepairSecondSecret = async (
   broken = `${brokenSecret} and signing it in again with KB_SECOND_PASSWORD did not fix it`
 ) => {
   try {
-    await deps.check(env)
+    await deps.check(env, password)
   } catch (first) {
+    // a scrubbed copy: the raw error may carry the password
+    // eslint-disable-next-line preserve-caught-error
+    if (deps.repairable && !deps.repairable(first)) throw new Error(scrub(message(first), password))
     deps.say?.(scrub(`the second account's stored secret check failed (${message(first)}); signing it in again on the main service`, password))
     try {
       await deps.repair(env, password)
-      await deps.check(env)
+      await deps.check(env, password)
     } catch (second) {
       // the causes are not attached: their messages may carry the password
       // eslint-disable-next-line preserve-caught-error
@@ -327,4 +335,38 @@ export const rotateSecondPassword = async (
   )
   setEnvVars(deps.envFile, {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null})
   return next
+}
+
+// Settles a KB_SECOND_PASSWORD_NEXT a change left in `envFile` (a no-op when none is): the second
+// peer checks both passwords (no prompt, nothing changes); the one the server holds becomes
+// KB_SECOND_PASSWORD and _NEXT is dropped. Throws, changing nothing, when neither or both check.
+// Returns what it did.
+//
+// `mayDrop` is asked only when the server does not hold _NEXT: a change that went out and is still
+// running reads exactly like one that never took, and dropping _NEXT then would lose the password the
+// server is about to take. Unless it answers true, _NEXT stays and this throws the owner's --check.
+export const settlePendingSecondPassword = async (
+  env: E2EEnv,
+  envFile: string,
+  isCurrent: (env: E2EEnv, password: string) => Promise<boolean> = async (e, pw) => secondPasswordIsCurrent(e, pw),
+  mayDrop: () => Promise<boolean> = async () => Promise.resolve(true)
+): Promise<'none' | 'promoted' | 'dropped'> => {
+  const vars = readEnvFile(envFile)
+  const next = vars['KB_SECOND_PASSWORD_NEXT'] ?? ''
+  if (!next) return 'none'
+  const old = vars['KB_SECOND_PASSWORD'] ?? ''
+  const nextIs = await isCurrent(env, next)
+  if (!nextIs && !(await mayDrop())) {
+    throw new Error(
+      `KB_SECOND_PASSWORD_NEXT is pending and the second peer does not take it yet, but the change may still be on its way to the server, so it is left in place; the owner runs ${secondPasswordCommand} --check once it has settled`
+    )
+  }
+  const oldIs = old ? await isCurrent(env, old) : false
+  if (nextIs === oldIs) {
+    throw new Error(
+      `KB_SECOND_PASSWORD_NEXT is pending and the second peer takes ${nextIs ? 'both' : 'neither'} of it and KB_SECOND_PASSWORD; the owner has to settle it by hand`
+    )
+  }
+  setEnvVars(envFile, nextIs ? {KB_SECOND_PASSWORD: next, KB_SECOND_PASSWORD_NEXT: null} : {KB_SECOND_PASSWORD_NEXT: null})
+  return nextIs ? 'promoted' : 'dropped'
 }

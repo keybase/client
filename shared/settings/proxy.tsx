@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {produce} from 'immer'
 import type {RPCError} from '@/util/errors'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const useConnect = () => {
   const [allowTlsMitmToggle, setDidToggleCertificatePinning] = React.useState<boolean | undefined>(undefined)
@@ -260,7 +261,11 @@ const ProxySettingsComponent = (props: Props & {showHeader: boolean}) => {
         label="Allow TLS Interception"
         style={styles.proxySetting}
       />
-      <Kb.Button onClick={() => saveProxySettings()} label="Save Proxy Settings" />
+      <Kb.Button
+        onClick={() => saveProxySettings()}
+        label="Save Proxy Settings"
+        testID={proxyData ? TestIDs.SETTINGS_PROXY_SAVE : `${TestIDs.SETTINGS_PROXY_SAVE}${TestIDs.SETTING_PENDING}`}
+      />
     </>
   )
 }

@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type GroupProps = {
   allowEdit: boolean
@@ -51,6 +52,11 @@ const Group = (props: GroupProps) => {
               onCheck={() => onToggle(groupName, s.name)}
               checked={s.subscribed}
               label={s.description}
+              testID={TestIDs.settingTestID(
+                `${TestIDs.SETTINGS_NOTIFY_SWITCH_PREFIX}${groupName}-${s.name}`,
+                s.subscribed,
+                !allowEdit
+              )}
             />
           ))}
       </Kb.Box2>

@@ -437,7 +437,12 @@ const Typography = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Sample</Kb.Text>
-          <Kb.Button small={true} label="Next" onClick={() => setSampleIdx(i => i + 1)} />
+          <Kb.Button
+            small={true}
+            label="Next"
+            onClick={() => setSampleIdx(i => i + 1)}
+            testID={`${TestIDs.SETTINGS_TYPOGRAPHY_NEXT_PREFIX}${sampleIdx % sampleStrings.length}`}
+          />
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center" style={styles.controlRow}>
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Type</Kb.Text>
@@ -452,7 +457,14 @@ const Typography = () => {
           <Kb.Text type="BodySmallSemibold" style={styles.controlLabel}>Decoration</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.wrap}>
             {decorationOptions.map(d => (
-              <Kb.Button key={d} small={true} label={d} mode={decoration === d ? 'Primary' : 'Secondary'} onClick={() => setDecoration(d)} />
+              <Kb.Button
+                key={d}
+                small={true}
+                label={d}
+                mode={decoration === d ? 'Primary' : 'Secondary'}
+                onClick={() => setDecoration(d)}
+                testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_TYPOGRAPHY_DECORATION_PREFIX}${d}`, decoration === d)}
+              />
             ))}
           </Kb.Box2>
         </Kb.Box2>
@@ -463,6 +475,7 @@ const Typography = () => {
             onClick={() => setDarkBg(v => !v)}
             label="Dark"
             allowLabelClick={true}
+            testID={TestIDs.settingTestID(TestIDs.SETTINGS_TYPOGRAPHY_DARK, darkBg)}
           />
         </Kb.Box2>
       </Kb.Box2>

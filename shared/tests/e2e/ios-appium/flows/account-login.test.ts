@@ -42,13 +42,13 @@ describe('account login', function () {
     // password check on the second peer 150 (its service start 30, two whoamis 30, the check 60,
     // connecting 30). Body: stored-secret
     // read 20, switch to second 150 (switcher 60, the switch 60, escapeToTabs 30), Settings and the
-    // sign-out screen 35, signed out 190 (list 60, signed out 30, secret dropped 50, password screen
+    // sign-out screen 64, signed out 190 (list 60, signed out 30, secret dropped 50, password screen
     // 30, two row reads 20), wrong password 120 (submit 70, banner 30, emptying 20), password sign-in
     // 200 (submit 70, sign-in 60, emptying 20, secret stored 50), back to smoke 260 (switch 150,
-    // switcher 60, two row reads 20, escapeToTabs 30) = 975. Cleanup: restoreSecondSecret 410
+    // switcher 60, two row reads 20, escapeToTabs 30) = 1004. Cleanup: restoreSecondSecret 410
     // (secret read 20, settling 60, to the login list 100, selecting the row 30, sign-in 150, secret
     // stored 50), restoreToSmoke 275 (settling 60, a sign-in from the login list 215) = 685.
-    // Total 1810.
+    // Total 1839.
     this.timeout(1_900_000)
     const env = loadE2EEnv()
     const password = requireSecondPassword(env)

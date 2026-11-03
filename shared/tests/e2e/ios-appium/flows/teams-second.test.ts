@@ -36,7 +36,7 @@ import {emptySecretField, fieldLength, focusSecretField} from '../gate/secret-in
 import {clearSecretOnScreen, markSecretOnScreen} from '../gate/secret-screen.ts'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard, openConversation, waitSignedIn} from '../helpers/chat'
-import {el} from '../helpers/elements'
+import {el, pasteInto} from '../helpers/elements'
 import {buttonLabelled, pressTestID, tapButton} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
 import {jsEval, waitFor} from '../helpers/lifecycle'
@@ -62,9 +62,6 @@ import {
 type Params = Record<string, unknown>
 
 const MEMBERS = {body: T.TEAMS_MEMBER_LIST, button: T.TEAMS_TAB_MEMBERS_BUTTON}
-
-const PASTE_ITEM =
-  '-ios predicate string:(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND (name == "Paste" OR label == "Paste")'
 
 // The screen up and, on the invite link's join screen, the team its invite is to and whether it holds
 // a key: never the key or the link, which stay in the app. Bound: one read 1.
@@ -95,7 +92,7 @@ describe('teams second account', function () {
   //   screen    a screen waited for 11 (10, read 1), 21 with a 20s wait;  pin  requireOnSubteam 1
   //   button    tapButton 6;  text  textShown 6
   //   menu      openMenuFrom 19;  item  chooseMenuItem 22
-  //   paste     setPasteboard 50, pasteInto 21 (the tap 1, six tries of 3s), its length 6 (5, one read
+  //   paste     setPasteboard 50, pasteInto 21 (the field and its tap 3, pasteFromMenu 18), its length 6 (5, one read
   //             1), the overwrite 50 = 127
   //   open      openConversation 100;  relaunch  relaunchApp 200;  signed in  90
   //   calls     one read 2;  waited for  12 (10, one read 2)
@@ -175,25 +172,6 @@ describe('teams second account', function () {
     if (!link) throw new Error('the host made no invite link it could read')
     rememberInviteLink(link, e2eRunId())
     return link
-  }
-
-  // -- reads --------------------------------------------------------------------------------------
-
-
-  // Long-presses the field with `testID` until its edit menu offers Paste, and taps it: what a person
-  // does to paste. The pasteboard is set before. Bound: the tap 1, six tries of the hold 1.3 and 1.5
-  // for the menu = 21.
-  const pasteInto = async (testID: string) => {
-    const field = await el(testID).getElement()
-    await field.click()
-    for (let i = 0; i < 6; i++) {
-      await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: field.elementId})
-      if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
-        await browser.$(PASTE_ITEM).click()
-        return
-      }
-    }
-    throw new Error("the field's edit menu never offered Paste")
   }
 
   it('the second account joins a subteam by an invite link pasted into Join a team', async function () {

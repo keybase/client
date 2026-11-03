@@ -9,6 +9,7 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
 type OwnProps = {
@@ -237,6 +238,7 @@ const Assertion = (ownProps: OwnProps) => {
           direction="horizontal"
           alignItems="center"
           gap="tiny"
+          testID={TestIDs.PROFILE_ASSERTION_MENU}
           tooltip={tooltip}
         >
           <Kb.Icon

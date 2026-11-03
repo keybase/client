@@ -59,6 +59,9 @@ export const callsSince = async (mark: CallMark): Promise<Array<LoggedCall>> => 
 // not one), for presence and absence checks alike.
 export const uiCallsSince = async (mark: CallMark, method: string) => uiCallsOf(await callsSince(mark), method)
 
+// How many calls of `method` the app's own UI made since `mark`.
+export const uiCallCount = async (mark: CallMark, method: string) => (await uiCallsSince(mark, method)).length
+
 // Waits for the app's UI to send `method` after `mark`.
 export const waitForUiCall = async (what: string, mark: CallMark, method: string, opts?: {interval?: number; timeout?: number}) =>
   waitFor(what, async () => ((await uiCallsSince(mark, method)).length > 0 ? true : undefined), {

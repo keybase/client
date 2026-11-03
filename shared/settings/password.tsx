@@ -123,6 +123,7 @@ export const UpdatePassword = (props: Props) => {
               }
             }}
             hideBorder={true}
+            testID={TestIDs.SETTINGS_CONFIRM_PASSWORD_INPUT}
           />
         </Kb.RoundedBox>
         {typeof hintText === 'string' ? (

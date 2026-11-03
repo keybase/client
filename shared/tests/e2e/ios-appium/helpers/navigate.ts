@@ -5,6 +5,7 @@ import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {dragToClear} from '../gate/clear-row-lib'
 import {expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
@@ -60,11 +61,82 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // Tap a settings-root row by its label, scrolling it into view first: Android's
 // uiautomator tree omits off-screen rows (and a prior test may have left the
 // list scrolled), while on iOS the scroll no-ops when the row is already
-// visible. Use this for every row tap that follows navigateToMore.
+// visible. Use this for every row tap that follows navigateToMore. Bound (s): the scroll 25 and the
+// tap 1, plus clearOfTabBar 29 on iOS = 55.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
+  if (!browser.isAndroid) await clearOfTabBar(() => byText(text), `the "${text}" row`)
   await byText(text).click()
 }
+
+const PAN_OVERSHOOT = 60
+
+const isStale = (e: unknown) => e instanceof Error && /stale element/i.test(`${e.name} ${e.message}`)
+
+// The frame of the row `find` finds, and the band between the nav bar's bottom and the tab bar's top,
+// read afresh; undefined when the row is not in the tree within a second, or an element went stale
+// between its find and its read (the list drew it again, as it does after a drag). Bound: the row's
+// wait 1 and its read 1, the bars read 2 and their frames 2 = 6.
+const rowAndBand = async (find: () => ChainablePromiseElement, height: number) => {
+  try {
+    const found = find()
+    if (!(await found.waitForExist({interval: 100, timeout: 1_000}).then(() => true, () => false))) return undefined
+    const row = await browser.getElementRect((await found.getElement()).elementId)
+    const bars = await browser
+      .$$('-ios predicate string:type == "XCUIElementTypeTabBar" OR type == "XCUIElementTypeNavigationBar"')
+      .getElements()
+    let top = 0
+    let bottom = height
+    for (const b of bars) {
+      const r = await browser.getElementRect(b.elementId)
+      // a bar in the lower half is the tab bar; one in the upper half is the nav bar
+      if (r.y > height / 2) bottom = Math.min(bottom, r.y)
+      else top = Math.max(top, r.y + r.height)
+    }
+    return {bottom, row, top}
+  } catch (e) {
+    if (isStale(e)) return undefined
+    throw e
+  }
+}
+
+// scrollUpUntil stops once a row reads displayed, which a row under the floating tab bar does, and a
+// tap there lands on the tab bar (live: the Files tab opened). Drags the list until the row's middle,
+// where the caller's click taps it, lies well inside the nav bar and the tab bar (dragToClear);
+// throws rather than let the caller tap a row whose middle is under a bar. Each check finds the row again (`find`), and one that found no row or read a stale
+// element counts as a check with no drag. Worst case (s): the window read 2, then four checks of 6
+// (rowAndBand) and three drags of 1 = 29.
+export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
+  const {height, width} = await browser.getWindowRect()
+  let stale = false
+  for (let i = 0; i <= 3; i++) {
+    const read = await rowAndBand(find, height)
+    stale = !read
+    if (!read) continue
+    const dy = dragToClear(read.row, read.top, read.bottom)
+    if (dy === 0) return
+    if (dy === undefined || i === 3) break
+    // A move this short reads as a tap on the row under the finger (live: it opened Advanced), so the
+    // touch goes PAN_OVERSHOOT past the target first, and comes back to it before lifting: the list
+    // pans, and comes to rest dy from where it was.
+    const x = Math.round(width * 0.15)
+    const from = Math.round(height / 2 - dy / 2)
+    const past = from + dy + Math.sign(dy) * PAN_OVERSHOOT
+    await browser
+      .action('pointer', {parameters: {pointerType: 'touch'}})
+      .move({x, y: from})
+      .down()
+      .move({duration: 300, x, y: past})
+      .move({duration: 200, x, y: from + dy})
+      .pause(200)
+      .up()
+      .perform()
+  }
+  throw new Error(`${what} could not be brought clear of the tab bar${stale ? ' (its last read found no row, or a stale one)' : ''}`)
+}
+
+// A modal's header Cancel (a native bar item), not a Cancel in the screen's body or footer.
+export const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Cancel"`]'
 
 // A visible modal header button. Exact labels on buttons only: a tab root shows none of these,
 // while message snippets and feed text can contain the words.

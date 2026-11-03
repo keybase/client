@@ -5,7 +5,6 @@
 // by the exact values it used, in the server's view of the second account and removes it through
 // the second peer if the app did not.
 import type {Locator, Page} from '@playwright/test'
-import * as fs from 'fs'
 import * as path from 'path'
 import {loadE2EAccounts, loadE2EEnv} from '@/tests/e2e/accounts/env'
 import {asSecond, RESTORE_WORST_MS, restoreToSmoke} from '@/tests/e2e/electron/helpers/accounts'
@@ -20,6 +19,7 @@ import {manualEdge, step} from '@/tests/e2e/electron/helpers/step'
 import {checkMarkShown, modalButton, modalRoot, readBack} from '@/tests/e2e/electron/helpers/teams'
 import {mainRpcAsSecond} from '@/tests/e2e/shared/main-rpc'
 import {ensurePeer} from '@/tests/e2e/shared/peer-service'
+import {BURN_ADDRESS, parseLookup, pgpEmailsByFingerprint, purgeFileFingerprint, removePurgeFiles, type Upk} from '@/tests/e2e/shared/profile'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 test.describe.configure({mode: 'serial'})
@@ -29,27 +29,15 @@ test.afterEach(async ({page}, testInfo) => {
   await restoreToSmoke(page)
 })
 
-// a burn address: provably unspendable
-const BURN_ADDRESS = '1BitcoinEaterAddressDontSendf59kuE'
-
 const secondCli = async (args: Array<string>, timeoutMs = 60_000) => (await ensurePeer('second', loadE2EEnv())).cli(args, timeoutMs)
 
-type Lookup = {
-  them?: {
-    id?: string
-    cryptocurrency_addresses?: {bitcoin?: Array<{address: string; sig_id: string}>} | null
-  }
-}
-
 // The second account as the server has it, through the second peer (a read, whatever the app is on).
-const secondLookup = async (): Promise<NonNullable<Lookup['them']>> => {
+const secondLookup = async () => {
   const {secondUser} = loadE2EAccounts()
   const out = await readBack(async () =>
     secondCli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${secondUser}`, '-a', 'fields=cryptocurrency_addresses'])
   )
-  const them = (JSON.parse(out) as Lookup).them
-  if (!them) throw new Error('user/lookup returned nothing for the second account')
-  return them
+  return parseLookup(out, 'the second account')
 }
 
 const btcSigIDs = async () =>
@@ -96,45 +84,9 @@ const mainConfigDir = async () => {
   if (!configPath || !path.isAbsolute(configPath)) throw new Error(`the main service reports no absolute config path (${configPath})`)
   return path.dirname(path.resolve(configPath))
 }
-const purgeFileName = /^kb-\d{4}-([0-9a-f]{40})\.saltpack$/
-
-// The fingerprint in a file pgpPurge wrote into `dir`; throws for any other path.
-const purgeFileFingerprint = (file: string, dir: string) => {
-  const m = purgeFileName.exec(path.basename(file))
-  if (path.dirname(path.resolve(file)) !== dir || !m?.[1]) {
-    throw new Error(`refusing to touch ${file}: not a pgpPurge export in ${dir}`)
-  }
-  return m[1]
-}
-
-// Deletes exactly the files pgpPurge reported, each a plain file in the service's config dir. One
-// that is refused or fails does not stop the others; every failure is thrown together after.
-const removePurgeFiles = (files: ReadonlyArray<string>, dir: string) => {
-  const errors: Array<Error> = []
-  for (const file of files) {
-    try {
-      purgeFileFingerprint(file, dir)
-      const st = fs.lstatSync(file)
-      if (!st.isFile() || st.isSymbolicLink()) throw new Error(`refusing to delete ${file}: not a plain file`)
-      fs.unlinkSync(file)
-    } catch (e) {
-      errors.push(e instanceof Error ? e : new Error(String(e)))
-    }
-  }
-  const [first] = errors
-  if (first && errors.length === 1) throw first
-  if (errors.length > 1) throw new AggregateError(errors, errors.map(e => e.message).join('; '))
-}
-
 type PurgeRes = {filenames?: Array<string> | null}
 const pgpPurge = async (doPurge: boolean) =>
   (await mainRpcAsSecond<PurgeRes>('keybase.1.pgp.pgpPurge', {doPurge, sessionID: 0})).filenames ?? []
-
-type Upk = {
-  current: {pgpKeys?: Record<string, {fingerprint: string | Uint8Array; identities?: Array<{email: string}> | null}> | null}
-  pastIncarnations?: Array<Upk['current']> | null
-}
-const hex = (fp: string | Uint8Array) => (typeof fp === 'string' ? fp : Buffer.from(fp).toString('hex')).toLowerCase()
 
 // Removes the local secret halves of the second account's generated PGP keys from the main
 // service's keyring (dropping a key leaves them there). Only when every local key is one a run of
@@ -146,12 +98,8 @@ const purgeLocalPgpKeys = async () => {
   const listed = await pgpPurge(false)
   removePurgeFiles(listed, dir)
   const uid = (await secondLookup()).id
-  if (!uid) throw new Error('user/lookup gave no uid for the second account')
   const upk = await mainRpcAsSecond<Upk>('keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
-  const identities = new Map<string, Array<string>>()
-  for (const inc of [upk.current, ...(upk.pastIncarnations ?? [])]) {
-    for (const k of Object.values(inc.pgpKeys ?? {})) identities.set(hex(k.fingerprint), (k.identities ?? []).map(i => i.email))
-  }
+  const identities = pgpEmailsByFingerprint(upk)
   const others = listed
     .map(f => purgeFileFingerprint(f, dir))
     .filter(fp => {

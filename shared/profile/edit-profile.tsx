@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
 const EditProfile = () => {
@@ -80,6 +81,7 @@ const EditProfile = () => {
             autoFocus={true}
             onChangeText={setFullname}
             hideBorder={true}
+            testID={TestIDs.PROFILE_EDIT_FULL_NAME}
           />
         </Kb.RoundedBox>
         <Kb.RoundedBox side="middle">
@@ -91,6 +93,7 @@ const EditProfile = () => {
             rowsMax={7}
             onChangeText={setBio}
             hideBorder={true}
+            testID={TestIDs.PROFILE_EDIT_BIO}
           />
         </Kb.RoundedBox>
         <Kb.RoundedBox side="bottom">
@@ -100,6 +103,7 @@ const EditProfile = () => {
             onChangeText={setLocation}
             onEnterKeyDown={submit}
             hideBorder={true}
+            testID={TestIDs.PROFILE_EDIT_LOCATION}
           />
         </Kb.RoundedBox>
         {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}

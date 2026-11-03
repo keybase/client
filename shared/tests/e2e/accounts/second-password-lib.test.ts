@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import type {E2EEnv} from './env'
+import {readEnvFile, type E2EEnv} from './env'
 import {
   BACK_TO_SMOKE_WORST_MS,
   CHECK_OR_REPAIR_WORST_MS,
@@ -10,11 +10,13 @@ import {
   REPAIR_WORST_MS,
   checkOrRepairSecondSecret,
   checkSecondSecretSurvives,
+  KEYCHAIN_NOTE,
   newPassword,
   repairSecondSecret,
   rotateSecondPassword,
   secondPasswordIsCurrent,
   setSecondPasswordViaPeer,
+  settlePendingSecondPassword,
   thenRestore,
   type MainSide,
   type RpcLike,
@@ -223,6 +225,37 @@ describe('checkSecondSecretSurvives', () => {
     expect(tripped).toBe(false)
   })
 
+  test('after a switch that gives no answer, one switch back, then the owner action naming the Keychain', async () => {
+    const calls: string[] = []
+    const err = await checkSecondSecretSurvives(env, {
+      roundTrip: async () => {},
+      say: () => {},
+      switchMain: async user => {
+        calls.push(`switch ${user}`)
+        throw new Error(`keybase login --switch ${user}: no answer in 60s`)
+      },
+      whoami: async () => '',
+    }).then(() => new Error('it passed'), (e: unknown) => e as Error)
+    expect(calls).toEqual(['switch testuser-mac', 'switch testuser'])
+    expect(err.message).toMatch(/after 1 attempts/)
+    expect(err.message).toContain(KEYCHAIN_NOTE)
+  })
+
+  test('a switch that fails with an answer keeps the three switches back', async () => {
+    const calls: string[] = []
+    const err = await checkSecondSecretSurvives(env, {
+      roundTrip: async () => {},
+      say: () => {},
+      switchMain: async user => {
+        calls.push(`switch ${user}`)
+        throw new Error('Input canceled')
+      },
+      whoami: async () => '',
+    }).then(() => new Error('it passed'), (e: unknown) => e as Error)
+    expect(calls.filter(c => c === 'switch testuser')).toHaveLength(3)
+    expect(err.message).not.toContain(KEYCHAIN_NOTE)
+  })
+
   test('fails when the peer round trip fails', async () => {
     const main = fakeMain()
     await expect(
@@ -366,6 +399,29 @@ describe('checkOrRepairSecondSecret', () => {
   })
 })
 
+describe('checkOrRepairSecondSecret seams', () => {
+  test('the check is handed the password it checks', async () => {
+    const seen: string[] = []
+    await checkOrRepairSecondSecret(env, 'e2e-pw', {check: async (_e, pw) => void seen.push(`check ${pw}`), repair: async () => {}})
+    expect(seen).toEqual(['check e2e-pw'])
+  })
+
+  test('a failure the deps call unrepairable is thrown at once, without the password, and nothing is repaired', async () => {
+    const seen: string[] = []
+    const err = await checkOrRepairSecondSecret(env, 'e2e-pw', {
+      check: async () => {
+        seen.push('check')
+        throw new Error('the host is broken e2e-pw')
+      },
+      repair: async () => void seen.push('repair'),
+      repairable: () => false,
+    }).catch((e: unknown) => e as Error)
+    expect(seen).toEqual(['check'])
+    expect(String(err)).toContain('the host is broken')
+    expect(String(err)).not.toContain('e2e-pw')
+  })
+})
+
 describe('thenRestore', () => {
   test('a failed restore after a failed step keeps both errors, the step first, without the secret', async () => {
     const err = await thenRestore(
@@ -420,5 +476,83 @@ describe('hook budgets', () => {
     expect(REPAIR_WORST_MS).toBeGreaterThan(BACK_TO_SMOKE_WORST_MS)
     expect(CHECK_WORST_MS).toBeGreaterThan(BACK_TO_SMOKE_WORST_MS)
     expect(CHECK_OR_REPAIR_WORST_MS).toBeGreaterThan(30_000 * 10)
+  })
+})
+
+describe('settlePendingSecondPassword', () => {
+  let dir = ''
+  let file = ''
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-pw-'))
+    fs.chmodSync(dir, 0o700)
+    file = path.join(dir, 'env')
+  })
+  afterEach(() => fs.rmSync(dir, {force: true, recursive: true}))
+  const holds = (current: ReadonlyArray<string>) => async (_e: unknown, pw: string) => current.includes(pw)
+
+  test('promotes KB_SECOND_PASSWORD_NEXT when the server holds it', async () => {
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds(['new-pw']))).resolves.toBe('promoted')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('new-pw')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+  })
+
+  test('drops KB_SECOND_PASSWORD_NEXT when the server still holds the old one', async () => {
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds(['old-pw']))).resolves.toBe('dropped')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('old-pw')
+    expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+  })
+
+  // the iOS afterEach: a change the phone sent may still be on its way to the server
+  describe('when it may not drop', () => {
+    const text = "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n"
+    const sent = async () => Promise.resolve(false)
+    const neverSent = async () => Promise.resolve(true)
+
+    test('a change sent and not yet applied: KB_SECOND_PASSWORD_NEXT stays and the owner runs --check', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const err = await settlePendingSecondPassword(env, file, holds(['old-pw']), sent).then(
+        () => new Error('it passed'),
+        (e: unknown) => e as Error
+      )
+      expect(err.message).toMatch(/yarn test:e2e:accounts:second-password --check/)
+      expect(err.message).not.toMatch(/old-pw|new-pw/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    })
+
+    test('a change applied: KB_SECOND_PASSWORD_NEXT is promoted', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      await expect(settlePendingSecondPassword(env, file, holds(['new-pw']), sent)).resolves.toBe('promoted')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('new-pw')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+    })
+
+    test('a change never sent: KB_SECOND_PASSWORD_NEXT is dropped', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      await expect(settlePendingSecondPassword(env, file, holds(['old-pw']), neverSent)).resolves.toBe('dropped')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD']).toBe('old-pw')
+      expect(readEnvFile(file)['KB_SECOND_PASSWORD_NEXT']).toBeUndefined()
+    })
+
+    test('a call log that cannot be read changes nothing', async () => {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const unreadable = async () => Promise.reject(new Error('the call log is gone'))
+      await expect(settlePendingSecondPassword(env, file, holds(['old-pw']), unreadable)).rejects.toThrow(/call log/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    })
+  })
+
+  test('changes nothing, naming no password, when neither or both check, or when none is pending', async () => {
+    const text = "export KB_SECOND_PASSWORD='old-pw'\nexport KB_SECOND_PASSWORD_NEXT='new-pw'\n"
+    for (const current of [[], ['old-pw', 'new-pw']]) {
+      fs.writeFileSync(file, text, {mode: 0o600})
+      const err = await settlePendingSecondPassword(env, file, holds(current)).then(() => new Error('it passed'), (e: unknown) => e as Error)
+      expect(err.message).toMatch(/settle it by hand/)
+      expect(err.message).not.toMatch(/old-pw|new-pw/)
+      expect(fs.readFileSync(file, 'utf8')).toBe(text)
+    }
+    fs.writeFileSync(file, "export KB_SECOND_PASSWORD='old-pw'\n", {mode: 0o600})
+    await expect(settlePendingSecondPassword(env, file, holds([]))).resolves.toBe('none')
   })
 })

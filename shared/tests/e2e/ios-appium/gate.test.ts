@@ -33,3 +33,24 @@ import './flows/teams-settings.test'
 import './flows/git.test'
 // after the other second-account flows, as chat-blocks is
 import './flows/teams-second.test'
+// after the chat flows: a follow adds a link to the smoke account's sigchain, and a peer send right
+// after it can fail until the server's chain catches up
+import './flows/people-browse.test'
+import './flows/people-follow.test'
+import './flows/profile-edit.test'
+import './flows/crypto.test'
+import './flows/crypto-roundtrip.test'
+import './flows/settings-account.test'
+// after the chat unfurl flow, which keeps the account's link preview settings in a file of its own
+// while it runs; it relaunches the app, as smoke
+import './flows/settings-persisted.test'
+import './flows/settings-archive.test'
+import './flows/settings-subpages.test'
+import './flows/settings-debug-pages.test'
+// the second account's proofs add links to its sigchain; after its other flows
+import './flows/profile-proofs.test'
+// relaunches with the second account signed out part way, so after the other second-account flows
+import './flows/settings-remember-password.test'
+// last: it changes the second account's password, and a change that stops part way leaves it to the
+// owner (no later flow could sign the second account in)
+import './flows/settings-password.test'

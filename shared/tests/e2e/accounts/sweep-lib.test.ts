@@ -5,6 +5,8 @@ import {
   heldByTeamRepos,
   kbfsRoots,
   listedEmojiAlias,
+  localPgpHeld,
+  localPgpSelected,
   parseKbfsLs,
   selectSweepTargets,
   staleRunIds,
@@ -296,6 +298,62 @@ describe('paper keys', () => {
   })
   test('a ledger id on a device that is not a paper key is not revoked as one', () => {
     expect(decide(smoke({deviceID: 'dd01', kind: 'device', name: 'apple banana'}))).toBe('dropped')
+  })
+})
+
+describe('second account proofs and PGP keys', () => {
+  const second = (c: Omit<SweepCandidate, 'account'>): SweepCandidate => ({account: 'second', ...c})
+  test("an older run's stamped DNS proof is revoked by its sig id, this run's is kept", () => {
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's1'}))).toBe('delete')
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${ctx.currentRunId}.example.com`, sigID: 's2'}))).toMatch(/^kept: made by this run/)
+    expect(decide(second({kind: 'proofSig', name: `dns://e2e${old}.example.com`}))).toMatch(/^kept: .*sig id/)
+  })
+  test('any other proof, or a proof on the smoke account, is never judged', () => {
+    for (const name of ['dns://keybase.io', `dns://e2e${old}.example.org`, `dns://x.e2e${old}.example.com`, `https://e2e${old}.example.com`]) {
+      expect(decide(second({kind: 'proofSig', name, sigID: 's3'}))).toBe('dropped')
+    }
+    expect(decide(smoke({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's4'}))).toBe('dropped')
+  })
+  test("an older run's stamped PGP key is dropped by its key id, this run's is kept", () => {
+    expect(decide(second({kid: 'k1', kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toBe('delete')
+    expect(decide(second({kid: 'k2', kind: 'pgpKey', name: `e2e-${ctx.currentRunId}-pgp@example.com`}))).toMatch(/^kept: made by this run/)
+    expect(decide(second({kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toMatch(/^kept: .*key id/)
+  })
+  test('any other PGP key, or one on the smoke account, is never judged', () => {
+    for (const name of ['', 'testuser@keybase.io', `e2e-${old}-pgp@example.org`, `e2e-${old}-other@example.com`]) {
+      expect(decide(second({kid: 'k3', kind: 'pgpKey', name}))).toBe('dropped')
+    }
+    expect(decide(smoke({kid: 'k4', kind: 'pgpKey', name: `e2e-${old}-pgp@example.com`}))).toBe('dropped')
+  })
+  const local = (name: string, fingerprint: string | undefined = name.length.toString(16).padStart(40, '0')) =>
+    second({fingerprint, kind: 'localPgpKey', name})
+  test("an older run's stamped local PGP key is purged; this run's, an unstamped one or one with no fingerprint is kept", () => {
+    expect(decide(local(`e2e-${old}-pgp@example.com`))).toBe('delete')
+    expect(decide(local(`e2e-${ctx.currentRunId}-pgp@example.com`))).toMatch(/^kept: made by this run/)
+    for (const name of ['', 'testuser@keybase.io', `e2e-${old}-pgp@example.org`]) expect(decide(local(name))).toMatch(/^kept: unrecognised key/)
+    expect(decide(local(`e2e-${old}-pgp@example.com`, ''))).toMatch(/^kept: .*fingerprint/)
+    expect(decide(smoke({fingerprint: 'f', kind: 'localPgpKey', name: `e2e-${old}-pgp@example.com`}))).toBe('dropped')
+  })
+  test('the local keys are purged all together or not at all', () => {
+    const older = local(`e2e-${old}-pgp@example.com`, 'a'.repeat(40))
+    const older2 = local(`e2e-${old}-pgp@example.com`, 'b'.repeat(40))
+    const both = selectSweepTargets([older, older2], ctx)
+    expect(both.delete).toEqual([older, older2])
+    expect(localPgpSelected(both.delete)).toEqual(new Set(['a'.repeat(40), 'b'.repeat(40)]))
+    for (const holder of [local(''), local(`e2e-${ctx.currentRunId}-pgp@example.com`)]) {
+      const sel = selectSweepTargets([older, holder, older2], ctx)
+      expect(sel.delete).toEqual([])
+      expect(sel.kept.filter(n => n.reason === localPgpHeld).map(n => n.candidate)).toEqual([older, older2])
+      expect(localPgpSelected(sel.delete).size).toBe(0)
+    }
+    // another kind kept holds nothing back
+    const sel = selectSweepTargets([older, second({kid: 'k2', kind: 'pgpKey', name: `e2e-${ctx.currentRunId}-pgp@example.com`})], ctx)
+    expect(sel.delete).toEqual([older])
+  })
+  test('checkDelete re-judges them as the second account', () => {
+    const sig = second({kind: 'proofSig', name: `dns://e2e${old}.example.com`, sigID: 's1'})
+    expect(() => checkDelete(sig, ctx, 'testuser-mac')).not.toThrow()
+    expect(() => checkDelete(sig, ctx, 'testuser')).toThrow(/signed in as <smoke>,/)
   })
 })
 

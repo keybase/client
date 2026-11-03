@@ -227,12 +227,14 @@ const Attachments = () => {
           onSelect={() => compressSaved(true)}
           selected={compress === true}
           disabled={compress === undefined}
+          testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_COMPRESS_PREFIX}compressed`, compress === true, compress === undefined)}
         />
         <Kb.RadioButton
           label="Keep full size"
           onSelect={() => compressSaved(false)}
           selected={compress === false}
           disabled={compress === undefined}
+          testID={TestIDs.settingTestID(`${TestIDs.SETTINGS_COMPRESS_PREFIX}original`, compress === false, compress === undefined)}
         />
         {!!error && (
           <Kb.Text type="BodySmall" style={styles.error}>
@@ -350,6 +352,11 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
             onCheck={() => setContactSettingsEnabled(s => !s)}
             checked={!!contactSettingsEnabled}
             disabled={contactSettingsEnabled === undefined}
+            testID={TestIDs.settingTestID(
+              TestIDs.SETTINGS_CONTACT_SWITCH,
+              !!contactSettingsEnabled,
+              contactSettingsEnabled === undefined
+            )}
           />
           {!!contactSettingsEnabled && (
             <>
@@ -414,6 +421,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
               label="Save"
               small={true}
               style={styles.save}
+              testID={TestIDs.SETTINGS_CONTACT_SAVE}
               waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
             {!!error && (
@@ -557,6 +565,11 @@ export const Links = () => {
           disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.always)}
           selected={selected === T.RPCChat.UnfurlMode.always}
+          testID={TestIDs.settingTestID(
+            `${TestIDs.SETTINGS_UNFURL_MODE_PREFIX}always`,
+            selected === T.RPCChat.UnfurlMode.always,
+            !editable
+          )}
         />
         <Kb.RadioButton
           key="rbwhitelist"
@@ -564,6 +577,11 @@ export const Links = () => {
           disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.whitelisted)}
           selected={selected === T.RPCChat.UnfurlMode.whitelisted}
+          testID={TestIDs.settingTestID(
+            `${TestIDs.SETTINGS_UNFURL_MODE_PREFIX}whitelisted`,
+            selected === T.RPCChat.UnfurlMode.whitelisted,
+            !editable
+          )}
         />
         {selected === T.RPCChat.UnfurlMode.whitelisted && (
           <>
@@ -593,6 +611,11 @@ export const Links = () => {
           disabled={saving}
           onSelect={() => setSelected(T.RPCChat.UnfurlMode.never)}
           selected={selected === T.RPCChat.UnfurlMode.never}
+          testID={TestIDs.settingTestID(
+            `${TestIDs.SETTINGS_UNFURL_MODE_PREFIX}never`,
+            selected === T.RPCChat.UnfurlMode.never,
+            !editable
+          )}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" alignSelf="flex-start" style={styles.innerContainer}>

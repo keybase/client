@@ -1,8 +1,10 @@
 // Evals in the running app, and asks of the phone's own service. What lives only on the phone (its
-// files settings, a folder's sync config, the emoji skin tone) is read back and restored here, never
-// through the host's main service, which holds the Mac's copy.
+// files settings, a folder's sync config, the emoji skin tone, remember-password, the proxy, the GUI
+// config, the photo compress preference, the KBFS debug level, runtime stats, backup jobs) is read
+// back and restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
+import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -85,6 +87,7 @@ export const askApp = async <T,>(what: string, body: string, timeout = 20_000): 
 }
 
 const RPC_GEN = `kbModule('constants/rpc/rpc-gen.tsx')`
+const RPC_CHAT = `kbModule('constants/rpc/rpc-chat-gen.tsx')`
 const FS = `kbModule('constants/fs.tsx')`
 
 // The phone's files settings (Settings > Files): the low-space warning's threshold in bytes (0: the
@@ -148,5 +151,227 @@ export const setFolderSyncConfig = async (path: string, c: FolderSyncConfig) => 
        config: ${JSON.stringify(config)},
        path: ${FS}.pathToRPCPath(${JSON.stringify(requirePlainFolder(path))}),
      }).then(() => true)`
+  )
+}
+
+// -- remember-password, proxy, GUI config, photo compress, debug level, runtime stats ---------------
+
+// "Always stay logged in" (Settings > Advanced), as the phone's service keeps it.
+export const rememberPassphrase = async () =>
+  askApp<boolean>("the phone's remember-password setting", `${RPC_GEN}.configGetRememberPassphraseRpcPromise().then(r => !!r)`)
+
+// a restore only: the UI's change is what counts
+export const setRememberPassphrase = async (remember: boolean) =>
+  askApp<boolean>(
+    'restoring the remember-password setting',
+    `${RPC_GEN}.configSetRememberPassphraseRpcPromise({remember: ${remember ? 'true' : 'false'}}).then(() => true)`
+  )
+
+// ProxyType: 0 none, 1 HTTP connect, 2 SOCKS
+export type ProxyData = {addressWithPort: string; certPinning: boolean; proxyType: 0 | 1 | 2}
+
+export const proxyData = async () =>
+  askApp<ProxyData>(
+    "the phone's proxy settings",
+    `${RPC_GEN}.configGetProxyDataRpcPromise().then(p => ({addressWithPort: p.addressWithPort, certPinning: !!p.certPinning, proxyType: p.proxyType}))`
+  )
+
+const plainAddress = /^[A-Za-z0-9.:[\]_-]*$/
+
+// Puts the phone's proxy settings to `d` (a restore only).
+export const setProxyData = async (d: ProxyData) => {
+  if (![0, 1, 2].includes(d.proxyType) || !plainAddress.test(d.addressWithPort)) throw new Error('refusing proxy settings that are not plain')
+  const data = {addressWithPort: d.addressWithPort, certPinning: !!d.certPinning, proxyType: d.proxyType}
+  await askApp<boolean>('restoring the proxy settings', `${RPC_GEN}.configSetProxyDataRpcPromise({proxyData: ${JSON.stringify(data)}}).then(() => true)`)
+}
+
+export type GuiValue = {isNull: boolean; b?: boolean | null; i?: number | null; f?: number | null; s?: string | null; o?: string | null}
+
+const plainKey = /^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*$/
+const requirePlainKey = (key: string) => {
+  if (!plainKey.test(key)) throw new Error('refusing a GUI config key that is not plain')
+  return key
+}
+
+// What the phone's GUI config holds at `key` (ui.darkMode, ...), or undefined when nothing is set there.
+export const guiValue = async (key: string): Promise<GuiValue | undefined> =>
+  (await askApp<GuiValue | null>(
+    "the phone's GUI config value",
+    `${RPC_GEN}.configGuiGetValueRpcPromise({path: ${JSON.stringify(requirePlainKey(key))}}).then(
+       v => (v.isNull ? null : v),
+       e => (/no such key/i.test(String(e && e.message)) ? null : Promise.reject(e))
+     )`
+  )) ?? undefined
+
+const plainValue = /^[A-Za-z0-9_.:-]*$/
+
+// Puts `value` at `key` in the phone's GUI config (a restore only).
+export const guiSetValue = async (key: string, value: GuiValue) => {
+  for (const v of [value.s, value.o]) if (typeof v === 'string' && !plainValue.test(v)) throw new Error('refusing a GUI config value that is not plain')
+  const v = {
+    isNull: !!value.isNull,
+    ...Object.fromEntries((['b', 'i', 'f', 's', 'o'] as const).flatMap(k => (value[k] === undefined ? [] : [[k, value[k]]]))),
+  }
+  await askApp<boolean>(
+    'restoring a GUI config value',
+    `${RPC_GEN}.configGuiSetValueRpcPromise({path: ${JSON.stringify(requirePlainKey(key))}, value: ${JSON.stringify(v)}}).then(() => true)`
+  )
+}
+
+// Clears `key` in the phone's GUI config (a restore of a key that was never set). The app has no
+// generated call for it, so this goes through the engine's call port.
+export const guiClearValue = async (key: string) => {
+  const path = JSON.stringify(requirePlainKey(key))
+  await askApp<boolean>(
+    'clearing a GUI config value',
+    `new Promise((resolve, reject) =>
+       kbModule('engine/call-port.tsx').getCallPort().call({
+         callback: e => (e ? reject(e) : resolve(true)),
+         method: 'keybase.1.config.guiClearValue',
+         params: {path: ${path}},
+       })
+     )`
+  )
+}
+
+// The iOS photos and videos setting (Settings > Chat): compress, or keep full size.
+export type CompressPreference = 'compressed' | 'original'
+
+export const compressPreference = async () =>
+  askApp<CompressPreference>(
+    "the phone's photo compress preference",
+    `${RPC_GEN}.incomingShareGetPreferenceRpcPromise().then(p =>
+       p.compressPreference === ${RPC_GEN}.IncomingShareCompressPreference.original ? 'original' : 'compressed')`
+  )
+
+// a restore only
+export const setCompressPreference = async (p: CompressPreference) =>
+  askApp<boolean>(
+    'restoring the photo compress preference',
+    `${RPC_GEN}.incomingShareSetPreferenceRpcPromise({
+       preference: {compressPreference: ${RPC_GEN}.IncomingShareCompressPreference.${p === 'original' ? 'original' : 'compressed'}},
+     }).then(() => true)`
+  )
+
+// Whether the signed-in account has no password of its own (it signed up without one): its
+// delete-account confirm would then delete at once.
+export const randomPW = async () =>
+  askApp<boolean>(
+    "the phone's passphrase state",
+    `${RPC_GEN}.userLoadPassphraseStateRpcPromise().then(s => s === ${RPC_GEN}.PassphraseState.random)`
+  )
+
+// Sets the phone's KBFS debug level (a restore of "Enable Detailed Logging").
+export const setDebugLevel = async (level: string) => {
+  if (!isVdebugLevel(level)) throw new Error('refusing a KBFS debug level that is not a comma list of VDebugLog directives')
+  await askApp<boolean>('restoring the KBFS debug level', `${RPC_GEN}.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: ${JSON.stringify(level)}}).then(() => true)`)
+}
+
+// The identify state the app holds for `username`'s profile ('valid', 'checking', ...), or undefined
+// when it holds none: a read of the tracker's session, no RPC. The name is plain and goes only into
+// the eval.
+export const trackerState = async (username: string) => {
+  if (!/^[A-Za-z0-9_]{1,16}$/.test(username)) throw new Error('refusing a username that is not plain')
+  return askApp<string | null>(
+    "the profile's identify state",
+    `Promise.resolve(kbModule('tracker/identify-session.tsx').getProfileDetails(${JSON.stringify(username)})?.state ?? null)`
+  )
+}
+
+// Toggles the phone's runtime stats (a restore: read runtimeStatsEnabled first).
+export const toggleRuntimeStats = async () =>
+  askApp<boolean>('toggling the runtime stats', `${RPC_GEN}.configToggleRuntimeStatsRpcPromise().then(() => true)`)
+
+// Whether the phone's service config has runtime stats on (the flag Toggle Runtime Stats flips and
+// a relaunch keeps): the truth even before the first stats arrive or after the last one. The app
+// has no generated call for it, so this goes through the engine's call port.
+export const runtimeStatsEnabled = async () =>
+  askApp<boolean>(
+    "the phone's runtime stats setting",
+    `new Promise((resolve, reject) =>
+       kbModule('engine/call-port.tsx').getCallPort().call({
+         callback: (e, v) =>
+           e ? (/no such key/i.test(String(e && e.message)) ? resolve(false) : reject(e)) : resolve(!!(v && !v.isNull && v.b)),
+         method: 'keybase.1.config.getValue',
+         params: {path: 'runtime_stats_enabled'},
+       })
+     )`
+  )
+
+// Whether the phone's service reaches the API server: one cheap authenticated read answers (its body
+// is not kept). Bound: `timeout`, plus the pause and resume.
+export const phoneReachesServer = async (timeout = 30_000) =>
+  askApp<boolean>(
+    "the phone's service reaching the server",
+    `${RPC_GEN}.apiserverGetWithSessionRpcPromise({args: [], endpoint: 'account/subscriptions'}).then(r => !!(r && r.body))`,
+    timeout
+  )
+
+// The app's theme state (no RPC): the preference it shows, whether "Respect system settings" is
+// offered, and whether the system is dark.
+export type DarkModeState = {preference: string; supported: boolean; systemDark: boolean}
+
+export const darkModeState = async () =>
+  askApp<DarkModeState>(
+    "the app's theme state",
+    `Promise.resolve(kbModule('stores/darkmode.tsx').useDarkModeState.getState()).then(s => ({
+       preference: s.darkModePreference,
+       supported: !!s.supported,
+       systemDark: !!s.systemDarkMode,
+     }))`
+  )
+
+// -- backup jobs -------------------------------------------------------------------------------------
+
+// The ids of backup jobs on the phone: chat (archiveChatList) and files (simpleFSGetArchiveStatus).
+export type ArchiveJobs = {chat: Array<string>; kbfs: Array<string>}
+
+// The phone's backup jobs with what each is doing: a chat job's status (ArchiveChatJobStatus) and
+// the directory it writes (its compressed output is that path with .tar.gzip after it), a files job's
+// phase (SimpleFSArchiveJobPhase) and its staging directory and zip. The paths are the phone's own
+// (in the simulator, paths on this Mac that hold the account's name): they stay in memory, never in
+// a step, an error or a log.
+export type ArchiveJobStates = {
+  chat: Array<{id: string; outputPath: string; status: number}>
+  kbfs: Array<{id: string; phase: number; stagingPath: string; zipFilePath: string}>
+}
+
+export const archiveJobStates = async () =>
+  askApp<ArchiveJobStates>(
+    "the phone's backup jobs and their states",
+    `${RPC_CHAT}.localArchiveChatListRpcPromise({identifyBehavior: ${RPC_GEN}.TLFIdentifyBehavior.unset})
+       .then(c => ${thenIfStillAsked(`${RPC_GEN}.SimpleFSSimpleFSGetArchiveStatusRpcPromise()`)}
+         .then(k => ({
+           chat: (c.jobs || []).map(j => ({id: j.request.jobID, outputPath: j.request.outputPath, status: j.status})),
+           kbfs: (k.jobs || []).map(j => ({id: j.desc.jobID, phase: j.phase, stagingPath: j.desc.stagingPath, zipFilePath: j.desc.zipFilePath})),
+         })))`
+  )
+
+// The ids of `states`' jobs.
+export const archiveJobIDs = (states: ArchiveJobStates): ArchiveJobs => ({
+  chat: states.chat.map(j => j.id),
+  kbfs: states.kbfs.map(j => j.id),
+})
+
+const plainJobID = /^[A-Za-z0-9_.:-]+$/
+
+// Removes backup jobs a flow made on the phone: a chat job with its output (archiveChatDelete
+// deleteOutputPath), a files job cancelled or dismissed. Refuses, before any eval, a job in `before`
+// (the flow's snapshot of the jobs there before it ran): those are never touched.
+export const removeArchiveJobs = async (ids: ArchiveJobs, before: ArchiveJobs) => {
+  const old = new Set([...before.chat, ...before.kbfs])
+  const all = [...ids.chat, ...ids.kbfs]
+  if (all.some(id => !plainJobID.test(id))) throw new Error('refusing a backup job id that is not plain')
+  if (all.some(id => old.has(id))) throw new Error('refusing to remove a backup job that was there before the flow')
+  if (!all.length) return
+  const calls = [
+    ...ids.chat.map(
+      id => `${RPC_CHAT}.localArchiveChatDeleteRpcPromise({deleteOutputPath: true, identifyBehavior: ${RPC_GEN}.TLFIdentifyBehavior.unset, jobID: ${JSON.stringify(id)}})`
+    ),
+    ...ids.kbfs.map(id => `${RPC_GEN}.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID: ${JSON.stringify(id)}})`),
+  ]
+  await askApp<boolean>(
+    "removing the flow's backup jobs",
+    `Promise.resolve()${calls.map(c => `.then(() => ${thenIfStillAsked(c)})`).join('')}.then(() => true)`
   )
 }

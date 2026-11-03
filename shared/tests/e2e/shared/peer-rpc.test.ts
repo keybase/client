@@ -3,7 +3,7 @@ import * as os from 'os'
 import * as fs from 'fs'
 import * as path from 'path'
 import {decode, encode} from '@msgpack/msgpack'
-import {connectPeerRpc} from './peer-rpc'
+import {connectPeerRpc, pgpKeyGenAnswers} from './peer-rpc'
 
 type Frame = unknown[]
 type Handler = (frame: Frame, write: (buf: Uint8Array) => void, sock: net.Socket) => void
@@ -149,4 +149,22 @@ test('an onInvoke handler answers incoming invokes with its result or its error'
   } finally {
     rpc.close()
   }
+})
+
+describe('pgpKeyGenAnswers', () => {
+  test('answers the keygen prompts: the key is kept, its private half never pushed, and no passphrase is given', () => {
+    const got: Array<string> = []
+    const answer = pgpKeyGenAnswers(fp => got.push(fp))
+    expect(answer('keybase.1.pgpUi.keyGenerated', {key: {fingerprint: 'AB12'}, kid: 'k', sessionID: 1})).toBeNull()
+    expect(got).toEqual(['AB12'])
+    expect(answer('keybase.1.pgpUi.shouldPushPrivate', {prompt: true, sessionID: 1})).toBe(false)
+    expect(answer('keybase.1.pgpUi.finished', {sessionID: 1})).toBeNull()
+    expect(answer('keybase.1.logUi.log', {level: 2, text: {data: 'x'}})).toBeNull()
+    expect(() => answer('keybase.1.secretUi.getPassphrase', {})).toThrow(/no passphrase/)
+    expect(() => answer('keybase.1.pgpUi.outputSignatureSuccess', {})).toThrow(/does not answer/)
+  })
+
+  test('a keyGenerated without a fingerprint fails the keygen', () => {
+    expect(() => pgpKeyGenAnswers(() => {})('keybase.1.pgpUi.keyGenerated', {key: {}})).toThrow(/fingerprint/)
+  })
 })

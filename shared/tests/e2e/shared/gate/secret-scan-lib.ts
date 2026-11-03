@@ -54,18 +54,30 @@ const contains = (hay: Uint8Array, needle: Buffer) => Buffer.from(hay.buffer, ha
 // key's device name: two of its words (lowercase, joined by a space), as short as 7 characters.
 const scannable = (s: string) => s.length >= 8 || /^[a-z]+ [a-z]+$/.test(s)
 
-// Whether `data` holds any of `secrets` (empty ones ignored), looking into zips and base64 runs.
-export const holdsSecret = (data: Uint8Array, secrets: ReadonlyArray<string>, depth = 0): boolean => {
-  const needles = secrets.filter(scannable).map(s => Buffer.from(s, 'utf8'))
-  if (!needles.length) return false
-  if (needles.some(n => contains(data, n))) return true
+const latin1 = (data: Uint8Array) => Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString('latin1')
+
+// Whether `found` holds for `data`, or for what is inside its zip or its base64 runs.
+const holdsWhere = (data: Uint8Array, found: (d: Uint8Array) => boolean, depth: number): boolean => {
+  if (found(data)) return true
   if (depth >= maxDepth) return false
-  if (isZip(data) && zipEntries(data).some(e => holdsSecret(e, secrets, depth + 1))) return true
-  const text = Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString('latin1')
-  for (const m of text.matchAll(base64Run)) {
-    if (holdsSecret(Buffer.from(m[0], 'base64'), secrets, depth + 1)) return true
+  if (isZip(data) && zipEntries(data).some(e => holdsWhere(e, found, depth + 1))) return true
+  for (const m of latin1(data).matchAll(base64Run)) {
+    if (holdsWhere(Buffer.from(m[0], 'base64'), found, depth + 1)) return true
   }
   return false
+}
+
+// A saltpack armor header of any message type ("BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.", "BEGIN
+// SALTPACK DETACHED SIGNATURE."): a saltpack message is kept out of every artifact by construction,
+// and this is the backstop for one that got in anyway.
+const saltpackArmor = /BEGIN (?:KEYBASE )?SALTPACK [A-Z]+(?: [A-Z]+)*\./
+
+// Whether `data` holds any of `secrets` (empty ones ignored) or, with `armor`, a saltpack message's
+// armor, looking into zips and base64 runs in one walk (the decoding is the slow part of a scan).
+export const holdsSecretOrArmor = (data: Uint8Array, secrets: ReadonlyArray<string>, armor: boolean): boolean => {
+  const needles = secrets.filter(scannable).map(s => Buffer.from(s, 'utf8'))
+  if (!needles.length && !armor) return false
+  return holdsWhere(data, d => needles.some(n => contains(d, n)) || (armor && saltpackArmor.test(latin1(d))), 0)
 }
 
 // Every value `read` has returned, across samples: a password rotated mid-run was typed (and could

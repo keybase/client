@@ -10,7 +10,7 @@ import * as os from 'os'
 import * as path from 'path'
 import type {E2EEnv, PeerRole} from '../accounts/env.ts'
 import {keybaseBin} from './keybase-bin.ts'
-import {connectPeerRpc, type PeerRpc} from './peer-rpc.ts'
+import {connectPeerRpc, type InvokeHandler, type PeerRpc} from './peer-rpc.ts'
 
 export type Peer = {
   role: PeerRole
@@ -18,7 +18,8 @@ export type Peer = {
   user: string
   cli: (args: string[], timeoutMs?: number) => Promise<string>
   chatApi: (msg: object) => Promise<unknown>
-  rpc: () => Promise<PeerRpc>
+  // a connection to the peer's service; `onInvoke` answers what the service asks on it
+  rpc: (onInvoke?: InvokeHandler) => Promise<PeerRpc>
 }
 
 export const socketPathFor = (home: string) => path.join(home, 'Library', 'Caches', 'Keybase', 'keybased.sock')
@@ -233,7 +234,7 @@ export const ensurePeer = async (role: PeerRole, env: E2EEnv, deps: PeerDeps = {
     cli,
     home,
     role,
-    rpc: async () => connectPeerRpc(socket).catch(diagnose),
+    rpc: async (onInvoke?: InvokeHandler) => connectPeerRpc(socket, undefined, onInvoke).catch(diagnose),
     user,
   }
 }

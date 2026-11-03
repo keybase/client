@@ -165,3 +165,29 @@ export const connectPeerRpc = async (
     },
   }
 }
+
+// Answers what a `keybase.1.pgp.pgpKeyGenDefault` on this connection asks: the key it made (passed to
+// `onKey` by its fingerprint), and "no" to pushing its private half to the server, so the account's
+// hasServerKeys stays false. A passphrase prompt, or anything else, is refused: the harness never
+// gives a password here.
+export const pgpKeyGenAnswers =
+  (onKey: (fingerprint: string) => void): InvokeHandler =>
+  (method, arg) => {
+    switch (method) {
+      case 'keybase.1.pgpUi.keyGenerated': {
+        const fingerprint = (arg as {key?: {fingerprint?: unknown}} | undefined)?.key?.fingerprint
+        if (typeof fingerprint !== 'string' || !fingerprint) throw new Error('keyGenerated named no fingerprint')
+        onKey(fingerprint)
+        return null
+      }
+      case 'keybase.1.pgpUi.shouldPushPrivate':
+        return false
+      case 'keybase.1.pgpUi.finished':
+      case 'keybase.1.logUi.log':
+        return null
+      case 'keybase.1.secretUi.getPassphrase':
+        throw new Error('the harness gives no passphrase')
+      default:
+        throw new Error(`the harness does not answer ${method}`)
+    }
+  }

@@ -7,7 +7,12 @@
 //   conversation; personal git repos, emails, root teams it owns, devices and paper keys; and,
 //   smoke only (deleting needs a team admin; peer services run no KBFS): team channels, subteams,
 //   emoji and team repos of KB_E2E_TEAM (team repos of its stamped subteams too, deleted before the
-//   subteam), and KBFS entries directly in the folders kbfsRoots names.
+//   subteam), and KBFS entries directly in the folders kbfsRoots names; second only: its live DNS
+//   proof sigs and PGP keys (the iOS proof flows' dns://e2e<runid>.example.com and
+//   e2e-<runid>-pgp@example.com, left by a run killed before its afterEach), revoked by sig id and
+//   dropped by key id, and those keys' secret halves in the second peer's local keyring, named by the
+//   identity the sigchain gives each and purged together (all of them or none: pgpPurge removes every
+//   local key, so an unstamped key, or this run's, holds the purge back).
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
@@ -39,6 +44,7 @@ import {
   describeCandidate,
   heldByTeamRepos,
   kbfsRoots,
+  localPgpSelected,
   listedEmojiAlias,
   maskAccounts,
   parseKbfsLs,
@@ -53,8 +59,11 @@ import {
 import {ensureRunId, parseStampedName} from './run-id.ts'
 import {CLOSED_SUBTEAM, E2E_CHANNELS} from '../shared/chat-data.ts'
 import {convIDBytes} from '../shared/conv-id.ts'
+import {cryptoDir} from '../ios-appium/gate/crypto-lib.ts'
 import {forgetStaleInviteLinks} from '../shared/gate/secret-scan.ts'
 import {expectSpawnList, keybaseBin} from '../shared/keybase-bin.ts'
+import {localPgpFingerprints, purgeLocalPgp} from '../shared/pgp-purge.ts'
+import {parseLookup, parseSigsList, parseUpkPgpKeys, pgpEmailsByFingerprint, type Upk} from '../shared/profile-parse.ts'
 import {connectPeerRpc, type PeerRpc} from '../shared/peer-rpc.ts'
 import {
   ensurePeer,
@@ -91,6 +100,8 @@ export type SweepResult = {
   errors: Array<string>
   // the provisioning homes earlier runs left, removed
   homes: Array<string>
+  // the scratch folders earlier runs left on this Mac, removed
+  scratch: Array<string>
 }
 
 const rpcTimeoutMs = 30_000
@@ -233,6 +244,41 @@ const teamRepos = async (actor: Actor): Promise<Array<SweepCandidate>> =>
 const emails = async (actor: Actor) =>
   (await call<Array<{email: string; isPrimary: boolean}> | null>(actor, 'keybase.1.emails.getEmails', {sessionID: 0})) ?? []
 
+const whoOf = (actor: Actor) => `the ${actor.account} account`
+
+const upkOf = async (actor: Actor) => {
+  const out = await actor.cli(['apicall', '-m', 'GET', 'user/lookup', '-a', `username=${actor.user}`, '-a', 'fields=basics'], 60_000)
+  const {id: uid} = parseLookup(out, whoOf(actor))
+  return call<Upk>(actor, 'keybase.1.user.loadUserPlusKeysV2', {oa: 0, pollForKID: '', sessionID: 0, uid})
+}
+
+// The account's live DNS proof sigs.
+const proofSigs = async (actor: Actor): Promise<Array<SweepCandidate>> =>
+  parseSigsList(await actor.cli(['sigs', 'list', '-j', '-r'], 60_000), whoOf(actor))
+    .filter(s => s.type === 'proof' && !s.revoked && s.statement.startsWith('dns://'))
+    .map(s => ({account: actor.account, kind: 'proofSig' as const, name: s.statement, sigID: s.sigID}))
+
+// The secret halves of PGP keys in the account's local keyring, each named by the one identity the
+// account's sigchain (past incarnations and revoked keys included) gives it ('' for a key it names
+// with more or none, or does not know).
+const localPgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
+  const fps = await withRpc(actor, async rpc => localPgpFingerprints(rpc))
+  if (!fps.length) return []
+  const emailsOf = pgpEmailsByFingerprint(await upkOf(actor))
+  return fps.map(fp => {
+    const emails = emailsOf.get(fp) ?? []
+    return {account: actor.account, fingerprint: fp, kind: 'localPgpKey' as const, name: emails.length === 1 ? (emails[0] ?? '') : ''}
+  })
+}
+
+// The account's live PGP keys, each named by its one identity's email ('' for a key with more or
+// none, which no sweep judges ours).
+const pgpKeys = async (actor: Actor): Promise<Array<SweepCandidate>> => {
+  return parseUpkPgpKeys(await upkOf(actor), actor.user, whoOf(actor))
+    .filter(k => !k.revoked)
+    .map(k => ({account: actor.account, kid: k.kid, kind: 'pgpKey' as const, name: k.emails.length === 1 ? (k.emails[0] ?? '') : ''}))
+}
+
 type Device = {deviceID: string; name: string; type: string}
 const deviceList = async (actor: Actor) =>
   (await call<Array<Device> | null>(actor, 'keybase.1.device.deviceList', {sessionID: 0})) ?? []
@@ -258,7 +304,8 @@ const ownedRootTeams = async (actor: Actor) => {
 
 const subteams = async (actor: Actor, team: string) => {
   const res = await call<Array<{name: {parts: Array<string>}}> | null>(actor, 'keybase.1.teams.teamListSubteamsRecursive', {
-    forceRepoll: false,
+    // A cached parent still lists a subteam deleted minutes ago, and loading that one fails as tombstoned.
+    forceRepoll: true,
     parentTeamName: team,
     sessionID: 0,
   })
@@ -326,6 +373,12 @@ const gather = async (actor: Actor, ctx: SweepContext, signal: AbortSignal | und
     (await emails(actor)).map(e => ({account, kind: 'email' as const, name: e.email, primary: e.isPrimary}))
   )
   await section('team', 'owned teams', async () => (await ownedRootTeams(actor)).map(name => ({account, kind: 'team' as const, name})))
+  // proofs and PGP keys are made only on the second account
+  if (account === 'second') {
+    await section('proofSig', 'proof sigs', async () => proofSigs(actor))
+    await section('pgpKey', 'PGP keys', async () => pgpKeys(actor))
+    await section('localPgpKey', 'local PGP keys', async () => localPgpKeys(actor))
+  }
   if (!kinds || kinds.has('device') || kinds.has('paperKey')) {
     signal?.throwIfAborted()
     try {
@@ -440,7 +493,25 @@ const removeStaleProvisionHomes = async (currentRunId: string, before: number, r
   }
 }
 
-const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv) => {
+// The iOS crypto flow's folders (/tmp/kb-e2e/crypto-<runid>) earlier runs left: a flow killed before
+// its after hook leaves the saltpack messages it wrote there.
+const removeStaleCryptoDirs = (currentRunId: string, before: number, result: SweepResult) => {
+  const root = path.dirname(cryptoDir(currentRunId))
+  for (const runId of staleRunIds(fs.existsSync(root) ? fs.readdirSync(root) : [], 'crypto-', currentRunId, before)) {
+    const dir = cryptoDir(runId)
+    try {
+      if (!fs.lstatSync(dir).isDirectory()) throw new Error('not a plain folder')
+      fs.rmSync(dir, {recursive: true})
+      result.scratch.push(dir)
+    } catch (e) {
+      result.errors.push(`${dir}: not removed: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+}
+
+// `localPgp` is the local keys the sweep selected: the first local key's delete purges them all, once
+// the keyring, read again, holds exactly those; the rest find it empty.
+const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, string>, env: E2EEnv, localPgp: ReadonlySet<string>) => {
   switch (c.kind) {
     case 'channel': {
       const convID = convIDs.get(c.name)
@@ -493,6 +564,19 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
     case 'paperKey':
       await revokeListed(actor, c, env)
       forgetPaperKey(c.deviceID ?? '')
+      return
+    case 'proofSig':
+      await actor.cli(['sigs', 'revoke', c.sigID ?? ''], 60_000)
+      return
+    case 'pgpKey':
+      await actor.cli(['pgp', 'drop', c.kid ?? ''], 60_000)
+      return
+    case 'localPgpKey':
+      await withRpc(actor, async rpc =>
+        purgeLocalPgp(rpc, async local =>
+          Promise.resolve(local.every(fp => localPgp.has(fp)) ? undefined : 'holds a PGP key the sweep did not select')
+        )
+      )
       return
   }
 }
@@ -607,7 +691,7 @@ export const sweep = async (
 ): Promise<SweepResult> => {
   const {signal} = opts
   await requireMainIsSmoke(env)
-  const result: SweepResult = {deleted: [], errors: [], homes: [], kept: [], listOnly: [], notes: [], wouldDelete: []}
+  const result: SweepResult = {deleted: [], errors: [], homes: [], kept: [], listOnly: [], notes: [], scratch: [], wouldDelete: []}
   const main = mainActor(env)
   const ctx: SweepContext = {
     before: opts.before,
@@ -641,6 +725,7 @@ export const sweep = async (
     const batchUser = sel.delete.some(c => c.kind === 'message') ? await actor.whoami() : ''
     // team repos sort before every team (selectSweepTargets), so these are known before any team goes
     const repos = {failedRepoTeams: new Set<string>(), reposListed: !failed.has('teamRepo')}
+    const localPgp = localPgpSelected(sel.delete)
     for (const c of sel.delete) {
       signal?.throwIfAborted()
       const held = heldByTeamRepos(c, repos)
@@ -650,7 +735,7 @@ export const sweep = async (
       }
       try {
         checkDelete(c, ctx, c.kind === 'message' ? batchUser : await actor.whoami())
-        await deleteOne(actor, c, convIDs, env)
+        await deleteOne(actor, c, convIDs, env, localPgp)
         result.deleted.push(c)
       } catch (e) {
         if (c.kind === 'teamRepo' && c.team) repos.failedRepoTeams.add(c.team)
@@ -664,6 +749,7 @@ export const sweep = async (
     for (const c of after.left) result.errors.push(`${describeCandidate(c)}: still there ${recheckMs / 1000}s after its delete`)
   }
   if (!opts.dryRun) await removeStaleProvisionHomes(opts.runId, opts.before, result)
+  if (!opts.dryRun) removeStaleCryptoDirs(opts.runId, opts.before, result)
   // a run that died before its secret scan left its paper key names (the ledger has its keys) and its
   // invite links (the teams they joined went above)
   if (!opts.dryRun) {
@@ -682,6 +768,7 @@ export const formatSweep = (r: SweepResult, env: E2EEnv, dryRun: boolean) => {
   }
   block(dryRun ? 'would delete' : 'deleted', (dryRun ? r.wouldDelete : r.deleted).map(describeCandidate))
   if (!dryRun) block('removed homes', r.homes)
+  if (!dryRun) block('removed scratch folders', r.scratch)
   block('listed, not deleted', r.listOnly.map(n => `${describeCandidate(n.candidate)}: ${n.reason}`))
   // messages kept are many (seeded history, this run's): counted per account and reason
   const keptMessages = new Map<string, number>()
