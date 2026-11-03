@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as React from 'react'
 
 type Props = {
@@ -39,16 +40,19 @@ const FilePickerPopupImpl = (p: Props) => {
         {
           icon: 'iconfont-camera',
           onClick: () => onSelect('mixed', 'camera'),
+          testID: TestIDs.CHAT_ATTACH_CAMERA,
           title: 'Take photo or video',
         },
         {
           icon: 'iconfont-photo-library',
           onClick: () => onSelect('mixed', 'library'),
+          testID: TestIDs.CHAT_ATTACH_LIBRARY,
           title: 'Choose from library',
         },
         {
           icon: 'iconfont-attachment',
           onClick: () => onSelect('file', 'file'),
+          testID: TestIDs.CHAT_ATTACH_FILE,
           title: 'Choose a file',
         },
       ] as const)

@@ -1,5 +1,7 @@
 // The files and texts flows attach, drop and paste. The files are made by make-corpus.mts and
 // checked in; rerun it after changing it. Paths resolve from shared/, where every runner starts.
+// Changing a photo or video means erasing the iOS simulator: its library keeps the old copy beside
+// the new (ios-appium gate/device.ts ensurePhotoCorpus adds by content).
 import {randomBytes} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -26,6 +28,13 @@ export const CORPUS: ReadonlyArray<{file: string; kind: CorpusKind; name: string
   entry('e2e c ünïcode.txt', 'text'),
   entry('e2e-c-empty.txt', 'text'),
 ]
+
+// The corpus entry named `name`; a name the corpus lacks throws.
+export const corpusEntry = (name: string) => {
+  const found = CORPUS.find(c => c.name === name)
+  if (!found) throw new Error(`the corpus has no ${name}`)
+  return found
+}
 
 const longText = (() => {
   const unit = 'e2e long message text. '

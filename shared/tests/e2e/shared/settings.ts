@@ -113,38 +113,46 @@ export const restoreGlobalNotifSettings = async (original: Record<string, boolea
 export type EmailSubscription = {description: string; name: string; subscribed: boolean}
 type Subscriptions = {notifications?: Record<string, {settings?: Array<EmailSubscription> | null; unsub?: boolean} | undefined>}
 
-const emailGroup = async () => {
+// the notification groups a flow changes: the email settings, and the phone's push settings
+export type SubscriptionGroup = 'email' | 'app_push'
+
+const subscriptionGroup = async (group: SubscriptionGroup) => {
   const res = await mainRead<{body: string}>('keybase.1.apiserver.GetWithSession', {args: [], endpoint: 'account/subscriptions'})
-  const email = (JSON.parse(res.body) as Subscriptions).notifications?.['email']
-  if (!email?.settings?.length) throw new Error('the account has no email notification settings')
-  return {settings: email.settings, unsub: !!email.unsub}
+  const g = (JSON.parse(res.body) as Subscriptions).notifications?.[group]
+  if (!g?.settings?.length) throw new Error(`the account has no ${group} notification settings`)
+  return {settings: g.settings, unsub: !!g.unsub}
 }
 
-// The account's email notification settings. Refuses an account unsubscribed from all of them: its
-// settings cannot be toggled, and turning "Unsubscribe from all" off is never done here.
-export const emailSubscriptions = async () => {
-  const {settings, unsub} = await emailGroup()
-  if (unsub) throw new Error('refusing to change email notification settings of an account unsubscribed from all of them')
+// The account's notification settings in `group`. Refuses an account unsubscribed from all of them:
+// its settings cannot be toggled, and turning "Unsubscribe from all" off is never done here.
+export const subscriptions = async (group: SubscriptionGroup) => {
+  const {settings, unsub} = await subscriptionGroup(group)
+  if (unsub) throw new Error(`refusing to change ${group} notification settings of an account unsubscribed from all of them`)
   return settings
 }
 
-// Puts each email notification setting in `original` back, in one account/subscribe post of the ones
-// that differ, and reads them back.
-export const restoreEmailSubscriptions = async (original: ReadonlyArray<Pick<EmailSubscription, 'name' | 'subscribed'>>) => {
-  for (const {name} of original) if (!/^[a-z0-9_]+$/.test(name)) throw new Error('refusing an email notification setting name that is not plain')
+export const emailSubscriptions = async () => subscriptions('email')
+
+// Puts each notification setting of `group` in `original` back, in one account/subscribe post of the
+// ones that differ, and reads them back.
+export const restoreSubscriptions = async (group: SubscriptionGroup, original: ReadonlyArray<Pick<EmailSubscription, 'name' | 'subscribed'>>) => {
+  for (const {name} of original) if (!/^[a-z0-9_]+$/.test(name)) throw new Error('refusing a notification setting name that is not plain')
   const differing = async () => {
-    const now = new Map((await emailGroup()).settings.map(s => [s.name, s.subscribed]))
+    const now = new Map((await subscriptionGroup(group)).settings.map(s => [s.name, s.subscribed]))
     return original.filter(o => now.get(o.name) !== o.subscribed)
   }
   const changed = await differing()
   if (!changed.length) return
   await mainRpc('keybase.1.apiserver.PostJSON', {
-    JSONPayload: changed.map(o => ({key: `${o.name}|email`, value: o.subscribed ? '1' : '0'})),
+    JSONPayload: changed.map(o => ({key: `${o.name}|${group}`, value: o.subscribed ? '1' : '0'})),
     args: [],
     endpoint: 'account/subscribe',
   })
-  await waitFor('the email notification settings put back', async () => ((await differing()).length ? undefined : true), READ_BACK)
+  await waitFor(`the ${group} notification settings put back`, async () => ((await differing()).length ? undefined : true), READ_BACK)
 }
+
+export const restoreEmailSubscriptions = async (original: ReadonlyArray<Pick<EmailSubscription, 'name' | 'subscribed'>>) =>
+  restoreSubscriptions('email', original)
 
 // -- display and advanced --------------------------------------------------------------------------
 

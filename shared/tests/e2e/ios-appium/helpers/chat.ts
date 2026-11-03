@@ -6,6 +6,9 @@
 // offset and height it measured for each row), the conversation's centre, and its thread store.
 // Nothing in the app is added for the tests to read. Positions are window points, the same space as
 // Appium's element rects, so they compare with the composer's and the keyboard's.
+import {createHash} from 'crypto'
+import * as fs from 'fs'
+import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
 import {byText, clearFieldByKeys, el, els, fieldText, pasteFromMenu, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
@@ -13,6 +16,8 @@ import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './m
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
 import * as T from '../../shared/test-ids'
+import {downloadFromCli, type CliMessage} from '../../shared/chat-data'
+import {e2eRunId} from '../../shared/run-marker'
 import {APP_ACCOUNT_BODY, type AppAccount} from '../gate/app-account-lib.ts'
 import {askApp, jsEval} from '../gate/app-ask.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib.ts'
@@ -1603,19 +1608,26 @@ export const pressInlineText = async (ordinal: number, text: string) => {
   if (found !== 1) throw new Error(`${found} pressable "${text}" texts in the message at ${ordinal}, not one`)
 }
 
-// Taps the button labelled exactly `label` inside a tappable row the accessibility tree shows as
-// one element (the row's box merges what it holds, so the button has no element of its own): the
-// app's tree finds the one button with that label under the one component whose prop `prop` equals
-// `value`, its native view and that component's own view are measured (in the app's window, which
-// for a modal is the sheet, not the screen), the row's element places them on screen, and the tap
-// lands at the middle of the button's frame only if it lies wholly inside `row` (the row's own
-// element, which must be the measured row's size) and on screen (ledger ruling, the shape of the
-// inline-text one for a control with a view). The evals send nothing. Bound: 5s.
-export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: string; value: string}, label: string) => {
+// Taps a control inside a tappable row the accessibility tree shows as one element (the row's box
+// merges what it holds, so the control has no element of its own): the button labelled exactly
+// `control`, or, given `{handlerOf}`, the one component whose onClick is the scope's own prop of that
+// name (an avatar whose tap is the scope's onEditIcon). The app's tree finds the one such control
+// under the one component whose prop `prop` equals `value`, its native view and that component's own
+// view are measured (in the app's window, which for a modal is the sheet, not the screen), the row's
+// element places them on screen, and the tap lands at the middle of the control's frame only if it
+// lies wholly inside `row` (the row's own element, which must be the measured row's size) and on
+// screen (ledger ruling, the shape of the inline-text one for a control with a view). The evals send
+// nothing. Bound: 5s.
+export const tapControlIn = async (
+  row: WebdriverIO.Element,
+  scope: {prop: string; value: string},
+  control: string | {handlerOf: string}
+) => {
+  const what = typeof control === 'string' ? `the "${control}" button` : `the control on ${control.handlerOf}`
   const started = await jsEval<number>(`${fiberPrelude}
     const prop = ${JSON.stringify(scope.prop)}
     const value = ${JSON.stringify(scope.value)}
-    const label = ${JSON.stringify(label)}
+    const control = ${JSON.stringify(control)}
     const read = p => prop.split('.').reduce((v, k) => (v && typeof v === 'object' ? v[k] : undefined), p)
     const scopes = []
     const stack = [e2eRootFiber()]
@@ -1633,7 +1645,9 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
         if (f.child) inner.push(f.child)
         if (f.sibling) inner.push(f.sibling)
         const p = f.memoizedProps
-        if (f.tag !== 5 && p && p.label === label && typeof p.onClick === 'function') buttons.push(f)
+        if (f.tag === 5 || !p || typeof p.onClick !== 'function') continue
+        const handler = typeof control === 'string' ? undefined : s.memoizedProps[control.handlerOf]
+        if (typeof control === 'string' ? p.label === control : p.onClick === handler) buttons.push(f)
       }
     }
     if (buttons.length !== 1 || scopes.length !== 1) return buttons.length === 1 ? -2 : buttons.length
@@ -1649,14 +1663,14 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
   if (started !== 1) {
     throw new Error(
       started === -1
-        ? `the "${label}" button or its row has no view to measure`
+        ? `${what} or its row has no view to measure`
         : started === -2
           ? 'more than one component matches the row asked for'
-          : `${started} "${label}" buttons in the row asked for, not one`
+          : `${started} of ${what} in the row asked for, not one`
     )
   }
-  const [button, measuredRow] = await measured('__e2eControlFrames', `the "${label}" button measured`)
-  if (!button || !measuredRow) throw new Error(`the "${label}" button or its row was not measured`)
+  const [button, measuredRow] = await measured('__e2eControlFrames', `${what} measured`)
+  if (!button || !measuredRow) throw new Error(`${what} or its row was not measured`)
   const at = await row.getLocation()
   const size = await row.getSize()
   // the row's view and its element are the same box: the difference places the button on screen
@@ -1666,7 +1680,7 @@ export const tapControlIn = async (row: WebdriverIO.Element, scope: {prop: strin
   const frame = {...button, x: button.x + at.x - measuredRow.x, y: button.y + at.y - measuredRow.y}
   const {height: window} = await browser.getWindowRect()
   if (!frameInside(frame, {...at, ...size}, window)) {
-    throw new Error(`the "${label}" button is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
+    throw new Error(`${what} is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
   await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
 }
@@ -2071,3 +2085,23 @@ export const storedUnfurls = async (ordinal: number) =>
     const prompts = st.unfurlPrompt.get(m.id)
     return {id: Number(m.id) || 0, prompts: prompts ? [...prompts] : [], unfurls: m.unfurls ? m.unfurls.size : 0}
   `)
+
+// -- attachments on the host -----------------------------------------------------------------------
+
+// The sha256 of a file on this Mac, in hex.
+export const fileSha = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')
+
+// What `read` makes of the host's copy of attachment `m` in the smoke account's self conversation,
+// downloaded into a folder of its own (mode 700) under /tmp/kb-e2e, removed after. Bound: the
+// download 60, and `read`.
+export const hostCopy = async <R,>(smokeUser: string, m: CliMessage, read: (file: string) => R) => {
+  fs.mkdirSync('/tmp/kb-e2e', {recursive: true})
+  const dir = fs.mkdtempSync(path.join('/tmp/kb-e2e', `dl-${e2eRunId()}-`))
+  try {
+    const file = path.join(dir, 'attachment')
+    await downloadFromCli({tlfName: smokeUser}, m.id, file)
+    return read(file)
+  } finally {
+    fs.rmSync(dir, {force: true, recursive: true})
+  }
+}

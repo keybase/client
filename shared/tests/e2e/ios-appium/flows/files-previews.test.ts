@@ -8,7 +8,7 @@
 // No download step: the phone has no regular download. The work folder is deleted by the flow's
 // afterEach, after a timeout too.
 import * as fs from 'fs'
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
 import * as T from '../../shared/test-ids'
@@ -19,12 +19,6 @@ import {expectScreen, visibleScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
 import {check, tapFrame} from '../helpers/menus'
 import {escapeToTabs, goBack} from '../helpers/navigate'
-
-const corpusFile = (name: string) => {
-  const entry = CORPUS.find(e => e.name === name)
-  if (!entry) throw new Error('the corpus lacks a file the previews need')
-  return entry.file
-}
 
 type Kind = {corpus: string; label: string; testID: string}
 const KINDS: ReadonlyArray<Kind> = [
@@ -81,9 +75,9 @@ describe('files previews', function () {
       const name = stampedEntry(k.label)
       const ext = k.corpus.slice(k.corpus.lastIndexOf('.'))
       made.set(k.label, name)
-      await kbfsCopyIn(corpusFile(k.corpus), `${folder}/${name}${ext}`)
+      await kbfsCopyIn(corpusEntry(k.corpus).file, `${folder}/${name}${ext}`)
     }
-    const firstLine = fs.readFileSync(corpusFile('e2e-c.txt'), 'utf8').split('\n')[0]!.trim()
+    const firstLine = fs.readFileSync(corpusEntry('e2e-c.txt').file, 'utf8').split('\n')[0]!.trim()
     check(firstLine.length > 0, 'the corpus text file has no first line')
 
     await openFolder(folder, 120_000)

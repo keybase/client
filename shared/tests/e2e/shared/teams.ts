@@ -11,6 +11,7 @@ import {convIDBytes} from './conv-id.ts'
 import {waitFor} from './deadline.ts'
 import {mainRpc} from './main-rpc.ts'
 import {runKeybase} from './peer-service.ts'
+import {parsePicLookup} from './profile-parse.ts'
 import {e2eRunId} from './run-marker.ts'
 
 // A deleted team's name is never free again, so each attempt in a run takes its own: `prefix`
@@ -97,6 +98,13 @@ export const memberRoles = async (name: string): Promise<Record<string, TeamRole
 // The names a team's pending invites are for (an email address, a phone number, a username).
 export const inviteNames = async (name: string) =>
   Object.values((await listMembers(name)).annotatedActiveInvites ?? {}).map(i => i.displayName || i.invite.name)
+
+// A subteam of this run's avatar url (square_192) as the server has it, '' when it has none.
+export const subteamAvatarUrl = async (name: string) => {
+  requireThisRunSubteam(name)
+  const args = ['apicall', '-m', 'GET', 'image/team_avatar_lookups', '-a', `team_names=${name}`, '-a', 'formats=square_192']
+  return parsePicLookup(await readBack(async () => runKeybase(args, {timeoutMs: 30_000})))
+}
 
 export const teamID = async (name: string) => readBack(async () => mainRpc<string>('keybase.1.teams.getTeamID', {teamName: name}))
 

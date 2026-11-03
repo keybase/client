@@ -16,7 +16,7 @@ import {
   type CliMessage,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
-import {CORPUS} from '../../fixtures/corpus/corpus'
+import {corpusEntry} from '../../fixtures/corpus/corpus'
 import {sendWithRetry} from '../../shared/peer-actors'
 import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
@@ -52,12 +52,6 @@ import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {goBackUntilGone} from '../helpers/navigate'
-
-const corpusFile = (name: string) => {
-  const entry = CORPUS.find(c => c.name === name)
-  if (!entry) throw new Error(`the corpus has no ${name}`)
-  return entry.file
-}
 
 describe('chat attachments', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -118,7 +112,7 @@ describe('chat attachments', function () {
     ])
   })
 
-  const attachIncoming = async (file: string, title: string) => (await secondSender()).attach(convID(), corpusFile(file), title)
+  const attachIncoming = async (file: string, title: string) => (await secondSender()).attach(convID(), corpusEntry(file).file, title)
 
   // Waits for the attachment titled `title` to land in the open thread drawn as `renderType`, its
   // preview ready and no transfer under way, and returns its ordinal and how the store holds it.
@@ -281,7 +275,7 @@ describe('chat attachments', function () {
     // step 2 (before the item), the row gone 20, cli 80, step 2 = 535
     this.timeout(560_000)
     const title = e2eMarker('attach-file')
-    await attachToThrowawayFromCli(topicName(), corpusFile('e2e-c.txt'), title)
+    await attachToThrowawayFromCli(topicName(), corpusEntry('e2e-c.txt').file, title)
     await openConversation(convID())
     const {a, ordinal} = await waitForAttachment(title, 'attachment:file')
     check(a.author === loadE2EEnv().smokeUser, "the file is not the account's own")
@@ -309,7 +303,7 @@ describe('chat attachments', function () {
     const file = e2eMarker('attach-docs-file')
     await attachIncoming('e2e-c.jpg', image)
     await attachIncoming('e2e-c.mp4', video)
-    await attachToThrowawayFromCli(topicName(), corpusFile('e2e-c.txt'), file)
+    await attachToThrowawayFromCli(topicName(), corpusEntry('e2e-c.txt').file, file)
     await openConversation(convID())
     const {a: imageA} = await waitForAttachment(image, 'attachment:image')
     const {a: videoA} = await waitForAttachment(video, 'attachment:video')

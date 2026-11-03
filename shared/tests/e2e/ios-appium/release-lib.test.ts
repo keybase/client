@@ -3,7 +3,9 @@ import {
   iosPreflightProblems,
   isMetroGroup,
   isWdaResidue,
+  locationStartProblem,
   parsePs,
+  pushPermissionProblem,
   secretScanDirs,
   strayChildren,
   simulatorFromList,
@@ -230,4 +232,26 @@ describe('secretScanDirs', () => {
     expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/elsewhere/render'})).toEqual(['/s/tests/results', '/elsewhere/render'])
     expect(secretScanDirs({...dirs, preflightPassed: true, renderRoot: '/s/tests/results-other/render'})).toEqual(['/s/tests/results', '/s/tests/results-other/render'])
   })
+})
+
+test("the run refuses a phone without push permission, naming the owner's one-time grant", () => {
+  expect(pushPermissionProblem(true, 'iPhoneTest')).toBeUndefined()
+  expect(pushPermissionProblem(false, 'iPhoneTest')).toBe(
+    'push notifications are off for keybase.ios on iPhoneTest; turn them on once by hand ' +
+      '(on the simulator: Settings > Apps > Keybase > Notifications > Allow Notifications), then rerun; ' +
+      'the release command never asks for them, as asking opens the Settings app'
+  )
+})
+
+test('the run refuses a phone whose location was ever asked, naming the reset for keybase.ios', () => {
+  const never = {background: 'undetermined', foreground: 'undetermined'}
+  expect(locationStartProblem(never, 'iPhoneTest', UDID)).toBeUndefined()
+  const reset = `reset it once by hand (xcrun simctl privacy ${UDID} reset location keybase.ios, then relaunch the app), then rerun`
+  expect(locationStartProblem({background: 'granted', foreground: 'granted'}, 'iPhoneTest', UDID)).toBe(
+    `location is already granted for keybase.ios on iPhoneTest, and the location flow starts from never asked; ${reset}`
+  )
+  expect(locationStartProblem({background: 'undetermined', foreground: 'granted'}, 'iPhoneTest', UDID)).toMatch(
+    /^location is already granted \(background undetermined\) for keybase\.ios on iPhoneTest, /
+  )
+  expect(locationStartProblem({background: 'denied', foreground: 'undetermined'}, 'iPhoneTest', UDID)).toMatch(/reset location keybase\.ios/)
 })

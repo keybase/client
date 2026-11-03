@@ -14,6 +14,7 @@ import {setThreadInputCommandStatus} from '@/constants/router'
 import {sendTextToConversation} from '../send-actions'
 import {useConversationMeta} from '../data-hooks'
 import {getChatRpc} from '../chat-rpc'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -21,6 +22,7 @@ const LocationButton = (props: {
   onClick: () => void
   subLabel?: string
   primary?: boolean
+  testID: string
 }) => {
   const styles = useStyles()
   return (
@@ -31,6 +33,7 @@ const LocationButton = (props: {
       mode={props.primary ? 'Primary' : 'Secondary'}
       type="Default"
       style={styles.liveButton}
+      testID={props.testID}
     >
       <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
         <Kb.Text
@@ -146,18 +149,21 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
             label="Share location for 15 minutes"
             onClick={() => onLocationShare('15m')}
             subLabel="Live location"
+            testID={TestIDs.CHAT_LOCATION_LIVE_15M}
           />
           <LocationButton
             disabled={locationDenied}
             label="Share location for 1 hour"
             onClick={() => onLocationShare('1h')}
             subLabel="Live location"
+            testID={TestIDs.CHAT_LOCATION_LIVE_1H}
           />
           <LocationButton
             disabled={locationDenied}
             label="Share location for 8 hours"
             onClick={() => onLocationShare('8h')}
             subLabel="Live location"
+            testID={TestIDs.CHAT_LOCATION_LIVE_8H}
           />
           <LocationButton
             disabled={locationDenied}
@@ -165,6 +171,7 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
             onClick={() => onLocationShare('')}
             subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
             primary={true}
+            testID={TestIDs.CHAT_LOCATION_SEND_CURRENT}
           />
         </Kb.Box2>
       }

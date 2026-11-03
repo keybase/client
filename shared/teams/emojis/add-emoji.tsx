@@ -12,6 +12,7 @@ import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
 import {ensureError} from '@/util/errors'
 import {normalizeFilePathURL} from '@/util/file-url'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const {getPathForFile} = KB2.functions
 
@@ -193,6 +194,7 @@ const AddEmojiModal = (props: Props) => {
       bannerImage="icon-illustration-emoji-add-460-96"
       footerButtonLabel={isMobile ? 'Choose Images' : undefined}
       footerButtonOnClick={isMobile ? pick : undefined}
+      footerButtonTestID={isMobile ? TestIDs.TEAMS_ADD_EMOJI_CHOOSE_IMAGES : undefined}
       scroll={false}
     >
       <AddEmojiPrompt addFiles={addFiles} />
@@ -204,6 +206,7 @@ const AddEmojiModal = (props: Props) => {
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
+      footerButtonTestID={TestIDs.TEAMS_ADD_EMOJI_SUBMIT}
       scroll={false}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />

@@ -57,6 +57,7 @@ type ModalProps = {
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
+  footerButtonTestID?: string
   // false for a body that holds its own list
   scroll?: boolean
 }
@@ -64,7 +65,7 @@ type ModalProps = {
 // the emoji modals' layout: an illustration over a full-bleed body, and an optional footer button
 export const Modal = (props: ModalProps) => {
   const {bannerImage, bannerError, children, footerButtonLabel, footerButtonOnClick} = props
-  const {footerButtonWaiting, scroll} = props
+  const {footerButtonTestID, footerButtonWaiting, scroll} = props
   const styles = useStyles()
   return (
     <Kb.ModalScreen
@@ -87,6 +88,7 @@ export const Modal = (props: ModalProps) => {
             onClick={footerButtonOnClick}
             disabled={!footerButtonOnClick}
             waiting={footerButtonWaiting}
+            testID={footerButtonTestID}
           />
         ) : undefined
       }

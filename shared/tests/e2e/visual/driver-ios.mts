@@ -204,7 +204,7 @@ export const recoverApp = async (d: RecoverDeps): Promise<string | undefined> =>
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
-// As in ios-appium/wdio.conf.ts: a non-default Appium port gets its own WDA port, so parallel
+// A non-default Appium port gets its own WDA port, so parallel
 // simulators don't both take 8100.
 export const visualCapabilities = (udid: string) => {
   const port = appiumPort()

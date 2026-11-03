@@ -12,6 +12,20 @@ export const APP_ACCOUNT_BODY = `
     return {loggedIn: c.loggedIn, switching: c.userSwitching, username: kbModule('stores/current-user.tsx').useCurrentUserState.getState().username}
   `
 
+// An expression for whether the app holds push permission (usePushState.hasPermissions, which it reads
+// from iOS at launch).
+export const PUSH_HAS_PERMISSIONS = `!!kbModule('stores/push.tsx').usePushState.getState().hasPermissions`
+
+// expo PermissionStatus values: 'granted', 'denied', 'undetermined'
+export type LocationPermission = {background: string; foreground: string}
+
+const EXPO_LOCATION = `kbModule('node_modules/expo-location/build/index.js')`
+
+// An expression for a promise of the app's location permission as it reads it (expo-location; native,
+// no RPC), a LocationPermission.
+export const LOCATION_PERMISSION = `${EXPO_LOCATION}.getForegroundPermissionsAsync()
+  .then(f => ${EXPO_LOCATION}.getBackgroundPermissionsAsync().then(b => ({background: b.status, foreground: f.status})))`
+
 // Names a test account by its role only (signedInName): this line lands in run output and results.
 export const notSmokeProblem = (a: AppAccount, accounts: {smokeUser: string; secondUser: string}): string | undefined => {
   if (a.loggedIn && a.username === accounts.smokeUser) return undefined

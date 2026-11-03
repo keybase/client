@@ -2,9 +2,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 // The app's native surfaces, which have no route. A flow credits one with creditSurface once it has
-// driven it and asserted the app used it: gate/device.ts's helpers deliver (a link, a push, a
-// location, pasteboard text, a relaunch) and credit nothing, except toForeground for
-// background-foreground.
+// driven it and asserted the app used it: gate/device.ts's and gate/system-ui.ts's helpers deliver
+// (a link, a push, a location, pasteboard text, a relaunch, a background and foreground) and credit
+// nothing.
 export const IOS_SURFACES = [
   'share-extension',
   'push-notification',

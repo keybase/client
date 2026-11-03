@@ -15,6 +15,18 @@ export const parseLookup = (out: string, who: string): LookupThem => {
   return {...them, id: them.id}
 }
 
+// An image/username_pic_lookups or image/team_avatar_lookups answer for one name and the square_192
+// format: its url, '' when the name has no avatar. Parse-anchored: an answer that is not OK or does
+// not hold exactly one picture with that format throws, so it never reads as "no avatar".
+export const parsePicLookup = (out: string): string => {
+  const parsed = JSON.parse(out) as {pictures?: Array<{square_192?: unknown} | null> | null; status?: {code?: number} | null}
+  if (parsed.status?.code !== 0) throw new Error('the avatar lookup did not answer OK')
+  const pics = parsed.pictures
+  const url = Array.isArray(pics) && pics.length === 1 ? pics[0]?.square_192 : undefined
+  if (typeof url !== 'string') throw new Error('the avatar lookup holds no square_192 picture for the one name asked')
+  return url
+}
+
 export type Sig = {ctime: number; revoked: boolean; sigID: string; statement: string; type: string}
 type SigJSON = {ctime?: number; revoked?: boolean; sig_id?: string; statement?: string; type?: string}
 

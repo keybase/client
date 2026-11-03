@@ -4,6 +4,9 @@ import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
+import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
+import {guiValue} from './app-ask.ts'
+import {savedRouteIsPeople} from './links-push-lib.ts'
 
 const TAPS = 5
 
@@ -100,3 +103,25 @@ export const backToScreen = async (name: string) => backUntil(isScreen(name), `t
 // it. Each back waits long enough for a recover-password back's service round trip.
 export const pressBackToLoginList = async () =>
   backUntil(async () => el(T.LOGIN_USER_LIST).isExisting(), 'the login screen with its account list')
+
+// Every tab at its root and People up, so what a test does next is what moves the app. Bound:
+// escapeToTabs 30, the People tab 15, the screen 21 = 66.
+export const fromPeople = async () => {
+  await escapeToTabs()
+  await navigateToPeople()
+  await waitForScreen('peopleRoot')
+}
+
+// Waits for the conversation `convID` to be up. Bound: `timeout`, plus one read 1.
+export const conversationOpened = async (what: string, convID: string, timeout = 20_000) =>
+  expectScreen(what, 'chatConversation', p => p['conversationIDKey'] === convID, timeout)
+
+// On the People tab's root, with People read back as the route the app saved for its next launch
+// (it saves a second after each navigation): a cold launch after this lands on People unless what
+// launched the app opened something else. Bound: fromPeople 66, 15s of saved-route asks overrun by
+// one 22 = 103.
+export const leaveOnPeople = async () => {
+  await fromPeople()
+  await waitFor('the app to save People as the route it opens at its next launch', async () =>
+    savedRouteIsPeople((await guiValue('ui.routeState2'))?.s) ? true : undefined, {interval: 1_000, timeout: 15_000})
+}

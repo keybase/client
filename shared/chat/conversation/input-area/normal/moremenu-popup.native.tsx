@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as InputState from '../input-state'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useConversationThreadID} from '../../thread-context'
 
 type Props = {
@@ -37,6 +38,7 @@ const MoreMenuPopup = (props: Props) => {
       icon: 'iconfont-location',
       onClick: onLocationShare,
       subTitle: '/location',
+      testID: TestIDs.CHAT_MORE_SHARE_LOCATION,
       title: 'Share your location',
     },
     {

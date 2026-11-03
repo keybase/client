@@ -10,7 +10,16 @@ import {portHolders} from '../shared/gate/ports.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {assertServedFrom} from '../visual/served-tree.mts'
 import {runSync} from './helpers/app.ts'
-import {APP_ACCOUNT_BODY, settledAccount, type AppAccount} from './gate/app-account-lib.ts'
+import {
+  APP_ACCOUNT_BODY,
+  LOCATION_PERMISSION,
+  PUSH_HAS_PERMISSIONS,
+  settledAccount,
+  type AppAccount,
+  type LocationPermission,
+} from './gate/app-account-lib.ts'
+import {goLogIn, linesSince, markFile, type LogMark} from './gate/go-log-lib.ts'
+import {delivererInterval, linesFrom, outboxFlushes} from './gate/outbox-lib.ts'
 import {isMetroGroup, parsePs} from './release-lib.ts'
 
 export const BUNDLE_ID = 'keybase.ios'
@@ -19,6 +28,15 @@ const METRO_PIDFILE = '/tmp/kb-e2e/ios-metro.json'
 // Metro always starts with --clear, so its first bundle is slow: the app gets longer to connect.
 const METRO_UP_MS = 3 * 60_000
 const APP_UP_MS = 5 * 60_000
+// the app reads its push permission from iOS shortly after launch, so a false holds this long first
+const PUSH_SETTLE_MS = 30_000
+const LOCATION_READ_MS = 15_000
+// the service's deliverer logs its start within a minute of a launch
+const DELIVERER_UP_MS = 60_000
+// pulls of the outbox the read waits for after the deliverer starts, one each interval
+const OUTBOX_PULLS = 3
+// the longest deliverer interval the outbox read waits on (the service pulls every 5s unless set)
+const MAX_DELIVERER_INTERVAL_MS = 60_000
 
 type MetroPidfile = {pgid: number; start: number}
 
@@ -134,4 +152,57 @@ export const relaunchApp = async (o: {device: string; udid: string; log: (s: str
     },
     () => last
   )
+}
+
+// Whether the just-launched app holds push permission: true once it reads so, false once it has read
+// otherwise for PUSH_SETTLE_MS. An eval that fails throws.
+export const appHasPushPermission = async (device: string): Promise<boolean> => {
+  const end = Date.now() + PUSH_SETTLE_MS
+  for (;;) {
+    if (await evalInPage<boolean>(await inspectorPageFor(device, BUNDLE_ID), `return ${PUSH_HAS_PERMISSIONS}`)) return true
+    if (Date.now() > end) return false
+    await sleep(1_000)
+  }
+}
+
+// The just-launched app's location permission. The read is a promise, so its answer waits under a
+// global the next evals poll (as gate/app-ask.ts askApp does; no recorder runs yet, and it sends no
+// RPC). A read that fails or does not answer within LOCATION_READ_MS throws.
+export const appLocationPermission = async (device: string): Promise<LocationPermission> => {
+  const page = async () => inspectorPageFor(device, BUNDLE_ID)
+  await evalInPage<boolean>(
+    await page(),
+    `globalThis.__kbE2ELaunchLocation = {state: 'pending'}
+     Promise.resolve()
+       .then(() => ${LOCATION_PERMISSION})
+       .then(value => (globalThis.__kbE2ELaunchLocation = {state: 'answered', value}), e => (globalThis.__kbE2ELaunchLocation = {state: 'failed', error: String(e && e.message)}))
+     return true`
+  )
+  return until('the app to read its location permission', LOCATION_READ_MS, async () => {
+    const r = await evalInPage<{state: string; value?: LocationPermission; error?: string}>(await page(), 'return globalThis.__kbE2ELaunchLocation')
+    if (r.state === 'failed') throw new Error(`reading the app's location permission failed: ${r.error ?? '?'}`)
+    return r.state === 'answered' ? r.value : undefined
+  })
+}
+
+// Where the app's Go log ends now. Taken before the app is launched, so what appPendingOutbox reads
+// is only what the Go log gained after it (the launch replaces ios.log; a rotation moves it aside,
+// and go-log-lib.ts follows the marked file by its inode).
+export const goLogMarkFor = (udid: string) =>
+  markFile(goLogIn(runSync('xcrun', ['simctl', 'get_app_container', udid, BUNDLE_ID, 'data'], 30_000).trim()))
+
+// The chat records pending in the just-launched app's outbox, per conversation (gate/outbox-lib.ts):
+// what the latest pull logged, once its service's deliverer has started and pulled the outbox
+// OUTBOX_PULLS times (each pull logs every conversation with a pending record). Throws when the deliverer never
+// starts.
+export const appPendingOutbox = async (mark: LogMark, launchedAt: number) => {
+  // every line since the mark, from the first stamped at or after the launch
+  const goLog = () => linesFrom(linesSince(mark), launchedAt)
+  const interval = await until('the phone service to start delivering chat messages', DELIVERER_UP_MS, async () =>
+    Promise.resolve(delivererInterval(goLog()))
+  )
+  // a longer one is a misread line, and would hold the launch phase that many pulls
+  if (interval > MAX_DELIVERER_INTERVAL_MS) throw new Error(`the phone service's deliverer logged an interval of ${interval}ms, over the ${MAX_DELIVERER_INTERVAL_MS}ms the outbox read waits on`)
+  await sleep(OUTBOX_PULLS * interval + 1_000)
+  return outboxFlushes(goLog(), {end: Date.now(), interval})
 }

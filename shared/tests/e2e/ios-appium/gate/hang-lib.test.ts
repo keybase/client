@@ -1,4 +1,4 @@
-import {makeHangWatch, mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG, protocolSucceeded, settleRelaunch, STUCK_READS} from './hang-lib'
+import {countsForHangWatch, makeHangWatch, mainThreadInSnapshot, makeWatchSlot, nextHangState, NO_HANG, protocolSucceeded, SESSION_PING_COMMAND, SESSION_PING_MS, sessionPingDue, settleRelaunch, STUCK_READS} from './hang-lib'
 
 const report = (mainFrames: Array<string>) =>
   [
@@ -169,4 +169,19 @@ test('a watch stopped mid-relaunch leaves the relaunch for the afterEach to wait
 test('a relaunch that never settles fails the wait', async () => {
   await expect(settleRelaunch(new Promise<void>(() => {}), 20)).rejects.toThrow("the hung app's relaunch had not settled after 0.02s")
   await expect(settleRelaunch(undefined, 20)).resolves.toBeUndefined()
+})
+
+describe('the session ping', () => {
+  test('is due once SESSION_PING_MS has passed since the last, well inside Appium newCommandTimeout of 120s', () => {
+    expect(SESSION_PING_MS).toBeLessThan(120_000 / 2)
+    expect(sessionPingDue(1_000_000, 0)).toBe(true)
+    expect(sessionPingDue(1_000_000, 1_000_000 - SESSION_PING_MS + 1)).toBe(false)
+    expect(sessionPingDue(1_000_000, 1_000_000 - SESSION_PING_MS)).toBe(true)
+  })
+
+  test('never counts as the app answering for the hang watch', () => {
+    expect(countsForHangWatch({command: SESSION_PING_COMMAND, result: {value: {}}})).toBe(false)
+    expect(countsForHangWatch({command: 'findElements', result: {value: []}})).toBe(true)
+    expect(countsForHangWatch({command: 'findElements', result: {error: new Error('timeout')}})).toBe(false)
+  })
 })

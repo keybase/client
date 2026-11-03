@@ -17,6 +17,7 @@ import {mergeRecordings, type Recording} from '../../shared/recorder.ts'
 import {BUNDLE_ID, deviceName, jsEval, waitFor} from '../helpers/lifecycle'
 import {pausedAround} from './harness-rpcs-lib.ts'
 import {type CallMark, callMarkOf, callsInWindow, nextRecordingAction, uiCallsOf} from './recorder-lib.ts'
+import {installAppLogCapture} from './app-log.ts'
 import {ensureErrorCapture} from './errors.ts'
 import {requireCurrentAttempt} from './attempt.ts'
 
@@ -102,6 +103,7 @@ export class PhoneRecording {
     this.reloads++
     this.runtime = await startPhoneRecorder({includeBoot: true})
     await ensureErrorCapture()
+    await installAppLogCapture()
   }
 
   async checkpoint() {

@@ -42,11 +42,15 @@ export const IOS_EXCLUSIONS: Exclusions = {
     selectOtherDevice: phoneNew,
     setPublicName: phoneNew,
     signupError: 'manual-only: signup-submit (shown only when the final submit fails)',
+    teamAddToTeamContacts:
+      "manual-only: contacts-import (the add-members wizard's \"From your contacts\", teams/add-members-wizard/add-from-where.tsx and confirm.tsx, opens it, and on open it asks for contacts access and reads the whole address book, teams/common/use-contacts.native.tsx)",
     teamInviteByContact:
       'dead: nothing in the app navigates to it (teams/routes.tsx only registers it); the add-members wizard\'s "From your contacts" opens teamAddToTeamContacts instead',
   },
   rpcs: {
     'chat.1.local.addTeamMemberAfterReset': 'needs a member who reset their account; account resets are owner: excluded',
+    'chat.1.local.cancelUploadTempFile':
+      "desktop only: it cancels a pasted image's temp upload, and only a desktop paste makes one (chat/conversation/attachment-actions.tsx makePasteAttachment, from the desktop thread's onPaste in chat/conversation/normal/index.tsx); the phone's image paste hands the titles screen paths without an outbox id, so neither of its senders in chat/conversation/attachment-get-titles.tsx (the desktop-only Cancel button, and the images a compression drops) has one to cancel",
     'chat.1.local.dismissJourneycard':
       "server feature flag 'journeycard' is off for the test accounts (journey_card_manager.go checkFeature); no card is shown, so nothing can be dismissed",
     'chat.1.local.RetryPost':
@@ -101,6 +105,10 @@ export const IOS_EXCLUSIONS: Exclusions = {
       'needs a member who reset their account (the files reset banner, fs/banner/reset-banner.tsx); account resets are owner: excluded',
     'keybase.1.SimpleFS.simpleFSArchiveAllFiles': backupAll,
     'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': backupAll,
+    'keybase.1.SimpleFS.simpleFSDismissUpload':
+      "manual-only: files-upload-failed-dismiss (the phone sends it only from a failed upload row's Dismiss, fs/browser/rows/still.tsx; a successful upload's card hides itself and sends nothing)",
+    'keybase.1.SimpleFS.simpleFSCancelDownload':
+      "iOS sends it only when another file action is picked while a Save runs (fs/common/path-item-action/menu-container.tsx cancelAfter); the phone has no download card (Save is not a regular download), and the user's cancel, the menu's Close, sends simpleFSDismissDownload, which the service cancels the download in (go/kbfs/simplefs/downloads.go dismissDownload; files-save-photos cancels a save that way). The desktop gate sends it from the download card",
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {

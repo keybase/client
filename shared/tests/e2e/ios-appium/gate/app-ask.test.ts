@@ -5,10 +5,17 @@ import {
   askApp,
   compressPreference,
   darkModeState,
+  deleteSavedAsset,
   filesSettings,
   guiClearValue,
   guiSetValue,
   guiValue,
+  assetInfo,
+  libraryAssetIds,
+  libraryHasAsset,
+  mediaPermission,
+  phoneDownloads,
+  requestFullPhotoAccess,
   proxyData,
   randomPW,
   phoneReachesServer,
@@ -37,6 +44,10 @@ const mockApp = {
   // set: the threshold call answers only once it is called
   holdThreshold: undefined as undefined | {release?: () => void},
   log: [] as Array<string>,
+  // the phone's photo library
+  assets: [] as Array<{height: number; id: string; mediaType: string; width: number}>,
+  // the phone service's downloads
+  downloads: [] as Array<{canceled: boolean; done: boolean; downloadID: string}>,
   // the service config's runtime stats flag; undefined: never set
   statsEnabled: undefined as undefined | boolean,
 }
@@ -64,8 +75,11 @@ beforeEach(() => {
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
   mockApp.statsEnabled = undefined
+  mockApp.assets = []
+  mockApp.downloads = []
   const log = (s: string) => mockApp.log.push(s)
   const rpc: Record<string, unknown> = {
+    SimpleFSSimpleFSGetDownloadStatusRpcPromise: async () => answer('download status', {regularDownloadIDs: null, states: mockApp.downloads}),
     SimpleFSSimpleFSSetFolderSyncConfigRpcPromise: async (p: unknown) => {
       log(`set sync ${JSON.stringify(p)}`)
       return Promise.resolve()
@@ -142,6 +156,35 @@ beforeEach(() => {
     'constants/rpc/rpc-chat-gen.tsx': chat,
     'constants/rpc/rpc-gen.tsx': rpc,
     'engine/call-port.tsx': callPort,
+    'node_modules/expo-media-library/build/index.js': {
+      Asset: class {
+        constructor(readonly id: string) {}
+        private find() {
+          const a = mockApp.assets.find(x => x.id === this.id)
+          if (!a) throw new Error('no such asset')
+          return a
+        }
+        async getInfo() {
+          const a = this.find()
+          return answer(`asset info ${a.id}`, {filename: 'IMG_1.PNG', height: a.height, id: a.id, mediaType: a.mediaType, width: a.width})
+        }
+        async delete() {
+          const a = this.find()
+          mockApp.assets = mockApp.assets.filter(x => x !== a)
+          return answer(`delete asset ${a.id}`)
+        }
+      },
+      Query: class {
+        async exe() {
+          log('assets all')
+          return Promise.resolve(mockApp.assets.map(a => ({id: a.id})))
+        }
+      },
+      requestPermissionsAsync: async (writeOnly?: boolean) =>
+        answer(`media permission request ${writeOnly ? 'add' : 'read'}`, {accessPrivileges: 'all', granted: true, status: 'granted'}),
+      getPermissionsAsync: async (writeOnly?: boolean) =>
+        answer(`media permission ${writeOnly ? 'add' : 'read'}`, writeOnly ? {status: 'granted'} : {accessPrivileges: 'none', status: 'denied'}),
+    },
     'stores/darkmode.tsx': {
       useDarkModeState: {getState: () => ({darkModePreference: 'alwaysLight', supported: true, systemDarkMode: false})},
     },
@@ -336,5 +379,53 @@ describe('backup jobs', () => {
     mockApp.failNext = 'no such job'
     await expect(removeArchiveJobs({chat: ['c8', 'c9'], kbfs: []}, {chat: [], kbfs: []})).rejects.toThrow(/no such job/)
     expect(mockApp.log).toEqual(['pause', 'chat delete c8 true', 'resume tok'])
+  })
+})
+
+const ID = 'ph://0F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'
+const OTHER = '1F4B5C3D-1A2B-4C5D-8E9F-0123456789AB/L0/001'
+
+describe('native permissions and the photo library', () => {
+  test('the photo permission is read as the app sees it, with the recorder paused', async () => {
+    await expect(mediaPermission()).resolves.toEqual({add: 'granted', read: 'denied', readAccess: 'none'})
+    expect(mockApp.log).toEqual(['pause', 'media permission read', 'media permission add', 'resume tok'])
+  })
+
+  test("the library's asset ids, and an asset's kind and size", async () => {
+    await expect(libraryAssetIds()).resolves.toEqual([])
+    mockApp.assets = [{height: 48, id: ID, mediaType: 'image', width: 64}]
+    await expect(libraryAssetIds()).resolves.toEqual([ID])
+    await expect(assetInfo(ID)).resolves.toEqual({height: 48, mediaType: 'image', width: 64})
+    await expect(assetInfo(`${ID}'`)).rejects.toThrow(/^refusing /)
+  })
+
+  test('full photo access is asked for read and write, with the recorder paused', async () => {
+    await expect(requestFullPhotoAccess()).resolves.toEqual({granted: true, readAccess: 'all'})
+    expect(mockApp.log).toEqual(['pause', 'media permission request read', 'resume tok'])
+  })
+
+  test('whether the library holds an asset is read over the whole library, for an asset id only', async () => {
+    mockApp.assets = [{height: 48, id: ID, mediaType: 'image', width: 64}]
+    await expect(libraryHasAsset(ID)).resolves.toBe(true)
+    await expect(libraryHasAsset(OTHER)).resolves.toBe(false)
+    await expect(libraryHasAsset(`${ID}'`)).rejects.toThrow(/^refusing /)
+  })
+
+  test("the phone's downloads, each with whether it is done or cancelled", async () => {
+    mockApp.downloads = [{canceled: true, done: false, downloadID: 'd1'}]
+    await expect(phoneDownloads()).resolves.toEqual([{canceled: true, done: false, downloadID: 'd1'}])
+    mockApp.downloads = []
+    await expect(phoneDownloads()).resolves.toEqual([])
+  })
+
+  test('deletes the exact asset the test saved, never one the library held before the test', async () => {
+    mockApp.assets = [{height: 48, id: OTHER, mediaType: 'image', width: 64}, {height: 48, id: ID, mediaType: 'image', width: 64}]
+    await deleteSavedAsset(ID, new Set([OTHER]))
+    expect(mockApp.log.filter(l => l.startsWith('delete'))).toEqual([`delete asset ${ID}`])
+    expect(mockApp.assets.map(a => a.id)).toEqual([OTHER])
+    mockApp.log = []
+    await expect(deleteSavedAsset(OTHER, new Set([OTHER]))).rejects.toThrow(/^refusing /)
+    for (const bad of ['', '*', `${ID}'`, 'all']) await expect(deleteSavedAsset(bad, new Set())).rejects.toThrow(/^refusing /)
+    expect(mockApp.log).toEqual([])
   })
 })

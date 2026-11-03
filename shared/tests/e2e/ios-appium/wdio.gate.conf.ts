@@ -5,8 +5,10 @@
 // saltpack armor (the crypto flows): a file that holds one is deleted and named, and the run fails.
 import * as fs from 'fs'
 import * as path from 'path'
-import {config as base} from './wdio.conf'
+import {homedir} from 'os'
+import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
+import {assertNotLocked} from '../visual/lock.mts'
 import {attemptToken, iosReportDir, leaveBody, readAttempts, readRunErrors, requireCurrentAttempt, runAttempt} from './gate/attempt'
 import {type Recorder, recorders} from './gate/recording'
 import {PhoneRecording} from './gate/recorder'
@@ -28,6 +30,13 @@ import {
 } from '../shared/gate/secret-scan'
 
 const PROJECT = 'ios-flows'
+
+// The xcuitest driver is installed under ~/.appium; the appium service spawns
+// its own appium process, so point it at that home or it won't find the driver.
+process.env['APPIUM_HOME'] ||= `${homedir()}/.appium`
+
+requireSmokeUser()
+const udid = process.env['KB_IOS_UDID'] ?? udidForName(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest')
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -62,39 +71,37 @@ const writeResults = (exitCode: number) => {
 }
 
 export const config: WebdriverIO.Config = {
-  ...base,
+  runner: 'local',
+  path: '/',
   specs: ['./gate.test.ts'],
-  mochaOpts: {...base.mochaOpts, grep: process.env['KB_E2E_RELEASE_ONLY'], retries: 1},
-  // a results.json never mixes runs
-  onPrepare: [
-    ...[base.onPrepare ?? []].flat(),
-    () => {
-      fs.rmSync(iosReportDir(), {force: true, recursive: true})
-      secretWatch = watchEnvSecrets()
-      // the flows record the names of the paper keys and the invite links they make, for the scan
-      process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
-      process.env[SCAN_INVITE_LINKS_VAR] = '1'
-    },
-  ],
+  maxInstances: 1,
+  capabilities: [iosCapabilities(udid)],
+  logLevel: 'warn',
+  // Selectors and helpers rely on $() taking the first match (e.g. `~More` matches several
+  // elements), so don't throw on multiple matches.
+  strictSelectors: false,
+  framework: 'mocha',
+  mochaOpts: {ui: 'bdd', timeout: 120000, grep: process.env['KB_E2E_RELEASE_ONLY'], retries: 1},
+  reporters: ['spec'],
+  services: [['appium', {args: {basePath: '/'}}]],
+  onPrepare: () => {
+    assertNotLocked('iOS e2e')
+    // a results.json never mixes runs
+    fs.rmSync(iosReportDir(), {force: true, recursive: true})
+    secretWatch = watchEnvSecrets()
+    // the flows record the names of the paper keys and the invite links they make, for the scan
+    process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
+    process.env[SCAN_INVITE_LINKS_VAR] = '1'
+  },
   // wdio only logs a beforeTest error and runs the test anyway, so nothing here throws: what failed
   // is kept on the attempt's recorder for afterTest to report. The account was checked before this
   // (gate/hooks.ts).
-  before: [
-    ...[base.before ?? []].flat(),
-    // what the app-hang watch counts: WebDriver requests that got a successful answer
-    () => {
-      browser.on('result', (event: {result?: unknown}) => {
-        noteProtocolResult(event.result)
-      })
-    },
-  ],
-  // the secrets a flow handed the app that only the worker knows
-  after: [
-    ...[base.after ?? []].flat(),
-    () => {
-      for (const f of scanHeldSecrets()) console.error(`[ios gate] one-time secret found, deleted: ${f}`)
-    },
-  ],
+  // what the app-hang watch counts: WebDriver requests that got a successful answer
+  before: () => {
+    browser.on('result', (event: {command?: string; result?: unknown}) => {
+      noteProtocolResult(event)
+    })
+  },
   beforeTest: async () => {
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
@@ -113,6 +120,13 @@ export const config: WebdriverIO.Config = {
         rec.error ??= `starting the recorder: ${message(e)}`
       }
     )
+  },
+  // Tests deliberately END on the state they capture (often an open modal), so park the app back at
+  // the tab root when the session closes. Then the secrets a flow handed the app that only the worker
+  // knows are looked for in what the run wrote.
+  after: async () => {
+    await escapeToTabs().catch(() => {})
+    for (const f of scanHeldSecrets()) console.error(`[ios gate] one-time secret found, deleted: ${f}`)
   },
   // The body may still be running (wdio's timer gave up on it): it is stopped first, and the failure
   // capture runs as a hook, bound to the attempt but to no body.

@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import {CORPUS, CORPUS_DIR, TEXT_CORPUS} from './corpus'
+import {CORPUS, CORPUS_DIR, corpusEntry, TEXT_CORPUS} from './corpus'
 
 const head = (file: string, n: number) => {
   const fd = fs.openSync(file, 'r')
@@ -88,4 +88,9 @@ test('the text corpus has each sample the flows paste', () => {
   expect(TEXT_CORPUS.rtl).toMatch(/[֐-ۿ]/)
   expect(TEXT_CORPUS.emoji).toMatch(/\p{Extended_Pictographic}/u)
   expect(TEXT_CORPUS.markdown).toMatch(/\*[^*]+\*/)
+})
+
+test('corpusEntry finds an entry by its exact name and throws for one the corpus lacks', () => {
+  expect(corpusEntry('e2e-c.png')).toEqual({file: path.join(CORPUS_DIR, 'e2e-c.png'), kind: 'image', name: 'e2e-c.png'})
+  expect(() => corpusEntry('e2e-c.webp')).toThrow('the corpus has no e2e-c.webp')
 })

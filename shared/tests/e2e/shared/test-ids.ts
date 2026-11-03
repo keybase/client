@@ -42,6 +42,17 @@ export const CHAT_MENTION_BUTTON        = 'chat-mention-button'
 export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
+// the camera button's attach sheet on the phone: take a photo or video, choose from the library, choose a file
+export const CHAT_ATTACH_CAMERA         = 'chat-attach-camera'
+export const CHAT_ATTACH_LIBRARY        = 'chat-attach-library'
+export const CHAT_ATTACH_FILE           = 'chat-attach-file'
+// the + menu's "Share your location" row
+export const CHAT_MORE_SHARE_LOCATION = 'chat-more-share-location'
+// the location screen's buttons: live for 15 minutes, 1 hour, 8 hours, and the current location
+export const CHAT_LOCATION_LIVE_15M = 'chat-location-live-15m'
+export const CHAT_LOCATION_LIVE_1H = 'chat-location-live-1h'
+export const CHAT_LOCATION_LIVE_8H = 'chat-location-live-8h'
+export const CHAT_LOCATION_SEND_CURRENT = 'chat-location-send-current'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 export const CHAT_INFO_PANEL_MEMBERS_TAB = 'chat-info-panel-members-tab'
 export const CHAT_INFO_PANEL_ATTACHMENTS_TAB = 'chat-info-panel-attachments-tab'
@@ -186,6 +197,9 @@ export const FILES_EDITING_INPUT = 'files-editing-input'
 export const FILES_EDITING_SAVE = 'files-editing-save'
 // a folder's "Sync on this device" switch
 export const FILES_SYNC_TOGGLE = 'files-sync-toggle'
+// the phone's upload menu (the folder header's Upload): the photo library and the document picker
+export const FILES_UPLOAD_MEDIA = 'files-upload-media'
+export const FILES_UPLOAD_FILE = 'files-upload-file'
 export const FILES_DESTINATION_PICKER = 'files-destination-picker'
 // the Finder (system file manager) integration banner at the top of Files
 export const FILES_SFMI_BANNER = 'files-sfmi-banner'
@@ -219,6 +233,8 @@ export const TEAMS_WIZARD_ROLE_BUTTON = 'teams-wizard-role-button'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 // the team page header's edit icon by the team's name (a subteam's rename)
 export const TEAMS_HEADER_RENAME = 'teams-header-rename'
+// the team page header's avatar, which opens the team avatar editor when you may change it
+export const TEAMS_HEADER_AVATAR = 'teams-header-avatar'
 // the delete-team confirm's three agreement switches
 export const TEAMS_DELETE_TEAM_CHATS_CHECK = 'teams-delete-team-chats-check'
 export const TEAMS_DELETE_TEAM_FOLDER_CHECK = 'teams-delete-team-folder-check'
@@ -242,6 +258,10 @@ export const TEAMS_DEFAULT_CHANNEL_REMOVE = 'teams-default-channel-remove'
 export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // an emoji's row in a team's Emoji tab
 export const TEAMS_EMOJI_ROW = 'teams-emoji-row'
+// the phone's Add emoji screen's "Choose Images" button, which opens the photo picker
+export const TEAMS_ADD_EMOJI_CHOOSE_IMAGES = 'teams-add-emoji-choose-images'
+// its "Add emoji" button once images are picked (the Emoji tab under it has an Add emoji too)
+export const TEAMS_ADD_EMOJI_SUBMIT = 'teams-add-emoji-submit'
 // A settings switch or radio whose state the phone flows read (its control alone has none in the
 // accessibility tree): its testID is one of the bases below, then what it shows, on or off, or
 // pending while its value still loads or saves (what it shows then may not be the account's).
@@ -301,6 +321,8 @@ export const SETTINGS_REMEMBER_PASSWORD_SWITCH = 'settings-remember-password-swi
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
 export const SETTINGS_CHAT              = 'settings-chat'
+// the phone's Contacts page (Settings > Import phone contacts / Phone contacts)
+export const SETTINGS_CONTACTS = 'settings-contacts'
 // the chat settings' link preview lists and their Save button
 export const SETTINGS_UNFURL_ALLOWED    = 'settings-unfurl-allowed'
 export const SETTINGS_UNFURL_BLOCKED    = 'settings-unfurl-blocked'
@@ -349,6 +371,8 @@ export const SETTINGS_FILES_CELLULAR_SWITCH = 'settings-files-cellular-switch'
 // "Chat"/"Files" tabs, making a text match ambiguous.
 export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
 export const SETTINGS_ROW_FILES         = 'settings-row-files'
+// the phone's Contacts row: its text, "Import phone contacts", is also the label of the page's button
+export const SETTINGS_ROW_CONTACTS = 'settings-row-contacts'
 // the desktop left nav's other rows
 export const SETTINGS_ROW_ACCOUNT = 'settings-row-account'
 export const SETTINGS_ROW_ADVANCED = 'settings-row-advanced'
@@ -385,6 +409,8 @@ export const PEOPLE_FOLLOW_SUGGESTION = 'people-follow-suggestion'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
+// the profile's avatar and name, one element on the phone (its avatar has none of its own)
+export const PROFILE_AVATAR_NAME = 'profile-avatar-name'
 // the hover profile card's proof icons, drawn only once its identify is not checking
 export const PROFILE_CARD_SERVICE_ICONS = 'profile-card-service-icons'
 // a profile's "..." actions menu button, and a team row of its "Add to team..." picker (the id says

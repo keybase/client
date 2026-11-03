@@ -5,18 +5,19 @@ import {pidFromLaunchctl, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
+import {pollFor} from '../gate/wait-lib.ts'
 import {hiddenSimctlArgs} from '../gate/run-errors-lib'
+import {sessionPingDue} from '../gate/hang-lib.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {appSnapshotBody} from '../gate/screen-params-lib.ts'
+import {goLogIn, markFile, type LogMark} from '../gate/go-log-lib.ts'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
 // Lifecycle flows assert on state and logs, never on screenshots:
 // - JS state is read from the running app through the Metro inspector (Runtime.evaluate).
 // - Native and Go transitions come from the app container's Go log (ios.log).
-// - JS log lines (logger.info/warn) come from Metro's start.log as metro:client_log events.
-//   start.log is shared by every device attached to Metro, so flows that read it keep a
-//   single app running.
+// - Gate flows read JS log lines (logger.info/warn) through gate/app-log.ts's in-runtime capture.
 
 export const BUNDLE_ID = 'keybase.ios'
 
@@ -35,38 +36,50 @@ export const simctl = (...args: Array<string>): string => {
   return runSync('xcrun', ['simctl', ...args], simctlMs(args), {what: `simctl ${args[0] ?? ''}`, hidden: hiddenSimctlArgs(args)})
 }
 
-// Retries until check returns a value, or throws with the last error once the timeout passes.
+// Keeps the Appium session through a wait that sends it nothing (gate/hang-lib.ts sessionPingDue):
+// outside a wdio session it does nothing.
+let lastSessionPing = 0
+const keepSession = async () => {
+  if (typeof browser === 'undefined' || !browser.sessionId || !sessionPingDue(Date.now(), lastSessionPing)) return
+  lastSessionPing = Date.now()
+  await browser.getTimeouts()
+}
+
+// Retries until check returns a value, or throws with the last error once the timeout passes. A check
+// throws gate/wait-lib.ts WaitStopped to end the wait at once.
 export const waitFor = async <R>(
   what: string,
   check: () => Promise<R | undefined> | R | undefined,
   {timeout = 20000, interval = 250}: {timeout?: number; interval?: number} = {}
-): Promise<R> => {
+): Promise<R> =>
+  pollFor(what, check, {interval, timeout}, {
+    before: requireCurrentAttempt,
+    now: Date.now,
+    pause: async ms => {
+      await keepSession()
+      await sleep(ms)
+    },
+  })
+
+// Polls check until it returns a value, or answers undefined once the timeout passes. An error check
+// throws is thrown at once, so running out of time with nothing found is the only quiet outcome.
+export const lookFor = async <R>(
+  check: () => Promise<R | undefined> | R | undefined,
+  {timeout, interval = 250}: {timeout: number; interval?: number}
+): Promise<R | undefined> => {
   const end = Date.now() + timeout
-  let lastErr: unknown
   for (;;) {
     requireCurrentAttempt()
-    try {
-      const r = await check()
-      if (r !== undefined) return r
-    } catch (e) {
-      if (isAttemptOver(e)) throw e
-      lastErr = e
-    }
-    if (Date.now() > end) {
-      const detail = lastErr instanceof Error ? `: ${lastErr.message}` : ''
-      throw new Error(`timed out after ${timeout}ms waiting for ${what}${detail}`)
-    }
+    const r = await check()
+    if (r !== undefined) return r
+    if (Date.now() > end) return undefined
+    await keepSession()
     await sleep(interval)
   }
 }
 
-const statOrUndefined = (file: string) => {
-  try {
-    return fs.statSync(file)
-  } catch {
-    return undefined
-  }
-}
+// undefined when nothing is at the path; any other failure throws
+const statOrUndefined = (file: string) => fs.statSync(file, {throwIfNoEntry: false})
 
 // -- app process ------------------------------------------------------------
 
@@ -76,30 +89,40 @@ export const appPid = (udid = deviceUdid()): number | undefined => pidFromLaunch
 export const terminateApp = async (udid = deviceUdid()) => {
   try {
     simctl('terminate', udid, BUNDLE_ID)
-  } catch {}
+  } catch (e) {
+    // an app that is not running fails to terminate; the wait below is what says it is gone
+    if (isAttemptOver(e)) throw e
+  }
   await waitFor('the app to exit', () => (appPid(udid) === undefined ? true : undefined), {timeout: 10000})
 }
 
 // Crash reports for the iOS app written after `since`. Simulator crashes land in the host's
 // DiagnosticReports next to the host's own, including the desktop Keybase app's, so match on
 // the bundle id in the report's JSON header line.
+// A report written since `since` whose header can't be read throws, naming the report's file.
 export const crashReportsSince = (since: number): Array<string> => {
   const dir = path.join(os.homedir(), 'Library/Logs/DiagnosticReports')
-  let names: Array<string>
-  try {
-    names = fs.readdirSync(dir)
-  } catch {
-    return []
-  }
-  const bundleOf = (file: string) => {
+  if (!statOrUndefined(dir)) return []
+  // a report removed between the listing and its read reads as none
+  const headerOf = (file: string) => {
     try {
-      const header = fs.readFileSync(file, 'utf8').split('\n', 1)[0] ?? ''
-      return (JSON.parse(header) as {bundleID?: string}).bundleID
-    } catch {
-      return undefined
+      return fs.readFileSync(file, 'utf8').split('\n', 1)[0] ?? ''
+    } catch (e) {
+      if ((e as {code?: string}).code === 'ENOENT') return undefined
+      throw e
     }
   }
-  return names
+  const bundleOf = (file: string) => {
+    const header = headerOf(file)
+    if (header === undefined) return undefined
+    try {
+      return (JSON.parse(header) as {bundleID?: string}).bundleID
+    } catch {
+      throw new Error(`the crash report ${path.basename(file)} has no json header line`)
+    }
+  }
+  return fs
+    .readdirSync(dir)
     .filter(n => n.endsWith('.ips'))
     .map(n => path.join(dir, n))
     .filter(p => (statOrUndefined(p)?.mtimeMs ?? 0) >= since && bundleOf(p) === BUNDLE_ID)
@@ -170,83 +193,13 @@ export const waitForAvatar200 = async (username: string, device = deviceName(), 
 
 // -- logs --------------------------------------------------------------------
 
-type LogMark = {file: string; offset: number; ino: number}
-
-const readFrom = (file: string, offset: number) => {
-  const size = fs.statSync(file).size
-  if (size <= offset) return ''
-  const fd = fs.openSync(file, 'r')
-  try {
-    const buf = Buffer.alloc(size - offset)
-    fs.readSync(fd, buf, 0, buf.length, offset)
-    return buf.toString('utf8')
-  } finally {
-    fs.closeSync(fd)
-  }
-}
-
-const markFile = (file: string): LogMark => {
-  const st = statOrUndefined(file)
-  return {file, ino: st?.ino ?? 0, offset: st?.size ?? 0}
-}
-
-// Lines written to the file since the mark. The Go log is replaced by a new file when the app
-// launches and rotated aside when it grows too big, so when the file at the path is no longer
-// the marked one, the rest of the marked file (found by inode, if still there) is read first,
-// then the new file from its start.
-const linesSince = (mark: LogMark): Array<string> => {
-  const st = statOrUndefined(mark.file)
-  if (!st) return []
-  let text: string
-  if (st.ino === mark.ino) {
-    text = readFrom(mark.file, mark.offset)
-  } else {
-    const dir = path.dirname(mark.file)
-    const moved = fs
-      .readdirSync(dir)
-      .map(n => path.join(dir, n))
-      .find(p => statOrUndefined(p)?.ino === mark.ino)
-    text = (moved ? readFrom(moved, mark.offset) : '') + readFrom(mark.file, 0)
-  }
-  return text.split('\n').filter(Boolean)
-}
-
 // The app's data container (a path on this Mac). It moves on reinstall, so resolve it each time.
 export const appDataContainer = (udid = deviceUdid()) => simctl('get_app_container', udid, BUNDLE_ID, 'data').trim()
 
 // The Go service log inside the app's data container.
-export const goLogPath = (udid = deviceUdid()) => path.join(appDataContainer(udid), 'Library/Caches/Keybase/logs/ios.log')
+export const goLogPath = (udid = deviceUdid()) => goLogIn(appDataContainer(udid))
 
 export const goLogMark = (udid = deviceUdid()): LogMark => markFile(goLogPath(udid))
-
-export const goLogSince = (mark: LogMark): Array<string> => linesSince(mark)
-
-export const metroLogPath = path.resolve('.expo/dev/logs/start.log')
-
-export const metroLogMark = (): LogMark => markFile(metroLogPath)
-
-// JS console output since the mark, one string per call (arguments joined by spaces); `level`
-// keeps only that level's calls (console.error is 'error').
-export const metroClientLogSince = (mark: LogMark, level?: string): Array<string> =>
-  linesSince(mark)
-    .filter(l => l.includes('"metro:client_log"'))
-    .map(l => {
-      try {
-        const e = JSON.parse(l) as {data?: Array<unknown>; level?: string}
-        if (level && e.level !== level) return ''
-        return (e.data ?? []).map(d => (typeof d === 'string' ? d : JSON.stringify(d))).join(' ')
-      } catch {
-        return ''
-      }
-    })
-    .filter(Boolean)
-
-// Metro's bundle requests since the mark. A JS runtime that starts against a dev server always
-// asks for a bundle, so this catches a JS start whose own logging never reached client_log.
-export const metroBundlingStartedSince = (mark: LogMark): Array<string> =>
-  linesSince(mark).filter(l => l.includes('"metro:bundling:started"'))
-
-export const findLines = (lines: Array<string>, re: RegExp) => lines.filter(l => re.test(l))
 
 // Waits until `read` yields a line matching every pattern, in order. Returns the matched lines.
 export const waitForLinesInOrder = async (
@@ -272,30 +225,9 @@ export const waitForLinesInOrder = async (
     {interval: 500, timeout}
   )
 
-// Go's MobileAppState transitions since the mark, e.g. ['FOREGROUND', 'BACKGROUND'].
-export const goAppStateUpdates = (mark: LogMark) =>
-  goLogSince(mark)
-    .map(l => /MobileAppState\.Update: useful update: (\w+)/.exec(l)?.[1])
-    .filter((s): s is string => !!s)
-
 // -- simulator actions -------------------------------------------------------
 
 export const openUrl = (url: string, udid = deviceUdid()) => simctl('openurl', udid, url)
-
-export const sendPush = (payload: object, udid = deviceUdid()) => {
-  const file = path.join(os.tmpdir(), `kb-e2e-push-${process.pid}-${Date.now()}.json`)
-  fs.writeFileSync(file, JSON.stringify(payload))
-  try {
-    simctl('push', udid, BUNDLE_ID, file)
-  } finally {
-    fs.rmSync(file, {force: true})
-  }
-}
-
-export const setLocation = (lat: number, lon: number, udid = deviceUdid()) =>
-  simctl('location', udid, 'set', `${lat},${lon}`)
-
-export const isBooted = (udid: string) => simctl('list', 'devices', 'booted').includes(udid)
 
 // -- app, springboard and chat actions -----------------------------------------
 
@@ -303,7 +235,10 @@ export const backgroundApp = async () => browser.execute('mobile: backgroundApp'
 
 export const activateApp = async () => browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
 
-export const launchApp = async () => browser.execute('mobile: launchApp', {bundleId: BUNDLE_ID})
+// The app's state as XCUITest reads it: 1 not running, 2 or 3 in the background, 4 (FOREGROUND) in
+// the foreground.
+export const FOREGROUND = 4
+export const appState = async () => browser.execute<number, [{bundleId: string}]>('mobile: queryAppState', {bundleId: BUNDLE_ID})
 
 // Runs fn with element lookups pointed at the home screen / system UI instead of the app.
 export const withSpringboard = async <R>(fn: () => Promise<R>): Promise<R> => {
@@ -344,64 +279,22 @@ export const closeNotificationCenter = async () => {
     .perform()
 }
 
-// Waits for the system to show a notification whose text contains `body`, as a banner or,
-// once the banner is gone, a row in Notification Center, and taps it when asked. Returns where
-// it was found; a caller that doesn't tap must close Notification Center when it was opened.
-export const findNotification = async (body: string, {tap}: {tap: boolean}) =>
-  withSpringboard(async (): Promise<'banner' | 'center' | undefined> => {
-    const shown = async () => {
-      const els = await labelContains(body).getElements()
+// The system UI element whose label contains `text` (a notification's button when it shows one, as
+// the button takes the tap), once shown, or undefined after `timeout`. Run inside withSpringboard.
+export const shownWithLabel = async (text: string, timeout: number) =>
+  lookFor(
+    async () => {
+      const els = await labelContains(text).getElements()
+      // Indexing an empty result gives a not-found placeholder element, not undefined.
+      if (els.length === 0) return undefined
       // The banner exposes a container, a button and the text; the button takes the tap.
       for (const e of els) {
         if ((await e.getAttribute('type')) === 'XCUIElementTypeButton') return e
       }
       return els[0]
-    }
-    const inBanner = await waitFor('the notification banner', shown, {interval: 300, timeout: 8000}).catch(() => undefined)
-    if (inBanner) {
-      if (tap) await inBanner.click()
-      return 'banner'
-    }
-    await openNotificationCenter()
-    const inCenter = await waitFor('the notification in Notification Center', shown, {interval: 300, timeout: 8000}).catch(
-      () => undefined
-    )
-    if (!inCenter) {
-      await closeNotificationCenter()
-      return undefined
-    }
-    if (tap) await inCenter.click()
-    return 'center'
-  })
-
-// Notification banners need the user's permission. Grants it through the app's own request
-// and the system prompt when the simulator hasn't been asked yet.
-export const ensureNotificationPermission = async () => {
-  const has = async () => jsEval<boolean>(`return kbModule('stores/push.tsx').usePushState.getState().hasPermissions`)
-  if (await has()) return
-  await jsEval(`kbModule('stores/push.tsx').usePushState.getState().dispatch.requestPermissions(); return true`)
-  await withSpringboard(async () => {
-    const allow = browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Allow"')
-    await allow.waitForExist({interval: 250, timeout: 15000})
-    await waitFor(
-      'the notification prompt to close',
-      async () => {
-        if (!(await allow.isExisting())) return true
-        await allow.click().catch(() => {})
-        return undefined
-      },
-      {interval: 1000, timeout: 15000}
-    )
-  })
-  await waitFor(
-    'notification permission',
-    async () => {
-      await jsEval(`kbModule('stores/push.tsx').usePushState.getState().dispatch.checkPermissions(); return true`)
-      return (await has()) ? true : undefined
     },
-    {interval: 1000, timeout: 15000}
+    {interval: 300, timeout}
   )
-}
 
 // The id of the conversation whose only participant is `username`, read from the inbox layout.
 export const selfConversationID = async (username: string) => {
@@ -440,53 +333,6 @@ export const openSelfConversation = async (username: string) => {
   await waitForTestID(T.CHAT_INPUT, 10000)
   await browser.waitUntil(async () => !(await atTabs()), {interval: 150, timeout: 5000}).catch(() => {})
   return convID
-}
-
-// A second simulator signed in to the same account sends the message, so it reaches this
-// device as an incoming message from another device.
-export const senderDeviceName = () => process.env['KB_IOS_SENDER_DEVICE'] ?? 'iPadTest'
-
-export const startSenderDevice = async (username: string) => {
-  const name = senderDeviceName()
-  const udid = udidForName(name)
-  const bootedHere = !isBooted(udid)
-  const stop = async () => {
-    await terminateApp(udid).catch(() => {})
-    if (bootedHere) simctl('shutdown', udid)
-  }
-  // Every step after a boot cleans up on failure, so a failed start never leaves a second
-  // simulator running (it render-throttles the one under test).
-  const ready = async () => {
-    if (bootedHere) {
-      simctl('boot', udid)
-      simctl('bootstatus', udid, '-b')
-    }
-    simctl('launch', udid, BUNDLE_ID)
-    await waitFor(
-      `${name} to be logged in as ${username}`,
-      async () =>
-        (await jsEval<boolean>(
-          `return kbModule('stores/config.tsx').useConfigState.getState().loggedIn &&
-             kbModule('stores/current-user.tsx').useCurrentUserState.getState().username === ${JSON.stringify(username)}`,
-          name
-        ))
-          ? true
-          : undefined,
-      {interval: 1000, timeout: 180000}
-    )
-  }
-  try {
-    await ready()
-  } catch (e) {
-    await stop().catch(() => {})
-    throw e
-  }
-  const send = async (conversationIDKey: string, text: string) =>
-    jsEval(
-      `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(username)}, ${JSON.stringify(text)}); return true`,
-      name
-    )
-  return {send, stop}
 }
 
 // The app's NSLog lines starting with a prefix since a time, read from the simulator's unified
