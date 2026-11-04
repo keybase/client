@@ -3,6 +3,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {newRunId} from '../accounts/run-id'
 import {createThrowawaySubteam, directReadFailure, newestDrawn, NoMessagesYet} from './chat-data'
+import {macTest} from './mac-test'
 
 // A stand-in `keybase` (KB_CLI): `team create` passes, `team add-member` fails, and `team delete`
 // asks for its confirmation and then fails.
@@ -37,7 +38,7 @@ afterEach(() => {
   fs.rmSync(dir, {force: true, recursive: true})
 })
 
-test('createThrowawaySubteam keeps the setup error when deleting the half-made subteam fails too', async () => {
+macTest('createThrowawaySubteam keeps the setup error when deleting the half-made subteam fails too', async () => {
   const err = await createThrowawaySubteam('x').then(
     () => {
       throw new Error('the create passed')

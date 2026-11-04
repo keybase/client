@@ -4,10 +4,11 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {cleanupPlan, newAssetIds, noisePng, requireSavedImage, requireWholeLibraryRead, type AssetInfo} from './save-photos-lib'
+import {macTest} from '../../shared/mac-test'
 
 const fill = (n: number) => Buffer.alloc(n, 7)
 
-test('a noise png is one sips reads as a png of its size', () => {
+macTest('a noise png is one sips reads as a png of its size', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'noise-png-'))
   try {
     const file = path.join(dir, 'n.png')

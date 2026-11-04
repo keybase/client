@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {linesSince, markFile} from './go-log-lib'
+import {macTest} from '../../shared/mac-test'
 
 let dir = ''
 let log = ''
@@ -28,7 +29,7 @@ test('a log rotated aside is read to its end, then the new file from its start',
   expect(linesSince(mark)).toEqual(['before rotate', 'after rotate'])
 })
 
-test('a log that was not there at the mark is read from its start, and one replaced and gone is read as the new file', () => {
+macTest('a log that was not there at the mark is read from its start, and one replaced and gone is read as the new file', () => {
   const none = markFile(log)
   fs.writeFileSync(log, 'first\n')
   expect(linesSince(none)).toEqual(['first'])
