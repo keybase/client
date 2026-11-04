@@ -336,7 +336,7 @@ const expectLinear = (make: (length: number) => string) => {
   // CI worker is small next to the parse time.
   expect(parseTime(make, 32000) / parseTime(make, 8000)).toBeLessThan(8)
 }
-localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a ', '*_~', 'a*b* ', '\\*'])(
+localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a ', '*_~', 'a*b* ', '\\*', '`a``', '!>a*', '_x *a _b* '])(
   'Markdown parses a long run of %j in linear time',
   unit => expectLinear(length => unit.repeat(Math.ceil(length / unit.length)))
 )
@@ -368,11 +368,20 @@ test('Markdown stops nesting em, strong and del past 16 levels', () => {
 // Renders the parse as e.g. 'a <B>b</B>' so a table of cases reads at a glance.
 const showEmphasis = (input: string) => {
   type N = {type: string; content?: unknown}
-  const tags: {[type: string]: string} = {del: 'S', em: 'I', strong: 'B'}
+  const tags: {[type: string]: string} = {
+    del: 'S',
+    em: 'I',
+    inlineCode: 'CODE',
+    serviceDecoration: 'SERVICE',
+    spoiler: 'SPOILER',
+    strong: 'B',
+  }
   const show = (nodes: ReadonlyArray<N>): string =>
     nodes
       .map(n => {
         const tag = tags[n.type]
+        if (n.type === 'serviceDecoration') return `<${tag}/>`
+        if (tag && !Array.isArray(n.content)) return `<${tag}>${String(n.content)}</${tag}>`
         if (tag) return `<${tag}>${show(n.content as ReadonlyArray<N>)}</${tag}>`
         if (Array.isArray(n.content)) return show(n.content as ReadonlyArray<N>)
         return n.type === 'newline' ? '' : String(n.content)
@@ -425,6 +434,16 @@ test.each([
   ['*a\\\nb*', '*a\\b*'],
   // an escaped marker doesn't pair
   ['*a\\* b*', '<B>a* b</B>'],
+  // an opener left unclosed inside a pair doesn't take the outer pair's closer
+  ['_x *a _b* c_', '<I>x <B>a _b</B> c</I>'],
+  // a marker inside inline code, a spoiler or a service decoration never pairs with one outside it
+  ['use foo*bar or `char* s`', 'use foo*bar or <CODE>char* s</CODE>'],
+  ['*a `b*` c*', '<B>a <CODE>b*</CODE> c</B>'],
+  ['2*3 !>answer is 6* ok<!', '2*3 <SPOILER>answer is 6* ok</SPOILER>'],
+  ['x~y !>z~w<!', 'x~y <SPOILER>z~w</SPOILER>'],
+  ['!>*a* b<!', '<SPOILER><B>a</B> b</SPOILER>'],
+  [`a*b ${makeServiceDecorationTag({typ: 0})} c*d`, 'a<B>b <SERVICE/> c</B>d'],
+  [`a${makeServiceDecorationTag({typ: 0})}*b`, 'a<SERVICE/>*b'],
 ])('parseMarkdown emphasis %j renders %j', (input, expected) => {
   expect(showEmphasis(input)).toBe(expected)
 })

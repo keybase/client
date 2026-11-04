@@ -36,6 +36,8 @@ const sections: ReadonlyArray<Section> = [
       {name: 'crossed', source: '*bold _both* italic_'},
       {name: 'punctuation around', source: '(*bold*), "_italic_", ~struck~!'},
       {name: 'cjk without spaces', source: '日本*強調*です'},
+      {name: 'code and spoiler are opaque', source: 'foo*bar `char* s` and 2*3 !>is 6* ok<!'},
+      {name: 'stray opener inside a pair', source: '_x *a _b* c_'},
       {name: 'pair split by a newline (literal)', source: '*one\ntwo*'},
     ],
     title: 'Emphasis',

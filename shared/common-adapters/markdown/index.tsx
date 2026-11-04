@@ -240,19 +240,77 @@ const wrapInParagraph = (parse: Parser, content: string, state: State): Array<Si
 
 const isMarkdownMobile = (state: State) => state.isMobile ?? isMobile
 
+// Single backticks around code. Trimming the padding with \s* around a lazy content group in a
+// regex is ambiguous and backtracked cubically (a 2k message of `<spaces>x hung the parser for
+// seconds), so this is the same grammar in one linear pass.
+const inlineCodeMatch = (source: string): Capture | null => {
+  if (!source.startsWith('`') || source[1] === '`') {
+    return null
+  }
+  for (let i = 1; i < source.length; ++i) {
+    // the closing backtick can't be part of a run of them
+    if (source[i] !== '`' || source[i + 1] === '`') {
+      continue
+    }
+    const raw = source.slice(1, i)
+    let content = raw.trim()
+    if (!content) {
+      // all padding: keep a single trailing space, but never a bare newline
+      const last = raw.slice(-1)
+      if (last !== ' ' && last !== '\t') {
+        continue
+      }
+      content = last
+    }
+    if (content.endsWith('`')) {
+      continue
+    }
+    return [source.slice(0, i + 1), '`', content]
+  }
+  return null
+}
+
 // em (_), strong (*) and del (~) pair up runs of their marker on one line, the way github markdown
 // does. A run opens if it isn't followed by whitespace and closes if it isn't preceded by whitespace,
 // so a * b * c stays literal. * and ~ work inside a word (test**test** and **test**test both bold);
 // _ doesn't, so snake_case_name stays literal: an _ run can't open after a letter or digit or close
 // before one. Letters are ascii only, so _ emphasis still works between cjk characters. A run only
-// closes one of exactly its length, innermost first, so *a **b** c* nests and ***x*** is one pair.
+// closes one of exactly its length, innermost first, so *a **b** c* nests and ***x*** is one pair,
+// and openers left unclosed inside a pair are dropped. Inline code, spoilers and service decorations
+// are opaque: a marker inside one never pairs with one outside it.
 const isSpace = (c: string | undefined) => c !== undefined && /\s/.test(c)
+// Index of the next match of `regex` (global) at or after `from`, for `from`s that only increase.
+const nextMatchFinder = (s: string, regex: RegExp) => {
+  let found = -2
+  return (from: number) => {
+    if (found !== -1 && found < from) {
+      regex.lastIndex = from
+      found = regex.exec(s)?.index ?? -1
+    }
+    return found
+  }
+}
+const spoilerEndAt = /<!/g
+const serviceEndAt = new RegExp(serviceEndDecorationTag.source, 'g')
 type EmphasisPair = {close: number; length: number}
 // opener index -> its closer, for every pair in the string
 const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
   const pairs = new Map<number, EmphasisPair>()
-  // marker + run length -> indexes of the runs still waiting for a closer
-  let openers = new Map<string, Array<number>>()
+  const nextLineEnd = nextMatchFinder(s, lineEndAhead)
+  const nextSpoilerEnd = nextMatchFinder(s, spoilerEndAt)
+  const nextServiceEnd = nextMatchFinder(s, serviceEndAt)
+  // the end of a spoiler or service decoration opened at `from` and closed at `close`, if that's on
+  // the same line, else -1
+  const endOnLine = (from: number, close: number, closeLength: number) => {
+    if (close === -1) {
+      return -1
+    }
+    const lineEnd = nextLineEnd(from)
+    return lineEnd === -1 || lineEnd > close ? close + closeLength : -1
+  }
+  // the openers still waiting for a closer, in order, and the same split up by marker + run length
+  let open: Array<{at: number; key: string}> = []
+  let openByKey = new Map<string, Array<number>>()
   for (let i = 0; i < s.length; ) {
     const c = s[i]!
     // same escapes as the escape rule: \ before a letter, digit or whitespace is just a backslash
@@ -260,9 +318,21 @@ const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
       i += 2
       continue
     }
-    if (c === '\n') {
-      openers = new Map()
-      i++
+    let skipTo = -1
+    if (c === '`') {
+      const code = inlineCodeMatch(s.slice(i))?.[0]
+      skipTo = code ? i + code.length : -1
+    } else if (s.startsWith('!>', i)) {
+      skipTo = endOnLine(i, nextSpoilerEnd(i + 2), 2)
+    } else if (s.startsWith('$>kb$', i)) {
+      skipTo = endOnLine(i, nextServiceEnd(i + 5), 5)
+    }
+    if (c === '\n' || (skipTo !== -1 && s.slice(i, skipTo).includes('\n'))) {
+      open = []
+      openByKey = new Map()
+    }
+    if (skipTo !== -1) {
+      i = skipTo
       continue
     }
     if (c !== '*' && c !== '_' && c !== '~') {
@@ -275,15 +345,21 @@ const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
     }
     const inWord = c === '_'
     const key = c + String(end - i)
-    const waiting = openers.get(key)
+    const waiting = openByKey.get(key)
     // nothing waits at i === 0, so a closer always has a char before it
     if (waiting?.length && !isSpace(s[i - 1]) && !(inWord && isAsciiAlnum(s.charCodeAt(end)))) {
-      pairs.set(waiting.pop()!, {close: i, length: end - i})
+      const at = waiting[waiting.length - 1]!
+      // drop it and every opener after it: those can't close past this pair
+      for (let last = open.pop(); last; last = last.at > at ? open.pop() : undefined) {
+        openByKey.get(last.key)!.pop()
+      }
+      pairs.set(at, {close: i, length: end - i})
     } else if (end < s.length && !isSpace(s[end]) && !(inWord && isAsciiAlnum(s.charCodeAt(i - 1)))) {
+      open.push({at: i, key})
       if (waiting) {
         waiting.push(i)
       } else {
-        openers.set(key, [i])
+        openByKey.set(key, [i])
       }
     }
     i = end
@@ -477,35 +553,7 @@ const rules: {[type: string]: ParserRule} = {
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
     // ours: only allow a single backtick.
-    // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
-    // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
-    // The scan below is the same grammar in one linear pass.
-    match: (source: string): Capture | null => {
-      if (!source.startsWith('`') || source[1] === '`') {
-        return null
-      }
-      for (let i = 1; i < source.length; ++i) {
-        // the closing backtick can't be part of a run of them
-        if (source[i] !== '`' || source[i + 1] === '`') {
-          continue
-        }
-        const raw = source.slice(1, i)
-        let content = raw.trim()
-        if (!content) {
-          // all padding: keep a single trailing space, but never a bare newline
-          const last = raw.slice(-1)
-          if (last !== ' ' && last !== '\t') {
-            continue
-          }
-          content = last
-        }
-        if (content.endsWith('`')) {
-          continue
-        }
-        return [source.slice(0, i + 1), '`', content]
-      }
-      return null
-    },
+    match: inlineCodeMatch,
     order: 23,
     // a single space next to a backtick is padding so code can start or end with one, drop it
     parse: (capture: Capture) => ({content: capture[2]?.replace(/^ (?= *`)|(` *) $/g, '$1')}),
