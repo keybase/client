@@ -4,7 +4,9 @@ import {Animated, PanResponder, View, type GestureResponderEvent, type PanRespon
 import type {Props, SwipeableMethods} from './swipeable-row.shared'
 export type {SwipeableMethods} from './swipeable-row.shared'
 
-const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as const
+// native driver: a JS-driven spring on Fabric can leave the view (and the actions' opacity) stuck
+// on a mid-animation frame even though the value reached its target
+const springConfig = {friction: 20, tension: 150, useNativeDriver: true} as const
 
 const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function SwipeableRow(props, ref) {
   'use no memo'
