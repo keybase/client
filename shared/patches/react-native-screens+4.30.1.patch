@@ -51,10 +51,10 @@ index 5da1196..033522f 100644
    if (@available(iOS 26.0, *)) {
      [self requestLayoutIfNavigationBarFrameChanged];
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
-index e217b24..bc44b76 100644
+index 12f2272..fd83766 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
-@@ -212,7 +212,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
+@@ -213,7 +213,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
    [self updateShadowStateWithSize:navigationBar.frame.size
                         edgeInsets:[self computeEdgeInsetsOfNavigationBar:navigationBar]
                        frameOrigin:navBarFrameInScreenView.origin];
@@ -115,7 +115,7 @@ index 882761c..9bf87c0 100644
    }
  #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index bc9c644..6f77f46 100644
+index 4e0e111..f784513 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -377,10 +377,19 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
