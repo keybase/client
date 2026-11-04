@@ -44,7 +44,6 @@ for required in KEYBASE_BINPATH GIT_REMOTE_KEYBASE_BINPATH KBFS_BINPATH UPDATER_
 		exit 1
 	fi
 done
-redirector_binpath=${REDIRECTOR_BINPATH:-$(dirname "$kbfs_binpath")/keybase-redirector}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 saltpack_icon="$client_dir/media/icons/saltpack.icns"
@@ -74,7 +73,6 @@ resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
-redirector_bin="$tmp_dir/keybase-redirector"
 kbfs_bin="$tmp_dir/kbfs"
 updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
@@ -105,8 +103,6 @@ get_deps() { (
 	echo "Using local kbfs binpath: $kbfs_binpath"
 	cp "$kbfs_binpath" .
 	cp "$git_remote_keybase_binpath" .
-	echo "Using local redirector binpath: $redirector_binpath"
-	cp "$redirector_binpath" .
 
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
@@ -144,7 +140,6 @@ package_app() { (
 	mkdir -p "$shared_support_dir/bin"
 	cp "$keybase_bin" "$shared_support_dir/bin"
 	cp "$git_remote_keybase_bin" "$shared_support_dir/bin"
-	cp "$redirector_bin" "$shared_support_dir/bin"
 	cp "$kbfs_bin" "$shared_support_dir/bin"
 	cp "$updater_bin" "$shared_support_dir/bin"
 	mkdir -p "$resources_dir"
@@ -176,7 +171,6 @@ sign() { (
 	fi
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
-	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase-redirector"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
 	codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
 	bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"

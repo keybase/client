@@ -46,7 +46,6 @@ func startMounting(ctx context.Context,
 	mounter := &mounter{
 		options: options,
 		log:     log,
-		runMode: kbCtx.GetRunMode(),
 	}
 	err := mi.MountAndSetUnmount(mounter)
 	if err != nil {
