@@ -4,7 +4,6 @@
 import * as path from 'path'
 import type {FullConfig, FullResult, Reporter} from '@playwright/test/reporter'
 import {scanAndPurge, watchEnvSecrets, type SecretWatch} from '../shared/gate/secret-scan.ts'
-import {flowResultsDir} from './results-dirs.ts'
 
 export default class SecretScanReporter implements Reporter {
   private resultsDir = ''
@@ -12,8 +11,8 @@ export default class SecretScanReporter implements Reporter {
   private watch: SecretWatch | undefined
 
   onBegin(config: FullConfig) {
-    // where playwright.config.ts writes this run's results and report
-    this.resultsDir = flowResultsDir(path.resolve(path.dirname(config.configFile ?? config.rootDir), '../../results'))
+    // playwright.config.ts writes this run's test-results and report side by side
+    this.resultsDir = path.dirname(config.projects[0]?.outputDir ?? '')
     this.watch = watchEnvSecrets()
   }
 

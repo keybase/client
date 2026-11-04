@@ -352,10 +352,7 @@ document.querySelectorAll('.solo-wrap').forEach(el => {
 })
 
 document.querySelectorAll('.steps img').forEach(img => {
-  img.addEventListener('click', e => {
-    e.stopPropagation()
-    openSolo(img.src)
-  })
+  img.addEventListener('click', () => openSolo(img.src))
 })
 
 // ── slideshow ────────────────────────────────────────────────────────────────

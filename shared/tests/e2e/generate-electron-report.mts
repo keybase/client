@@ -48,7 +48,10 @@ function saveStorybookBaseline(cards: CardData[]) {
 
 // The last release gate's results by default; --targeted for the flows run outside the gate
 // (results-dirs.ts), whose report goes beside them and leaves the gate's in place.
-const results = flowResultsDir('tests/results', !process.argv.includes('--targeted'))
+const targeted = process.argv.includes('--targeted')
+const results = flowResultsDir('tests/results', !targeted)
+// the baseline is what the gate's reports compare against
+if (targeted && process.argv.includes('--save-baseline')) throw new Error('--save-baseline takes the gate\'s results, not --targeted')
 
 process.exitCode = runFlowReport({
   checklistPath: `${results}/manual-checklist.md`,
@@ -63,7 +66,7 @@ process.exitCode = runFlowReport({
   outputPath: `${results}/electron-report.html`,
   prevDir: 'tests/results/electron-prev',
   resultsPath: `${results}/report/results.json`,
-  runHint: 'yarn test:e2e:desktop',
+  runHint: targeted ? 'yarn test:e2e:desktop' : 'yarn test:e2e:desktop:release',
   saveExtraBaseline: saveStorybookBaseline,
   title: 'Keybase Electron E2E Tests',
   variantOf: projectName => (projectName.endsWith('-dark') ? 'dark' : undefined),

@@ -6,5 +6,5 @@ import * as path from 'path'
 // tests/results/targeted, which leaves the last gate's results in place to rebuild from.
 export const RELEASE_ENV = 'KB_E2E_RELEASE'
 
-export const flowResultsDir = (resultsRoot: string, release = !!process.env[RELEASE_ENV]) =>
+export const flowResultsDir = (resultsRoot: string, release = process.env[RELEASE_ENV] === '1') =>
   release ? resultsRoot : path.join(resultsRoot, 'targeted')

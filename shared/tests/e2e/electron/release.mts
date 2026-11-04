@@ -209,7 +209,7 @@ const main = async () => {
   const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv))
-  // the flows write where the report and census below read (results-dirs.ts)
+  // the flows write where the report and census below read
   process.env[RELEASE_ENV] = '1'
 
   const launched = await phase('launch', async () => {
