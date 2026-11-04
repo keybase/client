@@ -49,8 +49,6 @@ function saveStorybookBaseline(cards: CardData[]) {
 // The last release gate's results by default; --targeted for a flows run outside the gate
 // (results-dirs.ts). Either way they go into the one report, which keeps the cards a run lacks.
 const targeted = process.argv.includes('--targeted')
-// the baseline is what the gate's reports compare against
-if (targeted && process.argv.includes('--save-baseline')) throw new Error('--save-baseline takes the gate\'s results, not --targeted')
 
 process.exitCode = runFlowReport({
   checklistPath: 'tests/results/manual-checklist.md',

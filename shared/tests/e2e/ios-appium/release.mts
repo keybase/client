@@ -440,12 +440,17 @@ const main = async () => {
 
   if (await sweepPhase(run, e2eEnv, runId, {logFile: logFile('sweep')})) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
 
+  // every flow ran to its end (no KB_E2E_RELEASE_ONLY, wdio not stopped at the deadline), so the
+  // report may drop the cards of tests the suite no longer has
+  let flowsFull = false
   await phase('flows', async () => {
     const start = Date.now()
     const r = await runChild('flows', path.join(sharedDir, 'node_modules/.bin/wdio'), ['run', 'tests/e2e/ios-appium/wdio.gate.conf.ts'], remainingMs(), {
       env: {...process.env, KB_IOS_DEVICE: device, ...(only ? {KB_E2E_RELEASE_ONLY: only} : {})},
       logFile: logFile('flows'),
     })
+    // wdio exits 1 for failed tests; anything else stopped the run
+    flowsFull = !only && (r.code === 0 || r.code === 1)
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {
@@ -485,7 +490,7 @@ const main = async () => {
   await phase('report', async () => {
     const start = Date.now()
     const dir = iosRenderDir
-    const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : [])), Math.min(5 * MIN, remainingMs()), {
+    const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : []), ...(flowsFull ? ['--prune'] : [])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('report'),
     })
     const p = reportPhaseResult(r, {path: out.report, ...mtime(out.report)}, start)

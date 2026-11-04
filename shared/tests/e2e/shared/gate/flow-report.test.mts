@@ -83,7 +83,7 @@ test('variantOf suffixes the variant card key and label and keeps the variant ou
   assert.equal(html.split('known on master: flaky send').length - 1, 1)
 })
 
-test('without variantOf every project of a spec is keyed and labelled by the spec alone and takes the known verdict', () => {
+test('without variantOf every project of a spec shares one card, keyed and labelled by the spec alone, with the known verdict', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
   fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(twoProjectResults()))
   const p = {...platform(dir), known}
@@ -91,7 +91,7 @@ test('without variantOf every project of a spec is keyed and labelled by the spe
   assert.deepEqual(fs.readdirSync(p.debugDir), ['inbox-sends-a-message.png'])
   const html = fs.readFileSync(p.outputPath, 'utf8')
   assert.doesNotMatch(html, /\(dark\)/)
-  assert.equal(html.split('known on master: flaky send').length - 1, 2)
+  assert.equal(html.split('known on master: flaky send').length - 1, 1)
 })
 
 test('a tour entry captured twice shows why on its card; one captured once has no such mark', () => {
@@ -113,75 +113,147 @@ test('a tour entry captured twice shows why on its card; one captured once has n
   assert.ok(!html.includes('tour · settings/chat ('))
 })
 
-// a run at `startTime` of the named passing tests, each with a screenshot whose bytes name the run
-const runOf = (startTime: string, titles: Array<string>) => ({
-  stats: {startTime},
-  suites: [
-    {
-      specs: titles.map(title => ({
-        file: 'flows/chat.test.ts',
-        ok: true,
-        tests: [
-          {
-            projectName: 'electron',
-            results: [{attachments: [{body: Buffer.from(startTime).toString('base64'), contentType: 'image/png', name: 'screenshot'}], duration: 5, status: 'passed'}],
-            status: 'expected',
-          },
-        ],
-        title,
-      })),
-      title: 'flows/chat.test.ts',
-    },
-  ],
-})
-const runAt = (dir: string, startTime: string, titles: Array<string>, argv: Array<string>) => {
-  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(runOf(startTime, titles)))
+// a run at `startTime` of the named tests, each with a screenshot whose bytes name the run, and
+// with a manual-<title> step; `skipped` names tests the run skipped
+const runOf = (startTime: string, titles: Array<string>, skipped: Array<string> = []) => {
+  const png = Buffer.from(startTime).toString('base64')
+  return {
+    stats: {startTime},
+    suites: [
+      {
+        specs: titles.map(title => ({
+          file: 'flows/chat.test.ts',
+          ok: true,
+          tests: [
+            skipped.includes(title)
+              ? {projectName: 'electron', results: [{attachments: [], duration: 0, status: 'skipped'}], status: 'skipped'}
+              : {
+                  projectName: 'electron',
+                  results: [
+                    {
+                      attachments: [
+                        {body: png, contentType: 'image/png', name: 'screenshot'},
+                        {body: png, contentType: 'image/png', name: `step-01-manual-${title}`},
+                      ],
+                      duration: 5,
+                      status: 'passed',
+                    },
+                  ],
+                  status: 'expected',
+                },
+          ],
+          title,
+        })),
+        title: 'flows/chat.test.ts',
+      },
+    ],
+  }
+}
+const build = (dir: string, results: object, argv: Array<string> = []) => {
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(results))
   assert.equal(runFlowReport(platform(dir), argv), 0)
   return fs.readFileSync(path.join(dir, 'report.html'), 'utf8')
 }
+const runAt = (dir: string, startTime: string, titles: Array<string>, argv: Array<string> = []) => build(dir, runOf(startTime, titles), argv)
 const shot = (dir: string, key: string) => fs.readFileSync(path.join(dir, 'debug', `${key}.png`), 'utf8')
 const cardsOf = (html: string) => [...html.matchAll(/<span class="name">([^<]*)/g)].map(m => m[1])
-const freshOf = (html: string) => [...html.matchAll(/data-fresh="1">\s*<div class="hdr">.*?<span class="name">([^<]*)/g)].map(m => m[1])
+const latestOf = (html: string) => [...html.matchAll(/LATEST<\/span><span class="name">([^<]*)/g)].map(m => m[1])
+const olderOf = (html: string) => [...html.matchAll(/data-older="1">\s*<div class="hdr">.*?<span class="name">([^<]*)/g)].map(m => m[1])
+const T1 = '2026-01-01T00:00:00.000Z'
+const T2 = '2026-01-02T00:00:00.000Z'
+const T3 = '2026-01-03T00:00:00.000Z'
+const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
 
-test('a targeted run keeps the cards it lacks and marks only its own as this run', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
-  runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'b'], [])
-  const html = runAt(dir, '2026-01-02T00:00:00.000Z', ['b'], ['--targeted'])
+test('a run of some tests keeps the other cards, marking only its own as latest', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a', 'b'])
+  const html = runAt(dir, T2, ['b'])
   assert.deepEqual(cardsOf(html).sort(), ['chat · a', 'chat · b'])
-  assert.deepEqual(freshOf(html), ['chat · b'])
-  assert.equal(shot(dir, 'chat-a'), '2026-01-01T00:00:00.000Z')
-  assert.equal(shot(dir, 'chat-b'), '2026-01-02T00:00:00.000Z')
-  assert.ok(html.includes(new Date('2026-01-01T00:00:00.000Z').toLocaleString()))
+  assert.deepEqual(latestOf(html), ['chat · b'])
+  assert.deepEqual(olderOf(html), ['chat · a'])
+  assert.equal(shot(dir, 'chat-a'), T1)
+  assert.equal(shot(dir, 'chat-b'), T2)
+  assert.ok(html.includes(new Date(T1).toLocaleString()))
   assert.match(html, /id="latest-only"(?! disabled)/)
 })
 
-test('rebuilding from an older run leaves the newer cards and their screenshots', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
-  runAt(dir, '2026-01-02T00:00:00.000Z', ['a'], ['--targeted'])
-  const html = runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'b'], [])
-  assert.equal(shot(dir, 'chat-a'), '2026-01-02T00:00:00.000Z')
-  assert.deepEqual(freshOf(html), ['chat · b'])
+test('rebuilding from an older run leaves the newer cards, which stay the latest', () => {
+  const dir = tmp()
+  runAt(dir, T2, ['a'])
+  const html = runAt(dir, T1, ['a', 'b'], ['--prune'])
+  assert.equal(shot(dir, 'chat-a'), T2)
+  assert.deepEqual(latestOf(html), ['chat · a'])
+  assert.deepEqual(olderOf(html), ['chat · b'])
 })
 
-test('a full run drops the older cards it no longer has; a targeted run drops nothing', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
-  runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'gone'], [])
-  assert.deepEqual(cardsOf(runAt(dir, '2026-01-02T00:00:00.000Z', ['a'], ['--targeted'])).sort(), ['chat · a', 'chat · gone'])
-  const html = runAt(dir, '2026-01-03T00:00:00.000Z', ['a'], [])
+test('only --prune drops the older cards a run no longer has, with their files', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a', 'gone'])
+  assert.deepEqual(cardsOf(runAt(dir, T2, ['a'])).sort(), ['chat · a', 'chat · gone'])
+  const html = runAt(dir, T3, ['a'], ['--prune'])
   assert.deepEqual(cardsOf(html), ['chat · a'])
   assert.ok(!fs.existsSync(path.join(dir, 'debug', 'chat-gone.png')))
   assert.match(html, /id="latest-only" disabled/)
 })
 
-test("a screenshot the run's results no longer have keeps the report's copy", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
-  runAt(dir, '2026-01-01T00:00:00.000Z', ['a'], [])
-  const gone = runOf('2026-01-01T00:00:00.000Z', ['a'])
-  const att = gone.suites[0]!.specs[0]!.tests[0]!.results[0]!.attachments[0]! as {body?: string; path?: string}
-  delete att.body
-  att.path = path.join(dir, 'cleared', 'screenshot.png')
-  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(gone))
-  assert.equal(runFlowReport(platform(dir), []), 0)
-  assert.equal(shot(dir, 'chat-a'), '2026-01-01T00:00:00.000Z')
-  assert.match(fs.readFileSync(path.join(dir, 'report.html'), 'utf8'), /debug\/chat-a\.png/)
+test('a test the run skipped keeps its card and screenshots', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a'])
+  const html = build(dir, runOf(T2, ['a'], ['a']), ['--prune'])
+  assert.equal(shot(dir, 'chat-a'), T1)
+  assert.ok(fs.existsSync(path.join(dir, 'debug', 'chat-a', 'step-01-manual-a.png')))
+  assert.deepEqual(cardsOf(html), ['chat · a'])
+})
+
+test("the checklist counts the manual steps of every card, not only this run's", () => {
+  const dir = tmp()
+  const p = {...platform(dir), manualOnly: {a: {doByHand: 'A by hand.', title: 'A'}, b: {doByHand: 'B by hand.', title: 'B'}}}
+  fs.writeFileSync(p.resultsPath, JSON.stringify(runOf(T1, ['a', 'b'])))
+  runFlowReport(p, [])
+  fs.writeFileSync(p.resultsPath, JSON.stringify(runOf(T2, ['b'])))
+  runFlowReport(p, [])
+  const checklist = fs.readFileSync(p.checklistPath, 'utf8')
+  assert.match(checklist, /debug\/chat-a\/step-01-manual-a\.png/)
+  assert.match(checklist, /debug\/chat-b\/step-01-manual-b\.png/)
+})
+
+// the run's screenshot named by a path that no longer exists
+const withClearedShots = (results: ReturnType<typeof runOf>, dir: string) => {
+  for (const att of results.suites[0]!.specs.flatMap(sp => sp.tests.flatMap(t => t.results.flatMap(r => r.attachments as Array<{body?: string; path?: string}>)))) {
+    delete att.body
+    att.path = path.join(dir, 'cleared', 'screenshot.png')
+  }
+  return results
+}
+
+test("rebuilding a run whose screenshots were cleared keeps the report's copies", () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a'])
+  const html = build(dir, withClearedShots(runOf(T1, ['a']), dir))
+  assert.equal(shot(dir, 'chat-a'), T1)
+  assert.match(html, /debug\/chat-a\.png/)
+})
+
+test("a newer run's cleared screenshot is missing, not the older run's image", () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a'])
+  const html = build(dir, withClearedShots(runOf(T2, ['a']), dir))
+  assert.ok(!fs.existsSync(path.join(dir, 'debug', 'chat-a.png')))
+  assert.doesNotMatch(html, /debug\/chat-a\.png/)
+})
+
+test('run error cards are never hidden by the latest-run filter', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a'])
+  const html = build(dir, {...runOf(T2, ['b']), errors: [{message: 'worker crashed'}]})
+  assert.ok(!olderOf(html).some(n => n?.startsWith('Run error')))
+  assert.ok(cardsOf(html).includes('Run error 1'))
+})
+
+test('save-baseline copies every card of the report', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a', 'b'])
+  runAt(dir, T2, ['b'])
+  assert.equal(runFlowReport(platform(dir), ['--save-baseline']), 0)
+  assert.deepEqual(fs.readdirSync(path.join(dir, 'prev')).sort(), ['chat-a.png', 'chat-b.png'])
 })

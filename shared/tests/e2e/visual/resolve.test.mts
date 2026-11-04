@@ -17,13 +17,16 @@ const run: CliRunner = async args => {
     ].join('\n')
   }
   if (args[0] === 'team') return JSON.stringify({teams: [{team_id: 'tid1', fq_name: 'testteam'}]})
-  if (args[0] === 'chat' && args[3]?.includes('"read"') && args[3].includes('"channel":{"members_type":"team","name":"testteam","topic_name":"paged"')) {
+  const read = args[0] === 'chat' && args[3]?.includes('"read"')
+    ? (JSON.parse(args[3]) as {params: {options: {channel: {topic_name: string}; pagination?: {next?: string}}}}).params.options
+    : undefined
+  if (read?.channel.topic_name === 'paged') {
     // the attachment is on the second page
-    return args[3].includes('"next":"p2"')
+    return read.pagination?.next === 'p2'
       ? JSON.stringify({result: {messages: [{msg: {id: 2, content: {type: 'attachment', attachment: {object: {title: 'old.pdf'}}}}}], pagination: {last: true}}})
       : JSON.stringify({result: {messages: [{msg: {id: 9, content: {type: 'text', text: {body: 'hi'}}}}], pagination: {next: 'p2'}}})
   }
-  if (args[0] === 'chat' && args[3]?.includes('"read"')) {
+  if (read) {
     return JSON.stringify({
       result: {
         messages: [

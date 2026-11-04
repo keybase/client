@@ -113,17 +113,17 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string | numbe
           return content['type'] === 'attachment' && asObj(asObj(content['attachment'])['object'])['title'] === title
         }
         // every page, newest first, as the chat seeding reads the channel (shared/chat-data.ts)
-        let next: unknown
+        let next: string | undefined
         for (;;) {
-          const pagination = typeof next === 'string' ? {next, num: 500} : {num: 500}
+          const pagination = next ? {next, num: 500} : {num: 500}
           const read = {method: 'read', params: {options: {channel: {members_type: 'team', name: team, topic_name: channel}, pagination, peek: true}}}
           const result = asObj(asObj(JSON.parse(await run(['chat', 'api', '-m', JSON.stringify(read)])))['result'])
           const msgs = asArr(result['messages']).map(m => asObj(asObj(m)['msg']))
           const msgID = msgs.find(isHit)?.['id']
           if (typeof msgID === 'number') return msgID
           const page = asObj(result['pagination'])
-          next = page['next']
-          if (!msgs.length || page['last'] || typeof next !== 'string') break
+          next = typeof page['next'] === 'string' ? page['next'] : undefined
+          if (!msgs.length || page['last'] || !next) break
         }
         throw new Error(`${team}#${channel} has no attachment titled ${title}; a chat flow seeds the e2e channels (shared/chat-data.ts)`)
       })
