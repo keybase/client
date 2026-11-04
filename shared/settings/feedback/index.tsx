@@ -148,7 +148,12 @@ const Feedback = (props: Props) => {
     <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {successBanner}
-        <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
+        <Kb.Box2
+          direction="vertical"
+          padding="small"
+          style={loggedOut ? styles.mainBoxLoggedOut : styles.mainBox}
+          gap="xsmall"
+        >
           {fields}
           <Kb.Box2 alignSelf={loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
             <Kb.ButtonBar>{sendButton}</Kb.ButtonBar>
@@ -178,6 +183,18 @@ const useStyles = Kb.Styles.createStyleHook(
         },
         isTablet: {
           alignSelf: 'flex-start',
+          width: Kb.Styles.globalStyles.largeWidthPercent,
+        },
+      }),
+      // signed out it is the whole screen, not a settings pane
+      mainBoxLoggedOut: Kb.Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'center',
+          maxWidth: 550,
+          width: '100%',
+        },
+        isTablet: {
+          alignSelf: 'center',
           width: Kb.Styles.globalStyles.largeWidthPercent,
         },
       }),

@@ -6,7 +6,7 @@ type KeybaseLinkErrorBodyProps = {
   isError: boolean
 }
 
-export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
+const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   const styles = useStyles()
   const bannerColor = props.isError ? 'red' : 'green'
   return (
@@ -23,21 +23,12 @@ const LinkError = (props: {error?: string}) => (
 )
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  container: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: theme.white,
-    },
-    isElectron: {
-      height: 560,
-      width: 400,
-    },
-    isMobile: {
-      flexGrow: 1,
-      flexShrink: 1,
-      maxHeight: '100%',
-      width: '100%',
-    },
-  }),
+  container: {
+    backgroundColor: theme.white,
+    flexGrow: 1,
+    flexShrink: 1,
+    maxHeight: '100%',
+  },
 }))
 
 import type {StaticScreenProps} from '@react-navigation/core'
