@@ -26,7 +26,7 @@ func newNonce24() (*nonce24, error) {
 	return &nonce24{prefix: prefix}, nil
 }
 
-// newNonce24 creates a nonce with a random 20 byte prefix and
+// newNonce24SkipZero creates a nonce with a random 20 byte prefix and
 // a counter starting at 1.
 func newNonce24SkipZero() (*nonce24, error) {
 	n, err := newNonce24()
