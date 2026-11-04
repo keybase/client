@@ -51,7 +51,7 @@ Do the "Before any run" steps and the Vite clear, then:
 1. `node tests/e2e/electron/launch-app.mts` (kills any earlier app, launches, waits until ready).
 2. `yarn -s test:e2e:desktop:flows tests/e2e/electron/flows/<file>.test.ts [-g "<title>"] --reporter=line`.
 
-Each invocation empties `tests/results/test-results/`. After a gate, that also takes away what `generate-electron-report.mts` needs to rebuild the gate's report, so finish any report work (regenerating it, checking failure shots) before the first targeted run. Read a failure's `test-failed-1.png` and `error-context.md` before you start the next invocation. To reproduce a failure from a gate run, run the flows that ran before it in the gate's order (the numbered `✓` lines in the gate log), not just the failing file. Earlier flows such as device provisioning and account switches leave state behind.
+Runs outside the gate write under `tests/results/targeted/` (`test-results/`, `report/`). The gate's own results in `tests/results/` stay in place, so `node tests/e2e/generate-electron-report.mts` can still rebuild the gate's report. `--targeted` builds `tests/results/targeted/electron-report.html` from the targeted run instead. Each targeted invocation empties `tests/results/targeted/test-results/`, so read a failure's `test-failed-1.png` and `error-context.md` before you start the next invocation. To reproduce a failure from a gate run, run the flows that ran before it in the gate's order (the numbered `✓` lines in the gate log), not just the failing file. Earlier flows such as device provisioning and account switches leave state behind.
 
 ## While it runs
 

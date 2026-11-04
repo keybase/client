@@ -68,7 +68,7 @@
     "test:e2e:accounts:setup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/accounts/setup.mts",
     "test:e2e:accounts:sweep": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/accounts/sweep.mts",
     "test:e2e:desktop": "playwright test --config tests/e2e/electron/playwright.config.ts",
-    "test:e2e:desktop:branch": "playwright test --config tests/e2e/electron/playwright.config.ts tests/e2e/electron/flows/team-member.test.ts && yarn test:e2e:desktop:report",
+    "test:e2e:desktop:branch": "playwright test --config tests/e2e/electron/playwright.config.ts tests/e2e/electron/flows/team-member.test.ts && node tests/e2e/generate-electron-report.mts --targeted && open tests/results/targeted/electron-report.html",
     "test:e2e:desktop:launch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/electron/launch-app.mts",
     "test:e2e:desktop:flows": "playwright test --config tests/e2e/electron/playwright.config.ts --project=electron-flows",
     "test:e2e:desktop:census": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/electron/census.mts",

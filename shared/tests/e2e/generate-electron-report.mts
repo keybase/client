@@ -4,6 +4,7 @@ import {computeDiff} from './generate-report-shared.mts'
 import {MANUAL_ONLY} from './electron/manual-only.ts'
 import {KNOWN_FAILURES, KNOWN_FAILURES_FILE} from './electron/known-failures.ts'
 import {runFlowReport} from './shared/gate/flow-report.mts'
+import {flowResultsDir} from './electron/results-dirs.ts'
 import type {CardData} from './generate-report-shared.mts'
 
 const storybookDir = 'tests/results/storybook-desktop'
@@ -45,9 +46,13 @@ function saveStorybookBaseline(cards: CardData[]) {
   console.log(`Storybook baseline saved: ${saved} screenshots to ${storybookPrevDir}/`)
 }
 
+// The last release gate's results by default; --targeted for the flows run outside the gate
+// (results-dirs.ts), whose report goes beside them and leaves the gate's in place.
+const results = flowResultsDir('tests/results', !process.argv.includes('--targeted'))
+
 process.exitCode = runFlowReport({
-  checklistPath: 'tests/results/manual-checklist.md',
-  debugDir: 'tests/results/electron-debug',
+  checklistPath: `${results}/manual-checklist.md`,
+  debugDir: `${results}/electron-debug`,
   extraSections: () => {
     const cards = parseStorybookScreenshots()
     return cards.length > 0 ? [{header: `Storybook · ${cards.length} stories`, cards, excludeFromStats: true}] : []
@@ -55,9 +60,9 @@ process.exitCode = runFlowReport({
   known: KNOWN_FAILURES,
   knownListFile: KNOWN_FAILURES_FILE,
   manualOnly: MANUAL_ONLY,
-  outputPath: 'tests/results/electron-report.html',
+  outputPath: `${results}/electron-report.html`,
   prevDir: 'tests/results/electron-prev',
-  resultsPath: 'tests/results/report/results.json',
+  resultsPath: `${results}/report/results.json`,
   runHint: 'yarn test:e2e:desktop',
   saveExtraBaseline: saveStorybookBaseline,
   title: 'Keybase Electron E2E Tests',

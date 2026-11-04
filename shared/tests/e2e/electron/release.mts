@@ -41,6 +41,7 @@ import {groupAlive} from '../shared/gate/processes.ts'
 import {KNOWN_FAILURES} from './known-failures.ts'
 import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
+import {RELEASE_ENV} from './results-dirs.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {logTally, nodeArgs, outcome, preflightPhase, releaseSettings, screenState, sweepPhase} from '../shared/gate/release-phases.mts'
 import {
@@ -208,6 +209,8 @@ const main = async () => {
   const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv))
+  // the flows write where the report and census below read (results-dirs.ts)
+  process.env[RELEASE_ENV] = '1'
 
   const launched = await phase('launch', async () => {
     const r = await runChild('launch', 'node', node('tests/e2e/electron/launch-app.mts'), 5 * MIN)
