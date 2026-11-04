@@ -10,6 +10,8 @@
 //                      the same one every run
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
+//   messageID          `chat api -m '{"method":"read",...}'` (a peek) -> the id of the attachment in
+//                      the team's `channel` whose title is `title`
 // Results are cached for the process.
 import {readCliMasked} from './cli-masked.mts'
 import {normalizeDevices} from './seal.mts'
@@ -55,7 +57,7 @@ const secondUser = () => {
 
 const inFolder = (folder: string, sub: string | undefined) => (sub ? `${folder}/${sub}` : folder)
 
-const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
+const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string | number> => {
   switch (ref.ref) {
     case 'teamname':
       return teamname()
@@ -100,6 +102,24 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
         return id
       })
     }
+    case 'messageID': {
+      const team = teamname()
+      const channel = ref.channel ?? 'general'
+      const title = ref.title ?? ''
+      const id = await cached(`msg:${team}#${channel}:${title}`, async () => {
+        const read = {method: 'read', params: {options: {channel: {members_type: 'team', name: team, topic_name: channel}, peek: true}}}
+        const out = asObj(JSON.parse(await run(['chat', 'api', '-m', JSON.stringify(read)])))
+        const msgs = asArr(asObj(out['result'])['messages']).map(m => asObj(asObj(m)['msg']))
+        const hit = msgs.find(m => {
+          const content = asObj(m['content'])
+          return content['type'] === 'attachment' && asObj(asObj(content['attachment'])['object'])['title'] === title
+        })
+        const msgID = hit?.['id']
+        if (typeof msgID !== 'number') throw new Error(`${team}#${channel} has no attachment titled ${title}`)
+        return String(msgID)
+      })
+      return Number(id)
+    }
   }
 }
 
@@ -135,6 +155,6 @@ export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<
   return {
     tab: nav.tab,
     ...(append ? {append: {name: append.name, ...(params ? {params} : {})}} : {}),
-    ...(thread ? {thread: await resolveRef(thread, run)} : {}),
+    ...(thread ? {thread: String(await resolveRef(thread, run))} : {}),
   }
 }

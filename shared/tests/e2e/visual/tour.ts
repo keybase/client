@@ -1,5 +1,5 @@
 import * as T from '../shared/test-ids.ts'
-import type {ParamValue, SetupStep, TourEntry} from './tour-types.ts'
+import type {ParamRef, ParamValue, SetupStep, TourEntry} from './tour-types.ts'
 
 // Tab names are the values in constants/tabs.tsx. Desktop shows eight tabs; phone shows people,
 // chat, files, teams and settings.
@@ -65,9 +65,12 @@ type ModalOpts = {
   fixture?: TourEntry['fixture']
   ready?: string
   setup?: TourEntry['setup']
+  // a conversation the modal opens over
+  thread?: ParamRef
 }
 const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = {}): Array<TourEntry> => {
   const append = {name, params}
+  const thread = opts.thread ? {thread: opts.thread} : {}
   const base = {
     id: `modal/${id}`,
     seal: opts.seal ?? [],
@@ -77,9 +80,9 @@ const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = 
   return [
     ...(opts.desktop === false
       ? []
-      : [{...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab'}, platforms: ['desktop'] as const, ready: opts.ready ?? T.MODAL_CLOSE}]),
+      : [{...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab', ...thread}, platforms: ['desktop'] as const, ready: opts.ready ?? T.MODAL_CLOSE}]),
     ...(opts.phone
-      ? [{...base, nav: {append, tab: opts.tab ?? 'tabs.settingsTab'}, platforms: ['phone'] as const, ready: opts.ready ?? T.MODAL_SCREEN}]
+      ? [{...base, nav: {append, tab: opts.tab ?? 'tabs.settingsTab', ...thread}, platforms: ['phone'] as const, ready: opts.ready ?? T.MODAL_SCREEN}]
       : []),
   ]
 }
@@ -971,7 +974,13 @@ export const tour: ReadonlyArray<TourEntry> = [
     {conversationIDKey: short, pathAndOutboxIDs: [{path: '/visual-gate/report.pdf'}]},
     {phone: true, seal: ['inbox']}
   ),
-  ...modal('chat-pdf', 'chatPDF', {conversationIDKey: short, messageID: 1}, {phone: true, seal: ['inbox']}),
+  // the seeded pdf in #e2e-media; its thread opens first, which loads the message the viewer reads
+  ...modal(
+    'chat-pdf',
+    'chatPDF',
+    {conversationIDKey: media, messageID: {channel: 'e2e-media', ref: 'messageID', title: 'e2e-media-pdf'}},
+    {phone: true, seal: ['inbox'], tab: 'tabs.chatTab', thread: media}
+  ),
   ...modal('chat-new-team', 'chatShowNewTeamDialog', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
   ...teamModal('chat-add-to-channel', 'chatAddToChannel', {...team, conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
   {

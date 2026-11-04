@@ -89,6 +89,8 @@ export const MEDIA_FIXTURES = [
   {file: path.join(fixturesDir, 'e2e-video.mp4'), title: 'e2e-media-video-tall'},
   {file: path.join(fixturesDir, 'e2e-image.png'), title: 'e2e-media-image'},
   {file: path.join(fixturesDir, 'e2e-file.txt'), title: 'e2e-media-file'},
+  // the pdf the visual tour's modal/chat-pdf shows
+  {file: path.join(fixturesDir, 'corpus', 'e2e-c.pdf'), title: 'e2e-media-pdf'},
 ] as const
 
 const log = (line: string) => {
