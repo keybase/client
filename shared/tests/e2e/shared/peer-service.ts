@@ -86,6 +86,8 @@ export const runKeybase = async (
         else resolve(stdout.trim())
       }
     )
+    // a CLI that exits without reading stdin makes this write fail with EPIPE; its exit is the result
+    proc.stdin?.on('error', () => {})
     proc.stdin?.end(opts.input ?? '')
   })
 }

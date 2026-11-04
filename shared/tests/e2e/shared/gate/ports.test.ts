@@ -1,5 +1,6 @@
 import * as net from 'net'
 import {holderFromPs, portHolders} from './ports'
+import {macTest} from '../mac-test'
 
 test('holderFromPs reads pgid and command, trimming the command to 120 chars', () => {
   expect(holderFromPs(42, ' 777 /usr/bin/node server.js --port 8081\n')).toEqual({
@@ -11,7 +12,7 @@ test('holderFromPs reads pgid and command, trimming the command to 120 chars', (
   expect(holderFromPs(9, '')).toEqual({command: '', pgid: -1, pid: 9})
 })
 
-test('portHolders names this process as the holder of a port it listens on, and none for a free port', async () => {
+macTest('portHolders names this process as the holder of a port it listens on, and none for a free port', async () => {
   const server = net.createServer()
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   const port = (server.address() as net.AddressInfo).port

@@ -235,6 +235,10 @@ const cliConfirmed = async (args: Array<string>, prompt = 'Hit Enter to confirm'
     }, 60_000)
     proc.stdout.on('data', (d: Buffer) => (output += d.toString()))
     proc.stderr.on('data', (d: Buffer) => (output += d.toString()))
+    proc.on('error', e => {
+      clearTimeout(timer)
+      reject(new Error(`keybase ${args.join(' ')} could not run under expect: ${e.message}`))
+    })
     proc.on('exit', code => {
       clearTimeout(timer)
       if (code === 0) resolve()
