@@ -17,6 +17,12 @@ const run: CliRunner = async args => {
     ].join('\n')
   }
   if (args[0] === 'team') return JSON.stringify({teams: [{team_id: 'tid1', fq_name: 'testteam'}]})
+  if (args[0] === 'chat' && args[3]?.includes('"read"') && args[3].includes('"channel":{"members_type":"team","name":"testteam","topic_name":"paged"')) {
+    // the attachment is on the second page
+    return args[3].includes('"next":"p2"')
+      ? JSON.stringify({result: {messages: [{msg: {id: 2, content: {type: 'attachment', attachment: {object: {title: 'old.pdf'}}}}}], pagination: {last: true}}})
+      : JSON.stringify({result: {messages: [{msg: {id: 9, content: {type: 'text', text: {body: 'hi'}}}}], pagination: {next: 'p2'}}})
+  }
   if (args[0] === 'chat' && args[3]?.includes('"read"')) {
     return JSON.stringify({
       result: {
@@ -140,4 +146,12 @@ test('a messageID is the attachment with that title, as a number', async () => {
 test('a missing attachment fails loudly', async () => {
   const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'other', title: 'nope.pdf'}}}}
   await assert.rejects(resolveParams(nav, run), /no attachment titled nope.pdf/)
+})
+test('a messageID on an older page is found', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'paged', title: 'old.pdf'}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {m: 2})
+})
+test('a messageID ref without a title is refused', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'other'}}}}
+  await assert.rejects(resolveParams(nav, run), /needs the title/)
 })

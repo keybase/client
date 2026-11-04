@@ -112,3 +112,76 @@ test('a tour entry captured twice shows why on its card; one captured once has n
   assert.ok(html.includes('tour · settings/chat'))
   assert.ok(!html.includes('tour · settings/chat ('))
 })
+
+// a run at `startTime` of the named passing tests, each with a screenshot whose bytes name the run
+const runOf = (startTime: string, titles: Array<string>) => ({
+  stats: {startTime},
+  suites: [
+    {
+      specs: titles.map(title => ({
+        file: 'flows/chat.test.ts',
+        ok: true,
+        tests: [
+          {
+            projectName: 'electron',
+            results: [{attachments: [{body: Buffer.from(startTime).toString('base64'), contentType: 'image/png', name: 'screenshot'}], duration: 5, status: 'passed'}],
+            status: 'expected',
+          },
+        ],
+        title,
+      })),
+      title: 'flows/chat.test.ts',
+    },
+  ],
+})
+const runAt = (dir: string, startTime: string, titles: Array<string>, argv: Array<string>) => {
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(runOf(startTime, titles)))
+  assert.equal(runFlowReport(platform(dir), argv), 0)
+  return fs.readFileSync(path.join(dir, 'report.html'), 'utf8')
+}
+const shot = (dir: string, key: string) => fs.readFileSync(path.join(dir, 'debug', `${key}.png`), 'utf8')
+const cardsOf = (html: string) => [...html.matchAll(/<span class="name">([^<]*)/g)].map(m => m[1])
+const freshOf = (html: string) => [...html.matchAll(/data-fresh="1">\s*<div class="hdr">.*?<span class="name">([^<]*)/g)].map(m => m[1])
+
+test('a targeted run keeps the cards it lacks and marks only its own as this run', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'b'], [])
+  const html = runAt(dir, '2026-01-02T00:00:00.000Z', ['b'], ['--targeted'])
+  assert.deepEqual(cardsOf(html).sort(), ['chat · a', 'chat · b'])
+  assert.deepEqual(freshOf(html), ['chat · b'])
+  assert.equal(shot(dir, 'chat-a'), '2026-01-01T00:00:00.000Z')
+  assert.equal(shot(dir, 'chat-b'), '2026-01-02T00:00:00.000Z')
+  assert.ok(html.includes(new Date('2026-01-01T00:00:00.000Z').toLocaleString()))
+  assert.match(html, /id="latest-only"(?! disabled)/)
+})
+
+test('rebuilding from an older run leaves the newer cards and their screenshots', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  runAt(dir, '2026-01-02T00:00:00.000Z', ['a'], ['--targeted'])
+  const html = runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'b'], [])
+  assert.equal(shot(dir, 'chat-a'), '2026-01-02T00:00:00.000Z')
+  assert.deepEqual(freshOf(html), ['chat · b'])
+})
+
+test('a full run drops the older cards it no longer has; a targeted run drops nothing', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  runAt(dir, '2026-01-01T00:00:00.000Z', ['a', 'gone'], [])
+  assert.deepEqual(cardsOf(runAt(dir, '2026-01-02T00:00:00.000Z', ['a'], ['--targeted'])).sort(), ['chat · a', 'chat · gone'])
+  const html = runAt(dir, '2026-01-03T00:00:00.000Z', ['a'], [])
+  assert.deepEqual(cardsOf(html), ['chat · a'])
+  assert.ok(!fs.existsSync(path.join(dir, 'debug', 'chat-gone.png')))
+  assert.match(html, /id="latest-only" disabled/)
+})
+
+test("a screenshot the run's results no longer have keeps the report's copy", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  runAt(dir, '2026-01-01T00:00:00.000Z', ['a'], [])
+  const gone = runOf('2026-01-01T00:00:00.000Z', ['a'])
+  const att = gone.suites[0]!.specs[0]!.tests[0]!.results[0]!.attachments[0]! as {body?: string; path?: string}
+  delete att.body
+  att.path = path.join(dir, 'cleared', 'screenshot.png')
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(gone))
+  assert.equal(runFlowReport(platform(dir), []), 0)
+  assert.equal(shot(dir, 'chat-a'), '2026-01-01T00:00:00.000Z')
+  assert.match(fs.readFileSync(path.join(dir, 'report.html'), 'utf8'), /debug\/chat-a\.png/)
+})

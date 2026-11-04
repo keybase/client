@@ -14,7 +14,7 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
-import {CORPUS} from '../fixtures/corpus/corpus.ts'
+import {CORPUS, corpusEntry} from '../fixtures/corpus/corpus.ts'
 import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
 import {requireMainIsSmoke} from './peer-service.ts'
@@ -90,7 +90,7 @@ export const MEDIA_FIXTURES = [
   {file: path.join(fixturesDir, 'e2e-image.png'), title: 'e2e-media-image'},
   {file: path.join(fixturesDir, 'e2e-file.txt'), title: 'e2e-media-file'},
   // the pdf the visual tour's modal/chat-pdf shows
-  {file: path.join(fixturesDir, 'corpus', 'e2e-c.pdf'), title: 'e2e-media-pdf'},
+  {file: corpusEntry('e2e-c.pdf').file, title: 'e2e-media-pdf'},
 ] as const
 
 const log = (line: string) => {

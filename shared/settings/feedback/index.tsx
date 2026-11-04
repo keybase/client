@@ -151,7 +151,7 @@ const Feedback = (props: Props) => {
         <Kb.Box2
           direction="vertical"
           padding="small"
-          style={loggedOut ? styles.mainBoxLoggedOut : styles.mainBox}
+          style={[styles.mainBox, loggedOut && styles.mainBoxCentered]}
           gap="xsmall"
         >
           {fields}
@@ -187,16 +187,9 @@ const useStyles = Kb.Styles.createStyleHook(
         },
       }),
       // signed out it is the whole screen, not a settings pane
-      mainBoxLoggedOut: Kb.Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          maxWidth: 550,
-          width: '100%',
-        },
-        isTablet: {
-          alignSelf: 'center',
-          width: Kb.Styles.globalStyles.largeWidthPercent,
-        },
+      mainBoxCentered: Kb.Styles.platformStyles({
+        isElectron: {alignSelf: 'center'},
+        isTablet: {alignSelf: 'center'},
       }),
     }) as const
 )

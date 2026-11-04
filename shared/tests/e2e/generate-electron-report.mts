@@ -46,16 +46,15 @@ function saveStorybookBaseline(cards: CardData[]) {
   console.log(`Storybook baseline saved: ${saved} screenshots to ${storybookPrevDir}/`)
 }
 
-// The last release gate's results by default; --targeted for the flows run outside the gate
-// (results-dirs.ts), whose report goes beside them and leaves the gate's in place.
+// The last release gate's results by default; --targeted for a flows run outside the gate
+// (results-dirs.ts). Either way they go into the one report, which keeps the cards a run lacks.
 const targeted = process.argv.includes('--targeted')
-const results = flowResultsDir('tests/results', !targeted)
 // the baseline is what the gate's reports compare against
 if (targeted && process.argv.includes('--save-baseline')) throw new Error('--save-baseline takes the gate\'s results, not --targeted')
 
 process.exitCode = runFlowReport({
-  checklistPath: `${results}/manual-checklist.md`,
-  debugDir: `${results}/electron-debug`,
+  checklistPath: 'tests/results/manual-checklist.md',
+  debugDir: 'tests/results/electron-debug',
   extraSections: () => {
     const cards = parseStorybookScreenshots()
     return cards.length > 0 ? [{header: `Storybook · ${cards.length} stories`, cards, excludeFromStats: true}] : []
@@ -63,9 +62,9 @@ process.exitCode = runFlowReport({
   known: KNOWN_FAILURES,
   knownListFile: KNOWN_FAILURES_FILE,
   manualOnly: MANUAL_ONLY,
-  outputPath: `${results}/electron-report.html`,
+  outputPath: 'tests/results/electron-report.html',
   prevDir: 'tests/results/electron-prev',
-  resultsPath: `${results}/report/results.json`,
+  resultsPath: `${flowResultsDir('tests/results', !targeted)}/report/results.json`,
   runHint: targeted ? 'yarn test:e2e:desktop' : 'yarn test:e2e:desktop:release',
   saveExtraBaseline: saveStorybookBaseline,
   title: 'Keybase Electron E2E Tests',

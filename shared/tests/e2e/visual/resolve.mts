@@ -26,10 +26,10 @@ type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})
 const asArr = (v: unknown): Array<unknown> => (Array.isArray(v) ? v : [])
 
-const cache = new Map<string, Promise<string>>()
+const cache = new Map<string, Promise<string | number>>()
 export const clearResolveCache = () => cache.clear()
-const cached = async (key: string, f: () => Promise<string>) => {
-  const hit = cache.get(key)
+const cached = async <T extends string | number>(key: string, f: () => Promise<T>): Promise<T> => {
+  const hit = cache.get(key) as Promise<T> | undefined
   if (hit) return hit
   const p = f()
   cache.set(key, p)
@@ -105,20 +105,28 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string | numbe
     case 'messageID': {
       const team = teamname()
       const channel = ref.channel ?? 'general'
-      const title = ref.title ?? ''
-      const id = await cached(`msg:${team}#${channel}:${title}`, async () => {
-        const read = {method: 'read', params: {options: {channel: {members_type: 'team', name: team, topic_name: channel}, peek: true}}}
-        const out = asObj(JSON.parse(await run(['chat', 'api', '-m', JSON.stringify(read)])))
-        const msgs = asArr(asObj(out['result'])['messages']).map(m => asObj(asObj(m)['msg']))
-        const hit = msgs.find(m => {
+      const title = ref.title
+      if (!title) throw new Error('a messageID ref needs the title of its attachment')
+      return cached(`msg:${team}#${channel}:${title}`, async () => {
+        const isHit = (m: Obj) => {
           const content = asObj(m['content'])
           return content['type'] === 'attachment' && asObj(asObj(content['attachment'])['object'])['title'] === title
-        })
-        const msgID = hit?.['id']
-        if (typeof msgID !== 'number') throw new Error(`${team}#${channel} has no attachment titled ${title}`)
-        return String(msgID)
+        }
+        // every page, newest first, as the chat seeding reads the channel (shared/chat-data.ts)
+        let next: unknown
+        for (;;) {
+          const pagination = typeof next === 'string' ? {next, num: 500} : {num: 500}
+          const read = {method: 'read', params: {options: {channel: {members_type: 'team', name: team, topic_name: channel}, pagination, peek: true}}}
+          const result = asObj(asObj(JSON.parse(await run(['chat', 'api', '-m', JSON.stringify(read)])))['result'])
+          const msgs = asArr(result['messages']).map(m => asObj(asObj(m)['msg']))
+          const msgID = msgs.find(isHit)?.['id']
+          if (typeof msgID === 'number') return msgID
+          const page = asObj(result['pagination'])
+          next = page['next']
+          if (!msgs.length || page['last'] || typeof next !== 'string') break
+        }
+        throw new Error(`${team}#${channel} has no attachment titled ${title}; a chat flow seeds the e2e channels (shared/chat-data.ts)`)
       })
-      return Number(id)
     }
   }
 }

@@ -122,7 +122,7 @@ const desktopInfoPanel = (
   ],
 })
 
-// The attachments tab of e2e-media, which holds an image, two videos and a text file, on one of
+// The attachments tab of e2e-media, which holds an image, two videos, a text file and a pdf, on one of
 // its Media / Docs / Links views.
 const attachmentsView = (id: string, view: string, ready: string): Array<TourEntry> => [
   desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
@@ -978,8 +978,8 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...modal(
     'chat-pdf',
     'chatPDF',
-    {conversationIDKey: media, messageID: {channel: 'e2e-media', ref: 'messageID', title: 'e2e-media-pdf'}},
-    {phone: true, seal: ['inbox'], tab: 'tabs.chatTab', thread: media}
+    {conversationIDKey: media, messageID: {...media, ref: 'messageID', title: 'e2e-media-pdf'}},
+    {phone: true, ready: T.CHAT_PDF_VIEWER, seal: ['inbox'], tab: 'tabs.chatTab', thread: media}
   ),
   ...modal('chat-new-team', 'chatShowNewTeamDialog', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
   ...teamModal('chat-add-to-channel', 'chatAddToChannel', {...team, conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
