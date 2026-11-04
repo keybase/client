@@ -21,15 +21,13 @@ const sections: ReadonlyArray<Section> = [
     title: 'Inline',
   },
   {
-    // Markers inside a word are literal on either side; a run (** or ***) is one marker closed by a
-    // run of the same length.
     samples: [
-      {name: 'doubled after a word (literal)', source: 'test**test**'},
-      {name: 'doubled before a word (literal)', source: '**test**test'},
-      {name: 'single inside words (literal)', source: 'test*test* and *test*test'},
-      {name: 'underscores and tildes in words (literal)', source: 'snake_case_name test__test__ test~~test~~'},
+      {name: 'doubled after a word', source: 'test**test**'},
+      {name: 'doubled before a word', source: '**test**test'},
+      {name: 'single inside words', source: 'test*test* and *test*test and a*b*c'},
+      {name: 'tildes inside words', source: 'test~~test~~ and ~~test~~test'},
+      {name: 'underscores inside words (literal)', source: 'snake_case_name test__test__ __test__test'},
       {name: 'spaced markers (literal)', source: 'a * b * c'},
-      {name: 'math (literal)', source: '2*3*4 = 24'},
       {name: 'doubled', source: 'x **bold** _and_ __italic__ ~~struck~~ x'},
       {name: 'tripled', source: '***bold***'},
       {name: 'marker inside a pair', source: '**a*b** and *a*b*'},

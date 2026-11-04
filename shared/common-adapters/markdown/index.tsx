@@ -167,6 +167,7 @@ const tldMax = Math.max(...commonTlds.map(t => t.length))
 const isWordChar = (c: number) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95
 const dotChar = 46
 const underscoreChar = 95
+const isAsciiAlnum = (c: number) => isWordChar(c) && c !== underscoreChar
 
 // The text rule also stops where a url with a common tld starts, i.e. where
 // /(?<![0-9A-Za-z])(\w{1,63}\.)+(tld)\b/ matches, so it doesn't swallow the common case of
@@ -198,7 +199,7 @@ const findUrlStarts = (s: string): Array<number> => {
     const labelThenTld = length >= 1 && length <= 63 && s.charCodeAt(end) === dotChar && tldAhead[end + 1] === 1
     tldAhead[i] = isTld || labelThenTld ? 1 : 0
     const prev = i > 0 ? s.charCodeAt(i - 1) : 0
-    if (labelThenTld && !(isWordChar(prev) && prev !== underscoreChar)) {
+    if (labelThenTld && !isAsciiAlnum(prev)) {
       starts.push(i)
     }
   }
@@ -239,13 +240,12 @@ const wrapInParagraph = (parse: Parser, content: string, state: State): Array<Si
 
 const isMarkdownMobile = (state: State) => state.isMobile ?? isMobile
 
-// em (_), strong (*) and del (~) pair up runs of their marker on one line. A run opens if it isn't
-// preceded by a letter or digit and isn't followed by whitespace, and closes if it isn't preceded by
-// whitespace and isn't followed by a letter or digit, so test*test*, *test*test and a * b * c all
-// stay literal. A run only closes one of exactly its length, innermost first, so *a **b** c* nests
-// and ***x*** is one pair. Letters are ascii only so emphasis still works between cjk characters.
-const emphasisMarkers = new Set(['*', '_', '~'])
-const isAlnum = (c: string | undefined) => c !== undefined && /[0-9A-Za-z]/.test(c)
+// em (_), strong (*) and del (~) pair up runs of their marker on one line, the way github markdown
+// does. A run opens if it isn't followed by whitespace and closes if it isn't preceded by whitespace,
+// so a * b * c stays literal. * and ~ work inside a word (test**test** and **test**test both bold);
+// _ doesn't, so snake_case_name stays literal: an _ run can't open after a letter or digit or close
+// before one. Letters are ascii only, so _ emphasis still works between cjk characters. A run only
+// closes one of exactly its length, innermost first, so *a **b** c* nests and ***x*** is one pair.
 const isSpace = (c: string | undefined) => c !== undefined && /\s/.test(c)
 type EmphasisPair = {close: number; length: number}
 // opener index -> its closer, for every pair in the string
@@ -255,7 +255,8 @@ const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
   let openers = new Map<string, Array<number>>()
   for (let i = 0; i < s.length; ) {
     const c = s[i]!
-    if (c === '\\') {
+    // same escapes as the escape rule: \ before a letter, digit or whitespace is just a backslash
+    if (c === '\\' && i + 1 < s.length && !isSpace(s[i + 1]) && !isAsciiAlnum(s.charCodeAt(i + 1))) {
       i += 2
       continue
     }
@@ -264,7 +265,7 @@ const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
       i++
       continue
     }
-    if (!emphasisMarkers.has(c)) {
+    if (c !== '*' && c !== '_' && c !== '~') {
       i++
       continue
     }
@@ -272,13 +273,13 @@ const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
     while (s[end] === c) {
       end++
     }
-    const before = s[i - 1]
-    const after = s[end]
+    const inWord = c === '_'
     const key = c + String(end - i)
     const waiting = openers.get(key)
-    if (waiting?.length && before !== undefined && !isSpace(before) && !isAlnum(after)) {
+    // nothing waits at i === 0, so a closer always has a char before it
+    if (waiting?.length && !isSpace(s[i - 1]) && !(inWord && isAsciiAlnum(s.charCodeAt(end)))) {
       pairs.set(waiting.pop()!, {close: i, length: end - i})
-    } else if (!isAlnum(before) && after !== undefined && !isSpace(after)) {
+    } else if (end < s.length && !isSpace(s[end]) && !(inWord && isAsciiAlnum(s.charCodeAt(i - 1)))) {
       if (waiting) {
         waiting.push(i)
       } else {

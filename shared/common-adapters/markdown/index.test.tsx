@@ -320,25 +320,30 @@ test('Markdown spoilers reveal content when clicked', () => {
 // or a whole dotted run, at every position it is tried at is quadratic. Timing on shared CI workers
 // is too noisy to gate on, so this only runs locally.
 const localOnlyTest = process.env['CI'] || process.env['JENKINS_URL'] ? test.skip : test
-localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a '])(
-  'Markdown parses a long run of %j in linear time',
-  unit => {
-    const parseTime = (length: number) => {
-      const s = unit.repeat(Math.ceil(length / unit.length))
-      let best = Infinity
-      for (let i = 0; i < 5; ++i) {
-        const start = performance.now()
-        parseMarkdown(s, {shouldUseMarkdownParser: true})
-        best = Math.min(best, performance.now() - start)
-      }
-      return best
-    }
-    parseTime(8000)
-    // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
-    // CI worker is small next to the parse time.
-    expect(parseTime(32000) / parseTime(8000)).toBeLessThan(8)
+const parseTime = (make: (length: number) => string, length: number) => {
+  const s = make(length)
+  let best = Infinity
+  for (let i = 0; i < 5; ++i) {
+    const start = performance.now()
+    parseMarkdown(s, {shouldUseMarkdownParser: true})
+    best = Math.min(best, performance.now() - start)
   }
+  return best
+}
+const expectLinear = (make: (length: number) => string) => {
+  parseTime(make, 8000)
+  // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
+  // CI worker is small next to the parse time.
+  expect(parseTime(make, 32000) / parseTime(make, 8000)).toBeLessThan(8)
+}
+localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a ', '*_~', 'a*b* ', '\\*'])(
+  'Markdown parses a long run of %j in linear time',
+  unit => expectLinear(length => unit.repeat(Math.ceil(length / unit.length)))
 )
+// each nested level of emphasis reparses its content, so this is linear only because nesting stops
+localOnlyTest('Markdown parses deeply nested emphasis in linear time', () => {
+  expectLinear(length => '*a '.repeat(length / 6) + 'b' + ' a*'.repeat(length / 6))
+})
 
 test('Markdown stops nesting em, strong and del past 16 levels', () => {
   type N = {type: string; content?: unknown}
@@ -377,17 +382,18 @@ const showEmphasis = (input: string) => {
 }
 
 test.each([
-  // markers inside a word are literal on either side, and the same for every marker
-  ['test**test**', 'test**test**'],
-  ['**test**test', '**test**test'],
-  ['test*test*', 'test*test*'],
-  ['*test*test', '*test*test'],
+  // like github markdown: * and ~ work inside a word on either side, _ is literal there
+  ['test**test**', 'test<B>test</B>'],
+  ['**test**test', '<B>test</B>test'],
+  ['test*test*', 'test<B>test</B>'],
+  ['*test*test', '<B>test</B>test'],
+  ['a*b*c', 'a<B>b</B>c'],
+  ['test~~test~~', 'test<S>test</S>'],
+  ['~~test~~test', '<S>test</S>test'],
   ['test__test__', 'test__test__'],
   ['__test__test', '__test__test'],
-  ['test~~test~~', 'test~~test~~'],
-  ['~~test~~test', '~~test~~test'],
-  ['a*b*c', 'a*b*c'],
   ['snake_case_name', 'snake_case_name'],
+  ['__init__.py', '<I>init</I>.py'],
   // whitespace inside the markers is literal
   ['a * b * c', 'a * b * c'],
   // a run is one marker, closed by a run of the same length
@@ -397,7 +403,8 @@ test.each([
   ['__test__', '<I>test</I>'],
   ['~~test~~', '<S>test</S>'],
   ['**a*b**', '<B>a*b</B>'],
-  ['*a*b*', '<B>a*b</B>'],
+  ['*a*b*', '<B>a</B>b*'],
+  ['_a_b_', '<I>a_b</I>'],
   // nesting
   ['*a **b** c*', '<B>a <B>b</B> c</B>'],
   ['*a *b* c*', '<B>a <B>b</B> c</B>'],
@@ -410,10 +417,14 @@ test.each([
   ['(*bold*)', '(<B>bold</B>)'],
   ['"_it_"', '"<I>it</I>"'],
   ['*a* _b_ ~c~', '<B>a</B> <I>b</I> <S>c</S>'],
-  // non-latin letters don't count as a word, so emphasis works without spaces in cjk
+  // non-latin letters don't count as a word, so _ works without spaces in cjk
   ['日本*強調*です', '日本<B>強調</B>です'],
+  ['日本_強調_です', '日本<I>強調</I>です'],
   // a pair doesn't cross a line
   ['*a\nb*', '*ab*'],
+  ['*a\\\nb*', '*a\\b*'],
+  // an escaped marker doesn't pair
+  ['*a\\* b*', '<B>a* b</B>'],
 ])('parseMarkdown emphasis %j renders %j', (input, expected) => {
   expect(showEmphasis(input)).toBe(expected)
 })
