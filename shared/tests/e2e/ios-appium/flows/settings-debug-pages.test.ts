@@ -16,7 +16,7 @@ import {escapeToTabs} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
 
 // Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window.
-const MARKDOWN_SCREENS = 8
+const MARKDOWN_SCREENS = 10
 const TYPOGRAPHY_SCREENS = 6
 
 type DebugPage = {

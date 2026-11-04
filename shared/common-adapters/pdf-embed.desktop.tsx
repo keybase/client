@@ -25,11 +25,12 @@ const trustedPdfURL = (url: string) => {
   return policy.createScriptURL(url)
 }
 
-type Props = {url?: string}
+type Props = {url?: string; testID?: string}
 
 // The renderer's CSP requires Trusted Types for script sinks, and <embed src> is one, so a plain
 // string src is blocked. React hands a non-string src to setAttribute untouched.
-export const PdfEmbed = ({url}: Props) => {
+export const PdfEmbed = ({url, testID}: Props) => {
   const src = url ? trustedPdfURL(url) : undefined
-  return <embed src={src as string | undefined} width="100%" height="100%" />
+  // the testID only once there is a file to show
+  return <embed src={src as string | undefined} width="100%" height="100%" data-testid={src ? testID : undefined} />
 }

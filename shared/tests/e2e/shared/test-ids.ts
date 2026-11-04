@@ -187,6 +187,9 @@ export const FILES_TEXT_PREVIEW = 'files-text-preview'
 export const FILES_IMAGE_PREVIEW = 'files-image-preview'
 export const FILES_VIDEO_PREVIEW = 'files-video-preview'
 export const FILES_PDF_PREVIEW = 'files-pdf-preview'
+// a chat pdf attachment's viewer, once it has the file: desktop's embed once it has a url, the
+// phone's page once loaded
+export const CHAT_PDF_VIEWER = 'chat-pdf-viewer'
 // a row's "..." menu button (one per row)
 export const FILES_ROW_MENU = 'files-row-menu'
 // the destination picker's new folder button, and the unsaved name row it adds

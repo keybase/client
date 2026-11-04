@@ -975,6 +975,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       // started after the hop, which would otherwise record the hop's tabs as the entry's routes
       if (opts?.record) recordingIn = await startRecorder()
       const nav = await resolveParams(entry.nav)
+      if (nav.thread) {
+        await appEval(`${ROUTER} r.navigateToThread(${JSON.stringify(nav.thread)}, 'misc')`, 'navigateToThread')
+      }
       const append = nav.append
       if (append) {
         const ok = await appEval<boolean>(
@@ -982,9 +985,6 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
           `navigateAppend ${append.name}`
         )
         if (!ok) throw new Error(`navigateAppend ${append.name} did not navigate`)
-      }
-      if (nav.thread) {
-        await appEval(`${ROUTER} r.navigateToThread(${JSON.stringify(nav.thread)}, 'misc')`, 'navigateToThread')
       }
       if (entry.setup?.length) {
         await waitForNoLoading()
