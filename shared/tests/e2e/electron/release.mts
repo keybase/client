@@ -233,7 +233,8 @@ const main = async () => {
     if (!fs.existsSync(out.results) || fs.statSync(out.results).mtimeMs < start) {
       return {line: `playwright exited ${r.code} and wrote no ${out.results}`, ok: false}
     }
-    // playwright exits 1 for failed tests; anything else stopped the run
+    // playwright exits 1 for failed tests, but also for a global timeout or a setup that threw; the
+    // report drops nothing when the results show a run error or a test the run never reached
     flowsFull = !only && (r.code === 0 || r.code === 1)
     const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, KNOWN_FAILURES.flows)
     logTally(log, s, {listFile: 'known-failures.ts'})

@@ -83,15 +83,15 @@ test('variantOf suffixes the variant card key and label and keeps the variant ou
   assert.equal(html.split('known on master: flaky send').length - 1, 1)
 })
 
-test('without variantOf every project of a spec shares one card, keyed and labelled by the spec alone, with the known verdict', () => {
+test('without variantOf each project of a spec gets its own card, numbered after the first, with the known verdict', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
   fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(twoProjectResults()))
   const p = {...platform(dir), known}
   assert.equal(runFlowReport(p, []), 0)
-  assert.deepEqual(fs.readdirSync(p.debugDir), ['inbox-sends-a-message.png'])
+  assert.deepEqual(fs.readdirSync(p.debugDir).sort(), ['inbox-sends-a-message-2.png', 'inbox-sends-a-message.png'])
   const html = fs.readFileSync(p.outputPath, 'utf8')
   assert.doesNotMatch(html, /\(dark\)/)
-  assert.equal(html.split('known on master: flaky send').length - 1, 1)
+  assert.equal(html.split('known on master: flaky send').length - 1, 2)
 })
 
 test('a tour entry captured twice shows why on its card; one captured once has no such mark', () => {
@@ -256,4 +256,25 @@ test('save-baseline copies every card of the report', () => {
   runAt(dir, T2, ['b'])
   assert.equal(runFlowReport(platform(dir), ['--save-baseline']), 0)
   assert.deepEqual(fs.readdirSync(path.join(dir, 'prev')).sort(), ['chat-a.png', 'chat-b.png'])
+})
+
+test('--prune drops nothing when the run broke: a run error, or a test it never reached', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a', 'b'])
+  const withError = build(dir, {...runOf(T2, ['a']), errors: [{message: 'globalTimeout'}]}, ['--prune'])
+  assert.deepEqual(cardsOf(withError).filter(n => n?.startsWith('chat')).sort(), ['chat · a', 'chat · b'])
+  const unreached = runOf(T3, ['a', 'b'])
+  unreached.suites[0]!.specs[1]!.tests[0]!.results = []
+  const html = build(dir, unreached, ['--prune'])
+  assert.deepEqual(cardsOf(html).sort(), ['chat · a', 'chat · b'])
+  assert.equal(shot(dir, 'chat-b'), T1)
+})
+
+test('a store that does not parse stops the build instead of starting over', () => {
+  const dir = tmp()
+  runAt(dir, T1, ['a'])
+  fs.writeFileSync(path.join(dir, 'report.cards.json'), '{"flows": [')
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(runOf(T2, ['a'])))
+  assert.throws(() => runFlowReport(platform(dir), []))
+  assert.equal(shot(dir, 'chat-a'), T1)
 })

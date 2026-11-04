@@ -82,18 +82,19 @@ const stamp = (t: number) => new Date(t).toLocaleString()
 
 const storePath = (p: FlowReportPlatform) => p.outputPath.replace(/\.html$/, '') + '.cards.json'
 
+// A store that does not parse throws: starting over would drop every card's screenshots unseen
 const readStore = (p: FlowReportPlatform): CardStore => {
-  try {
-    const s = JSON.parse(fs.readFileSync(storePath(p), 'utf8')) as Partial<CardStore>
-    return {flows: s.flows ?? [], tour: s.tour ?? []}
-  } catch {
-    return {flows: [], tour: []}
-  }
+  if (!fs.existsSync(storePath(p))) return {flows: [], tour: []}
+  const s = JSON.parse(fs.readFileSync(storePath(p), 'utf8')) as Partial<CardStore>
+  return {flows: s.flows ?? [], tour: s.tour ?? []}
 }
 
+// through a temp file, so a build stopped mid-write leaves the last store whole
 const writeStore = (p: FlowReportPlatform, store: CardStore) => {
   fs.mkdirSync(path.dirname(storePath(p)), {recursive: true})
-  fs.writeFileSync(storePath(p), JSON.stringify(store))
+  const tmp = `${storePath(p)}.${process.pid}.tmp`
+  fs.writeFileSync(tmp, JSON.stringify(store))
+  fs.renameSync(tmp, storePath(p))
 }
 
 // A flow card's files in debugDir
@@ -103,11 +104,15 @@ const cardFiles = (p: FlowReportPlatform, key: string) => ({
   stepDir: path.join(p.debugDir, key),
 })
 
-const removeCardFiles = (p: FlowReportPlatform, key: string) => {
+// Removes a card's files other than `keep` (all of them when it is empty)
+const pruneCardFiles = (p: FlowReportPlatform, key: string, keep: ReadonlySet<string> = new Set()) => {
   const files = cardFiles(p, key)
-  fs.rmSync(files.stepDir, {force: true, recursive: true})
-  fs.rmSync(files.shot, {force: true})
-  fs.rmSync(files.failure, {force: true})
+  for (const f of [files.shot, files.failure]) if (!keep.has(f)) fs.rmSync(f, {force: true})
+  if (!fs.existsSync(files.stepDir)) return
+  for (const n of fs.readdirSync(files.stepDir)) {
+    const f = path.join(files.stepDir, n)
+    if (!keep.has(f)) fs.rmSync(f, {force: true})
+  }
 }
 
 // Writes a run's screenshot to `file`. Rebuilding a run whose raw results were since cleared
@@ -142,9 +147,11 @@ const mergeCards = (stored: Array<StoredCard>, run: Array<StoredCard>, runAt: nu
   return {dropped, merged: [...fromRun.values(), ...kept]}
 }
 
+const newestRun = (cards: ReadonlyArray<StoredCard>) => Math.max(...cards.map(c => c.runAt))
+
 // Marks the cards of the section's newest run as latest and the rest as older
 const withLatest = (cards: Array<StoredCard>) => {
-  const newest = Math.max(...cards.map(c => c.runAt))
+  const newest = newestRun(cards)
   return cards.map(c => ({...c, latest: c.runAt === newest}))
 }
 
@@ -175,6 +182,8 @@ function parseReport(
   stored: ReadonlyMap<string, StoredCard>
 ): Array<StoredCard> {
   const cards: Array<StoredCard> = []
+  // two tests whose names slug alike get a numbered key each, so neither replaces the other
+  const seen = new Map<string, number>()
   for (const {file, titles, byProject} of specTests(report)) {
     const title = titles.at(-1) ?? ''
     // the innermost describe, else the spec's file
@@ -182,18 +191,22 @@ function parseReport(
     const baseKey = `${slug(suiteName)}-${slug(title)}`
     for (const [projectName, tests] of byProject) {
       const variant = p.variantOf?.(projectName)
-      const key = variant ? `${baseKey}-${variant}` : baseKey
+      const named = variant ? `${baseKey}-${variant}` : baseKey
+      const n = (seen.get(named) ?? 0) + 1
+      seen.set(named, n)
+      const key = n === 1 ? named : `${named}-${n}`
       const label = variant ? `${suiteName} · ${title} (${variant})` : `${suiteName} · ${title}`
       const allResults = tests.flatMap(t => t.results)
-      const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
-      if (!result) continue
-      // a skipped test never counts against or for a known failure
-      const ran = tests.some(t => t.status !== 'skipped')
+      // a skipped test, or one the run never reached (no results), never counts against or for a
+      // known failure, and keeps its stored card
+      const ran = allResults.some(r => r.status !== 'skipped')
       const kept = stored.get(key)
       if (kept && (kept.runAt > runAt || !ran)) {
         cards.push(kept)
         continue
       }
+      const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
+      if (!result) continue
       const sameRun = kept?.runAt === runAt
       const files = cardFiles(p, key)
 
@@ -221,12 +234,7 @@ function parseReport(
       const failureScreenshotPath =
         failureAtt === undefined ? null : failureAtt === screenshotAtt ? screenshotPath : place(files.failure, attachmentBuffer(failureAtt), sameRun)
       // an earlier run's files this one has no counterpart for
-      if (screenshotPath !== files.shot) fs.rmSync(files.shot, {force: true})
-      if (failureScreenshotPath !== files.failure) fs.rmSync(files.failure, {force: true})
-      const stepFiles = new Set(steps.map(st => path.basename(st.path)))
-      if (fs.existsSync(files.stepDir)) {
-        for (const n of fs.readdirSync(files.stepDir)) if (!stepFiles.has(n)) fs.rmSync(path.join(files.stepDir, n), {force: true})
-      }
+      pruneCardFiles(p, key, new Set([screenshotPath, failureScreenshotPath, ...steps.map(st => st.path)].filter(x => x !== null)))
 
       const details: Array<{name: string; text: string}> = []
       if (!passed) {
@@ -240,10 +248,8 @@ function parseReport(
         }
       }
 
-      cards.push({
-        ...{details, diff: null, durationMs, errorMessage, failureScreenshotPath, key, label, passed},
-        ...{prevScreenshotPath: null, runAt, screenshotPath, steps, timestamp: stamp(runAt)},
-      })
+      const timestamp = stamp(runAt)
+      cards.push({details, diff: null, durationMs, errorMessage, failureScreenshotPath, key, label, passed, prevScreenshotPath: null, runAt, screenshotPath, steps, timestamp})
     }
   }
   return cards
@@ -339,26 +345,29 @@ export const runFlowReport = (p: FlowReportPlatform, argv: ReadonlyArray<string>
   const runErrors = (report.errors ?? []).map((e, i) =>
     errorCard(`Run error ${i + 1}`, (typeof e === 'string' ? e : e.message) ?? 'unknown run error')
   )
+  // Flag a results file that parsed but yielded zero tests (all filtered/skipped
+  // or a malformed run) so the report still says something happened.
+  if (runCards.length === 0 && runErrors.length === 0) runErrors.push(errorCard('Run error — no tests', `No test cases found in ${p.resultsPath}.`))
+  // A run that broke (a global error, a test it never reached) is not the full suite, so it drops nothing
+  const unreached = specTests(report).some(sp => [...sp.byProject.values()].flat().some(t => t.results.length === 0))
+  const full = prune && runErrors.length === 0 && !unreached
+  if (prune && !full) console.log('report: not dropping any card; the run did not reach every test')
 
-  const flows = mergeCards(store.flows, runCards, runAt, prune)
-  for (const c of flows.dropped) removeCardFiles(p, c.key)
+  const flows = mergeCards(store.flows, runCards, runAt, full)
+  for (const c of flows.dropped) pruneCardFiles(p, c.key)
   let tour = store.tour
   if (renderDir && fs.existsSync(path.join(renderDir, 'render.json'))) {
     const renderedAt = renderRunAt(renderDir)
-    tour = mergeCards(store.tour, parseRender(p, renderDir, renderedAt), renderedAt, prune).merged
+    tour = mergeCards(store.tour, parseRender(p, renderDir, renderedAt), renderedAt, full).merged
   } else if (renderDir) {
     runErrors.push(errorCard('Render error — no render.json', `${path.join(renderDir, 'render.json')} not found`))
   } else if (prune && tour.length) {
-    const newest = Math.max(...tour.map(c => c.runAt))
-    runErrors.push(errorCard('Render error — this run rendered no tour', `the tour cards are from ${stamp(newest)}`))
+    runErrors.push(errorCard('Render error — this run rendered no tour', `the tour cards are from ${stamp(newestRun(tour))}`))
   }
   const merged = {flows: flows.merged, tour}
   writeStore(p, merged)
 
   const sections: Section[] = []
-  // Flag a results file that parsed but yielded zero tests (all filtered/skipped
-  // or a malformed run) so the report still says something happened.
-  if (runCards.length === 0 && runErrors.length === 0) runErrors.push(errorCard('Run error — no tests', `No test cases found in ${p.resultsPath}.`))
   if (runErrors.length > 0) sections.push({header: 'Run errors', cards: runErrors})
   sections.push(...storeSections(p, merged), ...extraSections)
 

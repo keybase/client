@@ -449,8 +449,9 @@ const main = async () => {
       env: {...process.env, KB_IOS_DEVICE: device, ...(only ? {KB_E2E_RELEASE_ONLY: only} : {})},
       logFile: logFile('flows'),
     })
-    // wdio exits 1 for failed tests; anything else stopped the run
-    flowsFull = !only && (r.code === 0 || r.code === 1)
+    // only a clean exit: wdio also exits 1 when the app or session dies, and its results then hold
+    // only the tests that started
+    flowsFull = !only && r.code === 0
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {
