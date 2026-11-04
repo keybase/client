@@ -239,25 +239,73 @@ const wrapInParagraph = (parse: Parser, content: string, state: State): Array<Si
 
 const isMarkdownMobile = (state: State) => state.isMobile ?? isMobile
 
-const wordBoundaryLookBehind = /\B$/
-// Wraps the match to also check that the behind is not a text, but a boundary (like a space)
-// i.e. "foo" fails but "foo " passes.
-const wordBoundryLookBehindMatch =
-  (matchFn: MatchFunction) => (source: string, state: State, prevCapture: string) => {
-    if (wordBoundaryLookBehind.test(prevCapture)) {
-      return matchFn(source, state, prevCapture)
+// em (_), strong (*) and del (~) pair up runs of their marker on one line. A run opens if it isn't
+// preceded by a letter or digit and isn't followed by whitespace, and closes if it isn't preceded by
+// whitespace and isn't followed by a letter or digit, so test*test*, *test*test and a * b * c all
+// stay literal. A run only closes one of exactly its length, innermost first, so *a **b** c* nests
+// and ***x*** is one pair. Letters are ascii only so emphasis still works between cjk characters.
+const emphasisMarkers = new Set(['*', '_', '~'])
+const isAlnum = (c: string | undefined) => c !== undefined && /[0-9A-Za-z]/.test(c)
+const isSpace = (c: string | undefined) => c !== undefined && /\s/.test(c)
+type EmphasisPair = {close: number; length: number}
+// opener index -> its closer, for every pair in the string
+const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
+  const pairs = new Map<number, EmphasisPair>()
+  // marker + run length -> indexes of the runs still waiting for a closer
+  let openers = new Map<string, Array<number>>()
+  for (let i = 0; i < s.length; ) {
+    const c = s[i]!
+    if (c === '\\') {
+      i += 2
+      continue
     }
-    return null
+    if (c === '\n') {
+      openers = new Map()
+      i++
+      continue
+    }
+    if (!emphasisMarkers.has(c)) {
+      i++
+      continue
+    }
+    let end = i + 1
+    while (s[end] === c) {
+      end++
+    }
+    const before = s[i - 1]
+    const after = s[end]
+    const key = c + String(end - i)
+    const waiting = openers.get(key)
+    if (waiting?.length && before !== undefined && !isSpace(before) && !isAlnum(after)) {
+      pairs.set(waiting.pop()!, {close: i, length: end - i})
+    } else if (!isAlnum(before) && after !== undefined && !isSpace(after)) {
+      if (waiting) {
+        waiting.push(i)
+      } else {
+        openers.set(key, [i])
+      }
+    }
+    i = end
   }
+  return pairs
+}
 
-// em, strong and del nest inside each other, one level per pair of markers in a run like ______, and
-// each level rescans the rest of the run: quadratic, and deep enough it overflows the stack. Past
-// this depth their markers are left as text.
+// em, strong and del nest inside each other, and each level rescans its content: deep enough it
+// overflows the stack. Past this depth their markers are left as text.
 const maxInlineNesting = 16
-const belowNestingLimit =
-  (matchFn: MatchFunction) =>
-  (source: string, state: State, prevCapture: string): Capture | null | undefined =>
-    (state.inlineNesting ?? 0) < maxInlineNesting ? matchFn(source, state, prevCapture) : null
+const emphasisMatch =
+  (marker: string): MatchFunction =>
+  (source: string, state: State): Capture | null => {
+    if (!state.inline || !source.startsWith(marker) || (state.inlineNesting ?? 0) >= maxInlineNesting) {
+      return null
+    }
+    const {pos} = state.cursor!
+    const pair = memoFor(state, findEmphasisPairs, findEmphasisPairs).get(pos)
+    if (!pair) {
+      return null
+    }
+    return [source.slice(0, pair.close + pair.length - pos), source.slice(pair.length, pair.close - pos)]
+  }
 const parseNested = (state: State, parse: () => Array<SingleASTNode>) => {
   const nesting = state.inlineNesting ?? 0
   state.inlineNesting = nesting + 1
@@ -336,25 +384,18 @@ const rules: {[type: string]: ParserRule} = {
     },
   },
   del: {
-    // original:
-    // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
-    // ours: single tilde doesn't cross a newline
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/))),
+    match: emphasisMatch('~'),
     order: 22,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
   },
   em: {
-    // original is pretty long so not inlining it here
-    // ours: wrapped in _'s
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/))),
+    match: emphasisMatch('_'),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => nestedParse(capture[1] ?? '', state)),
     }),
-    // em and strong share an order: the longer match wins, em on a tie
-    quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.2,
   },
   emoji: {
     // emojiRegex matches the *shape* of a short name rather than an alternation of every known one,
@@ -569,15 +610,11 @@ const rules: {[type: string]: ParserRule} = {
     }),
   },
   strong: {
-    // original
-    // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
-    // ours: single stars
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/))),
+    match: emphasisMatch('*'),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
-    quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.1,
   },
   text: {
     order: textOrder,

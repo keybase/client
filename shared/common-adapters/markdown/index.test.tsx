@@ -320,7 +320,7 @@ test('Markdown spoilers reveal content when clicked', () => {
 // or a whole dotted run, at every position it is tried at is quadratic. Timing on shared CI workers
 // is too noisy to gate on, so this only runs locally.
 const localOnlyTest = process.env['CI'] || process.env['JENKINS_URL'] ? test.skip : test
-localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~'])(
+localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a '])(
   'Markdown parses a long run of %j in linear time',
   unit => {
     const parseTime = (length: number) => {
@@ -351,10 +351,69 @@ test('Markdown stops nesting em, strong and del past 16 levels', () => {
           (Array.isArray(n.content) ? nesting(n.content as ReadonlyArray<N>) : 0)
       )
     )
-  // a run of n underscores nests (n - 2) / 2 levels
-  expect(nesting(parseMarkdown('_'.repeat(32)) as Array<N>)).toBe(15)
-  expect(nesting(parseMarkdown('_'.repeat(34)) as Array<N>)).toBe(16)
-  const deep = parseMarkdown('_'.repeat(100)) as Array<N>
+  // n pairs of stars, each inside the last
+  const pairs = (n: number) => '*a '.repeat(n) + 'b' + ' a*'.repeat(n)
+  expect(nesting(parseMarkdown(pairs(15)) as Array<N>)).toBe(15)
+  expect(nesting(parseMarkdown(pairs(16)) as Array<N>)).toBe(16)
+  const deep = parseMarkdown(pairs(20)) as Array<N>
   expect(nesting(deep)).toBe(16)
-  expect(flattenAstText(deep)).toBe('_'.repeat(68) + '\n')
+  expect(flattenAstText(deep)).toBe('a '.repeat(16) + '*a '.repeat(4) + 'b' + ' a*'.repeat(4) + ' a'.repeat(16) + '\n')
+})
+
+// Renders the parse as e.g. 'a <B>b</B>' so a table of cases reads at a glance.
+const showEmphasis = (input: string) => {
+  type N = {type: string; content?: unknown}
+  const tags: {[type: string]: string} = {del: 'S', em: 'I', strong: 'B'}
+  const show = (nodes: ReadonlyArray<N>): string =>
+    nodes
+      .map(n => {
+        const tag = tags[n.type]
+        if (tag) return `<${tag}>${show(n.content as ReadonlyArray<N>)}</${tag}>`
+        if (Array.isArray(n.content)) return show(n.content as ReadonlyArray<N>)
+        return n.type === 'newline' ? '' : String(n.content)
+      })
+      .join('')
+  return show(parseMarkdown(input) as Array<N>)
+}
+
+test.each([
+  // markers inside a word are literal on either side, and the same for every marker
+  ['test**test**', 'test**test**'],
+  ['**test**test', '**test**test'],
+  ['test*test*', 'test*test*'],
+  ['*test*test', '*test*test'],
+  ['test__test__', 'test__test__'],
+  ['__test__test', '__test__test'],
+  ['test~~test~~', 'test~~test~~'],
+  ['~~test~~test', '~~test~~test'],
+  ['a*b*c', 'a*b*c'],
+  ['snake_case_name', 'snake_case_name'],
+  // whitespace inside the markers is literal
+  ['a * b * c', 'a * b * c'],
+  // a run is one marker, closed by a run of the same length
+  ['**test**', '<B>test</B>'],
+  ['***test***', '<B>test</B>'],
+  ['x **test** x', 'x <B>test</B> x'],
+  ['__test__', '<I>test</I>'],
+  ['~~test~~', '<S>test</S>'],
+  ['**a*b**', '<B>a*b</B>'],
+  ['*a*b*', '<B>a*b</B>'],
+  // nesting
+  ['*a **b** c*', '<B>a <B>b</B> c</B>'],
+  ['*a *b* c*', '<B>a <B>b</B> c</B>'],
+  ['*a *b c*', '*a <B>b c</B>'],
+  ['*_test_*', '<B><I>test</I></B>'],
+  ['_*test*_', '<I><B>test</B></I>'],
+  ['*_~test~_*', '<B><I><S>test</S></I></B>'],
+  // punctuation is not part of a word
+  ['*bold*.', '<B>bold</B>.'],
+  ['(*bold*)', '(<B>bold</B>)'],
+  ['"_it_"', '"<I>it</I>"'],
+  ['*a* _b_ ~c~', '<B>a</B> <I>b</I> <S>c</S>'],
+  // non-latin letters don't count as a word, so emphasis works without spaces in cjk
+  ['日本*強調*です', '日本<B>強調</B>です'],
+  // a pair doesn't cross a line
+  ['*a\nb*', '*ab*'],
+])('parseMarkdown emphasis %j renders %j', (input, expected) => {
+  expect(showEmphasis(input)).toBe(expected)
 })
