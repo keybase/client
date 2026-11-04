@@ -196,7 +196,7 @@ export function sharedCss(allPassed: boolean): string {
   return `
 .steps { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; }
 .steps figure { margin: 0; flex: 0 0 160px; }
-.steps img { width: 160px; height: auto; border: 1px solid #8884; border-radius: 4px; display: block; }
+.steps img { width: 160px; height: auto; border: 1px solid #8884; border-radius: 4px; display: block; cursor: zoom-in; }
 .steps figcaption { font-size: 11px; opacity: .7; margin-top: 2px; word-break: break-word; }
 .detail { padding: 4px 12px; font-size: 12px; }
 .detail pre { max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
@@ -348,6 +348,13 @@ document.querySelectorAll('.solo-wrap').forEach(el => {
   btn.addEventListener('click', e => {
     e.stopPropagation()
     openSolo(el.querySelector('img').src)
+  })
+})
+
+document.querySelectorAll('.steps img').forEach(img => {
+  img.addEventListener('click', e => {
+    e.stopPropagation()
+    openSolo(img.src)
   })
 })
 
