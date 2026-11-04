@@ -320,25 +320,30 @@ test('Markdown spoilers reveal content when clicked', () => {
 // or a whole dotted run, at every position it is tried at is quadratic. Timing on shared CI workers
 // is too noisy to gate on, so this only runs locally.
 const localOnlyTest = process.env['CI'] || process.env['JENKINS_URL'] ? test.skip : test
-localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~'])(
-  'Markdown parses a long run of %j in linear time',
-  unit => {
-    const parseTime = (length: number) => {
-      const s = unit.repeat(Math.ceil(length / unit.length))
-      let best = Infinity
-      for (let i = 0; i < 5; ++i) {
-        const start = performance.now()
-        parseMarkdown(s, {shouldUseMarkdownParser: true})
-        best = Math.min(best, performance.now() - start)
-      }
-      return best
-    }
-    parseTime(8000)
-    // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
-    // CI worker is small next to the parse time.
-    expect(parseTime(32000) / parseTime(8000)).toBeLessThan(8)
+const parseTime = (make: (length: number) => string, length: number) => {
+  const s = make(length)
+  let best = Infinity
+  for (let i = 0; i < 5; ++i) {
+    const start = performance.now()
+    parseMarkdown(s, {shouldUseMarkdownParser: true})
+    best = Math.min(best, performance.now() - start)
   }
+  return best
+}
+const expectLinear = (make: (length: number) => string) => {
+  parseTime(make, 8000)
+  // linear is ~4x for 4x the input, quadratic ~16x. Big enough inputs that a GC pause or a busy
+  // CI worker is small next to the parse time.
+  expect(parseTime(make, 32000) / parseTime(make, 8000)).toBeLessThan(8)
+}
+localOnlyTest.each(['>', '> ', '!>', '$>kb$', 'a.', 'a_.', 'a.com.', '.com', '```\\', '_', '*', '~', '*a ', '**a ', '*_~', 'a*b* ', '\\*', '`a``', '!>a*', '_x *a _b* '])(
+  'Markdown parses a long run of %j in linear time',
+  unit => expectLinear(length => unit.repeat(Math.ceil(length / unit.length)))
 )
+// each nested level of emphasis reparses its content, so this is linear only because nesting stops
+localOnlyTest('Markdown parses deeply nested emphasis in linear time', () => {
+  expectLinear(length => '*a '.repeat(length / 6) + 'b' + ' a*'.repeat(length / 6))
+})
 
 test('Markdown stops nesting em, strong and del past 16 levels', () => {
   type N = {type: string; content?: unknown}
@@ -351,10 +356,94 @@ test('Markdown stops nesting em, strong and del past 16 levels', () => {
           (Array.isArray(n.content) ? nesting(n.content as ReadonlyArray<N>) : 0)
       )
     )
-  // a run of n underscores nests (n - 2) / 2 levels
-  expect(nesting(parseMarkdown('_'.repeat(32)) as Array<N>)).toBe(15)
-  expect(nesting(parseMarkdown('_'.repeat(34)) as Array<N>)).toBe(16)
-  const deep = parseMarkdown('_'.repeat(100)) as Array<N>
+  // n pairs of stars, each inside the last
+  const pairs = (n: number) => '*a '.repeat(n) + 'b' + ' a*'.repeat(n)
+  expect(nesting(parseMarkdown(pairs(15)) as Array<N>)).toBe(15)
+  expect(nesting(parseMarkdown(pairs(16)) as Array<N>)).toBe(16)
+  const deep = parseMarkdown(pairs(20)) as Array<N>
   expect(nesting(deep)).toBe(16)
-  expect(flattenAstText(deep)).toBe('_'.repeat(68) + '\n')
+  expect(flattenAstText(deep)).toBe('a '.repeat(16) + '*a '.repeat(4) + 'b' + ' a*'.repeat(4) + ' a'.repeat(16) + '\n')
+})
+
+// Renders the parse as e.g. 'a <B>b</B>' so a table of cases reads at a glance.
+const showEmphasis = (input: string) => {
+  type N = {type: string; content?: unknown}
+  const tags: {[type: string]: string} = {
+    del: 'S',
+    em: 'I',
+    inlineCode: 'CODE',
+    serviceDecoration: 'SERVICE',
+    spoiler: 'SPOILER',
+    strong: 'B',
+  }
+  const show = (nodes: ReadonlyArray<N>): string =>
+    nodes
+      .map(n => {
+        const tag = tags[n.type]
+        if (n.type === 'serviceDecoration') return `<${tag}/>`
+        if (tag && !Array.isArray(n.content)) return `<${tag}>${String(n.content)}</${tag}>`
+        if (tag) return `<${tag}>${show(n.content as ReadonlyArray<N>)}</${tag}>`
+        if (Array.isArray(n.content)) return show(n.content as ReadonlyArray<N>)
+        return n.type === 'newline' ? '' : String(n.content)
+      })
+      .join('')
+  return show(parseMarkdown(input) as Array<N>)
+}
+
+test.each([
+  // like github markdown: * and ~ work inside a word on either side, _ is literal there
+  ['test**test**', 'test<B>test</B>'],
+  ['**test**test', '<B>test</B>test'],
+  ['test*test*', 'test<B>test</B>'],
+  ['*test*test', '<B>test</B>test'],
+  ['a*b*c', 'a<B>b</B>c'],
+  ['test~~test~~', 'test<S>test</S>'],
+  ['~~test~~test', '<S>test</S>test'],
+  ['test__test__', 'test__test__'],
+  ['__test__test', '__test__test'],
+  ['snake_case_name', 'snake_case_name'],
+  ['__init__.py', '<I>init</I>.py'],
+  // whitespace inside the markers is literal
+  ['a * b * c', 'a * b * c'],
+  // a run is one marker, closed by a run of the same length
+  ['**test**', '<B>test</B>'],
+  ['***test***', '<B>test</B>'],
+  ['x **test** x', 'x <B>test</B> x'],
+  ['__test__', '<I>test</I>'],
+  ['~~test~~', '<S>test</S>'],
+  ['**a*b**', '<B>a*b</B>'],
+  ['*a*b*', '<B>a</B>b*'],
+  ['_a_b_', '<I>a_b</I>'],
+  // nesting
+  ['*a **b** c*', '<B>a <B>b</B> c</B>'],
+  ['*a *b* c*', '<B>a <B>b</B> c</B>'],
+  ['*a *b c*', '*a <B>b c</B>'],
+  ['*_test_*', '<B><I>test</I></B>'],
+  ['_*test*_', '<I><B>test</B></I>'],
+  ['*_~test~_*', '<B><I><S>test</S></I></B>'],
+  // punctuation is not part of a word
+  ['*bold*.', '<B>bold</B>.'],
+  ['(*bold*)', '(<B>bold</B>)'],
+  ['"_it_"', '"<I>it</I>"'],
+  ['*a* _b_ ~c~', '<B>a</B> <I>b</I> <S>c</S>'],
+  // non-latin letters don't count as a word, so _ works without spaces in cjk
+  ['日本*強調*です', '日本<B>強調</B>です'],
+  ['日本_強調_です', '日本<I>強調</I>です'],
+  // a pair doesn't cross a line
+  ['*a\nb*', '*ab*'],
+  ['*a\\\nb*', '*a\\b*'],
+  // an escaped marker doesn't pair
+  ['*a\\* b*', '<B>a* b</B>'],
+  // an opener left unclosed inside a pair doesn't take the outer pair's closer
+  ['_x *a _b* c_', '<I>x <B>a _b</B> c</I>'],
+  // a marker inside inline code, a spoiler or a service decoration never pairs with one outside it
+  ['use foo*bar or `char* s`', 'use foo*bar or <CODE>char* s</CODE>'],
+  ['*a `b*` c*', '<B>a <CODE>b*</CODE> c</B>'],
+  ['2*3 !>answer is 6* ok<!', '2*3 <SPOILER>answer is 6* ok</SPOILER>'],
+  ['x~y !>z~w<!', 'x~y <SPOILER>z~w</SPOILER>'],
+  ['!>*a* b<!', '<SPOILER><B>a</B> b</SPOILER>'],
+  [`a*b ${makeServiceDecorationTag({typ: 0})} c*d`, 'a<B>b <SERVICE/> c</B>d'],
+  [`a${makeServiceDecorationTag({typ: 0})}*b`, 'a<SERVICE/>*b'],
+])('parseMarkdown emphasis %j renders %j', (input, expected) => {
+  expect(showEmphasis(input)).toBe(expected)
 })

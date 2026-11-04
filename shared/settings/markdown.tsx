@@ -22,6 +22,28 @@ const sections: ReadonlyArray<Section> = [
   },
   {
     samples: [
+      {name: 'doubled after a word', source: 'test**test**'},
+      {name: 'doubled before a word', source: '**test**test'},
+      {name: 'single inside words', source: 'test*test* and *test*test and a*b*c'},
+      {name: 'tildes inside words', source: 'test~~test~~ and ~~test~~test'},
+      {name: 'underscores inside words (literal)', source: 'snake_case_name test__test__ __test__test'},
+      {name: 'spaced markers (literal)', source: 'a * b * c'},
+      {name: 'doubled', source: 'x **bold** _and_ __italic__ ~~struck~~ x'},
+      {name: 'tripled', source: '***bold***'},
+      {name: 'marker inside a pair', source: '**a*b** and *a*b*'},
+      {name: 'same marker nested', source: '*bold **bolder** bold*'},
+      {name: 'all three nested', source: '*_~all three~_*'},
+      {name: 'crossed', source: '*bold _both* italic_'},
+      {name: 'punctuation around', source: '(*bold*), "_italic_", ~struck~!'},
+      {name: 'cjk without spaces', source: '日本*強調*です'},
+      {name: 'code and spoiler are opaque', source: 'foo*bar `char* s` and 2*3 !>is 6* ok<!'},
+      {name: 'stray opener inside a pair', source: '_x *a _b* c_'},
+      {name: 'pair split by a newline (literal)', source: '*one\ntwo*'},
+    ],
+    title: 'Emphasis',
+  },
+  {
+    samples: [
       {name: 'simple fence', source: '```\nconst a = 1\n```'},
       {name: 'fence with indentation', source: '```\nif (x) {\n    doThing()\n}\n```'},
       {name: 'fence inline with text', source: 'before ```code``` after'},

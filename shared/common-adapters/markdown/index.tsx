@@ -167,6 +167,7 @@ const tldMax = Math.max(...commonTlds.map(t => t.length))
 const isWordChar = (c: number) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95
 const dotChar = 46
 const underscoreChar = 95
+const isAsciiAlnum = (c: number) => isWordChar(c) && c !== underscoreChar
 
 // The text rule also stops where a url with a common tld starts, i.e. where
 // /(?<![0-9A-Za-z])(\w{1,63}\.)+(tld)\b/ matches, so it doesn't swallow the common case of
@@ -198,7 +199,7 @@ const findUrlStarts = (s: string): Array<number> => {
     const labelThenTld = length >= 1 && length <= 63 && s.charCodeAt(end) === dotChar && tldAhead[end + 1] === 1
     tldAhead[i] = isTld || labelThenTld ? 1 : 0
     const prev = i > 0 ? s.charCodeAt(i - 1) : 0
-    if (labelThenTld && !(isWordChar(prev) && prev !== underscoreChar)) {
+    if (labelThenTld && !isAsciiAlnum(prev)) {
       starts.push(i)
     }
   }
@@ -239,25 +240,149 @@ const wrapInParagraph = (parse: Parser, content: string, state: State): Array<Si
 
 const isMarkdownMobile = (state: State) => state.isMobile ?? isMobile
 
-const wordBoundaryLookBehind = /\B$/
-// Wraps the match to also check that the behind is not a text, but a boundary (like a space)
-// i.e. "foo" fails but "foo " passes.
-const wordBoundryLookBehindMatch =
-  (matchFn: MatchFunction) => (source: string, state: State, prevCapture: string) => {
-    if (wordBoundaryLookBehind.test(prevCapture)) {
-      return matchFn(source, state, prevCapture)
-    }
+// Single backticks around code. Trimming the padding with \s* around a lazy content group in a
+// regex is ambiguous and backtracked cubically (a 2k message of `<spaces>x hung the parser for
+// seconds), so this is the same grammar in one linear pass.
+const inlineCodeMatch = (source: string): Capture | null => {
+  if (!source.startsWith('`') || source[1] === '`') {
     return null
   }
+  for (let i = 1; i < source.length; ++i) {
+    // the closing backtick can't be part of a run of them
+    if (source[i] !== '`' || source[i + 1] === '`') {
+      continue
+    }
+    const raw = source.slice(1, i)
+    let content = raw.trim()
+    if (!content) {
+      // all padding: keep a single trailing space, but never a bare newline
+      const last = raw.slice(-1)
+      if (last !== ' ' && last !== '\t') {
+        continue
+      }
+      content = last
+    }
+    if (content.endsWith('`')) {
+      continue
+    }
+    return [source.slice(0, i + 1), '`', content]
+  }
+  return null
+}
 
-// em, strong and del nest inside each other, one level per pair of markers in a run like ______, and
-// each level rescans the rest of the run: quadratic, and deep enough it overflows the stack. Past
-// this depth their markers are left as text.
+// em (_), strong (*) and del (~) pair up runs of their marker on one line, the way github markdown
+// does. A run opens if it isn't followed by whitespace and closes if it isn't preceded by whitespace,
+// so a * b * c stays literal. * and ~ work inside a word (test**test** and **test**test both bold);
+// _ doesn't, so snake_case_name stays literal: an _ run can't open after a letter or digit or close
+// before one. Letters are ascii only, so _ emphasis still works between cjk characters. A run only
+// closes one of exactly its length, innermost first, so *a **b** c* nests and ***x*** is one pair,
+// and openers left unclosed inside a pair are dropped. Inline code, spoilers and service decorations
+// are opaque: a marker inside one never pairs with one outside it.
+const isSpace = (c: string | undefined) => c !== undefined && /\s/.test(c)
+// Index of the next match of `regex` (global) at or after `from`, for `from`s that only increase.
+const nextMatchFinder = (s: string, regex: RegExp) => {
+  let found = -2
+  return (from: number) => {
+    if (found !== -1 && found < from) {
+      regex.lastIndex = from
+      found = regex.exec(s)?.index ?? -1
+    }
+    return found
+  }
+}
+const spoilerEndAt = /<!/g
+const serviceEndAt = new RegExp(serviceEndDecorationTag.source, 'g')
+type EmphasisPair = {close: number; length: number}
+// opener index -> its closer, for every pair in the string
+const findEmphasisPairs = (s: string): Map<number, EmphasisPair> => {
+  const pairs = new Map<number, EmphasisPair>()
+  const nextLineEnd = nextMatchFinder(s, lineEndAhead)
+  const nextSpoilerEnd = nextMatchFinder(s, spoilerEndAt)
+  const nextServiceEnd = nextMatchFinder(s, serviceEndAt)
+  // the end of a spoiler or service decoration opened at `from` and closed at `close`, if that's on
+  // the same line, else -1
+  const endOnLine = (from: number, close: number, closeLength: number) => {
+    if (close === -1) {
+      return -1
+    }
+    const lineEnd = nextLineEnd(from)
+    return lineEnd === -1 || lineEnd > close ? close + closeLength : -1
+  }
+  // the openers still waiting for a closer, in order, and the same split up by marker + run length
+  let open: Array<{at: number; key: string}> = []
+  let openByKey = new Map<string, Array<number>>()
+  for (let i = 0; i < s.length; ) {
+    const c = s[i]!
+    // same escapes as the escape rule: \ before a letter, digit or whitespace is just a backslash
+    if (c === '\\' && i + 1 < s.length && !isSpace(s[i + 1]) && !isAsciiAlnum(s.charCodeAt(i + 1))) {
+      i += 2
+      continue
+    }
+    let skipTo = -1
+    if (c === '`') {
+      const code = inlineCodeMatch(s.slice(i))?.[0]
+      skipTo = code ? i + code.length : -1
+    } else if (s.startsWith('!>', i)) {
+      skipTo = endOnLine(i, nextSpoilerEnd(i + 2), 2)
+    } else if (s.startsWith('$>kb$', i)) {
+      skipTo = endOnLine(i, nextServiceEnd(i + 5), 5)
+    }
+    if (c === '\n' || (skipTo !== -1 && s.slice(i, skipTo).includes('\n'))) {
+      open = []
+      openByKey = new Map()
+    }
+    if (skipTo !== -1) {
+      i = skipTo
+      continue
+    }
+    if (c !== '*' && c !== '_' && c !== '~') {
+      i++
+      continue
+    }
+    let end = i + 1
+    while (s[end] === c) {
+      end++
+    }
+    const inWord = c === '_'
+    const key = c + String(end - i)
+    const waiting = openByKey.get(key)
+    // nothing waits at i === 0, so a closer always has a char before it
+    if (waiting?.length && !isSpace(s[i - 1]) && !(inWord && isAsciiAlnum(s.charCodeAt(end)))) {
+      const at = waiting[waiting.length - 1]!
+      // drop it and every opener after it: those can't close past this pair
+      for (let last = open.pop(); last; last = last.at > at ? open.pop() : undefined) {
+        openByKey.get(last.key)!.pop()
+      }
+      pairs.set(at, {close: i, length: end - i})
+    } else if (end < s.length && !isSpace(s[end]) && !(inWord && isAsciiAlnum(s.charCodeAt(i - 1)))) {
+      open.push({at: i, key})
+      if (waiting) {
+        waiting.push(i)
+      } else {
+        openByKey.set(key, [i])
+      }
+    }
+    i = end
+  }
+  return pairs
+}
+
+// em, strong and del nest inside each other, and each level rescans its content: deep enough it
+// overflows the stack. Past this depth their markers are left as text.
 const maxInlineNesting = 16
-const belowNestingLimit =
-  (matchFn: MatchFunction) =>
-  (source: string, state: State, prevCapture: string): Capture | null | undefined =>
-    (state.inlineNesting ?? 0) < maxInlineNesting ? matchFn(source, state, prevCapture) : null
+const emphasisMatch =
+  (marker: string): MatchFunction =>
+  (source: string, state: State): Capture | null => {
+    if (!state.inline || !source.startsWith(marker) || (state.inlineNesting ?? 0) >= maxInlineNesting) {
+      return null
+    }
+    const {pos} = state.cursor!
+    const pair = memoFor(state, findEmphasisPairs, findEmphasisPairs).get(pos)
+    if (!pair) {
+      return null
+    }
+    return [source.slice(0, pair.close + pair.length - pos), source.slice(pair.length, pair.close - pos)]
+  }
 const parseNested = (state: State, parse: () => Array<SingleASTNode>) => {
   const nesting = state.inlineNesting ?? 0
   state.inlineNesting = nesting + 1
@@ -336,25 +461,18 @@ const rules: {[type: string]: ParserRule} = {
     },
   },
   del: {
-    // original:
-    // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
-    // ours: single tilde doesn't cross a newline
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/))),
+    match: emphasisMatch('~'),
     order: 22,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
   },
   em: {
-    // original is pretty long so not inlining it here
-    // ours: wrapped in _'s
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/))),
+    match: emphasisMatch('_'),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => nestedParse(capture[1] ?? '', state)),
     }),
-    // em and strong share an order: the longer match wins, em on a tie
-    quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.2,
   },
   emoji: {
     // emojiRegex matches the *shape* of a short name rather than an alternation of every known one,
@@ -435,35 +553,7 @@ const rules: {[type: string]: ParserRule} = {
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
     // ours: only allow a single backtick.
-    // This used to be a regex, but trimming the padding with \s* around a lazy [\s\S]*? content group
-    // is ambiguous and backtracked cubically: a 2k message of `<spaces>x hung the parser for seconds.
-    // The scan below is the same grammar in one linear pass.
-    match: (source: string): Capture | null => {
-      if (!source.startsWith('`') || source[1] === '`') {
-        return null
-      }
-      for (let i = 1; i < source.length; ++i) {
-        // the closing backtick can't be part of a run of them
-        if (source[i] !== '`' || source[i + 1] === '`') {
-          continue
-        }
-        const raw = source.slice(1, i)
-        let content = raw.trim()
-        if (!content) {
-          // all padding: keep a single trailing space, but never a bare newline
-          const last = raw.slice(-1)
-          if (last !== ' ' && last !== '\t') {
-            continue
-          }
-          content = last
-        }
-        if (content.endsWith('`')) {
-          continue
-        }
-        return [source.slice(0, i + 1), '`', content]
-      }
-      return null
-    },
+    match: inlineCodeMatch,
     order: 23,
     // a single space next to a backtick is padding so code can start or end with one, drop it
     parse: (capture: Capture) => ({content: capture[2]?.replace(/^ (?= *`)|(` *) $/g, '$1')}),
@@ -569,15 +659,11 @@ const rules: {[type: string]: ParserRule} = {
     }),
   },
   strong: {
-    // original
-    // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
-    // ours: single stars
-    match: belowNestingLimit(wordBoundryLookBehindMatch(inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/))),
+    match: emphasisMatch('*'),
     order: 21,
     parse: (capture: Capture, nestedParse: Parser, state: State) => ({
       content: parseNested(state, () => parseInline(nestedParse, capture[1] ?? '', state)),
     }),
-    quality: (capture: Capture) => (capture[0]?.length ?? 0) + 0.1,
   },
   text: {
     order: textOrder,
