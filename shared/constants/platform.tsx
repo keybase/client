@@ -93,7 +93,12 @@ export const pathSep: string = isMobile ? '/' : KB2.constants.pathSep
 
 // pathSep is a backslash on windows, which is a regex escape, so it can't go in a pattern raw
 const _sepRun = new RegExp(`${pathSep.replaceAll(/[\\^$*+?.()|[\]{}]/g, '\\$&')}+`, 'g')
-const _join = (...args: Array<string>): string => [...args].join(pathSep).replace(_sepRun, pathSep)
+const _join = (...args: Array<string>): string => {
+  const joined = args.join(pathSep)
+  // Windows UNC and named-pipe paths require two leading backslashes.
+  const prefix = pathSep === '\\' && joined.startsWith('\\\\') ? pathSep : ''
+  return prefix + joined.replace(_sepRun, pathSep)
+}
 const _joinAddSep = (...args: Array<string>): string => _join(...args) + pathSep
 
 const socketName = 'keybased.sock'
