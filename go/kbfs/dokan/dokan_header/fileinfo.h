@@ -1,7 +1,8 @@
 /*
   Dokan : user-mode file system library for Windows
 
-  Copyright (C) 2015 - 2018 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
+  Copyright (C) 2020 - 2025 Google, Inc.
+  Copyright (C) 2015 - 2019 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
   Copyright (C) 2007 - 2011 Hiroki Asakawa <info@dokan-dev.net>
 
   http://dokan-dev.github.io
@@ -227,6 +228,31 @@ typedef struct _FILE_DISPOSITION_INFORMATION {
   */
   BOOLEAN DeleteFile;
 } FILE_DISPOSITION_INFORMATION, *PFILE_DISPOSITION_INFORMATION;
+
+#define FILE_DISPOSITION_DO_NOT_DELETE 0x00000000 // Specifies the system should not delete a file.
+#define FILE_DISPOSITION_DELETE 0x00000001 // Specifies the system should delete a file.
+#define FILE_DISPOSITION_POSIX_SEMANTICS  0x00000002 // Specifies the system should perform a POSIX - style delete.
+#define FILE_DISPOSITION_FORCE_IMAGE_SECTION_CHECK  0x00000004 // Specifies the system should force an image section check.
+#define FILE_DISPOSITION_ON_CLOSE 0x00000008 // Specifies if the system sets or clears the on - close state.
+
+/**
+ * \struct FILE_DISPOSITION_INFORMATION_EX
+ * \brief Used as an argument to the ZwSetInformationFile routine.
+ *
+ * The struct is requested during IRP_MJ_QUERY_INFORMATION with query FileDispositionInformationEx
+ */
+typedef struct _FILE_DISPOSITION_INFORMATION_EX {
+  /**
+   * Specifies what action(s) the system should take with a specific file while deleting.
+   *
+   *    \li \c FILE_DISPOSITION_DO_NOT_DELETE Specifies the system should not delete a file.
+   *    \li \c FILE_DISPOSITION_DELETE Specifies the system should delete a file.
+   *    \li \c FILE_DISPOSITION_POSIX_SEMANTICS Specifies the system should perform a POSIX-style delete.
+   *    \li \c FILE_DISPOSITION_FORCE_IMAGE_SECTION_CHECK Specifies the system should force an image section check.
+   *    \li \c FILE_DISPOSITION_ON_CLOSE Specifies if the system sets or clears the on-close state.
+   */
+  ULONG Flags;
+} FILE_DISPOSITION_INFORMATION_EX, *PFILE_DISPOSITION_INFORMATION_EX;
 
 /**
  * \struct FILE_END_OF_FILE_INFORMATION
@@ -696,6 +722,91 @@ typedef struct _FILE_ID_BOTH_DIR_INFORMATION {
   */
   WCHAR FileName[1];
 } FILE_ID_BOTH_DIR_INFORMATION, *PFILE_ID_BOTH_DIR_INFORMATION;
+
+/**
+ * \struct FILE_ID_EXTD_BOTH_DIR_INFORMATION
+ * \brief Used to query detailed information for the files in a directory.
+ */
+typedef struct _FILE_ID_EXTD_BOTH_DIR_INFORMATION {
+  /**
+   * Byte offset of the next FILE_DIRECTORY_INFORMATION entry, if multiple entries are present in a buffer.
+   * This member is zero if no other entries follow this one.
+   */
+  ULONG NextEntryOffset;
+  /**
+   * Byte offset of the file within the parent directory. This member is undefined for file systems, such as NTFS,
+   * in which the position of a file within the parent directory is not fixed and can be changed at any time to maintain sort order.
+   */
+  ULONG FileIndex;
+  /**
+   * Time when the file was created.
+   */
+  LARGE_INTEGER CreationTime;
+  /**
+   * Last time the file was accessed.
+   */
+  LARGE_INTEGER LastAccessTime;
+  /**
+   * Last time information was written to the file.
+   */
+  LARGE_INTEGER LastWriteTime;
+  /**
+   * Last time the file was changed.
+   */
+  LARGE_INTEGER ChangeTime;
+  /**
+   * Absolute new end-of-file position as a byte offset from the start of the file.
+   * EndOfFile specifies the byte offset to the end of the file.
+   * Because this value is zero-based, it actually refers to the first free byte in the file. In other words,
+   * EndOfFile is the offset to the byte immediately following the last valid byte in the file.
+   */
+  LARGE_INTEGER EndOfFile;
+  /**
+   * File allocation size, in bytes. Usually, this value is a multiple of the sector or cluster size of the underlying physical device.
+   */
+  LARGE_INTEGER AllocationSize;
+  /**
+   *  File attributes, which can be any valid combination of the following:
+   *
+   *   \li \c FILE_ATTRIBUTE_READONLY
+   *   \li \c FILE_ATTRIBUTE_HIDDEN
+   *   \li \c FILE_ATTRIBUTE_SYSTEM
+   *   \li \c FILE_ATTRIBUTE_DIRECTORY
+   *   \li \c FILE_ATTRIBUTE_ARCHIVE
+   *   \li \c FILE_ATTRIBUTE_NORMAL
+   *   \li \c FILE_ATTRIBUTE_TEMPORARY
+   *   \li \c FILE_ATTRIBUTE_COMPRESSED
+   */
+  ULONG FileAttributes;
+  /**
+   * Specifies the length of the file name string.
+   */
+  ULONG FileNameLength;
+  /**
+   * Combined length, in bytes, of the extended attributes (EA) for the file.
+   */
+  ULONG EaSize;
+  /**
+   * Tag value for the reparse point.
+   */
+  ULONG ReparsePointTag;
+  /**
+   * The 128-byte file reference number for the file. This number is generated and assigned to the file by the file system.
+   */
+  FILE_ID_128 FileId;
+  /**
+   * Specifies the length, in bytes, of the short file name string.
+   */
+  CCHAR ShortNameLength;
+  /**
+   * Unicode string containing the short (8.3) name for the file.
+   */
+  WCHAR ShortName[12];
+  /**
+   * Specifies the first character of the file name string. This is followed in memory by the remainder of the string.
+   */
+  WCHAR FileName[1];
+} FILE_ID_EXTD_BOTH_DIR_INFORMATION, *PFILE_ID_EXTD_BOTH_DIR_INFORMATION;
 
 /**
  * \struct FILE_NAMES_INFORMATION
@@ -1226,10 +1337,6 @@ typedef struct _FILE_NETWORK_PHYSICAL_NAME_INFORMATION {
 #define FILE_WRITE_TO_END_OF_FILE 0xffffffff
 #define FILE_USE_FILE_POINTER_POSITION 0xfffffffe
 
-/**
- * \struct UNICODE_STRING
- * \brief Structure is used to define Unicode strings.
- */
 // Already defined in mingw ntdef.h
 //typedef struct _UNICODE_STRING {
 //  /**
@@ -1245,6 +1352,5 @@ typedef struct _FILE_NETWORK_PHYSICAL_NAME_INFORMATION {
 //  */
 //  PWSTR Buffer;
 //} UNICODE_STRING, *PUNICODE_STRING;
-
 
 #endif // FILEINFO_H_
