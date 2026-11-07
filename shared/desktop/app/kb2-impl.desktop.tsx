@@ -25,7 +25,7 @@ const kb2: KB2['constants'] = {
   dokanPath: path.resolve(
     (env['LOCALAPPDATA'] as string | undefined) ?? '',
     'Keybase',
-    'DokanSetup_redist.exe'
+    'DokanSetup.exe'
   ),
   downloadFolder: path.join(os.homedir(), 'Downloads'),
   env: {

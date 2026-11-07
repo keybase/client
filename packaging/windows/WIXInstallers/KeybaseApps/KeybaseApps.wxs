@@ -141,7 +141,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.4.0.1000\DokanSetup_redist.exe" Checksum="yes"/>
+        <File Id="DokanSetup.exe" Source="Redist\dokan-dev\2.3.1.1000\DokanSetup.exe" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>

@@ -19,11 +19,11 @@ func isDokanCurrent(log Log, path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// we're looking for 1.4.0.1000
-	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 4 || (v.Minor == 4 && (v.Patch > 0 || (v.Patch == 0 && v.Build >= 1000)))))
+	// we're looking for 2.3.1.1000
+	result := v.Major > 2 || (v.Major == 2 && (v.Minor > 3 || (v.Minor == 3 && (v.Patch > 1 || (v.Patch == 1 && v.Build >= 1000)))))
 
 	if !result {
-		log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", v.Major, v.Minor, v.Patch, v.Build, result)
+		log.Info("dokan2.dll version: %d.%d.%d.%d, result %v\n", v.Major, v.Minor, v.Patch, v.Build, result)
 	}
 	return result, nil
 }
@@ -97,7 +97,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 		log.Info("KeybaseFuseStatus error getting system directory: %v", err)
 		return status
 	}
-	dokanPath := filepath.Join(dir, "dokan1.dll")
+	dokanPath := filepath.Join(dir, "dokan2.dll")
 	if !detectDokanDll(dokanPath, log) {
 		return status
 	}

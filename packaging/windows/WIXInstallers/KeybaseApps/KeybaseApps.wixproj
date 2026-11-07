@@ -15,7 +15,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</DefineConstants>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</GuiSourceDir>
+    <DefineConstants>Debug;GuiSourceDir=$(GuiSourceDir)</DefineConstants>
     <SuppressIces>ICE20;ICE38</SuppressIces>
     <CompilerAdditionalOptions />
     <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
@@ -25,14 +26,35 @@
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
     <SuppressValidation>False</SuppressValidation>
     <SuppressIces>ICE20;ICE38;ICE91;ICE60</SuppressIces>
-    <DefineConstants>GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</DefineConstants>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</GuiSourceDir>
+    <DefineConstants>GuiSourceDir=$(GuiSourceDir)</DefineConstants>
+    <CompilerAdditionalOptions />
+    <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-arm64\Keybase-win32-arm64</GuiSourceDir>
+    <DefineConstants>Debug;GuiSourceDir=$(GuiSourceDir)</DefineConstants>
+    <SuppressIces>ICE20;ICE38</SuppressIces>
+    <CompilerAdditionalOptions />
+    <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <SuppressValidation>False</SuppressValidation>
+    <SuppressIces>ICE20;ICE38;ICE91;ICE60</SuppressIces>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-arm64\Keybase-win32-arm64</GuiSourceDir>
+    <DefineConstants>GuiSourceDir=$(GuiSourceDir)</DefineConstants>
     <CompilerAdditionalOptions />
     <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32</GuiSourceDir>
+    <DefineConstants>Debug;GuiSourceDir=$(GuiSourceDir)</DefineConstants>
     <SuppressIces>ICE20;ICE38</SuppressIces>
     <CompilerAdditionalOptions>
     </CompilerAdditionalOptions>
@@ -43,7 +65,8 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <SuppressValidation>False</SuppressValidation>
     <SuppressIces>ICE20;ICE38;ICE91;ICE60</SuppressIces>
-    <DefineConstants>GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
+    <GuiSourceDir>$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32</GuiSourceDir>
+    <DefineConstants>GuiSourceDir=$(GuiSourceDir)</DefineConstants>
     <CompilerAdditionalOptions>
     </CompilerAdditionalOptions>
     <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
@@ -65,18 +88,18 @@
   <PropertyGroup>
       <PreBuildEvent>
 echo ignore > "$(ProjectDir)ignore.txt"
-"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
+"%25WIX%25bin\heat" dir "$(GuiSourceDir)" -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
 echo "Dumping gui.wsx"
 type "$(ProjectDir)\gui.wxs"
 cd /d "$(ProjectDir)"
-if NOT exist Redist\dokan-dev\1.4.0.1000\DokanSetup_redist.exe (
+if NOT exist Redist\dokan-dev\2.3.1.1000\DokanSetup.exe (
       if NOT exist Redist\ mkdir Redist
       if NOT exist Redist\dokan-dev\ mkdir Redist\dokan-dev\
-      if NOT exist Redist\dokan-dev\1.4.0.1000 mkdir Redist\dokan-dev\1.4.0.1000
-      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/1.4.0.1000/DokanSetup_redist.exe -UseBasicParsing -OutFile Redist\dokan-dev\1.4.0.1000\DokanSetup_redist.exe"
+      if NOT exist Redist\dokan-dev\2.3.1.1000 mkdir Redist\dokan-dev\2.3.1.1000
+      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/2.3.1.1000/DokanSetup.exe -UseBasicParsing -OutFile Redist\dokan-dev\2.3.1.1000\DokanSetup.exe"
 )
-for /f "usebackq tokens=2%2a" %25%25i in (`powershell Get-FileHash -Algorithm sha1 Redist\dokan-dev\1.4.0.1000\DokanSetup_redist.exe`) do set DOKANLIBHASH=%25%25i
-if NOT %25DOKANLIBHASH%25==98998615DE96E077A581228A93F4A46D21232574 exit /B 1</PreBuildEvent>
+for /f "usebackq tokens=2%2a" %25%25i in (`powershell Get-FileHash -Algorithm sha1 Redist\dokan-dev\2.3.1.1000\DokanSetup.exe`) do set DOKANLIBHASH=%25%25i
+if NOT %25DOKANLIBHASH%25==DAC27FFBFBF00E88D167A14206BFDECBFE85445F exit /B 1</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

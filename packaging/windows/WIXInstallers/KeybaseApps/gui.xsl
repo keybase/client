@@ -5,10 +5,10 @@
             <xsl:apply-templates select="node()|@*"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="wix:Directory[@Name='Keybase-win32-x64']/@Id">
+    <xsl:template match="wix:Directory[starts-with(@Name,'Keybase-win32-')]/@Id">
         <xsl:attribute name="Id">GuiDir</xsl:attribute>
     </xsl:template>
-    <xsl:template match="wix:Directory[@Name='Keybase-win32-x64']/@Name">
+    <xsl:template match="wix:Directory[starts-with(@Name,'Keybase-win32-')]/@Name">
         <xsl:attribute name="Name">Gui</xsl:attribute>
     </xsl:template>
     <xsl:template match="wix:Component">

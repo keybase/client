@@ -111,10 +111,10 @@ doinstaller_wix.cmd debug
 
 # Upgrading Dokan
 
-Download `DokanSetup_redist.exe` from https://github.com/dokan-dev/dokany/releases
-Upload to S3 at prerelease.keybase.io/windows-support/dokan-dev/[VERSION]/DokanSetup_redist.exe
-Get the sha1 hash of DokanSetup_redist.exe:
-`powershell Get-FileHash -Algorithm sha1 DokanSetup_redist.exe`
+Download `DokanSetup.exe` from https://github.com/dokan-dev/dokany/releases
+Upload to S3 at prerelease.keybase.io/windows-support/dokan-dev/[VERSION]/DokanSetup.exe
+Get the sha1 hash of DokanSetup.exe:
+`powershell Get-FileHash -Algorithm sha1 DokanSetup.exe`
 Set the hash and version numbers in the installer project file: https://github.com/keybase/client/blob/master/packaging/windows/WIXInstallers/KeybaseApps/KeybaseApps.wixproj#L68
 Change the version the service considers new enough: https://github.com/keybase/client/blob/master/go/install/fuse_status_windows.go#L17
 Optional: change the minimum version KBFS will work with: https://github.com/keybase/client/blob/master/go/kbfs/dokan/loaddll.go#L110
@@ -145,7 +145,7 @@ If the service is closed with `keybase ctl stop`, which the GUI does when the wi
 `keybaserq.exe` has 2 main jobs: de-elevating permissions to run as current user, and running Keybase invisibly, without the CMD window appearing, since it is a console program.
 
 Notable executables
-`DokanSetup_redist.exe` - Dokan driver package, invoked from files tab in GUI
+`DokanSetup.exe` - Dokan driver package, invoked from files tab in GUI
 `git-remote-keybase.exe` - GIT helper
 `kbfsdokan.exe` - kbfs
 `keybase.exe` - service
