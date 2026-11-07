@@ -9,6 +9,8 @@
 uintptr_t kbfsLibdokanPtr_RemoveMountPoint;
 uintptr_t kbfsLibdokanPtr_OpenRequestorToken;
 uintptr_t kbfsLibdokanPtr_Main;
+uintptr_t kbfsLibdokanPtr_Init;
+uintptr_t kbfsLibdokanPtr_Shutdown;
 
 extern NTSTATUS kbfsLibdokanCreateFile(LPCWSTR FileName,
 					 PDOKAN_IO_SECURITY_CONTEXT psec,
@@ -230,9 +232,9 @@ static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_GetVolumeInformation(LPWSTR VolumeN
   return kbfsLibdokanGetVolumeInformation(VolumeNameBuffer, VolumeNameSize, VolumeSerialNumber, MaximumComponentLength, FileSystemFlags, FileSystemNameBuffer, FileSystemNameSize, FileInfo);
 }
 
-extern NTSTATUS kbfsLibdokanMounted(PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_Mounted(PDOKAN_FILE_INFO FileInfo) {
-  return kbfsLibdokanMounted(FileInfo);
+extern NTSTATUS kbfsLibdokanMounted(LPCWSTR MountPoint, PDOKAN_FILE_INFO FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_Mounted(LPCWSTR MountPoint, PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanMounted(MountPoint, FileInfo);
 }
 
 extern NTSTATUS kbfsLibdokanGetFileSecurity(LPCWSTR FileName,
@@ -330,13 +332,19 @@ error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx) {
 
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
 	int __stdcall (*dokanMain)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations) = (void*)kbfsLibdokanPtr_Main;
+	void __stdcall (*dokanInit)(void) = (void*)kbfsLibdokanPtr_Init;
+	void __stdcall (*dokanShutdown)(void) = (void*)kbfsLibdokanPtr_Shutdown;
 	if(!dokanMain)
 		return kbfsLibDokan_DLL_LOAD_ERROR;
 	if((ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern) != 0) {
 	  ctx->dokan_options.Options &= ~kbfsLibdokanUseFindFilesWithPattern;
 	  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
 	}
+	if(dokanInit)
+		(*dokanInit)();
 	int status = (*dokanMain)(&ctx->dokan_options, &ctx->dokan_operations);
+	if(dokanShutdown)
+		(*dokanShutdown)();
 	return status;
 }
 
