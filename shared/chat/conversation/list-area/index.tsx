@@ -10,7 +10,7 @@ import {MessageRow} from '../messages/wrapper'
 import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
-import {useConversationCenter, useConversationCenterActions} from '../center-context'
+import {useConversationCenter, useConversationCenterActions, useConversationRecenterVersion} from '../center-context'
 import {
   ShownUsernameCacheContext,
   useConversationThreadID,
@@ -155,9 +155,9 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
   const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
   const isHighlighted = centeredHighlightOrdinal === ordinal || isEditing
 
-  // Freeze the highlight into its end state once the fade has played, so a later DOM move cannot
-  // restart it (see .highlight-settled in conversation.css). Keyed on the highlighted ordinal
-  // because rows are recycled: the same node renders a different message over time.
+  // Freeze the highlight into its end state once the fade has played, so it cannot restart (see
+  // .highlight-settled in conversation.css). Keyed on the highlighted ordinal because rows are
+  // recycled: the same node renders a different message over time.
   const [settledFor, setSettledFor] = React.useState<T.Chat.Ordinal | undefined>(undefined)
   const isSettled = isHighlighted && settledFor === ordinal
   const onAnimationEnd = React.useCallback(
@@ -212,6 +212,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const conversationIDKey = useConversationThreadID()
   const data = useThreadListData()
   const {centeredOrdinal} = useConversationCenter()
+  const recenterVersion = useConversationRecenterVersion()
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
   // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
@@ -237,6 +238,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     listRef,
     loaded,
     messageOrdinals,
+    recenterVersion,
     wrapperRef,
   })
 
@@ -484,6 +486,7 @@ const NativeConversationList = function NativeConversationList() {
   const conversationIDKey = useConversationThreadID()
   const listData = useThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const recenterVersion = useConversationRecenterVersion()
   const {clearCenter} = useConversationCenterActions()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
@@ -563,6 +566,7 @@ const NativeConversationList = function NativeConversationList() {
     loadOlder,
     loaded,
     messageOrdinals,
+    recenterVersion,
   })
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)

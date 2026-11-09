@@ -1540,7 +1540,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.22.9):
+  - react-native-keyboard-controller (1.23.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1554,7 +1554,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.22.9)
+    - react-native-keyboard-controller/common (= 1.23.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1564,7 +1564,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.22.9):
+  - react-native-keyboard-controller/common (1.23.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2120,7 +2120,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNGestureHandler (3.4.0):
+  - RNGestureHandler (3.5.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2887,7 +2887,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: c5df4b7fe2553c25d419b99c586179ab77594b5b
   React-mutationobservernativemodule: b85faf3c54644c0ef2c758cd8c4e6ce16fb1f8ae
   react-native-kb: 4f05411ae1f4a96b38b0f48ed35c39fa9c048323
-  react-native-keyboard-controller: 28674e22124bc0e20f286708c03bd5bef3cc7aa2
+  react-native-keyboard-controller: 21cf7c9e4dfcdd77e73cc3c604b05eb50117212c
   react-native-safe-area-context: f54c903d3a8c8ddd602e85d4e5bcfe9944de85bc
   react-native-webview: 8f00424aca54fdfbe9d1a14e8b7126ea1c12dbcf
   React-NativeModulesApple: 8cfb2f308f48c48068c96b932e7f0e4297c23342
@@ -2929,7 +2929,7 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: a5164c3ebbe90d992022b5d9cbabbf770a6d7d05
   ReactNavigation: 97806a099123371425d41bf4b66d5c2f052e7001
   RNCPicker: b6ac9cc3e312efce83820d74657bfa208f535fc9
-  RNGestureHandler: abdc2d49ac3970908acd127980b429d377927ee1
+  RNGestureHandler: e11840399a9e42f90b6a69699a5b232bddb417d5
   RNReanimated: 5c641cc430b7255eae87c8039204eb0f816ea1b8
   RNScreens: fdca179295dcb421672af2a9e2979a9cebeda720
   RNWorklets: 786dc9aa5df4c1d0d2e93213feaab0d5f1e68a22

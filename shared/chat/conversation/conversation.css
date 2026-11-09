@@ -8,10 +8,10 @@
     }
   }
 
-  /* Once the fade has played, swap to the static end state and drop the animation. LegendList
-     reorders container elements in the DOM (useDOMOrder, debounced 500ms) to keep DOM order
-     matching visual order, and a DOM move restarts CSS animations on the moved subtree — which
-     replays this fade from transparent, reading as a blink. Nothing to restart, nothing to blink. */
+  /* Once the fade has played, swap to the static end state and drop the animation, so nothing can
+     restart it. Two things would: showing the chat tab again (it is display: none while another tab
+     is shown), and LegendList moving the row's container in the DOM to keep DOM order matching
+     visual order (it uses moveBefore, which keeps animation state, only where the browser has it). */
   &.highlighted.highlight-settled {
     &,
     &:hover,

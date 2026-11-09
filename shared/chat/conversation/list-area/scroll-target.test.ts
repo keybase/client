@@ -96,9 +96,9 @@ describe('threadObserved', () => {
     targetInData,
     type: 'threadObserved',
   })
-  // A centre is only ever set together with a clear (centerOnMessage reloads around its target), so
-  // a new target arrives with an unloaded, empty thread, and the only way to a target is through a
-  // load that brings it.
+  // A new centre is set together with a clear (centerOnMessage reloads around its target), so a new
+  // target arrives with an unloaded, empty thread, and the only way to it is through a load that
+  // brings it. Asking again for the centre already loaded is recenterRequested's.
   runTable([
     ['nothing centred, nothing to do', fresh, observed(undefined), leaveAlone, fresh],
     [
@@ -193,6 +193,31 @@ describe('threadObserved', () => {
       stopCentering,
       state({endOwner: 'reader', headerSize: 100, lastEditing: ord(15)}),
     ],
+  ])
+})
+
+describe('recenterRequested', () => {
+  const requested = (n: number, targetInData: boolean): ScrollEvent => ({
+    ordinal: ord(n),
+    targetInData,
+    type: 'recenterRequested',
+  })
+  runTable([
+    [
+      'the centre asked for again with its row loaded is centred again, from wherever the reader left it',
+      released(30),
+      requested(30, true),
+      center(30),
+      centred(30),
+    ],
+    [
+      'centring takes the end from the list and ends the hold on a revealed edit',
+      state({holdingEdit: true, lastCentered: ord(30), lastEditing: ord(15)}),
+      requested(30, true),
+      center(30),
+      state({endOwner: 'reader', lastCentered: ord(30), lastEditing: ord(15), settlingCenter: true}),
+    ],
+    ['a target not in the rows the list has is left alone', released(30), requested(30, false), leaveAlone, released(30)],
   ])
 })
 
@@ -523,6 +548,19 @@ describe('sequences', () => {
     d.centreOn(ord(30))
     d.load(window(1, 60))
     expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), stopCentering, stopCentering, leaveAlone, center(30)])
+  })
+
+  test('re-choosing the same hit with its row still loaded centres it again with no reload', () => {
+    const d = openList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.send({type: 'centerSettled'})
+    d.send(wheel)
+    d.recentre()
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), leaveAlone, leaveAlone, center(30)])
+    // only the first choice cleared the thread
+    expect(d.thread.clearVersion).toBe(1)
+    expect(d.state).toEqual(centred(30))
   })
 
   test('the same hit after closing it is centred again', () => {

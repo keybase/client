@@ -17,8 +17,9 @@ export type ScrollTargetState = {
   headerSize: number | undefined
   // The target already centred in this dataset. Centring happens once per target: scrolling up
   // prepends older messages, which moves the target's index, and re-centring on that would pull
-  // the reader back to the hit. Per dataset, not per conversation: re-centring on the ordinal we
-  // are already parked on still reloads the thread, so the list has to scroll to it again.
+  // the reader back to the hit. Per dataset, not per conversation: a centred reload of the same
+  // ordinal is a new dataset, so the list scrolls to it again. Asked for again with its row loaded,
+  // it reloads nothing and comes as recenterRequested.
   lastCentered: T.Chat.Ordinal | undefined
   // Whether the list's centring of that target is still under way. It ends when the list reports it
   // settled, and when the reader leaves the target (a wheel, a drag, asking for the bottom). A list
@@ -49,6 +50,9 @@ export type ScrollEvent =
       loaded: boolean
       targetInData: boolean
     }
+  // The centre was asked for again with its row loaded, which reloads nothing (centerOnMessage).
+  // targetInData says whether the ordinal is in the rows the list has.
+  | {type: 'recenterRequested'; ordinal: T.Chat.Ordinal; targetInData: boolean}
   // The list's own centring finished with the target: it reached the middle, was pinned against an
   // edge, or ran out of tries.
   | {type: 'centerSettled'}
@@ -127,6 +131,11 @@ const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 type PinEnd = Extract<ScrollDirective, {type: 'pinEnd'}>
 const pinEnd: PinEnd = {retry: false, stopCentering: false, type: 'pinEnd'}
 
+const centerOn = (state: ScrollTargetState, ordinal: T.Chat.Ordinal): ScrollDecision => ({
+  directive: {ordinal, type: 'center'},
+  state: {...state, endOwner: 'reader', holdingEdit: false, lastCentered: ordinal, settlingCenter: true},
+})
+
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
     case 'datasetChanged':
@@ -166,17 +175,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         return {directive: leaveAlone, state: newTarget ? {...state, endOwner: 'reader'} : state}
       }
       if (!newTarget) return {directive: leaveAlone, state}
-      return {
-        directive: {ordinal: centeredOrdinal, type: 'center'},
-        state: {
-          ...state,
-          endOwner: 'reader',
-          holdingEdit: false,
-          lastCentered: centeredOrdinal,
-          settlingCenter: true,
-        },
-      }
+      return centerOn(state, centeredOrdinal)
     }
+    case 'recenterRequested':
+      // Asked for again, from wherever the reader has taken the list since.
+      return event.targetInData ? centerOn(state, event.ordinal) : {directive: leaveAlone, state}
     case 'centerSettled':
       // Settled like a wheel or a drag leaves it: later changes to the rows around the target leave it be.
       return {directive: leaveAlone, state: {...state, settlingCenter: false}}
