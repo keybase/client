@@ -842,7 +842,7 @@ export const waitSignedIn = async () =>
       const a = await signedInAs().catch(() => undefined)
       return a?.loggedIn && !a.switching ? true : undefined
     },
-    {interval: 1_000, timeout: 90_000}
+    {interval: 250, timeout: 90_000}
   )
 
 // Opens the account switcher sheet from the chat tab's avatar.

@@ -28,6 +28,7 @@ import {
   watchEnvSecrets,
   type SecretWatch,
 } from '../shared/gate/secret-scan'
+import {harnessSite, timingOn, writeTiming} from '../shared/gate/timing.ts'
 
 const PROJECT = 'ios-flows'
 
@@ -39,6 +40,9 @@ requireSmokeUser()
 const udid = process.env['KB_IOS_UDID'] ?? udidForName(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest')
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+const commandStarts: Array<{name: string; site: string; start: number}> = []
+let testStart = 0
 
 // started in onPrepare: every value the env file's secrets held during the run
 let secretWatch: SecretWatch | undefined
@@ -102,7 +106,16 @@ export const config: WebdriverIO.Config = {
       noteProtocolResult(event)
     })
   },
+  // timing (shared/gate/timing.ts): each WebDriver command, paired by a stack since commands nest
+  beforeCommand: (name: string) => {
+    if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
+  },
+  afterCommand: (name: string) => {
+    const c = timingOn() ? commandStarts.pop() : undefined
+    if (c) writeTiming({end: Date.now(), kind: 'command', name: c.name === name ? name : `${c.name}/${name}`, site: c.site, start: c.start})
+  },
   beforeTest: async () => {
+    testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
     await escapeToTabs().catch((e: unknown) => {
@@ -130,9 +143,10 @@ export const config: WebdriverIO.Config = {
   },
   // The body may still be running (wdio's timer gave up on it): it is stopped first, and the failure
   // capture runs as a hook, bound to the attempt but to no body.
-  afterTest: async (_test, _context, result: TestResult) => {
+  afterTest: async (test, _context, result: TestResult) => {
     const token = leaveBody()
     await runAttempt(token, async () => finishAttempt(result))
+    writeTiming({end: Date.now(), kind: 'test', name: [test.parent, test.title].filter(Boolean).join(' > '), start: testStart, status: result.passed ? 'passed' : 'failed'})
   },
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async
   // context, before sending it: a test body that is over is refused here. A request already sent, its

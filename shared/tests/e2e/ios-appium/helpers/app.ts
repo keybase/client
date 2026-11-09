@@ -43,6 +43,24 @@ export const pidFromLaunchctl = (out: string, bundleId: string): number | undefi
   return undefined
 }
 
+// The app's pid read off the host's process table, or undefined when it isn't running: a simulator app
+// runs as a host process under its device's data folder. A few milliseconds, where the simulator's own
+// `launchctl list` (pidFromLaunchctl) takes half a second and blocks the event loop for it.
+export const hostAppPid = (udid: string, executable: string): number | undefined => {
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = `/CoreSimulator/Devices/${esc(udid)}/data/Containers/Bundle/Application/[^/]+/[^/]+\\.app/${esc(executable)}$`
+  let out: string
+  try {
+    out = execFileSync('pgrep', ['-f', pattern], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 10_000})
+  } catch (e) {
+    // pgrep exits 1 when nothing matches
+    if ((e as {status?: number}).status === 1) return undefined
+    throw e
+  }
+  const n = Number(out.split('\n')[0])
+  return Number.isInteger(n) && n > 0 ? n : undefined
+}
+
 export function udidForName(name: string): string {
   const json = runSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], 60_000)
   const devices = (JSON.parse(json) as {devices: Record<string, Array<{name: string; udid: string}>>}).devices

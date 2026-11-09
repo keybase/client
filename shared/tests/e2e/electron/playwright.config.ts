@@ -34,6 +34,8 @@ export default defineConfig({
     ['list'],
     ['html', {outputFolder: `${results}/report`, open: 'never'}],
     ['json', {outputFile: `${results}/report/results.json`}],
+    // writes only with KB_E2E_TIMING_FILE set
+    ['./timing-reporter.ts'],
     // last: it scans what the reporters above wrote
     ['./secret-scan-reporter.ts'],
   ],

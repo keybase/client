@@ -1,6 +1,7 @@
 // Evaluates JS inside a React Native debug build through Metro's inspector proxy
 // (Runtime.evaluate over the page's debugger websocket). Only works against a debug build served
 // by Metro. Shared by the iOS lifecycle flows and the Electron flows that need a second account.
+import {timedEval} from './gate/timing.ts'
 
 export const metroOrigin = process.env['KB_METRO_ORIGIN'] ?? 'http://127.0.0.1:8081'
 
@@ -130,7 +131,9 @@ export const withholdQuotedCode = (report: string, code: string) => {
 // Evaluates a synchronous function body in the page's JS runtime and returns its value. The body
 // can call kbModule('<path under shared/>') to reach an app module. A failure's error never repeats the
 // body (withholdQuotedCode), and nothing here logs it.
-export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<R> => {
+export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<R> => timedEval('eval', async () => evalInPageUntimed<R>(page, body))
+
+const evalInPageUntimed = async <R>(page: InspectorPage, body: string): Promise<R> => {
   const url = page.webSocketDebuggerUrl.replace('ws://localhost:', 'ws://127.0.0.1:')
   // The inspector proxy rejects connections without a local Origin; Node's WebSocket
   // takes headers as a non-standard option.

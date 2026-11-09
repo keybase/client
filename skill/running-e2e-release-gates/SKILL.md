@@ -55,7 +55,9 @@ Runs outside the gate write under `tests/results/targeted/` (`test-results/`, `r
 
 ## While it runs
 
-- Watch the log only until the preflight line (`preflight: ok` or `preflight: FAILED`), then stop the monitor. Per-test lines are noise, and you get a notification when the run exits.
+- Watch the whole run with a Monitor (`timeout_ms` at the maximum, re-armed on each expiry) running `skill/running-e2e-release-gates/watch-run.sh desktop|ios <gate log>`. It prints only what needs acting on: each phase result, each failed test as it fails (iOS from its attempt records, since iOS prints results only at the end), and the gate stopping early. It exits after the summary.
+- Act on what it shows, don't wait for the end. A failure in the first few tests (the account, the harness helpers) or failures that look alike (the same refusal or error in a row) mean the run is broken, not the app: stop it (below), look at the first failure's screenshot and log, and fix that before running again.
+- The iOS gate stops itself in two cases. If a test leaves the app off the smoke account, the next test relaunches the app once (a relaunch signs the stored smoke account back in), and if that fails the gate is poisoned and the run ends. It also ends after `KB_E2E_MAX_CONSECUTIVE_FAILURES` tests in a row fail (default 8, 0 turns it off). Its run errors say `stopped the run at "<test>": <why>`.
 - If preflight refuses, do what its message says and rerun. Don't work around the check.
 - **To stop a run**, run `pkill -INT -f "electron/release.mts"` (iOS: `ios-appium/release.mts`; confirm with `pgrep -fl release.mts`) and wait for the `=== release summary ===` block. SIGINT lets it stop its app, Metro and Appium, release the lock and scan for secrets. Killing the background shell or yarn skips all of that.
 
