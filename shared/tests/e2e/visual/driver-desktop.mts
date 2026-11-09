@@ -636,6 +636,18 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
         await remountScreens(page)
       }
       const nav = await resolveParams(entry.nav)
+      const thread = nav.thread
+      if (thread) {
+        await withDeadline(
+          page.evaluate(id => {
+            const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
+            if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
+            r.navigateToThread(id, 'misc')
+          }, thread),
+          EVAL_MS,
+          'navigateToThread'
+        )
+      }
       const append = nav.append
       if (append) {
         const ok = await withDeadline(
@@ -648,18 +660,6 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
           `navigateAppend ${append.name}`
         )
         if (!ok) throw new Error(`navigateAppend ${append.name} did not navigate`)
-      }
-      const thread = nav.thread
-      if (thread) {
-        await withDeadline(
-          page.evaluate(id => {
-            const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
-            if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
-            r.navigateToThread(id, 'misc')
-          }, thread),
-          EVAL_MS,
-          'navigateToThread'
-        )
       }
       let shown = page
       if (entry.window) {

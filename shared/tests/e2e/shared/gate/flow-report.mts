@@ -34,7 +34,13 @@ type PlaywrightTest = {status: string; projectName: string; results: PlaywrightR
 type PlaywrightSuite = SuiteOf<PlaywrightTest>
 // Playwright's json reporter also emits top-level `errors` for global failures
 // (global-setup throw, worker crash) that never attach to a spec.
-type Report = {suites: PlaywrightSuite[]; errors?: Array<{message?: string} | string>}
+type Report = {suites: PlaywrightSuite[]; errors?: Array<{message?: string} | string>; stats?: {startTime?: string}}
+
+// The report keeps every test's newest card (its store, beside the html), so a run of only some
+// tests still yields a full report. Each card says when its run was, and a card is never replaced by
+// one from an older run. Only a full run (--prune) drops the cards of tests it no longer has.
+type StoredCard = CardData & {key: string; runAt: number}
+type CardStore = {flows: Array<StoredCard>; tour: Array<StoredCard>}
 
 // A failed card with no screenshot — used to surface run-level failures (missing
 // results, global errors) in the HTML so a crashed run produces a report that
@@ -46,8 +52,7 @@ function errorCard(label: string, message: string): CardData {
 function writeReport(p: FlowReportPlatform, sections: Section[]) {
   const timestamp = new Date().toLocaleString()
   const html = buildReport(p.title, sections, timestamp, p.outputPath)
-  const outDir = path.dirname(p.outputPath)
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, {recursive: true})
+  fs.mkdirSync(path.dirname(p.outputPath), {recursive: true})
   fs.writeFileSync(p.outputPath, html)
 }
 
@@ -73,9 +78,112 @@ function attachmentBuffer(a: Attachment): Buffer | null {
 const detailNames = ['renderer-console-errors', 'renderer-page-errors', 'app-log-tail', 'service-log-tail']
 const isDetail = (name: string) => name.startsWith('renderer-') || detailNames.includes(name)
 
-// `reachedManual` collects manual-only id -> that run's manual-<id> screenshot, relative to the checklist file
-function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<string, string>): CardData[] {
-  const cards: CardData[] = []
+const stamp = (t: number) => new Date(t).toLocaleString()
+
+const storePath = (p: FlowReportPlatform) => p.outputPath.replace(/\.html$/, '') + '.cards.json'
+
+// A store that does not parse throws: starting over would drop every card's screenshots unseen
+const readStore = (p: FlowReportPlatform): CardStore => {
+  if (!fs.existsSync(storePath(p))) return {flows: [], tour: []}
+  const s = JSON.parse(fs.readFileSync(storePath(p), 'utf8')) as Partial<CardStore>
+  return {flows: s.flows ?? [], tour: s.tour ?? []}
+}
+
+// through a temp file, so a build stopped mid-write leaves the last store whole
+const writeStore = (p: FlowReportPlatform, store: CardStore) => {
+  fs.mkdirSync(path.dirname(storePath(p)), {recursive: true})
+  const tmp = `${storePath(p)}.${process.pid}.tmp`
+  fs.writeFileSync(tmp, JSON.stringify(store))
+  fs.renameSync(tmp, storePath(p))
+}
+
+// A flow card's files in debugDir
+const cardFiles = (p: FlowReportPlatform, key: string) => ({
+  failure: path.join(p.debugDir, `${key}-failure.png`),
+  shot: path.join(p.debugDir, `${key}.png`),
+  stepDir: path.join(p.debugDir, key),
+})
+
+// Removes a card's files other than `keep` (all of them when it is empty)
+const pruneCardFiles = (p: FlowReportPlatform, key: string, keep: ReadonlySet<string> = new Set()) => {
+  const files = cardFiles(p, key)
+  for (const f of [files.shot, files.failure]) if (!keep.has(f)) fs.rmSync(f, {force: true})
+  if (!fs.existsSync(files.stepDir)) return
+  for (const n of fs.readdirSync(files.stepDir)) {
+    const f = path.join(files.stepDir, n)
+    if (!keep.has(f)) fs.rmSync(f, {force: true})
+  }
+}
+
+// Writes a run's screenshot to `file`. Rebuilding a run whose raw results were since cleared
+// (`sameRun`) keeps the copy the report already made of it; any other run's missing screenshot is
+// missing, never an older run's image under a newer verdict.
+const place = (file: string, buf: Buffer | null, sameRun: boolean) => {
+  if (buf) {
+    fs.mkdirSync(path.dirname(file), {recursive: true})
+    fs.writeFileSync(file, buf)
+    return file
+  }
+  return sameRun && fs.existsSync(file) ? file : null
+}
+
+// The stored cards with this run's in their place (the newer of the two per test) and its new ones
+// after them. A full run (`prune`) sets the order and drops the older cards it no longer has.
+const mergeCards = (stored: Array<StoredCard>, run: Array<StoredCard>, runAt: number, prune: boolean) => {
+  const storedByKey = new Map(stored.map(c => [c.key, c]))
+  const fromRun = new Map(
+    run.map(c => {
+      const kept = storedByKey.get(c.key)
+      return [c.key, kept && kept.runAt > c.runAt ? kept : c] as const
+    })
+  )
+  if (!prune) {
+    const added = [...fromRun.values()].filter(c => !storedByKey.has(c.key))
+    return {dropped: [], merged: [...stored.map(c => fromRun.get(c.key) ?? c), ...added]}
+  }
+  const kept: Array<StoredCard> = []
+  const dropped: Array<StoredCard> = []
+  for (const c of stored) if (!fromRun.has(c.key)) (c.runAt < runAt ? dropped : kept).push(c)
+  return {dropped, merged: [...fromRun.values(), ...kept]}
+}
+
+const newestRun = (cards: ReadonlyArray<StoredCard>) => Math.max(...cards.map(c => c.runAt))
+
+// Marks the cards of the section's newest run as latest and the rest as older
+const withLatest = (cards: Array<StoredCard>) => {
+  const newest = newestRun(cards)
+  return cards.map(c => ({...c, latest: c.runAt === newest}))
+}
+
+// The baseline can change after a card was stored, so its diff is taken when the report is built
+const withDiff = (p: FlowReportPlatform, c: StoredCard): StoredCard => {
+  const prev = path.join(p.prevDir, `${c.key}.png`)
+  const prevScreenshotPath = fs.existsSync(prev) ? prev : null
+  const diff = c.screenshotPath && prevScreenshotPath && fs.existsSync(c.screenshotPath) ? computeDiff(c.screenshotPath, prevScreenshotPath) : null
+  return {...c, diff, prevScreenshotPath}
+}
+
+// Every stored card's manual-<id> step screenshot, relative to the checklist file
+const reachedManual = (p: FlowReportPlatform, cards: Array<StoredCard>) => {
+  const reached = new Map<string, string>()
+  for (const st of cards.flatMap(c => c.steps ?? [])) {
+    const manual = /^manual-(.+)$/.exec(st.name)
+    if (manual && !reached.has(manual[1]!) && fs.existsSync(st.path)) reached.set(manual[1]!, path.relative(path.dirname(p.checklistPath), st.path))
+  }
+  return reached
+}
+
+// This run's cards. A test a newer stored card covers, or one this run skipped, keeps its stored card
+// and files.
+function parseReport(
+  p: FlowReportPlatform,
+  report: Report,
+  runAt: number,
+  stored: ReadonlyMap<string, StoredCard>
+): Array<StoredCard> {
+  const cards: Array<StoredCard> = []
+  // two tests whose names slug alike get a numbered key each, so neither replaces the other
+  const seen = new Map<string, number>()
   for (const {file, titles, byProject} of specTests(report)) {
     const title = titles.at(-1) ?? ''
     // the innermost describe, else the spec's file
@@ -83,17 +191,27 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
     const baseKey = `${slug(suiteName)}-${slug(title)}`
     for (const [projectName, tests] of byProject) {
       const variant = p.variantOf?.(projectName)
-      const key = variant ? `${baseKey}-${variant}` : baseKey
+      const named = variant ? `${baseKey}-${variant}` : baseKey
+      const n = (seen.get(named) ?? 0) + 1
+      seen.set(named, n)
+      const key = n === 1 ? named : `${named}-${n}`
       const label = variant ? `${suiteName} · ${title} (${variant})` : `${suiteName} · ${title}`
-
       const allResults = tests.flatMap(t => t.results)
+      // a skipped test, or one the run never reached (no results), never counts against or for a
+      // known failure, and keeps its stored card
+      const ran = allResults.some(r => r.status !== 'skipped')
+      const kept = stored.get(key)
+      if (kept && (kept.runAt > runAt || !ran)) {
+        cards.push(kept)
+        continue
+      }
       const result = allResults.filter(r => r.status !== 'skipped').at(-1) ?? allResults.at(-1)
       if (!result) continue
+      const sameRun = kept?.runAt === runAt
+      const files = cardFiles(p, key)
 
       const passed = tests.every(t => t.status === 'expected' || t.status === 'flaky' || t.status === 'skipped')
       const durationMs = result.duration
-      // a skipped test never counts against or for a known failure
-      const ran = tests.some(t => t.status !== 'skipped')
       const cause = variant || !ran ? undefined : knownFlowCause(specFileStem(file), titles, p.known.flows)
       const note = knownNote(knownVerdict(passed, cause), cause, p.knownListFile)
       const failure = !passed ? stripAnsi(result.errors?.[0]?.message?.split('\n')[0] ?? 'test failed') : null
@@ -103,43 +221,20 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
       const marked = tests.flatMap(t => t.annotations ?? []).filter(a => a.type === 'card-step').map(a => a.description ?? '')
       const screenshotAtt =
         chooseCardStep(stepAtts, marked) ?? result.attachments.find(a => a.name === 'screenshot' && a.contentType === 'image/png')
-      let screenshotPath: string | null = null
-      if (screenshotAtt) {
-        const buf = screenshotAtt.body
-          ? Buffer.from(screenshotAtt.body, 'base64')
-          : screenshotAtt.path ? fs.readFileSync(screenshotAtt.path) : null
-        if (buf) {
-          fs.mkdirSync(p.debugDir, {recursive: true})
-          screenshotPath = path.join(p.debugDir, `${key}.png`)
-          fs.writeFileSync(screenshotPath, buf)
-        }
-      }
+      const screenshotPath = screenshotAtt ? place(files.shot, attachmentBuffer(screenshotAtt), sameRun) : null
 
       const steps: Array<{name: string; path: string}> = []
       for (const att of stepAtts) {
-        const buf = attachmentBuffer(att)
-        if (!buf) continue
         const parsed = parseStepName(att.name)!
-        const file = path.join(p.debugDir, key, `${att.name}.png`)
-        fs.mkdirSync(path.dirname(file), {recursive: true})
-        fs.writeFileSync(file, buf)
-        steps.push({name: parsed.slug, path: file})
-        const manual = /^manual-(.+)$/.exec(parsed.slug)
-        if (manual && !reachedManual.has(manual[1]!)) {
-          reachedManual.set(manual[1]!, path.relative(path.dirname(p.checklistPath), file))
-        }
+        const file = place(path.join(files.stepDir, `${att.name}.png`), attachmentBuffer(att), sameRun)
+        if (file) steps.push({name: parsed.slug, path: file})
       }
 
-      let failureScreenshotPath: string | null = null
       const failureAtt = passed ? undefined : result.attachments.filter(a => a.name === 'screenshot' && a.contentType === 'image/png').at(-1)
-      const failureBuf = failureAtt && failureAtt !== screenshotAtt ? attachmentBuffer(failureAtt) : null
-      if (failureAtt && failureAtt === screenshotAtt) {
-        failureScreenshotPath = screenshotPath
-      } else if (failureBuf) {
-        fs.mkdirSync(p.debugDir, {recursive: true})
-        failureScreenshotPath = path.join(p.debugDir, `${key}-failure.png`)
-        fs.writeFileSync(failureScreenshotPath, failureBuf)
-      }
+      const failureScreenshotPath =
+        failureAtt === undefined ? null : failureAtt === screenshotAtt ? screenshotPath : place(files.failure, attachmentBuffer(failureAtt), sameRun)
+      // an earlier run's files this one has no counterpart for
+      pruneCardFiles(p, key, new Set([screenshotPath, failureScreenshotPath, ...steps.map(st => st.path)].filter(x => x !== null)))
 
       const details: Array<{name: string; text: string}> = []
       if (!passed) {
@@ -153,11 +248,8 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
         }
       }
 
-      const prevPath = path.join(p.prevDir, `${key}.png`)
-      const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
-      const diff = screenshotPath && prevScreenshotPath ? computeDiff(screenshotPath, prevScreenshotPath) : null
-
-      cards.push({label, passed, durationMs, screenshotPath, prevScreenshotPath, failureScreenshotPath, diff, errorMessage, steps, details})
+      const timestamp = stamp(runAt)
+      cards.push({details, diff: null, durationMs, errorMessage, failureScreenshotPath, key, label, passed, prevScreenshotPath: null, runAt, screenshotPath, steps, timestamp})
     }
   }
   return cards
@@ -165,12 +257,17 @@ function parseReport(p: FlowReportPlatform, report: Report, reachedManual: Map<s
 
 type RenderRow = {id: string; status: string; error?: string; note?: string; png: string | null}
 
+// When a render ran: its dir is named for its start (store.mts), e.g. 2026-11-04T18-07-52-894Z
+const renderRunAt = (dir: string) => {
+  const iso = path.basename(dir).replace(/T(\d\d)-(\d\d)-(\d\d)-(\d+)Z$/, 'T$1:$2:$3.$4Z')
+  const t = Date.parse(iso)
+  return Number.isNaN(t) ? fs.statSync(path.join(dir, 'render.json')).mtimeMs : t
+}
+
 // One card per tour entry of a `yarn visual:render` run (`--render <dir>`), labelled like the flows
 // when listed in the platform's known-failures list.
-function parseRender(p: FlowReportPlatform, dir: string): CardData[] {
-  const file = path.join(dir, 'render.json')
-  if (!fs.existsSync(file)) return [errorCard('Render error — no render.json', `${file} not found`)]
-  const {entries} = JSON.parse(fs.readFileSync(file, 'utf8')) as {entries: RenderRow[]}
+function parseRender(p: FlowReportPlatform, dir: string, runAt: number): Array<StoredCard> {
+  const {entries} = JSON.parse(fs.readFileSync(path.join(dir, 'render.json'), 'utf8')) as {entries: RenderRow[]}
   return entries.map(e => {
     const passed = e.status !== 'failed'
     const cause = knownRenderCause(e.id, p.known.render)
@@ -180,10 +277,13 @@ function parseRender(p: FlowReportPlatform, dir: string): CardData[] {
       diff: null,
       durationMs: 0,
       errorMessage: [note, failure, e.note].filter(Boolean).join(' — ') || null,
+      key: `tour:${e.id}`,
       label: `tour · ${e.id}${e.status === 'unstable' ? ' (unstable)' : ''}${e.note ? ' (recaptured)' : ''}`,
       passed,
       prevScreenshotPath: null,
+      runAt,
       screenshotPath: e.png && fs.existsSync(e.png) ? e.png : null,
+      timestamp: stamp(runAt),
     }
   })
 }
@@ -199,78 +299,86 @@ function saveBaseline(p: FlowReportPlatform, cards: CardData[]) {
   console.log(`Baseline saved: ${saved} screenshots to ${p.prevDir}/`)
 }
 
+// The stored flow and tour cards, each section marking its newest run's cards
+const storeSections = (p: FlowReportPlatform, store: CardStore): Array<Section> => {
+  const sections: Array<Section> = []
+  if (store.flows.length) sections.push({cards: withLatest(store.flows.map(c => withDiff(p, c)))})
+  if (store.tour.length) sections.push({cards: withLatest(store.tour), header: `Visual tour (render) · ${store.tour.length} entries`})
+  return sections
+}
+
+// --prune: the results are a full run, so the older cards of tests it no longer has go (the release
+// commands pass it; a run of some tests, or a full run cut short, leaves every card).
+// --save-baseline: the report's current flow cards become the baseline the diffs compare against.
 export const runFlowReport = (p: FlowReportPlatform, argv: ReadonlyArray<string> = process.argv): number => {
-  const isSaveBaseline = argv.includes('--save-baseline')
+  const prune = argv.includes('--prune')
   const renderAt = argv.indexOf('--render')
   const renderDir = renderAt === -1 ? undefined : argv[renderAt + 1]
+  const store = readStore(p)
+  const extraSections = p.extraSections?.() ?? []
+
+  if (argv.includes('--save-baseline')) {
+    if (store.flows.length === 0) {
+      console.error(`No report cards in ${storePath(p)}: build the report first`)
+      return 1
+    }
+    saveBaseline(p, store.flows)
+    p.saveExtraBaseline?.(extraSections.flatMap(s => s.cards))
+    return 0
+  }
 
   // No results.json => the Playwright run crashed before producing output (build
-  // / app-launch failure, config error). Baseline mode still hard-fails, but for
-  // a normal report write an error report explaining it rather than vanishing.
+  // / app-launch failure, config error): an error report explaining it, with the stored cards under it.
   if (!fs.existsSync(p.resultsPath)) {
     console.error(`Results not found: ${p.resultsPath}`)
     console.error(`Run ${p.runHint} first.`)
-    if (!isSaveBaseline) {
-      writeReport(p, [
-        {
-          header: 'Run errors',
-          cards: [
-            errorCard(
-              'Run error — no Playwright results',
-              `${p.resultsPath} not found. The run likely crashed before any test produced output (build or app-launch failure). Run ${p.runHint} first.`
-            ),
-          ],
-        },
-      ])
-    }
+    const message = `${p.resultsPath} not found. The run likely crashed before any test produced output (build or app-launch failure). Run ${p.runHint} first.`
+    writeReport(p, [{cards: [errorCard('Run error — no Playwright results', message)], header: 'Run errors'}, ...storeSections(p, store), ...extraSections])
     return 1
   }
 
   const report = JSON.parse(fs.readFileSync(p.resultsPath, 'utf8')) as Report
-  const reachedManual = new Map<string, string>()
-  const e2eCards = parseReport(p, report, reachedManual)
+  const started = report.stats?.startTime ? Date.parse(report.stats.startTime) : NaN
+  const runAt = Number.isNaN(started) ? fs.statSync(p.resultsPath).mtimeMs : started
+  const runCards = parseReport(p, report, runAt, new Map(store.flows.map(c => [c.key, c])))
   // Top-level global errors (no spec to hang off) — surface each as its own card.
-  const globalErrorCards = (report.errors ?? []).map((e, i) =>
+  const runErrors = (report.errors ?? []).map((e, i) =>
     errorCard(`Run error ${i + 1}`, (typeof e === 'string' ? e : e.message) ?? 'unknown run error')
   )
-
-  const extraSections = p.extraSections?.() ?? []
-  const extraCards = extraSections.flatMap(s => s.cards)
-
-  if (isSaveBaseline) {
-    if (e2eCards.length === 0) {
-      console.error('No test cases found in', p.resultsPath)
-      return 1
-    }
-    saveBaseline(p, e2eCards)
-    p.saveExtraBaseline?.(extraCards)
-    return 0
-  }
-
-  const sections: Section[] = []
-  if (globalErrorCards.length > 0) sections.push({header: 'Run errors', cards: globalErrorCards})
   // Flag a results file that parsed but yielded zero tests (all filtered/skipped
   // or a malformed run) so the report still says something happened.
-  if (e2eCards.length === 0 && globalErrorCards.length === 0) {
-    sections.push({
-      header: 'Run errors',
-      cards: [errorCard('Run error — no tests', `No test cases found in ${p.resultsPath}.`)],
-    })
+  if (runCards.length === 0 && runErrors.length === 0) runErrors.push(errorCard('Run error — no tests', `No test cases found in ${p.resultsPath}.`))
+  // A run that broke (a global error, a test it never reached) is not the full suite, so it drops nothing
+  const unreached = specTests(report).some(sp => [...sp.byProject.values()].flat().some(t => t.results.length === 0))
+  const full = prune && runErrors.length === 0 && !unreached
+  if (prune && !full) console.log('report: not dropping any card; the run did not reach every test')
+
+  const flows = mergeCards(store.flows, runCards, runAt, full)
+  for (const c of flows.dropped) pruneCardFiles(p, c.key)
+  let tour = store.tour
+  if (renderDir && fs.existsSync(path.join(renderDir, 'render.json'))) {
+    const renderedAt = renderRunAt(renderDir)
+    tour = mergeCards(store.tour, parseRender(p, renderDir, renderedAt), renderedAt, full).merged
+  } else if (renderDir) {
+    runErrors.push(errorCard('Render error — no render.json', `${path.join(renderDir, 'render.json')} not found`))
+  } else if (prune && tour.length) {
+    runErrors.push(errorCard('Render error — this run rendered no tour', `the tour cards are from ${stamp(newestRun(tour))}`))
   }
-  if (e2eCards.length > 0) sections.push({cards: e2eCards})
-  const renderCards = renderDir ? parseRender(p, renderDir) : []
-  if (renderCards.length > 0) sections.push({header: `Visual tour (render) · ${renderCards.length} entries`, cards: renderCards})
-  sections.push(...extraSections)
+  const merged = {flows: flows.merged, tour}
+  writeStore(p, merged)
+
+  const sections: Section[] = []
+  if (runErrors.length > 0) sections.push({header: 'Run errors', cards: runErrors})
+  sections.push(...storeSections(p, merged), ...extraSections)
 
   writeReport(p, sections)
   const entries = Object.entries(p.manualOnly).map(([id, e]) => ({id, ...e}))
-  fs.writeFileSync(p.checklistPath, buildChecklist(entries, reachedManual))
+  fs.writeFileSync(p.checklistPath, buildChecklist(entries, reachedManual(p, merged.flows)))
 
-  const withDiff = [...e2eCards, ...extraCards].filter(c => c.diff !== null).length
-  const diffNote = withDiff > 0 ? `, ${withDiff} vs baseline` : ''
+  const fromRun = runCards.filter(c => c.runAt === runAt).length
   const extraNote = extraSections.map(s => `, ${s.header ?? `${s.cards.length} extra cards`}`).join('')
-  const errNote = globalErrorCards.length > 0 ? `, ${globalErrorCards.length} run error(s)` : ''
-  const renderNote = renderCards.length > 0 ? `, tour ${renderCards.filter(c => c.passed).length}/${renderCards.length} rendered` : ''
-  console.log(`Report written to ${p.outputPath} (${e2eCards.filter(c => c.passed).length}/${e2eCards.length} passed${diffNote}${extraNote}${errNote}${renderNote})`)
+  const errNote = runErrors.length > 0 ? `, ${runErrors.length} run error(s)` : ''
+  const renderNote = tour.length > 0 ? `, tour ${tour.filter(c => c.passed).length}/${tour.length} rendered` : ''
+  console.log(`Report written to ${p.outputPath} (${merged.flows.filter(c => c.passed).length}/${merged.flows.length} passed, ${fromRun} from this run${extraNote}${errNote}${renderNote})`)
   return 0
 }

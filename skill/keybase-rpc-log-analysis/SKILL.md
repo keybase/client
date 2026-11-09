@@ -143,7 +143,7 @@ not `getMessagesRemote`. The script says so when it finds no counts.
 
 - **Guessing the trigger from neighbouring lines.** A burst surrounded by
   startup-looking work is not necessarily startup. Correlate against something
-  independent: the mtimes of `shared/tests/results/test-results/*/test-finished-1.png`
+  independent: the mtimes of `shared/tests/results/targeted/test-results/*/test-finished-1.png` (`shared/tests/results/test-results/` for a release gate run)
   give you a timestamped list of which test ran when, and `app.log` records
   renderer reloads. One burst-per-profile-open and one burst-per-bootstrap look
   identical in the service log until you check.

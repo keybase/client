@@ -11,8 +11,8 @@ export default class SecretScanReporter implements Reporter {
   private watch: SecretWatch | undefined
 
   onBegin(config: FullConfig) {
-    // playwright.config.ts writes its results and report under tests/results
-    this.resultsDir = path.resolve(path.dirname(config.configFile ?? config.rootDir), '../../results')
+    // playwright.config.ts writes this run's test-results and report side by side
+    this.resultsDir = path.dirname(config.projects[0]?.outputDir ?? '')
     this.watch = watchEnvSecrets()
   }
 

@@ -10,6 +10,8 @@
 //                      the same one every run
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
+//   messageID          `chat api -m '{"method":"read",...}'` (a peek) -> the id of the attachment in
+//                      the team's `channel` whose title is `title`
 // Results are cached for the process.
 import {readCliMasked} from './cli-masked.mts'
 import {normalizeDevices} from './seal.mts'
@@ -24,10 +26,10 @@ type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})
 const asArr = (v: unknown): Array<unknown> => (Array.isArray(v) ? v : [])
 
-const cache = new Map<string, Promise<string>>()
+const cache = new Map<string, Promise<string | number>>()
 export const clearResolveCache = () => cache.clear()
-const cached = async (key: string, f: () => Promise<string>) => {
-  const hit = cache.get(key)
+const cached = async <T extends string | number>(key: string, f: () => Promise<T>): Promise<T> => {
+  const hit = cache.get(key) as Promise<T> | undefined
   if (hit) return hit
   const p = f()
   cache.set(key, p)
@@ -55,7 +57,7 @@ const secondUser = () => {
 
 const inFolder = (folder: string, sub: string | undefined) => (sub ? `${folder}/${sub}` : folder)
 
-const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
+const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string | number> => {
   switch (ref.ref) {
     case 'teamname':
       return teamname()
@@ -100,6 +102,32 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
         return id
       })
     }
+    case 'messageID': {
+      const team = teamname()
+      const channel = ref.channel ?? 'general'
+      const title = ref.title
+      if (!title) throw new Error('a messageID ref needs the title of its attachment')
+      return cached(`msg:${team}#${channel}:${title}`, async () => {
+        const isHit = (m: Obj) => {
+          const content = asObj(m['content'])
+          return content['type'] === 'attachment' && asObj(asObj(content['attachment'])['object'])['title'] === title
+        }
+        // every page, newest first, as the chat seeding reads the channel (shared/chat-data.ts)
+        let next: string | undefined
+        for (;;) {
+          const pagination = next ? {next, num: 500} : {num: 500}
+          const read = {method: 'read', params: {options: {channel: {members_type: 'team', name: team, topic_name: channel}, pagination, peek: true}}}
+          const result = asObj(asObj(JSON.parse(await run(['chat', 'api', '-m', JSON.stringify(read)])))['result'])
+          const msgs = asArr(result['messages']).map(m => asObj(asObj(m)['msg']))
+          const msgID = msgs.find(isHit)?.['id']
+          if (typeof msgID === 'number') return msgID
+          const page = asObj(result['pagination'])
+          next = typeof page['next'] === 'string' ? page['next'] : undefined
+          if (!msgs.length || page['last'] || !next) break
+        }
+        throw new Error(`${team}#${channel} has no attachment titled ${title}; a chat flow seeds the e2e channels (shared/chat-data.ts)`)
+      })
+    }
   }
 }
 
@@ -135,6 +163,6 @@ export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<
   return {
     tab: nav.tab,
     ...(append ? {append: {name: append.name, ...(params ? {params} : {})}} : {}),
-    ...(thread ? {thread: await resolveRef(thread, run)} : {}),
+    ...(thread ? {thread: String(await resolveRef(thread, run))} : {}),
   }
 }

@@ -53,7 +53,10 @@ export type ParamRef = {
     | 'secondUser'
     | 'conversationIDKey'
     | 'deviceID'
+    | 'messageID'
   channel?: string
+  // messageID: the title of the attachment in `channel`
+  title?: string
   // a path under teamFolder, privateFolder or otherPrivateFolder
   sub?: string
 }
@@ -61,7 +64,8 @@ export type ParamRef = {
 // call arbitrary app functions. `tab` is a name from constants/tabs.tsx (e.g. 'tabs.chatTab'); the
 // driver maps it to switchTab, `append` to navigateAppend({name, params}), and `thread` (a
 // conversationIDKey ref) to navigateToThread, the path an inbox row click takes: desktop selects the
-// conversation beside the inbox, phone pushes it.
+// conversation beside the inbox, phone pushes it. With both, the thread opens first and `append` goes
+// over it, so a route that reads the thread's messages finds them loaded.
 // A param value: a literal, a ref, or plain objects and arrays of them (a route whose param is a
 // state object, like the team wizards').
 export type ParamValue = ParamRef | string | number | boolean | null | ReadonlyArray<ParamValue> | {readonly [k: string]: ParamValue}
@@ -190,7 +194,6 @@ export function validateEntry(e: TourEntry): Array<string> {
   if (!e.id) problems.push('entry has no id')
   if (!e.ready) problems.push(`${e.id}: ready testID is empty`)
   if (!e.nav.tab) problems.push(`${e.id}: nav.tab is empty`)
-  if (e.nav.append && e.nav.thread) problems.push(`${e.id}: nav has both append and thread`)
   if (e.nav.thread && e.nav.thread.ref !== 'conversationIDKey') {
     problems.push(`${e.id}: nav.thread must be a conversationIDKey ref`)
   }

@@ -17,6 +17,25 @@ const run: CliRunner = async args => {
     ].join('\n')
   }
   if (args[0] === 'team') return JSON.stringify({teams: [{team_id: 'tid1', fq_name: 'testteam'}]})
+  const read = args[0] === 'chat' && args[3]?.includes('"read"')
+    ? (JSON.parse(args[3]) as {params: {options: {channel: {topic_name: string}; pagination?: {next?: string}}}}).params.options
+    : undefined
+  if (read?.channel.topic_name === 'paged') {
+    // the attachment is on the second page
+    return read.pagination?.next === 'p2'
+      ? JSON.stringify({result: {messages: [{msg: {id: 2, content: {type: 'attachment', attachment: {object: {title: 'old.pdf'}}}}}], pagination: {last: true}}})
+      : JSON.stringify({result: {messages: [{msg: {id: 9, content: {type: 'text', text: {body: 'hi'}}}}], pagination: {next: 'p2'}}})
+  }
+  if (read) {
+    return JSON.stringify({
+      result: {
+        messages: [
+          {msg: {id: 7, content: {type: 'text', text: {body: 'report.pdf'}}}},
+          {msg: {id: 5, content: {type: 'attachment', attachment: {object: {title: 'report.pdf'}}}}},
+        ],
+      },
+    })
+  }
   return JSON.stringify({
     result: {
       conversations: [
@@ -122,4 +141,20 @@ test('refs nested in literal objects and arrays are replaced', async () => {
 test('a device ref resolves to the device ID that sorts first', async () => {
   const nav = {tab: 't', append: {name: 'x', params: {deviceID: {ref: 'deviceID' as const}}}}
   assert.deepEqual((await resolveParams(nav, run)).append?.params, {deviceID: 'aaa1'})
+})
+test('a messageID is the attachment with that title, as a number', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'other', title: 'report.pdf'}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {m: 5})
+})
+test('a missing attachment fails loudly', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'other', title: 'nope.pdf'}}}}
+  await assert.rejects(resolveParams(nav, run), /no attachment titled nope.pdf/)
+})
+test('a messageID on an older page is found', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'paged', title: 'old.pdf'}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {m: 2})
+})
+test('a messageID ref without a title is refused', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {m: {ref: 'messageID' as const, channel: 'other'}}}}
+  await assert.rejects(resolveParams(nav, run), /needs the title/)
 })
