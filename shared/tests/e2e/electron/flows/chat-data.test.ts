@@ -390,7 +390,15 @@ test.describe('account switch', () => {
   // - "getUsernameToShow: message with no author" (separator-utils), logged in bursts as a thread
   //   loads. It shows up without any switch too (the composer flows' self conversation), and could
   //   not be pinned to a step; it is reported separately rather than failed here.
-  const notFromTheSwitch = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
+  // - Chromium's own line for an attachment preview the local attachment server would not serve: the
+  //   account switched to draws the thread from its local copy first, which can still hold a message
+  //   deleted while it was signed out, until the server's copy replaces it. The app hides a preview
+  //   that fails to load (attachment/image/imageimpl.tsx); the line itself cannot be suppressed.
+  const notFromTheSwitch = [
+    /refreshAccounts|ignorePromise error/,
+    /getUsernameToShow: message with no author/,
+    /^Failed to load resource: the server responded with a status of \d+ .* \[http:\/\/127\.0\.0\.1:\d+\/at\]$/,
+  ]
 
 
   test.afterEach(async ({page}) => {
