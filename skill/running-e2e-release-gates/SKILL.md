@@ -39,7 +39,7 @@ The desktop and iOS gates each run preflight → launch → sweep → flows → 
 
 ## iOS: `yarn test:e2e:ios:release` (only after desktop has exited)
 
-1. Boot the sim with a visible window: `xcrun simctl boot iPhoneTest; open -a Simulator`. A hidden simulator renders throttled.
+1. Boot the sim with a visible window: `xcrun simctl boot iPhoneTest; open -a DeviceHub`. A hidden simulator renders throttled. Xcode 27 replaced Simulator.app with DeviceHub.app (`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`); a missing Simulator.app is not a broken install.
 2. The installed app must be a **signed** dev build. Never `simctl install` an unsigned (`CODE_SIGNING_ALLOWED=NO`) build: it logs the sim out.
 3. If `simctl` hangs, check `pgrep -fl runFirstLaunch`. If it's waiting, ask the owner to run `! sudo xcodebuild -runFirstLaunch`. After any Xcode update, run `killall -9 com.apple.CoreSimulator.CoreSimulatorService` and reboot the sim.
 4. `KB_E2E_NO_OPEN=1 yarn test:e2e:ios:release > <scratchpad>/ios-release.log 2>&1` with `run_in_background`.

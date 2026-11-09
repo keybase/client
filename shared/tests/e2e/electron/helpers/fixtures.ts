@@ -1,17 +1,17 @@
 import {test as base, type ConsoleMessage, type Page, type WorkerInfo} from '@playwright/test'
 import * as fs from 'fs'
-import * as os from 'os'
 import {appLogPath} from '../app-log'
 import {checkRendererAfterReload, connectToElectron} from './connect'
 import {closeMainInspector, restoreMainProcessStubs} from './main-process'
 import {closeOrphanTrackerWindows} from './windows'
-import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
+import {loadE2EAccounts, mainServiceLog} from '@/tests/e2e/accounts/env'
 import {ensureChatData} from '@/tests/e2e/shared/chat-data'
+import {copyLogWindow} from '@/tests/e2e/shared/gate/log-window'
 import {requireMainIsSmoke} from '@/tests/e2e/shared/peer-service'
 import {mergeRecordings, startRecorder, takeKept, takeRecorder, type Recording} from '@/tests/e2e/shared/recorder'
 
 type WorkerFixtures = {_electronPage: Page; _mainInspector: undefined}
-type TestFixtures = {_mainIsSmoke: undefined; _mainProcess: undefined; _coverage: undefined; _rendererErrors: undefined; page: Page}
+type TestFixtures = {_mainIsSmoke: undefined; _mainProcess: undefined; _coverage: undefined; _rendererErrors: undefined; _serviceLog: undefined; page: Page}
 
 // Uncaught renderer errors that are known noise, not app failures. Each entry says why; keep the
 // list short and the patterns narrow. A match is still attached to the results, just not failed.
@@ -45,7 +45,17 @@ function logTail(file: string, lines: number): string {
   }
 }
 
-const serviceLogPath = () => process.env['KB_E2E_SERVICE_LOG'] ?? `${os.homedir()}/Library/Logs/keybase.service.log`
+// Read only for a failed test, which an unreadable env file must not fail a second time
+const serviceLogPath = () => {
+  try {
+    return mainServiceLog()
+  } catch (e) {
+    return `(the e2e env names no service log: ${e instanceof Error ? e.message : String(e)})`
+  }
+}
+
+// The service logs about 1MB a second under the flows, so a failure keeps at most this much of it
+const serviceLogWindowMs = 120_000
 
 // After a reload the app loads the module that installs the recorder (main2.desktop.tsx) only once
 // its entry has run, so the new page is given until the recorder appears.
@@ -159,6 +169,24 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       await testInfo.attach('coverage.json', {body: JSON.stringify(coverage, null, 2), contentType: 'application/json'})
       // a test that failed already has its reason; a passing one fails for the missing record
       if (error && testInfo.status === testInfo.expectedStatus) throw new Error(`coverage not recorded: ${error}`)
+    },
+    {auto: true},
+  ],
+
+  // A failed test keeps the service log it ran under (service.log beside its screenshot): the service
+  // rotates its log away within minutes, long before anyone reads the failure.
+  _serviceLog: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, setup, testInfo) => {
+      const started = Date.now()
+      await setup(undefined)
+      if (testInfo.status === testInfo.expectedStatus) return
+      const ended = Date.now()
+      const dest = testInfo.outputPath('service.log')
+      const got = await copyLogWindow(serviceLogPath(), Math.max(started, ended - serviceLogWindowMs), ended, dest)
+      // named, not attached: the html report would copy the whole file into itself
+      const from = got.files.length ? got.files.join(', ') : `nothing at ${serviceLogPath()}`
+      await testInfo.attach('service-log', {body: `${dest}: ${got.lines} lines from ${from}`, contentType: 'text/plain'})
     },
     {auto: true},
   ],

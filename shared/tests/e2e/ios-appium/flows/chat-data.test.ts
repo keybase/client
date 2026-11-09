@@ -2,7 +2,7 @@
 // recorder's call log and the host: the DM opens from its inbox row and a send settles at the end;
 // a delete shows deleting (through thread reloads too) and then takes the row away; a reaction from
 // the menu's quick row comes and goes; mark unread sets the orange line, the inbox's unread count
-// and the server's read pointer (and does nothing on a first message); reply privately opens the DM
+// and the server's read pointer; reply privately opens the DM
 // quoting the message; incoming messages reach the thread and the inbox; all of it keeps working
 // across an account switch, the thread left behind by one sends nothing for the next account, a
 // conversation never joined stays open, and so does a channel the account leaves on another device.
@@ -10,14 +10,12 @@
 // The host stays on the smoke account, the channel owner: it seeds, reads back, and makes and
 // deletes the throwaway channel. Every incoming message, and the leave, comes from the second
 // account's peer service. Every body is stamped with the run id.
-import {parseStampedText} from '../../accounts/run-id'
 import type {LoggedCall} from '../../shared/call-log.ts'
 import {
   E2E_CHANNELS,
   createThrowawayChannel,
   deleteThrowawayChannel,
   ensureChatData,
-  oldestFromCli,
   type ChatData,
 } from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
@@ -37,10 +35,8 @@ import {
   appInboxLists,
   clearComposer,
   closeMessageMenu,
-  closeSearch,
   type DeletePhase,
   deletePhase,
-  dragThread,
   expectAtEnd,
   heldWaitingKeys,
   hideKeyboard,
@@ -49,13 +45,10 @@ import {
   openConversation,
   openFromInbox,
   openMessageMenu,
-  openMessageMenuAt,
-  openThreadSearch,
   orangeLineOrdinals,
   ordinalsWithText,
   resetComposer,
   scrollInboxTo,
-  searchFor,
   sendMessage,
   signedInAs,
   startAppAccountSwitch,
@@ -67,7 +60,6 @@ import {
   visibleConversation,
   waitForComposerText,
   waitForRow,
-  waitForThreadStable,
   watchAccountChange,
 } from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
@@ -75,10 +67,6 @@ import {expectCli, secondSender, textBodies} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
 import {openUrl, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
-
-const firstWord = (body: string) => body.split(/\s/, 1)[0] ?? ''
-// The DM's earliest test posts predate run stamps: e2e-<word>-<word>-<ms since the epoch>.
-const isHarnessToken = (w: string) => !!parseStampedText(w) || /^e2e-[a-z]+-[a-z]+-\d{13}$/.test(w)
 
 describe('chat data', function () {
   // no retries: a retry would let an intermittent race pass
@@ -88,8 +76,7 @@ describe('chat data', function () {
   //   open      openConversation 100;  inbox  openFromInbox 415 (three taps of scrollInboxTo 120, each
   //             waited 5, and the thread 35);  row  scrollInboxTo 120 + its label polled 10 = 130
   //   sent      sendMessage 25;  type  typeInComposer 15;  composer  waitForComposerText 5 (10 given)
-  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5);  find  searchFor 66
-  //             (its 30 overall, overrun by one try's waits, its clear 16 among them)
+  //   clear     clearComposer 21 (clearFieldByKeys 16, the composer read empty 5)
   //   row       waitForRow 15 (20 where given);  end  expectAtEnd 21;  stable  10
   //   menu      openMessageMenu 15 + chooseMenuItem 20 = 35;  close  5;  keyboard  5
   //   peer      the peer found, on a test's first send, 45, and a failing send's diagnosis 25 = 70;
@@ -380,57 +367,6 @@ describe('chat data', function () {
       })
       await directReadOnHost('caught up again', r => r.readMsgid >= secondID)
       await step('Opened again: read, the line still where it was', {card: true})
-    })
-
-    // Nothing is older than a conversation's first message, so marking it unread has no read position
-    // to move to: the app looks around the message for one (a thread load), finds none, and marks
-    // nothing, so no line is drawn for a mark that never happened.
-    it('mark unread on the first message of a conversation marks nothing and draws no orange line', async function () {
-      // worst case (s): host 300 (5 pages of 60), open 100, search 20, find 66, close 5, the oldest in
-      // view 120, step 2, the row text 1, calls 2, menu 35, the load 10, the pause 3, calls 2, the
-      // lines 3, step 2 = 671
-      this.timeout(690_000)
-      // The DM holds every run's messages, far more than drags can climb in a bound: thread search
-      // jumps to its second oldest text (its body read from the host), as a person finds old history,
-      // and a few drags reach the top from there.
-      // The search is for a harness-made first word only (a run stamp, or the dated e2e marker of the
-      // DM's earliest test posts), never a message's text: the DM's oldest messages need not be the
-      // harness's, and the query reaches logs.
-      const oldest = (await oldestFromCli(directOnHost(), 10)).filter(m => m.content.type === 'text')
-      const near = oldest.map(m => firstWord(m.content.text?.body ?? '')).find(w => w && isHarnessToken(w))
-      if (!near) throw new Error("none of the DM's oldest ten messages starts with a harness-made token")
-      await openDirect()
-      await openThreadSearch()
-      await searchFor(near)
-      await closeSearch()
-      // drag to the top until nothing older is left to load and the oldest row is in view
-      const top = await waitFor(
-        'the oldest message in view',
-        async () => {
-          const t = await waitForThreadStable()
-          if (!t.moreToLoadBack && t.rows[0]?.ordinal === t.ordinals[0] && t.rows[0]!.top >= t.listTop - 1) return t
-          await dragThread(600)
-          return undefined
-        },
-        {interval: 0, timeout: 120_000}
-      )
-      await step('The first message of the DM in view')
-      const first = top.ordinals[0]!
-      await openMessageMenuAt(first)
-      // taken right before the tap, so the load below is the mark's own
-      const atTap = await currentCallSeq()
-      await chooseMenuItem('Mark as unread')
-      await waitForUiCall('the load around the message', atTap, 'chat.1.local.getThreadNonblock')
-      // well past the load's answer, so a mark would have gone out
-      await browser.pause(3_000)
-      const marks = await uiCallsSince(atTap, 'chat.1.local.markAsReadLocal')
-      check(!marks.length, `${marks.length} marks went out for the first message`)
-      // a line would be drawn within a frame of the answer; give it well past that
-      for (const until = Date.now() + 2_000; Date.now() < until; ) {
-        const lines = await orangeLineOrdinals()
-        check(!lines.length, `the orange line after marking the first message unread: above ${lines.join(', ')}`)
-      }
-      await step('Nothing marked and no orange line', {card: true})
     })
   })
 

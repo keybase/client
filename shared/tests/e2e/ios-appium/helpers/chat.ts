@@ -1000,20 +1000,6 @@ export const openMessageMenu = async (text: string) => {
   })
 }
 
-// Long-presses the drawn row at `ordinal` (at its middle, read afresh each try) to open its menu, for
-// a message whose text must stay out of selectors, logs and errors.
-export const openMessageMenuAt = async (ordinal: number) => {
-  await openSheetWith(`the menu of the message at ${ordinal}`, async () => {
-    const r = rowOf(await requireThread(), ordinal)
-    if (!r) throw new Error(`row ${ordinal} is not drawn`)
-    // on its last line, the message's body: a row that opens a run of messages draws its author line
-    // above, outside the long-pressable body
-    const {width} = await browser.getWindowRect()
-    const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
-    await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
-  })
-}
-
 // The row showing `text` in the thread list (rows expose their text as their accessibility name;
 // the reply bar and the composer can quote the same text), and its middle in window points.
 export const rowElement = (text: string) =>
