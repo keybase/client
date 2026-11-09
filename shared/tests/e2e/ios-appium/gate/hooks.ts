@@ -30,6 +30,7 @@ import {relaunchHungApp} from './device.ts'
 import {finishAttempt} from './finish.ts'
 import {APP_POISON, gatePoisoned, isGatePoisonedBy, poisonCheckedFirst, poisonGate, requireGateNotPoisoned} from './poison-lib.ts'
 import {bailEverySuite, makeFailureStreak, maxConsecutiveFailures} from './run-stop-lib.ts'
+import {timedStep} from '../../shared/gate/timing.ts'
 import {loadE2EAccounts} from '../../accounts/env'
 import {withDeadline} from '../../shared/deadline.ts'
 import {hookFailure, mochaGrep, testFileFromStack, timeoutMessage, unranTests} from './results-lib.ts'
@@ -276,15 +277,15 @@ plain.beforeEach(
     // The app went away after the root afterEach saw it (a flow's after or before hook): it is brought
     // back before this test's hooks drive it. A recovery that fails poisons the gate (crash.ts), so this
     // test and every later one is refused with why.
-    const gone = await recoverGoneApp()
+    const gone = await timedStep('gate: before, the app gone check', async () => recoverGoneApp())
     if (gone) recordRunError(`before "${test.fullTitle()}": ${gone}`)
-    await backOnSmoke(test.fullTitle())
+    await timedStep('gate: before, the account check', async () => backOnSmoke(test.fullTitle()))
     // A poisoned gate refuses this test (below) and every later one: the run stops after this one
     // instead of refusing each in turn.
     const poisoned = gatePoisoned()
     if (poisoned) stopRun(test, poisoned)
     const retry = (test as unknown as {currentRetry: () => number}).currentRetry()
-    const token = beginAttempt(flowFileOf(test), test.titlePath(), retry)
+    const token = await timedStep('gate: before, the attempt record', () => beginAttempt(flowFileOf(test), test.titlePath(), retry))
     attempts.set(test, token)
     // wdio's afterTest (wdio.gate.conf.ts) cannot change a result, so a body that passed is failed
     // here when the attempt's record says it failed (a passing test whose coverage was not recorded).
@@ -383,21 +384,21 @@ plain.afterEach(
     // a body mocha timed out is still running and never stopped its watch, and a relaunch the watch
     // started may still be running
     stopHangWatch()
-    await settleHangRelaunch()
+    await timedStep('gate: after, a hang relaunch settled', async () => settleHangRelaunch())
     const test = this.currentTest
     const token = test && attempts.get(test)
     // An app gone now went away during this test where its body's own check did not see it (mocha
     // timed the body out, or a flow afterEach): it is brought back, inside the attempt while that is
     // open, and the test fails of it. A recovery that fails poisons the gate (crash.ts), so every later
     // test is refused with why.
-    const gone = await recoverGoneApp(token)
+    const gone = await timedStep('gate: after, the app gone check', async () => recoverGoneApp(token))
     if (!test || !token) return
     // What an ended body's cleanup left runs on the app brought back, never on one the gate could not.
     const left = takeLeftCleanup(token)
-    const cleanupError = left && !isGatePoisonedBy(APP_POISON) ? await runLeftCleanup(token, left) : undefined
+    const cleanupError = left && !isGatePoisonedBy(APP_POISON) ? await timedStep('gate: after, left cleanup', async () => runLeftCleanup(token, left)) : undefined
     // the next test refuses on its own (requireAppIsSmoke) when the app is not back on smoke
     if (cleanupError) recordRunError(`${test.fullTitle()}: ${cleanupError}`)
-    await endTheAttempt(test, token, gone, cleanupError)
+    await timedStep('gate: after, the attempt ended', async () => endTheAttempt(test, token, gone, cleanupError))
     // a failed attempt mocha retries is not the test's result yet
     const failed = endedRecord(token)?.status === 'failed'
     const retried = (test as unknown as {currentRetry: () => number}).currentRetry() < test.retries()

@@ -758,8 +758,9 @@ export const retryTransient = async <R,>(f: () => Promise<R>, doneRe?: RegExp): 
 
 // A subteam of the e2e team for one run's flows, `<KB_E2E_TEAM>.<stampedTeamName(label)>` (so the
 // label is at most 7 characters), created by the CLI's account, which must be the smoke account (a team
-// admin), and joined by it as an admin: its creator is otherwise only an implicit admin, outside
-// its channels.
+// admin), and kept in it as an admin: its creator is otherwise only an implicit admin, outside its
+// channels. The create keeps the creator in (--join-subteam, as a writer), as leaving and joining again
+// costs ~5s of every subteam.
 // Returns its name and its general channel's id. Throws when it already exists; a subteam it made
 // but could not finish setting up is deleted again before it throws.
 export const createThrowawaySubteam = async (label: string) => {
@@ -767,9 +768,9 @@ export const createThrowawaySubteam = async (label: string) => {
   const part = stampedTeamName(label, currentRunId())
   const name = `${team}.${part}`
   // a create the server answered with a gateway error can still have happened
-  await retryTransient(async () => cli(['team', 'create', name]), /already exists|name is taken/i)
+  await retryTransient(async () => cli(['team', 'create', '--join-subteam', name]), /already exists|name is taken/i)
   try {
-    await retryTransient(async () => cli(['team', 'add-member', name, `--user=${smokeUser}`, '--role=admin']), /already a member/i)
+    await retryTransient(async () => cli(['team', 'edit-member', name, `--user=${smokeUser}`, '--role=admin']))
     // a small team's only channel has no topic name; a new team's channel can take a few seconds
     // to be listed
     const generalConvID = await withApi(async api => {

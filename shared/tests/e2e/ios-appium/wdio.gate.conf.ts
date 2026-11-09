@@ -28,7 +28,7 @@ import {
   watchEnvSecrets,
   type SecretWatch,
 } from '../shared/gate/secret-scan'
-import {harnessSite, timingOn, writeTiming} from '../shared/gate/timing.ts'
+import {harnessSite, timedStep, timingOn, writeTiming} from '../shared/gate/timing.ts'
 
 const PROJECT = 'ios-flows'
 
@@ -125,7 +125,7 @@ export const config: WebdriverIO.Config = {
       rec.captureError = `starting the error capture: ${message(e)}`
     })
     const r = new PhoneRecording()
-    await r.begin().then(
+    await timedStep('gate: beforeTest, the recording begun', async () => r.begin()).then(
       () => {
         rec.recording = r
       },
@@ -145,7 +145,7 @@ export const config: WebdriverIO.Config = {
   // capture runs as a hook, bound to the attempt but to no body.
   afterTest: async (test, _context, result: TestResult) => {
     const token = leaveBody()
-    await runAttempt(token, async () => finishAttempt(result))
+    await timedStep('gate: afterTest, the attempt finished', async () => runAttempt(token, async () => finishAttempt(result)))
     writeTiming({end: Date.now(), kind: 'test', name: [test.parent, test.title].filter(Boolean).join(' > '), start: testStart, status: result.passed ? 'passed' : 'failed'})
   },
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async

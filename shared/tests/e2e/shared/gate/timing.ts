@@ -57,3 +57,15 @@ export const timedEval = async <R,>(name: string, f: () => Promise<R>): Promise<
     writeTiming({end: Date.now(), kind: 'eval', name, site, start})
   }
 }
+
+// Runs `f`, written as a command event named `name` with no site: a harness step that issues no
+// WebDriver command of its own (a hook's bookkeeping, a file scan), which would otherwise read as idle.
+export const timedStep = async <R,>(name: string, f: () => Promise<R> | R): Promise<R> => {
+  if (!timingOn()) return f()
+  const start = Date.now()
+  try {
+    return await f()
+  } finally {
+    writeTiming({end: Date.now(), kind: 'command', name, site: '', start})
+  }
+}
