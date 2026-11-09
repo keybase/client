@@ -8,10 +8,14 @@ import {
   useConversationThreadJumpToRecent,
   useConversationThreadLoadMessagesCentered,
   useConversationThreadSetMarkReadBlocked,
+  useConversationThreadStore,
 } from './thread-context'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined
+  // Bumped when the centre is asked for again with its row loaded, which reloads nothing: the lists
+  // centre it again on their own.
+  recenterVersion: number
   threadSearchVisible: boolean
 }
 
@@ -19,6 +23,7 @@ type CenterStateContextType = {
   centeredHighlightOrdinal: T.Chat.Ordinal | undefined
   centeredOrdinal: T.Chat.Ordinal | undefined
   hasCenter: boolean
+  recenterVersion: number
 }
 
 type CenterActionsContextType = {
@@ -38,6 +43,7 @@ const CenterStateContext = React.createContext<CenterStateContextType>({
   centeredHighlightOrdinal: undefined,
   centeredOrdinal: undefined,
   hasCenter: false,
+  recenterVersion: 0,
 })
 CenterStateContext.displayName = 'ConversationCenterStateContext'
 
@@ -80,8 +86,10 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
   const jumpToRecentThread = useConversationThreadJumpToRecent()
   const setMarkReadBlocked = useConversationThreadSetMarkReadBlocked()
+  const threadStore = useConversationThreadStore()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
     center: undefined,
+    recenterVersion: 0,
     threadSearchVisible,
   }))
 
@@ -91,6 +99,12 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   if (currentCenterState !== centerState) {
     setCenterState(currentCenterState)
   }
+  // Read when a centre is asked for: callers may hold a centerOnMessage from an earlier render (search
+  // keeps the one it first got).
+  const centerRef = React.useRef(currentCenterState.center)
+  React.useLayoutEffect(() => {
+    centerRef.current = currentCenterState.center
+  }, [currentCenterState.center])
 
   const setCenterForMessage = (
     messageID: T.Chat.MessageID,
@@ -113,6 +127,20 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   }
 
   const centerOnMessage = (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => {
+    const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
+    // The centre asked for again (a search selects its first hit itself, and the reader then clicks
+    // it) with its row loaded: reloading would clear the thread and rebuild every row, replaying the
+    // highlight as the hit's row is rebuilt. The lists centre it again on their own.
+    const {messageOrdinals} = threadStore.getState()
+    if (centerRef.current?.ordinal === ordinal && messageOrdinals?.includes(ordinal)) {
+      setCenterState(state =>
+        produce(stateForThreadSearchVisible(state, threadSearchVisible), draft => {
+          draft.center = {highlightMode, ordinal}
+          draft.recenterVersion++
+        })
+      )
+      return
+    }
     setCenterForMessage(messageID, highlightMode)
     loadMessagesCentered(messageID, highlightMode, {
       ...getThreadLoadStatusOptions(),
@@ -157,6 +185,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     centeredHighlightOrdinal,
     centeredOrdinal: center?.ordinal,
     hasCenter: !!center,
+    recenterVersion: currentCenterState.recenterVersion,
   }
   const actionsValue = {
     centerOnMessage,

@@ -67,10 +67,11 @@ export const useDesktopThreadScroll = (p: {
   listRef: React.RefObject<LegendListRef | null>
   loaded: boolean
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
+  recenterVersion: number
   wrapperRef: React.RefObject<HTMLDivElement | null>
 }) => {
   const {centeredOrdinal, containsLatestMessage, datasetKey, editingOrdinal} = p
-  const {listRef, loaded, messageOrdinals, wrapperRef} = p
+  const {listRef, loaded, messageOrdinals, recenterVersion, wrapperRef} = p
 
   // The list's scrolling element, whether or not its content overflows it.
   const scrollerOf = React.useCallback(
@@ -231,6 +232,19 @@ export const useDesktopThreadScroll = (p: {
       type: 'threadObserved',
     })
   }, [centeredOrdinal, containsLatestMessage, dispatch, isScrolledToEnd, loaded, messageOrdinals])
+
+  // Compared by value, as datasetKey is: a re-mount under Activity re-runs this with nothing asked.
+  const recenterRef = React.useRef(recenterVersion)
+  React.useEffect(() => {
+    if (recenterRef.current === recenterVersion) return
+    recenterRef.current = recenterVersion
+    if (centeredOrdinal === undefined) return
+    dispatch({
+      ordinal: centeredOrdinal,
+      targetInData: indexOfOrdinal(messageOrdinals, centeredOrdinal) >= 0,
+      type: 'recenterRequested',
+    })
+  }, [centeredOrdinal, dispatch, messageOrdinals, recenterVersion])
 
   // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
   // schedules, and a target still settling is centred afresh if the list comes back.

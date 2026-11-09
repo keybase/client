@@ -234,7 +234,12 @@ describe('useCatchUp', () => {
       seen?.onCatchUp()
     })
     await flush()
-    expect(seenCenter).toEqual({centeredHighlightOrdinal: undefined, centeredOrdinal: ord(10), hasCenter: true})
+    expect(seenCenter).toEqual({
+      centeredHighlightOrdinal: undefined,
+      centeredOrdinal: ord(10),
+      hasCenter: true,
+      recenterVersion: 0,
+    })
     expect(loads).toHaveLength(1)
     const params = loads[0]?.params as {query?: {messageIDControl?: {pivot?: number}}} | undefined
     expect(params?.query?.messageIDControl?.pivot).toBe(10)

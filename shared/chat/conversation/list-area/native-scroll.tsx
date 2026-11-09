@@ -96,10 +96,11 @@ export const useNativeThreadScroll = (p: {
   loadNewer: () => void
   loadOlder: () => void
   loaded: boolean
+  recenterVersion: number
 }) => {
   const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
   const {clearCenter, isKeyboardVisible, loadNewer, loadOlder} = p
-  const {listRef, loaded, messageOrdinals} = p
+  const {listRef, loaded, messageOrdinals, recenterVersion} = p
   const numOrdinals = messageOrdinals.length
 
   const {bottomInset, keyboardHeight} = useComposerAnchor()
@@ -397,6 +398,19 @@ export const useNativeThreadScroll = (p: {
     })
   }, [atEnd, centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
 
+  // Compared by value, as datasetKey is: a freeze/thaw re-mount re-runs this with nothing asked.
+  const recenterRef = React.useRef(recenterVersion)
+  React.useLayoutEffect(() => {
+    if (recenterRef.current === recenterVersion) return
+    recenterRef.current = recenterVersion
+    if (centeredOrdinal === undefined) return
+    dispatch({
+      ordinal: centeredOrdinal,
+      targetInData: indexOfOrdinalNewestFirst(messageOrdinals, centeredOrdinal) >= 0,
+      type: 'recenterRequested',
+    })
+  }, [centeredOrdinal, dispatch, messageOrdinals, recenterVersion])
+
   // Measured against the part of the list nothing covers, not the list's own viewability, which
   // measures against the whole scroll view, covered or not.
   const [rowFullyVisible] = React.useState(() => (ordinal: T.Chat.Ordinal) => {
@@ -541,16 +555,16 @@ export const useNativeThreadScroll = (p: {
   }, [containsLatestMessage])
   const nextLoadRef = React.useRef({newer: 0, older: 0})
   const readerMovedSinceCentreRef = React.useRef(true)
-  // A centre set, or reloaded as a fresh window (a search for the same hit again). Compared by value,
+  // A centre set, reloaded as a fresh window, or asked for again with its row loaded. Compared by value,
   // so a freeze/thaw re-mount, which re-runs this with nothing changed, does not make the reader
   // move the list again.
   const centreKeyRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
-    const key = centeredOrdinal === undefined ? undefined : `${centeredOrdinal}:${datasetKey}`
+    const key = centeredOrdinal === undefined ? undefined : `${centeredOrdinal}:${datasetKey}:${recenterVersion}`
     if (key === centreKeyRef.current) return
     centreKeyRef.current = key
     if (key !== undefined) readerMovedSinceCentreRef.current = false
-  }, [centeredOrdinal, datasetKey])
+  }, [centeredOrdinal, datasetKey, recenterVersion])
   // A reader who scrolled from a centred row on to the present is done with it: the centre would keep
   // the end anchor off, and new messages would no longer come into view. Two ways on to the present:
   // newer pages bringing the newest message into the window (the first effect, run as the window

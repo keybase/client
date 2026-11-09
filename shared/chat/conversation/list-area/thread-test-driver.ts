@@ -73,6 +73,11 @@ export const makeScrollDriver = () => {
   return {
     // Centre context and thread together, as the app moves them.
     centreOn: (n: T.Chat.Ordinal) => commit(threadTransitions.cleared(thread), n),
+    // The centre asked for again while its row is loaded, which reloads nothing.
+    recentre: () => {
+      if (centre === undefined) return
+      send({ordinal: centre, targetInData: !!thread.messageOrdinals?.includes(centre), type: 'recenterRequested'})
+    },
     // atNewest: the list rests at its end with the newest message loaded as the centre clears.
     clearCentre: (atNewest = false) => commit(thread, undefined, atNewest),
     jumpToRecent: () => commit(threadTransitions.cleared(thread), undefined),

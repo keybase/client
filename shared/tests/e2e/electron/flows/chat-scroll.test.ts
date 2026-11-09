@@ -142,6 +142,54 @@ const searchAndSelect = async (page: Page, token: string, marker: string) => {
   return waitForRow(page, marker)
 }
 
+// Records each start and end of a row's highlight fade, and each time a highlighted row is put into
+// the list (mounted, or moved by the list), against the row element, so a move (the same element) is
+// told from a rebuild (a new one).
+type HighlightEvent = {el: number; kind: string; ordinal: string | null}
+const recordHighlights = async (page: Page) =>
+  page.getByTestId(T.CHAT_MESSAGE_LIST).evaluate(node => {
+    type El = {getAttribute: (n: string) => string | null; querySelectorAll: (s: string) => ArrayLike<El>}
+    type Ev = {animationName: string; target: El}
+    type Rec = {addedNodes: ArrayLike<unknown>}
+    const g = globalThis as unknown as {
+      MutationObserver: new (f: (rs: Array<Rec>) => void) => {observe: (n: unknown, o: object) => void}
+      __e2eHighlight: Array<{el: number; kind: string; ordinal: string | null}>
+    }
+    const events: typeof g.__e2eHighlight = []
+    g.__e2eHighlight = events
+    const ids = new WeakMap<object, number>()
+    let nextId = 0
+    const idOf = (el: object) => {
+      let id = ids.get(el)
+      if (id === undefined) {
+        id = ++nextId
+        ids.set(el, id)
+      }
+      return id
+    }
+    const list = node as unknown as {addEventListener: (t: string, f: (e: Ev) => void, c: boolean) => void}
+    const record = (kind: string) => (e: Ev) => {
+      if (e.animationName !== 'highlightAnimation') return
+      events.push({el: idOf(e.target), kind, ordinal: e.target.getAttribute('data-ordinal')})
+    }
+    list.addEventListener('animationstart', record('start'), true)
+    list.addEventListener('animationend', record('end'), true)
+    new g.MutationObserver(rs => {
+      for (const r of rs) {
+        for (const added of Array.from(r.addedNodes) as Array<El>) {
+          if (typeof added.querySelectorAll !== 'function') continue
+          for (const row of Array.from(added.querySelectorAll('.highlighted[data-ordinal]'))) {
+            events.push({el: idOf(row), kind: 'move', ordinal: row.getAttribute('data-ordinal')})
+          }
+        }
+      }
+    }).observe(node, {childList: true, subtree: true})
+  })
+const allHighlights = async (page: Page) =>
+  page.evaluate(() => (globalThis as unknown as {__e2eHighlight: Array<HighlightEvent>}).__e2eHighlight)
+const highlightsOf = async (page: Page, ordinal: number) =>
+  (await allHighlights(page)).filter(e => e.ordinal === String(ordinal))
+
 const expectCentred = async (page: Page, ordinal: number) => {
   await expect
     .poll(async () => (await isOrdinalCentred(page, ordinal, centreTolerancePx)).offset, {timeout: 10_000})
@@ -325,6 +373,82 @@ test.describe('search', () => {
 
     await selectHit(page, 0)
     await expectCentred(page, ordinal)
+    await closeSearch(page)
+  })
+
+  // Clicking the hit the search selected by itself centres it where it already is: nothing reloads,
+  // so its row is never rebuilt and its highlight fades in once.
+  test('clicking the hit the search already selected flashes it once and reloads nothing', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    await recordHighlights(page)
+    const {index, token} = LONG_SEARCH_TOKENS.middle
+    await openThreadSearch(page)
+    expect(await searchFor(page, token)).toHaveLength(1)
+    // the search selects its first hit itself
+    const ordinal = await waitForRow(page, longMarker(index))
+    await expectCentred(page, ordinal)
+    await selectHit(page, 0)
+    await page.waitForTimeout(1_500)
+    await expectCentred(page, ordinal)
+    const events = await highlightsOf(page, ordinal)
+    const summary = events.map(e => `${e.kind}#${e.el}`).join(' ')
+    expect(events.filter(e => e.kind === 'start'), `the highlight played again: ${summary}`).toHaveLength(1)
+    expect(new Set(events.map(e => e.el)).size, `the hit's row was rebuilt: ${summary}`).toBe(1)
+    await closeSearch(page)
+  })
+
+  // The list moves row elements in the DOM to keep DOM order matching visual order. Moving a row
+  // whose highlight fade has played must not replay it: that reads as a yellow blink on the hit.
+  test('a hit row the list moves does not replay its highlight', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    await recordHighlights(page)
+    const {index, token} = LONG_SEARCH_TOKENS.middle
+    const ordinal = await searchAndSelect(page, token, longMarker(index))
+    await expectCentred(page, ordinal)
+
+    const read = async () => highlightsOf(page, ordinal)
+    // What happened to rows whose fade had already played: moved, and replayed.
+    const afterFade = (events: ReadonlyArray<HighlightEvent>) => {
+      const played = new Set<number>()
+      let moved = 0
+      let replayed = 0
+      for (const e of events) {
+        if (e.kind === 'end') played.add(e.el)
+        else if (played.has(e.el) && e.kind === 'move') moved++
+        else if (played.has(e.el) && e.kind === 'start') replayed++
+      }
+      return {moved, replayed}
+    }
+    await expect.poll(async () => (await read()).some(e => e.kind === 'end'), {timeout: 5_000}).toBe(true)
+
+    // Ordinary scrolling seldom moves the hit's own row: the list keeps the longest run of rows already
+    // in order where it is and moves the rest. So put the hit's row out of order (moveBefore, which
+    // keeps its animation state), then let the list's own reorder, after a scroll, move it back.
+    await rowByOrdinal(page, ordinal).evaluate(async node => {
+      type Box = {parentElement: Box | null; moveBefore: (n: Box, before: Box | null) => void}
+      const container = (node as unknown as Box).parentElement
+      container?.parentElement?.moveBefore(container, null)
+      // the observer records this move in a later task; the list's own moves come after the marker
+      await new Promise(resolve => setTimeout(resolve, 0))
+      ;(globalThis as unknown as {__e2eHighlight: Array<{kind: string}>}).__e2eHighlight.push({kind: 'displaced'})
+    })
+    const putBack = async () => {
+      const events = await allHighlights(page)
+      const displaced = events.findIndex(e => e.kind === 'displaced')
+      return events.slice(displaced + 1).some(e => e.kind === 'move' && e.ordinal === String(ordinal))
+    }
+    for (let i = 0; i < 6 && !(await putBack()); i++) {
+      await wheelThread(page, i % 2 ? 80 : -80)
+      await waitForScrollStable(page)
+      await page.waitForTimeout(700)
+    }
+    expect(await putBack(), "the list did not move the hit's row back into order").toBe(true)
+    await page.waitForTimeout(500)
+    const events = await read()
+    const {moved, replayed} = afterFade(events)
+    const summary = events.map(e => `${e.kind}#${e.el}`).join(' ')
+    expect(moved, `no move of the hit's row after its fade: ${summary}`).toBeGreaterThan(1)
+    expect(replayed, `a move replayed the highlight: ${summary}`).toBe(0)
     await closeSearch(page)
   })
 

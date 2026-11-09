@@ -14,7 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {navigationWrapper} from '@/test/navigation'
-import {ConversationCenterProvider, useConversationCenter} from './center-context'
+import {ConversationCenterProvider, useConversationCenter, useConversationCenterActions} from './center-context'
 import {ConversationThreadProvider, useConversationThreadActions} from './thread-context'
 import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
 import {closeConversationThreadSearch, toggleConversationThreadSearch} from './thread-navigation'
@@ -51,17 +51,24 @@ const pivots = async () => {
 
 let seenHighlightOrdinal: T.Chat.Ordinal | undefined
 let seenCenteredOrdinal: T.Chat.Ordinal | undefined
+let seenRecenterVersion: number | undefined
 let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
+// centerOnMessage as the first render gave it, held the way search holds it
+let firstCenterOnMessage: ReturnType<typeof useConversationCenterActions>['centerOnMessage'] | undefined
 
 const Probe = () => {
-  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {centeredHighlightOrdinal, centeredOrdinal, recenterVersion} = useConversationCenter()
   const actions = useConversationThreadActions()
+  const {centerOnMessage} = useConversationCenterActions()
+  const [firstCenter] = React.useState(() => centerOnMessage)
   // captured in an effect, not during render: assigning module state while rendering is the
   // side effect react-hooks/globals rejects
   React.useEffect(() => {
     seenHighlightOrdinal = centeredHighlightOrdinal
     seenCenteredOrdinal = centeredOrdinal
+    seenRecenterVersion = recenterVersion
     threadActions = actions
+    firstCenterOnMessage = firstCenter
   })
   return null
 }
@@ -148,7 +155,9 @@ beforeEach(() => {
   ])
   seenHighlightOrdinal = undefined
   seenCenteredOrdinal = undefined
+  seenRecenterVersion = undefined
   threadActions = undefined
+  firstCenterOnMessage = undefined
 })
 
 afterEach(() => {
@@ -207,6 +216,85 @@ test('jumping twice to the same message centers both times', async () => {
     expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
     expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
   ])
+})
+
+// A centred load around message n landing, as applyThreadLoad lands it.
+const landCentredLoad = (n: number) => {
+  act(() => {
+    threadActions?.applyThreadLoad({
+      centered: true,
+      enableActiveMarkRead: false,
+      fullPass: true,
+      messages: [
+        makeMessageText({
+          author: 'testuser2',
+          conversationIDKey: convX,
+          id: T.Chat.numberToMessageID(n),
+          ordinal: T.Chat.numberToOrdinal(n),
+          text: new HiddenString(`message ${n}`),
+        }),
+      ],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+}
+
+// Reloading would clear the thread and rebuild every row under it, the hit's highlight replaying as
+// its row is rebuilt: a search hit selected automatically and then clicked flashed twice.
+test('centring again on the centred message while it is loaded reloads nothing and asks the list to centre it', async () => {
+  renderTree()
+  act(() => {
+    setInputIntent(convX, highlight(11))
+  })
+  expect(await pivots()).toHaveLength(1)
+  landCentredLoad(11)
+  const before = seenRecenterVersion
+
+  act(() => {
+    setInputIntent(convX, highlight(11))
+  })
+
+  expect(await pivots()).toHaveLength(1)
+  expect(seenCenteredOrdinal).toBe(T.Chat.numberToOrdinal(11))
+  expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(11))
+  expect(seenRecenterVersion).toBe((before ?? 0) + 1)
+})
+
+test('a centerOnMessage held from the first render sees the centre as it is now', async () => {
+  renderTree()
+  act(() => {
+    firstCenterOnMessage?.(T.Chat.numberToMessageID(11), 'always')
+  })
+  landCentredLoad(11)
+  const before = seenRecenterVersion
+
+  act(() => {
+    firstCenterOnMessage?.(T.Chat.numberToMessageID(11), 'always')
+  })
+
+  expect(await pivots()).toHaveLength(1)
+  expect(seenRecenterVersion).toBe((before ?? 0) + 1)
+})
+
+test('centring on another message that is loaded still reloads around it', async () => {
+  renderTree()
+  act(() => {
+    setInputIntent(convX, highlight(11))
+  })
+  landCentredLoad(11)
+  landCentredLoad(12)
+  const before = seenRecenterVersion
+
+  act(() => {
+    setInputIntent(convX, highlight(12))
+  })
+
+  expect(await pivots()).toEqual([
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(12)}),
+  ])
+  expect(seenRecenterVersion).toBe(before)
 })
 
 // The two-consumer collision the store's `types` filter exists for.
