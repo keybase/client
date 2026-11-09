@@ -4,9 +4,11 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/util/fs-platform'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const InstallSecurityPrefs = () => {
   const styles = useStyles()
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const {driverStatus} = Kbfs.useSystemFileManagerIntegration()
   const onCancel = C.Router2.navigateUp
@@ -58,8 +60,8 @@ const InstallSecurityPrefs = () => {
             fullHeight={true}
             centerChildren={true}
           >
-            <Kb.ProgressIndicator type="Small" white={true} />
-            <Kb.Text type="BodySmall" negative={true}>
+            <Kb.ProgressIndicator type="Small" white={!isDarkMode} />
+            <Kb.Text type="BodySmall" style={styles.enablingText}>
               Checking ...
             </Kb.Text>
           </Kb.Box2>
@@ -76,6 +78,8 @@ const useStyles = Kb.Styles.createStyleHook(
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: theme.black_63,
       },
+      // bg is theme.black_63, which inverts in dark mode; desktop negative text is always white
+      enablingText: {color: theme.white},
       image: {maxWidth: '100%'},
       listText: {flexShrink: 1, paddingTop: 1},
       numberList: Kb.Styles.platformStyles({

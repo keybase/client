@@ -510,7 +510,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
         justifyContent="center"
       >
         {explodingModeSeconds ? (
-          <Kb.Text type="BodyTinyBold" negative={true}>
+          <Kb.Text type="BodyTinyBold" style={desktopStyles.explodingText}>
             {formatDurationShort(explodingModeSeconds * 1000)}
           </Kb.Text>
         ) : (
@@ -888,6 +888,8 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
         },
       }),
       explodingInsideWrapper: {height: 32},
+      // bg is theme.black, which inverts in dark mode; desktop negative text is always white
+      explodingText: {color: theme.white},
       footer: {
         alignSelf: 'flex-end',
         color: theme.black_20,

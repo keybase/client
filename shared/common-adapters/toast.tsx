@@ -4,9 +4,8 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import {AnchoredPopup} from './popup/anchored'
 import {Portal} from './portal'
-import {Animated as NativeAnimated, useColorScheme} from 'react-native'
+import {Animated as NativeAnimated} from 'react-native'
 import {linearEasing} from './native-easing'
-import {colors, darkColors} from '@/styles/colors'
 import './toast.css'
 import type {Position, StylesCrossPlatform} from '@/styles'
 import type {MeasureRef} from './measure-ref'
@@ -44,7 +43,6 @@ const Toast = (props: Props) => {
     shouldRender: visible,
     visible,
   }))
-  const isDarkMode = useColorScheme() === 'dark'
 
   let currentRenderState = renderState
   if (isMobile && currentRenderState.visible !== visible) {
@@ -159,9 +157,6 @@ const Toast = (props: Props) => {
           style={[
             Styles.collapseStyles([
               nativeStyles.container,
-              {
-                backgroundColor: isDarkMode ? darkColors.black : colors.black,
-              },
               props.containerStyle,
             ]),
             {opacity},
@@ -195,9 +190,10 @@ const useDesktopStyles = Styles.createStyleHook(theme => ({
   }),
 }))
 
-const useNativeStyles = Styles.createStyleHook(() => ({
+const useNativeStyles = Styles.createStyleHook(theme => ({
   container: {
     alignItems: 'center',
+    backgroundColor: theme.black,
     borderRadius: 140,
     borderWidth: 0,
     display: 'flex',

@@ -173,7 +173,7 @@ const CopyText = (props: Props) => {
       style={Styles.collapseStyles([styles.container, disabled && styles.containerDisabled, containerStyle])}
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
-        {isMobile && <Kb.Icon type="iconfont-clipboard" color={theme.whiteOrWhite} />}
+        {isMobile && <Kb.Icon type="iconfont-clipboard" color={theme.white} />}
         <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Kb.Text>

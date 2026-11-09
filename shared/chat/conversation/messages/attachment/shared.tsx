@@ -192,7 +192,7 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
       style={styles.transferring}
     >
       {isTransferring ? (
-        <Kb.Text type="BodySmall" negative={true}>
+        <Kb.Text type="BodySmall" style={styles.transferringText}>
           {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
         </Kb.Text>
       ) : null}
@@ -304,6 +304,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     position: 'absolute',
     top: Kb.Styles.globalMargins.tiny,
   },
+  // bg is theme.black_50, which inverts in dark mode; desktop negative text is always white
+  transferringText: {color: theme.white},
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {

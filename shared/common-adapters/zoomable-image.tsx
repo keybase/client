@@ -45,6 +45,7 @@ type WheelEvt = MouseEvt & {deltaY: number; cancelable: boolean; preventDefault:
 
 const DesktopZoomableImage = (p: Props) => {
   const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError, forceDims} = p
+  const styles = useStyles()
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
   const [showToast, setShowToast] = React.useState(false)
@@ -228,7 +229,7 @@ const DesktopZoomableImage = (p: Props) => {
         style={imgStyle}
       />
       <Toast visible={showToast} attachTo={containerRef as React.RefObject<never>}>
-        <Text type="Body" negative={true}>
+        <Text type="Body" style={styles.toastText}>
           Scroll to zoom. Move to pan
         </Text>
       </Toast>
@@ -349,12 +350,14 @@ const ZoomableImage = (p: Props) => {
 }
 
 const useStyles = Styles.createStyleHook(
-  () =>
+  theme =>
     ({
       container: {
         flexGrow: 1,
         overflow: 'hidden',
       },
+      // toast bg is theme.black, which inverts in dark mode; desktop negative text is always white
+      toastText: {color: theme.white},
     }) as const
 )
 
