@@ -8,6 +8,21 @@
     }
   }
 
+  /* Once the fade has played, swap to the static end state and drop the animation, so nothing can
+     restart it. Two things would: showing the chat tab again (it is display: none while another tab
+     is shown), and LegendList moving the row's container in the DOM to keep DOM order matching
+     visual order (it uses moveBefore, which keeps animation state, only where the browser has it). */
+  &.highlighted.highlight-settled {
+    &,
+    &:hover,
+    &.WrapperMessage-hoverColor,
+    &.WrapperMessage-hoverColor:hover {
+      animation: none;
+      background-color: var(--color-yellowOrYellowAlt);
+      border-radius: 4px;
+      box-shadow: 4px 4px 5px 1px rgb(0 0 0 / 38%);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {

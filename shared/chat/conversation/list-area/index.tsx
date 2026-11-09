@@ -10,7 +10,7 @@ import {MessageRow} from '../messages/wrapper'
 import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
-import {useConversationCenter, useConversationCenterActions} from '../center-context'
+import {useConversationCenter, useConversationCenterActions, useConversationRecenterVersion} from '../center-context'
 import {
   ShownUsernameCacheContext,
   useConversationThreadID,
@@ -155,6 +155,24 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
   const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
   const isHighlighted = centeredHighlightOrdinal === ordinal || isEditing
 
+  // Freeze the highlight into its end state once the fade has played, so it cannot restart (see
+  // .highlight-settled in conversation.css). Keyed on the highlighted ordinal because rows are
+  // recycled: the same node renders a different message over time.
+  const [settledFor, setSettledFor] = React.useState<T.Chat.Ordinal | undefined>(undefined)
+  const isSettled = isHighlighted && settledFor === ordinal
+  const onAnimationEnd = React.useCallback(
+    (e: React.AnimationEvent) => {
+      // animationend bubbles; only this row's own fade should freeze it.
+      if (e.animationName === 'highlightAnimation' && e.target === e.currentTarget) {
+        setSettledFor(ordinal)
+      }
+    },
+    [ordinal]
+  )
+  if (settledFor !== undefined && !isHighlighted) {
+    setSettledFor(undefined)
+  }
+
   // Defer hover-only UI (emoji row) until the pointer has entered this row. Keyed on the
   // ordinal because rows are recycled: a recycled row must not inherit the old hover.
   const [hoveredFor, setHoveredFor] = React.useState<T.Chat.Ordinal | undefined>(undefined)
@@ -168,6 +186,7 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
     <div
       ref={rowRef}
       data-ordinal={ordinal}
+      onAnimationEnd={onAnimationEnd}
       onMouseEnter={hovered ? undefined : () => setHoveredFor(ordinal)}
       className={Kb.Styles.classNames(
         'hover-container',
@@ -175,7 +194,7 @@ const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
         'WrapperMessage-hoverBox',
         'WrapperMessage-decorated',
         'WrapperMessage-hoverColor',
-        {highlighted: isHighlighted}
+        {highlighted: isHighlighted, 'highlight-settled': isSettled}
       )}
     >
       <RowHoveredContext value={hovered}>
@@ -192,7 +211,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const conversationIDKey = useConversationThreadID()
   const data = useThreadListData()
-  const {centeredOrdinal, recenterVersion} = useConversationCenter()
+  const {centeredOrdinal} = useConversationCenter()
+  const recenterVersion = useConversationRecenterVersion()
   const {clearVersion, containsLatestMessage, messageOrdinals, loaded} = data
 
   // Centered loads (search hit, reply-quote jump, pinned message) clear the thread before
@@ -465,7 +485,8 @@ const NativeConversationList = function NativeConversationList() {
 
   const conversationIDKey = useConversationThreadID()
   const listData = useThreadListData()
-  const {centeredHighlightOrdinal, centeredOrdinal, recenterVersion} = useConversationCenter()
+  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const recenterVersion = useConversationRecenterVersion()
   const {clearCenter} = useConversationCenterActions()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)

@@ -14,7 +14,12 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {navigationWrapper} from '@/test/navigation'
-import {ConversationCenterProvider, useConversationCenter, useConversationCenterActions} from './center-context'
+import {
+  ConversationCenterProvider,
+  useConversationCenter,
+  useConversationCenterActions,
+  useConversationRecenterVersion,
+} from './center-context'
 import {ConversationThreadProvider, useConversationThreadActions} from './thread-context'
 import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
 import {closeConversationThreadSearch, toggleConversationThreadSearch} from './thread-navigation'
@@ -57,7 +62,8 @@ let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
 let firstCenterOnMessage: ReturnType<typeof useConversationCenterActions>['centerOnMessage'] | undefined
 
 const Probe = () => {
-  const {centeredHighlightOrdinal, centeredOrdinal, recenterVersion} = useConversationCenter()
+  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const recenterVersion = useConversationRecenterVersion()
   const actions = useConversationThreadActions()
   const {centerOnMessage} = useConversationCenterActions()
   const [firstCenter] = React.useState(() => centerOnMessage)
@@ -240,20 +246,23 @@ const landCentredLoad = (n: number) => {
   })
 }
 
+// Search centres with 'always', through the centerOnMessage it got on its first render.
+const searchSelects = (n: number) => {
+  act(() => {
+    firstCenterOnMessage?.(T.Chat.numberToMessageID(n), 'always')
+  })
+}
+
 // Reloading would clear the thread and rebuild every row under it, the hit's highlight replaying as
 // its row is rebuilt: a search hit selected automatically and then clicked flashed twice.
-test('centring again on the centred message while it is loaded reloads nothing and asks the list to centre it', async () => {
+test('search choosing its centred hit again while it is loaded reloads nothing and asks the list to centre it', async () => {
   renderTree()
-  act(() => {
-    setInputIntent(convX, highlight(11))
-  })
+  searchSelects(11)
   expect(await pivots()).toHaveLength(1)
   landCentredLoad(11)
   const before = seenRecenterVersion
 
-  act(() => {
-    setInputIntent(convX, highlight(11))
-  })
+  searchSelects(11)
 
   expect(await pivots()).toHaveLength(1)
   expect(seenCenteredOrdinal).toBe(T.Chat.numberToOrdinal(11))
@@ -261,34 +270,35 @@ test('centring again on the centred message while it is loaded reloads nothing a
   expect(seenRecenterVersion).toBe((before ?? 0) + 1)
 })
 
-test('a centerOnMessage held from the first render sees the centre as it is now', async () => {
-  renderTree()
-  act(() => {
-    firstCenterOnMessage?.(T.Chat.numberToMessageID(11), 'always')
-  })
-  landCentredLoad(11)
-  const before = seenRecenterVersion
-
-  act(() => {
-    firstCenterOnMessage?.(T.Chat.numberToMessageID(11), 'always')
-  })
-
-  expect(await pivots()).toHaveLength(1)
-  expect(seenRecenterVersion).toBe((before ?? 0) + 1)
-})
-
-test('centring on another message that is loaded still reloads around it', async () => {
+// A reply quote or the pinned message jumping again flashes the message again, which needs its row
+// rebuilt by the reload.
+test('a flashing jump to the centred message reloads around it, even with it loaded', async () => {
   renderTree()
   act(() => {
     setInputIntent(convX, highlight(11))
   })
   landCentredLoad(11)
-  landCentredLoad(12)
   const before = seenRecenterVersion
 
   act(() => {
-    setInputIntent(convX, highlight(12))
+    setInputIntent(convX, highlight(11))
   })
+
+  expect(await pivots()).toEqual([
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
+    expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),
+  ])
+  expect(seenRecenterVersion).toBe(before)
+})
+
+test('search choosing another hit that is loaded still reloads around it', async () => {
+  renderTree()
+  searchSelects(11)
+  landCentredLoad(11)
+  landCentredLoad(12)
+  const before = seenRecenterVersion
+
+  searchSelects(12)
 
   expect(await pivots()).toEqual([
     expect.objectContaining({pivot: T.Chat.numberToMessageID(11)}),

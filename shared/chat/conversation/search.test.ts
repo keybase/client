@@ -141,14 +141,12 @@ const deliverHits = async (...messages: Array<T.RPCChat.UIMessage>) => {
 
 const deliverDone = async () => pushToActive('chat.1.chatUi.chatSearchDone', {})
 
-// No hit here is selected again with its row loaded, so nothing re-centres without a reload.
 const centeredOn = (id: number) => ({
   centeredHighlightOrdinal: T.Chat.numberToOrdinal(id),
   centeredOrdinal: T.Chat.numberToOrdinal(id),
   hasCenter: true,
-  recenterVersion: 0,
 })
-const noCenter = {centeredHighlightOrdinal: undefined, centeredOrdinal: undefined, hasCenter: false, recenterVersion: 0}
+const noCenter = {centeredHighlightOrdinal: undefined, centeredOrdinal: undefined, hasCenter: false}
 
 beforeEach(() => {
   // only setTimeout and friends: the fake engine's IPC hop runs on node's own setImmediate
