@@ -29,8 +29,9 @@ import {
   type SecretWatch,
 } from '../shared/gate/secret-scan'
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
+import {iosFlowProject} from './theme'
 
-const PROJECT = 'ios-flows'
+const PROJECT = iosFlowProject()
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.

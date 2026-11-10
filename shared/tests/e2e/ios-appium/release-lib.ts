@@ -80,6 +80,14 @@ export const pushPermissionProblem = (has: boolean, device: string): string | un
       '(on the simulator: Settings > Apps > Keybase > Notifications > Allow Notifications), then rerun; ' +
       'the release command never asks for them, as asking opens the Settings app'
 
+// The app follows the simulator's appearance only on "Respect system settings": on a fixed theme a dark
+// run would capture light screens (or the other way around) and every flow would still pass.
+export const themeProblem = (drawsDark: boolean, theme: 'light' | 'dark', device: string): string | undefined =>
+  drawsDark === (theme === 'dark')
+    ? undefined
+    : `keybase.ios on ${device} does not draw ${theme} with the simulator in ${theme} appearance; set its theme to ` +
+      '"Respect system settings" (Settings > Display), then rerun'
+
 // The run starts with location never asked: the location flow's restore (from locationd's own record)
 // is then a reset, and its first fix is a fresh one.
 export const locationStartProblem = (p: {background: string; foreground: string}, device: string, udid: string): string | undefined =>

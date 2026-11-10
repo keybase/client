@@ -3,7 +3,7 @@ import * as path from 'path'
 import {computeDiff} from './generate-report-shared.mts'
 import {MANUAL_ONLY} from './electron/manual-only.ts'
 import {KNOWN_FAILURES, KNOWN_FAILURES_FILE} from './electron/known-failures.ts'
-import {runFlowReport} from './shared/gate/flow-report.mts'
+import {darkVariantOf, runFlowReport} from './shared/gate/flow-report.mts'
 import {flowResultsDir} from './electron/results-dirs.ts'
 import type {CardData} from './generate-report-shared.mts'
 
@@ -66,5 +66,5 @@ process.exitCode = runFlowReport({
   runHint: targeted ? 'yarn test:e2e:desktop' : 'yarn test:e2e:desktop:release',
   saveExtraBaseline: saveStorybookBaseline,
   title: 'Keybase Electron E2E Tests',
-  variantOf: projectName => (projectName.endsWith('-dark') ? 'dark' : undefined),
+  variantOf: darkVariantOf,
 })
