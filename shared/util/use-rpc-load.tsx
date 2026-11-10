@@ -32,6 +32,8 @@ type Options<RESULT, DATA> = {
  * @returns loading: enabled and no finished attempt yet, spinner-friendly
  * @returns loadCount: number of successful loads, useful as a refresh token
  * @returns reload: kick off a load manually
+ * @returns refresh: reload for a change notice from the service. While a load is in flight it
+ *   queues one more after it instead of starting another, so a burst of notices costs two loads
  * @returns setData: overwrite data locally, for optimistic updates; the next load result wins
  */
 export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
@@ -53,8 +55,14 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
 
   // ignore out-of-order responses when reload fires while a load is in flight
   const requestID = React.useRef(0)
+  // id of the newest load until it settles, 0 when idle
+  const inFlightID = React.useRef(0)
+  const refreshQueued = React.useRef(false)
+  // bumped when a load settles with a refresh queued; the effect below runs it
+  const [refreshTick, setRefreshTick] = React.useState(0)
   const load = React.useEffectEvent(() => {
     const id = ++requestID.current
+    inFlightID.current = id
     const keyAtCall = key
     const adopt = (data: DATA) => {
       setState(s => ({
@@ -76,11 +84,22 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
       setState(s => ({...s, cancelledKey: keyAtCall, loaded: true}))
     }
 
+    const settled = () => {
+      if (inFlightID.current !== id) return
+      inFlightID.current = 0
+      if (refreshQueued.current) {
+        refreshQueued.current = false
+        setRefreshTick(t => t + 1)
+      }
+    }
+
     call(...args)
       .then((result: Awaited<ReturnType<F>>) => {
+        settled()
         if (requestID.current === id) adopt(map(result))
       })
       .catch((error: RPCError) => {
+        settled()
         if (requestID.current !== id) return
         if (isQuietCancel(error)) {
           endQuietly()
@@ -90,6 +109,17 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
         // A lost link with a reconnect reload coming: still loading until it runs
       })
   })
+
+  const refresh = React.useEffectEvent(() => {
+    if (inFlightID.current) {
+      refreshQueued.current = true
+    } else {
+      load()
+    }
+  })
+  React.useEffect(() => {
+    if (refreshTick) load()
+  }, [refreshTick])
 
   const setData = React.useEffectEvent(
     (next: DATA | undefined | ((prev: DATA | undefined) => DATA | undefined)) => {
@@ -145,6 +175,7 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   // loop effects. Freeze the first wrapper; it stays valid because all wrappers share
   // the same ref.
   const [stableApi] = React.useState(() => ({
+    refresh: () => refresh(),
     reload: () => load(),
     setData: (next: Parameters<typeof setData>[0]) => setData(next),
   }))
@@ -155,6 +186,7 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
     loadCount: state.loadCount,
     loaded,
     loading: enabled && !loaded,
+    refresh: stableApi.refresh,
     reload: stableApi.reload,
     setData: stableApi.setData,
   }

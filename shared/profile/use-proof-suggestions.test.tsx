@@ -93,10 +93,7 @@ test('newer reloads beat stale proof suggestion results', async () => {
   await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(1))
 
   act(() => {
-    notifyEngineActionListeners({
-      payload: {params: {uid: 'uid-1'}},
-      type: 'keybase.1.NotifyUsers.userChanged',
-    } as never)
+    result.current.reload()
   })
 
   await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
@@ -107,4 +104,47 @@ test('newer reloads beat stale proof suggestion results', async () => {
   })
 
   await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit'))
+})
+
+test('a burst of user changes loads once more after the load in flight, not once per notice', async () => {
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: '',
+    deviceName: '',
+    uid: 'uid-1',
+    username: 'alice',
+  })
+
+  const pending: Array<(value: T.RPCGen.ProofSuggestionsRes) => void> = []
+  const loadSuggestions = jest.spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise').mockImplementation(
+    async () =>
+      new Promise(resolve => {
+        pending.push(resolve)
+      })
+  )
+
+  const {result} = renderHook(() => useProofSuggestions())
+  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(1))
+
+  act(() => {
+    for (let i = 0; i < 5; i++) {
+      notifyEngineActionListeners({
+        payload: {params: {uid: 'uid-1'}},
+        type: 'keybase.1.NotifyUsers.userChanged',
+      } as never)
+    }
+  })
+  expect(loadSuggestions).toHaveBeenCalledTimes(1)
+
+  await act(async () => {
+    pending[0]?.(makeResponse([makeSuggestion('github')]))
+    await Promise.resolve()
+  })
+  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
+
+  await act(async () => {
+    pending[1]?.(makeResponse([makeSuggestion('reddit')]))
+    await Promise.resolve()
+  })
+  await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit'))
+  expect(loadSuggestions).toHaveBeenCalledTimes(2)
 })

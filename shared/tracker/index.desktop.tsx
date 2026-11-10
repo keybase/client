@@ -227,7 +227,12 @@ const Tracker = (props: Props) => {
               style={styles.avatar}
               loading="lazy"
             />
-            <Kb.Text type="BodyBig" selectable={true}>
+            {/* follow-state colors match the profile screen's name */}
+            <Kb.Text
+              type="BodyBig"
+              selectable={true}
+              style={{color: props.followThem ? theme.greenDark : theme.orange}}
+            >
               {props.trackerUsername}
             </Kb.Text>
           </Kb.Box2>

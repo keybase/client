@@ -181,7 +181,7 @@ function Avatar(p: Props) {
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
   const httpSrv = useConfigState(s => s.httpSrv)
-  const isDarkMode = useColorScheme() === 'dark'
+  const mode = useColorScheme() === 'dark' ? 'dark' : 'light'
   const {blankBg, errorUnderlay} = useNativeBgStyles()
   const borderTeamStyle = useBorderTeamStyle()
   const {address, token} = httpSrv
@@ -199,7 +199,7 @@ function Avatar(p: Props) {
     } else if (address && name) {
       const typ = isTeam ? 'team' : 'user'
       const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
-      bgImage = `url(http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=light&token=${token}&count=${counter})`
+      bgImage = `url(http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=${mode}&token=${token}&count=${counter})`
     }
 
     const placeholderBg = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size)
@@ -248,7 +248,6 @@ function Avatar(p: Props) {
     source = {uri: imageOverrideUrl}
   } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
-    const mode = isDarkMode ? 'dark' : 'light'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
     // cacheKey must not include address/token: the local http srv restarts with a new
     // token on every iOS foreground, and keying the cache on the uri would refetch every

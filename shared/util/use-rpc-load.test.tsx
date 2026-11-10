@@ -148,6 +148,49 @@ test('reload() supersedes an in-flight request', async () => {
   expect(result.current.data).toBe('got:9')
 })
 
+test('refresh() during a load queues one more after it, however many arrive', async () => {
+  const resolvers: Array<(n: number) => void> = []
+  const call = jest.fn<() => Promise<number>>(
+    async () =>
+      new Promise<number>(resolve => {
+        resolvers.push(resolve)
+      })
+  )
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => `got:${r}`}))
+  advancePastMountLoad()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  act(() => {
+    for (let i = 0; i < 5; i++) result.current.refresh()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  await act(async () => {
+    resolvers[0]?.(1)
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe('got:1')
+
+  await act(async () => {
+    resolvers[1]?.(2)
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe('got:2')
+
+  // idle again: a refresh loads right away
+  act(() => {
+    result.current.refresh()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(3)
+})
+
 test('surfaces a rejected load as an error', async () => {
   let rejectCall: ((error: Error) => void) | undefined
   const call = jest.fn(

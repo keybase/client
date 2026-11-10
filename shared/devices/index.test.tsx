@@ -230,3 +230,27 @@ test('a user change from the service reloads the list, so a device revoked elsew
   fireEvent.click(screen.getByText('Revoked devices'))
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old (revoked)'])
 })
+
+test('a burst of user changes loads the list once more after the load in flight, not once per notice', async () => {
+  let results = [makeDetail('testuser-mac', {currentDevice: true})]
+  const fake = serve(() => results)
+  await renderDevices()
+  expect(historyCalls(fake)).toBe(1)
+
+  // a service start replays every unexpired key change, each one a userChanged
+  const held = fake.hold(historyList)
+  for (let i = 0; i < 5; i++) {
+    await fake.push('keybase.1.NotifyUsers.userChanged', {uid: 'testuser-uid'}, {oneway: true})
+    await flush()
+  }
+  expect(historyCalls(fake)).toBe(2)
+
+  // the in-flight load may predate the last key change, so one more runs once it lands
+  results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-phone')]
+  fake.answer(historyList, () => results)
+  held[0]?.reply(results)
+  await flush()
+  await flush()
+  expect(historyCalls(fake)).toBe(3)
+  expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-phone'])
+})

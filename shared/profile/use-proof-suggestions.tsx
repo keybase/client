@@ -102,6 +102,11 @@ export const useProofSuggestions = (enabled = true) => {
     suggestions: emptyProofSuggestions,
   })
   const requestVersionRef = React.useRef(0)
+  // version of the newest load until it settles, 0 when idle
+  const inFlightVersionRef = React.useRef(0)
+  const refreshQueuedRef = React.useRef(false)
+  // bumped when a load settles with a refresh queued; the effect below runs it
+  const [refreshTick, setRefreshTick] = React.useState(0)
   const loadKey =
     proofSuggestionsState.enabled === enabled
       ? proofSuggestionsState.loadKey
@@ -117,19 +122,38 @@ export const useProofSuggestions = (enabled = true) => {
 
     const version = requestVersionRef.current + 1
     requestVersionRef.current = version
+    inFlightVersionRef.current = version
 
-    ignorePromise(loadProofSuggestions(version, requestVersionRef, enabled, loadKey, setProofSuggestionsState))
+    ignorePromise(
+      loadProofSuggestions(version, requestVersionRef, enabled, loadKey, setProofSuggestionsState).finally(
+        () => {
+          if (inFlightVersionRef.current !== version) return
+          inFlightVersionRef.current = 0
+          if (refreshQueuedRef.current) {
+            refreshQueuedRef.current = false
+            setRefreshTick(t => t + 1)
+          }
+        }
+      )
+    )
   }, [enabled, loadKey])
 
+  // refreshTick: a refresh queued behind a load that has now settled
   React.useEffect(() => {
     reload()
-  }, [reload])
+  }, [reload, refreshTick])
 
   useEngineActionListener('keybase.1.NotifyUsers.userChanged', action => {
     if (!enabled || action.payload.params.uid !== uid) {
       return
     }
-    reload()
+    // A burst of these (one per replayed key change) runs one more load after the in-flight
+    // one instead of one load per notice
+    if (inFlightVersionRef.current) {
+      refreshQueuedRef.current = true
+    } else {
+      reload()
+    }
   })
 
   if (proofSuggestionsState.enabled !== enabled) {
