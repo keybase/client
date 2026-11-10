@@ -44,9 +44,10 @@ export const pidFromLaunchctl = (out: string, bundleId: string): number | undefi
 }
 
 // The app's pid read off the host's process table, or undefined when it isn't running: a simulator app
-// runs as a host process under its device's data folder. A few milliseconds, where the simulator's own
-// `launchctl list` (pidFromLaunchctl) takes half a second and blocks the event loop for it.
+// runs as a host process under its device's data folder. A few milliseconds; asking the simulator
+// (`simctl spawn launchctl list`) takes half a second, blocking the event loop.
 export const hostAppPid = (udid: string, executable: string): number | undefined => {
+  // plain node runs this file too (release.mts), which cannot load lodash's extensionless paths
   const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const pattern = `/CoreSimulator/Devices/${esc(udid)}/data/Containers/Bundle/Application/[^/]+/[^/]+\\.app/${esc(executable)}$`
   let out: string

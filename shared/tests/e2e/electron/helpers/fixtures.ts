@@ -45,12 +45,13 @@ function logTail(file: string, lines: number): string {
   }
 }
 
-// Read only for a failed test, which an unreadable env file must not fail a second time
+// Read only for a failed test, which an unreadable env file must not fail a second time: undefined
+// then, and the test keeps no service log.
 const serviceLogPath = () => {
   try {
     return mainServiceLog()
-  } catch (e) {
-    return `(the e2e env names no service log: ${e instanceof Error ? e.message : String(e)})`
+  } catch {
+    return undefined
   }
 }
 
@@ -181,11 +182,13 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       const started = Date.now()
       await setup(undefined)
       if (testInfo.status === testInfo.expectedStatus) return
+      const log = serviceLogPath()
+      if (!log) return
       const ended = Date.now()
       const dest = testInfo.outputPath('service.log')
-      const got = await copyLogWindow(serviceLogPath(), Math.max(started, ended - serviceLogWindowMs), ended, dest)
+      const got = await copyLogWindow(log, Math.max(started, ended - serviceLogWindowMs), ended, dest)
       // named, not attached: the html report would copy the whole file into itself
-      const from = got.files.length ? got.files.join(', ') : `nothing at ${serviceLogPath()}`
+      const from = got.files.length ? got.files.join(', ') : `nothing at ${log}`
       await testInfo.attach('service-log', {body: `${dest}: ${got.lines} lines from ${from}`, contentType: 'text/plain'})
     },
     {auto: true},
@@ -212,7 +215,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       page.off('pageerror', onPageError)
       if (testInfo.status !== testInfo.expectedStatus) {
         await testInfo.attach('app-log-tail', {body: logTail(appLogPath(), 80), contentType: 'text/plain'})
-        await testInfo.attach('service-log-tail', {body: logTail(serviceLogPath(), 80), contentType: 'text/plain'})
+        const log = serviceLogPath()
+        if (log) await testInfo.attach('service-log-tail', {body: logTail(log, 80), contentType: 'text/plain'})
       }
       if (consoleErrors.length) {
         await testInfo.attach('renderer-console-errors', {

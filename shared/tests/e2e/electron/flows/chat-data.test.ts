@@ -1,8 +1,9 @@
 // What the desktop thread shows as its data changes, read off the DOM: a delete shows deleting (through
 // thread reloads too) and then takes the row away, reactions come and go, an attachment collapses
-// and expands, mark unread draws the orange line and marks the inbox row, reply privately opens the direct conversation quoting the message, incoming messages
-// reach the thread and the inbox, all of it keeps working across an account switch, and the thread
-// left behind by one sends nothing for the next account.
+// and expands, mark unread draws the orange line and marks the inbox row, reply privately opens the
+// direct conversation quoting the message, incoming messages reach the thread and the inbox, all of
+// it keeps working across an account switch, and the thread left behind by one sends nothing for the
+// next account.
 import type {ConsoleMessage, Page} from '@playwright/test'
 import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {

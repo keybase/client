@@ -158,9 +158,10 @@ export async function atTabs(): Promise<boolean> {
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
     return (await browser.$$('//*[@content-desc="Navigate up" or @content-desc="Back"]').length) === 0
   }
-  // The router answers in one eval what took three tree searches: signed in, no modal, and the tab's
-  // stack at its root (on iPad the tab bar stays visible over pushed screens). A runtime the inspector
-  // cannot reach yet (just relaunched) is read off the tree instead.
+  // The router says whether a tab's root shows: signed in, nothing above the tabs (a phone pushes every
+  // screen but a tab's root above them), no modal, and the tab's own stack at its root (a tablet pushes
+  // into it, and keeps the tab bar visible over those screens). A runtime the inspector cannot reach
+  // yet (just relaunched) is read off the tree instead.
   const root = await jsEval<boolean>(TAB_ROOT_BODY).catch((e: unknown) => {
     if (isAttemptOver(e)) throw e
     return undefined
@@ -176,7 +177,7 @@ export async function atTabs(): Promise<boolean> {
 
 const TAB_ROOT_BODY = `const NT = kbModule('constants/nav-tree.tsx')
   const s = kbModule('constants/router.tsx').getRootState()
-  return NT.isLoggedIn(s) && NT.modalStack(s).length === 0 && (NT.activeStack(s)?.routes?.length ?? 0) === 1`
+  return NT.isLoggedIn(s) && (s.index ?? 0) === 0 && NT.modalStack(s).length === 0 && (NT.activeStack(s)?.routes?.length ?? 0) === 1`
 
 // Dismiss the keyboard ONLY when one is present — calling mobile: hideKeyboard
 // with no keyboard up hangs until timeout. The keyboard (raised by chat/crypto/

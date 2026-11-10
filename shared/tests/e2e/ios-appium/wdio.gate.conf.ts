@@ -28,7 +28,7 @@ import {
   watchEnvSecrets,
   type SecretWatch,
 } from '../shared/gate/secret-scan'
-import {harnessSite, timedStep, timingOn, writeTiming} from '../shared/gate/timing.ts'
+import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 
 const PROJECT = 'ios-flows'
 
@@ -106,13 +106,17 @@ export const config: WebdriverIO.Config = {
       noteProtocolResult(event)
     })
   },
-  // timing (shared/gate/timing.ts): each WebDriver command, paired by a stack since commands nest
+  // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
+  // the same name (commands nest, and a Promise.all runs several at once)
   beforeCommand: (name: string) => {
     if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
   },
   afterCommand: (name: string) => {
-    const c = timingOn() ? commandStarts.pop() : undefined
-    if (c) writeTiming({end: Date.now(), kind: 'command', name: c.name === name ? name : `${c.name}/${name}`, site: c.site, start: c.start})
+    if (!timingOn()) return
+    const i = commandStarts.findLastIndex(c => c.name === name)
+    if (i < 0) return
+    const [c] = commandStarts.splice(i, 1)
+    writeTiming({end: Date.now(), kind: 'command', name, site: c!.site, start: c!.start})
   },
   beforeTest: async () => {
     testStart = Date.now()
@@ -125,7 +129,7 @@ export const config: WebdriverIO.Config = {
       rec.captureError = `starting the error capture: ${message(e)}`
     })
     const r = new PhoneRecording()
-    await timedStep('gate: beforeTest, the recording begun', async () => r.begin()).then(
+    await timed('command', 'gate: beforeTest, the recording begun', async () => r.begin()).then(
       () => {
         rec.recording = r
       },
@@ -145,7 +149,7 @@ export const config: WebdriverIO.Config = {
   // capture runs as a hook, bound to the attempt but to no body.
   afterTest: async (test, _context, result: TestResult) => {
     const token = leaveBody()
-    await timedStep('gate: afterTest, the attempt finished', async () => runAttempt(token, async () => finishAttempt(result)))
+    await timed('command', 'gate: afterTest, the attempt finished', async () => runAttempt(token, async () => finishAttempt(result)))
     writeTiming({end: Date.now(), kind: 'test', name: [test.parent, test.title].filter(Boolean).join(' > '), start: testStart, status: result.passed ? 'passed' : 'failed'})
   },
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async

@@ -294,8 +294,8 @@ export const elementWithLabelPart = async (selector: string, name: string, what:
 // merging its texts.
 export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
 
-// The labels of every visible element drawn as NAMED_ELEMENT_TYPES, off one page source: one read,
-// where listing them and asking each for its label is a WebDriver call per element. Bound: one read 2.
+// The labels of every visible element drawn as NAMED_ELEMENT_TYPES, off one page source: one read for
+// them all (a label asked of each element is a WebDriver call apiece). Bound: one read 2.
 export const drawnLabels = async (): Promise<Array<string>> =>
   sourceElements(await browser.getPageSource())
     .filter(e => NAMED_ELEMENT_TYPES.includes(e.type) && e.attrs['visible'] === 'true' && !!e.attrs['label'])

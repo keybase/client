@@ -2,6 +2,7 @@
 //
 //   node tests/e2e/shared/gate/timing-report.mts <timing.jsonl> [top N, default 20]
 //
+// A test's time runs from the end of the test before it, so it includes the hooks between them.
 // Idle is test time with nothing in flight (no command, eval or expect): the harness sleeping, or a
 // poll waiting out its interval or timeout. Each idle gap is charged to the call that ended it, the
 // code that resumed after the wait. Expect time is Playwright waiting for the app inside an expect
@@ -12,7 +13,7 @@ import type {TimingEvent} from './timing.ts'
 type Span = Extract<TimingEvent, {site: string}>
 type TestSpan = Extract<TimingEvent, {kind: 'test'}>
 
-export type TimingSummary = {
+type TimingSummary = {
   tests: number
   testMs: number
   idleMs: number
@@ -38,9 +39,14 @@ export const summarize = (events: ReadonlyArray<TimingEvent>, n = 20): TimingSum
   const commands = new Map<string, [number, number]>()
   let idleMs = 0
   let expectMs = 0
+  // Each test's window opens where the one before it ended: the hooks run between tests (the gate's
+  // root hooks run before wdio's beforeTest marks the start) count toward the test they precede.
+  const ordered = [...tests].sort((a, b) => a.start - b.start)
+  const windowStart = new Map(ordered.map((t, i) => [t, Math.min(t.start, ordered[i - 1]?.end ?? t.start)]))
   for (const t of tests) {
-    const inside = spans.filter(s => s.start >= t.start && s.end <= t.end)
-    let covered = t.start
+    const from = windowStart.get(t) ?? t.start
+    const inside = spans.filter(s => s.start >= from && s.end <= t.end)
+    let covered = from
     for (const s of inside) {
       if (s.start > covered) {
         const gap = s.start - covered
@@ -64,7 +70,7 @@ export const summarize = (events: ReadonlyArray<TimingEvent>, n = 20): TimingSum
     }
   }
   const byTest = new Map<string, [number, number]>()
-  for (const t of tests) add(byTest, t.name, t.end - t.start)
+  for (const t of tests) add(byTest, t.name, t.end - (windowStart.get(t) ?? t.start))
   return {
     commandBySite: top(commands, n),
     expectBySite: top(expects, n),
@@ -72,7 +78,7 @@ export const summarize = (events: ReadonlyArray<TimingEvent>, n = 20): TimingSum
     idleBySite: top(idle, n),
     idleMs,
     slowestTests: top(byTest, n),
-    testMs: tests.reduce((sum, t) => sum + t.end - t.start, 0),
+    testMs: tests.reduce((sum, t) => sum + t.end - (windowStart.get(t) ?? t.start), 0),
     tests: tests.length,
   }
 }
@@ -81,7 +87,7 @@ const s = (ms: number) => `${(ms / 1000).toFixed(1)}s`
 const table = (title: string, rows: Array<[string, number, number]>) =>
   [`## ${title}`, '', '| time | calls | where |', '| ---: | ---: | --- |', ...rows.map(([k, ms, c]) => `| ${s(ms)} | ${c} | ${k} |`), ''].join('\n')
 
-export const render = (r: TimingSummary) =>
+const render = (r: TimingSummary) =>
   [
     `# Run timing`,
     '',
@@ -93,7 +99,7 @@ export const render = (r: TimingSummary) =>
     table('Slowest tests', r.slowestTests),
   ].join('\n')
 
-export const readTiming = (file: string): Array<TimingEvent> =>
+const readTiming = (file: string): Array<TimingEvent> =>
   fs
     .readFileSync(file, 'utf8')
     .split('\n')

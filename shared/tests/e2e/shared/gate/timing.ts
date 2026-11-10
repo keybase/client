@@ -46,26 +46,16 @@ export const harnessSite = (stack = deepStack()) =>
     .slice(0, 3)
     .join(' < ')
 
-// Runs `f`, written as an eval event named `name`.
-export const timedEval = async <R,>(name: string, f: () => Promise<R>): Promise<R> => {
+// Runs `f`, written as a `kind` event named `name` at `site` (where the harness called it, taken
+// before `f` starts; empty for a hook's own bookkeeping, which issues no WebDriver command and would
+// otherwise read as idle).
+export const timed = async <R,>(kind: 'command' | 'eval', name: string, f: () => Promise<R> | R, site = ''): Promise<R> => {
   if (!timingOn()) return f()
-  const site = harnessSite()
   const start = Date.now()
   try {
     return await f()
   } finally {
-    writeTiming({end: Date.now(), kind: 'eval', name, site, start})
+    writeTiming({end: Date.now(), kind, name, site, start})
   }
 }
 
-// Runs `f`, written as a command event named `name` with no site: a harness step that issues no
-// WebDriver command of its own (a hook's bookkeeping, a file scan), which would otherwise read as idle.
-export const timedStep = async <R,>(name: string, f: () => Promise<R> | R): Promise<R> => {
-  if (!timingOn()) return f()
-  const start = Date.now()
-  try {
-    return await f()
-  } finally {
-    writeTiming({end: Date.now(), kind: 'command', name, site: '', start})
-  }
-}

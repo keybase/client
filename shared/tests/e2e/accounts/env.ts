@@ -148,7 +148,7 @@ export const loadE2EEnv = (file = defaultEnvPath(), env: NodeJS.ProcessEnv = pro
 }
 
 // The main service's log: KB_E2E_SERVICE_LOG, else where the harness starts the service logging.
-export const mainServiceLog = (env: Pick<E2EEnv, 'serviceLog'> = loadE2EEnv()) => env.serviceLog ?? '/tmp/kb-e2e/service.log'
+export const mainServiceLog = () => loadE2EEnv().serviceLog ?? '/tmp/kb-e2e/service.log'
 
 export const secondPasswordCommand = 'yarn test:e2e:accounts:second-password'
 
