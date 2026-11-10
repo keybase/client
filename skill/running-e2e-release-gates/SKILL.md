@@ -49,8 +49,8 @@ The desktop and iOS gates each run preflight → launch → sweep → flows → 
 Do the "Before any run" steps and the Vite clear, then:
 
 1. Start the peer services: `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../skill/running-e2e-release-gates/start-peers.mts`. The gates' preflight does this; a targeted run doesn't, and every flow that needs a second account fails without them.
-1. `node tests/e2e/electron/launch-app.mts` (kills any earlier app, launches, waits until ready).
-2. `yarn -s test:e2e:desktop:flows tests/e2e/electron/flows/<file>.test.ts [-g "<title>"]`. Don't pass `--reporter`: it replaces the configured reporters, so no `results.json` gets written and the secret scan doesn't run.
+2. `node tests/e2e/electron/launch-app.mts` (kills any earlier app, launches, waits until ready).
+3. `yarn -s test:e2e:desktop:flows tests/e2e/electron/flows/<file>.test.ts [-g "<title>"]`. Don't pass `--reporter`: it replaces the configured reporters, so no `results.json` gets written and the secret scan doesn't run.
 
 Runs outside the gate write under `tests/results/targeted/` (`test-results/`, `report/`). The gate's own results in `tests/results/` stay in place, so `yarn test:e2e:desktop:report` can still rebuild from them. There is one report, `tests/results/electron-report.html`, and it keeps every test's newest card in its store (`electron-report.cards.json`). `yarn test:e2e:desktop:report:targeted` merges a targeted run into it: the tests that run get new cards, every other card keeps its last screenshots, and each card shows when its run was. The newest run's cards are marked LATEST, and the "Latest run only" checkbox hides the older ones. Only a full release run (`--prune`) drops the cards for tests the suite no longer has. Each targeted invocation empties `tests/results/targeted/test-results/`, so read a failure's `test-failed-1.png` and `error-context.md` before you start the next invocation. To reproduce a failure from a gate run, run the flows that ran before it in the gate's order (the numbered `✓` lines in the gate log), not just the failing file. Earlier flows such as device provisioning and account switches leave state behind.
 
@@ -59,9 +59,9 @@ Runs outside the gate write under `tests/results/targeted/` (`test-results/`, `r
 The gates run light. A dark run adds "(dark)" cards beside the light ones in the same report; it never replaces them. Same setup as any run.
 
 - **Desktop:** a targeted run of the dark project (it leaves out the chat and once-per-run flows): start the peers and launch the app as above, then `yarn -s test:e2e:desktop --project=electron-flows-dark`, then `node tests/e2e/generate-electron-report.mts --targeted`.
-- **iOS:** `KB_E2E_THEME=dark KB_E2E_NO_OPEN=1 yarn test:e2e:ios:release`. It sets the simulator's appearance to dark before the launch and puts it back at the end, skips the render and census (light only), and doesn't prune the report.
+- **iOS:** `KB_E2E_THEME=dark KB_E2E_NO_OPEN=1 yarn test:e2e:ios:release`. It sets the simulator's appearance to dark before the launch and puts it back at the end, refuses an app that doesn't draw dark (its theme must be "Respect system settings"), and skips the render and census (light only).
 
-A later full light release (`--prune`) drops the dark cards, since its run doesn't have them.
+A full run's `--prune` drops only the cards of the theme it ran, so light and dark releases never drop each other's cards.
 
 ## While it runs
 

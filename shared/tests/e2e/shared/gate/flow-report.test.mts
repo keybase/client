@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {runFlowReport, type FlowReportPlatform} from './flow-report.mts'
+import {darkVariantOf, runFlowReport, type FlowReportPlatform} from './flow-report.mts'
 
 const platform = (dir: string): FlowReportPlatform => ({
   checklistPath: path.join(dir, 'manual-checklist.md'),
@@ -194,6 +194,23 @@ test('only --prune drops the older cards a run no longer has, with their files',
   assert.deepEqual(cardsOf(html), ['chat · a'])
   assert.ok(!fs.existsSync(path.join(dir, 'debug', 'chat-gone.png')))
   assert.match(html, /id="latest-only" disabled/)
+})
+
+test('--prune drops only the cards of the variants the run ran: a light run keeps the dark cards', () => {
+  const dir = tmp()
+  const p = {...platform(dir), variantOf: darkVariantOf}
+  const asDark = (results: object) => JSON.parse(JSON.stringify(results).replaceAll('"projectName":"electron"', '"projectName":"electron-dark"')) as object
+  const build2 = (results: object, argv: Array<string> = []) => {
+    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(results))
+    assert.equal(runFlowReport(p, argv), 0)
+    return fs.readFileSync(path.join(dir, 'report.html'), 'utf8')
+  }
+  build2(runOf(T1, ['a', 'gone']))
+  build2(asDark(runOf(T2, ['a'])))
+  // a full light run drops the light card it no longer has, and keeps the dark one
+  assert.deepEqual(cardsOf(build2(runOf(T3, ['a']), ['--prune'])).sort(), ['chat · a', 'chat · a (dark)'])
+  // a full dark run keeps the light cards
+  assert.deepEqual(cardsOf(build2(asDark(runOf(T3, ['b'])), ['--prune'])).sort(), ['chat · a', 'chat · b (dark)'])
 })
 
 test('a test the run skipped keeps its card and screenshots', () => {

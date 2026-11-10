@@ -1,8 +1,7 @@
 // The iOS release report's configuration (report.mts runs it).
-import type {FlowReportPlatform} from '../shared/gate/flow-report.mts'
+import {darkVariantOf, type FlowReportPlatform} from '../shared/gate/flow-report.mts'
 import {IOS_KNOWN_FAILURES, IOS_KNOWN_FAILURES_FILE} from './gate/lists/known-failures.ts'
 import {IOS_MANUAL_ONLY} from './gate/lists/manual-only.ts'
-import {iosVariantOf} from './theme.ts'
 
 export const iosReportPlatform: FlowReportPlatform = {
   checklistPath: 'tests/results/ios-manual-checklist.md',
@@ -15,5 +14,5 @@ export const iosReportPlatform: FlowReportPlatform = {
   resultsPath: 'tests/results/ios-report/results.json',
   runHint: 'yarn test:e2e:ios:release',
   title: 'Keybase iOS release gate',
-  variantOf: iosVariantOf,
+  variantOf: darkVariantOf,
 }

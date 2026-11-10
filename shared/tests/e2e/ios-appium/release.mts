@@ -37,7 +37,7 @@
 //                             the settings/* tour entries (the census then reports gaps)
 // KB_E2E_THEME=dark           the flows with the simulator in dark appearance (theme.ts), as the
 //                             report's "dark" cards. The render and census are light only, so they
-//                             are skipped, and the report keeps every card (no --prune)
+//                             are skipped
 import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -80,6 +80,7 @@ import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {
   appHasPushPermission,
   appLocationPermission,
+  appDrawsDark,
   appPendingOutbox,
   BUNDLE_ID,
   forgetMetroPidfile,
@@ -100,6 +101,7 @@ import {
   IOS_RELEASE_PORTS,
   locationStartProblem,
   pushPermissionProblem,
+  themeProblem,
   secretScanDirs,
   simulatorFromList,
   strayChildren,
@@ -107,7 +109,7 @@ import {
 } from './release-lib.ts'
 import {pendingOutboxProblem} from './gate/outbox-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
-import {iosDark, iosFlowProject} from './theme.ts'
+import {iosFlowProject, iosTheme, type IosTheme} from './theme.ts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -123,7 +125,8 @@ const out = {
 const renderRoot = path.join(visualResultsDir(), 'render')
 const logFile = (name: string) => path.join(logsDir, `${name}.log`)
 const project = iosFlowProject()
-const dark = iosDark()
+const theme = iosTheme()
+const dark = theme === 'dark'
 const APPIUM_PORT = 4723
 const WDA_PORT = 8100
 const MIN = 60_000
@@ -210,8 +213,9 @@ let metroPgid: number | undefined
 // stop anything, and anything on those ports after that is this run's
 let preflightPassed = false
 let renderDir: string | undefined
-// the simulator's appearance before the launch set the run's, put back by cleanup
-let originalAppearance: string | undefined
+// the simulator's appearance before the launch set the run's, put back by cleanup (light or dark
+// only: simctl answers "unsupported" for a runtime without the setting, and cannot set that back)
+let originalAppearance: IosTheme | undefined
 // renderDir, once this run's render wrote an iOS render.json there
 let iosRenderDir: string | undefined
 
@@ -438,8 +442,11 @@ const main = async () => {
       sharedDir,
     })
     // the app reads the appearance when it starts, so it is set before the relaunch
-    originalAppearance ??= runSync('xcrun', ['simctl', 'ui', id, 'appearance'], 60_000).trim()
-    runSync('xcrun', ['simctl', 'ui', id, 'appearance', dark ? 'dark' : 'light'], 60_000)
+    if (!originalAppearance) {
+      const was = runSync('xcrun', ['simctl', 'ui', id, 'appearance'], 60_000).trim()
+      if (was === 'light' || was === 'dark') originalAppearance = was
+    }
+    runSync('xcrun', ['simctl', 'ui', id, 'appearance', theme], 60_000)
     const goLogMark = goLogMarkFor(id)
     const launchedAt = Date.now()
     const account = await relaunchApp({device, log, udid: id})
@@ -447,7 +454,8 @@ const main = async () => {
       notSmokeProblem(account, e2eEnv) ??
       pushPermissionProblem(await appHasPushPermission(device), device) ??
       locationStartProblem(await appLocationPermission(device), device, id) ??
-      pendingOutboxProblem(await appPendingOutbox(goLogMark, launchedAt), device)
+      pendingOutboxProblem(await appPendingOutbox(goLogMark, launchedAt), device) ??
+      themeProblem(await appDrawsDark(device, dark), theme, device)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}
@@ -469,7 +477,7 @@ const main = async () => {
     })
     // only a clean exit: wdio also exits 1 when the app or session dies, and its results then hold
     // only the tests that started
-    flowsFull = !only && !dark && r.code === 0
+    flowsFull = !only && r.code === 0
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {

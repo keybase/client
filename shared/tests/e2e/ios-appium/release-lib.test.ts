@@ -6,6 +6,7 @@ import {
   locationStartProblem,
   parsePs,
   pushPermissionProblem,
+  themeProblem,
   secretScanDirs,
   strayChildren,
   simulatorFromList,
@@ -254,4 +255,14 @@ test('the run refuses a phone whose location was ever asked, naming the reset fo
     /^location is already granted \(background undetermined\) for keybase\.ios on iPhoneTest, /
   )
   expect(locationStartProblem({background: 'denied', foreground: 'undetermined'}, 'iPhoneTest', UDID)).toMatch(/reset location keybase\.ios/)
+})
+
+test('the run refuses an app that does not draw the run theme, naming the setting', () => {
+  expect(themeProblem(true, 'dark', 'iPhoneTest')).toBeUndefined()
+  expect(themeProblem(false, 'light', 'iPhoneTest')).toBeUndefined()
+  expect(themeProblem(false, 'dark', 'iPhoneTest')).toBe(
+    'keybase.ios on iPhoneTest does not draw dark with the simulator in dark appearance; set its theme to ' +
+      '"Respect system settings" (Settings > Display), then rerun'
+  )
+  expect(themeProblem(true, 'light', 'iPhoneTest')).toMatch(/does not draw light/)
 })

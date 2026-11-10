@@ -39,7 +39,8 @@ type Report = {suites: PlaywrightSuite[]; errors?: Array<{message?: string} | st
 // The report keeps every test's newest card (its store, beside the html), so a run of only some
 // tests still yields a full report. Each card says when its run was, and a card is never replaced by
 // one from an older run. Only a full run (--prune) drops the cards of tests it no longer has.
-type StoredCard = CardData & {key: string; runAt: number}
+// variant: the run variant that made it (variantOf), absent for the plain run
+type StoredCard = CardData & {key: string; runAt: number; variant?: string}
 type CardStore = {flows: Array<StoredCard>; tour: Array<StoredCard>}
 
 // A failed card with no screenshot — used to surface run-level failures (missing
@@ -127,8 +128,12 @@ const place = (file: string, buf: Buffer | null, sameRun: boolean) => {
   return sameRun && fs.existsSync(file) ? file : null
 }
 
+// variantOf for projects named <name>-dark (the desktop and iOS dark runs)
+export const darkVariantOf = (projectName: string) => (projectName.endsWith('-dark') ? 'dark' : undefined)
+
 // The stored cards with this run's in their place (the newer of the two per test) and its new ones
-// after them. A full run (`prune`) sets the order and drops the older cards it no longer has.
+// after them. A full run (`prune`) sets the order and drops the older cards it no longer has, of the
+// variants it ran only: a plain run never drops a dark run's cards, nor the other way around.
 const mergeCards = (stored: Array<StoredCard>, run: Array<StoredCard>, runAt: number, prune: boolean) => {
   const storedByKey = new Map(stored.map(c => [c.key, c]))
   const fromRun = new Map(
@@ -143,7 +148,8 @@ const mergeCards = (stored: Array<StoredCard>, run: Array<StoredCard>, runAt: nu
   }
   const kept: Array<StoredCard> = []
   const dropped: Array<StoredCard> = []
-  for (const c of stored) if (!fromRun.has(c.key)) (c.runAt < runAt ? dropped : kept).push(c)
+  const ranVariants = new Set(run.map(c => c.variant))
+  for (const c of stored) if (!fromRun.has(c.key)) (c.runAt < runAt && ranVariants.has(c.variant) ? dropped : kept).push(c)
   return {dropped, merged: [...fromRun.values(), ...kept]}
 }
 
@@ -249,7 +255,7 @@ function parseReport(
       }
 
       const timestamp = stamp(runAt)
-      cards.push({details, diff: null, durationMs, errorMessage, failureScreenshotPath, key, label, passed, prevScreenshotPath: null, runAt, screenshotPath, steps, timestamp})
+      cards.push({details, diff: null, durationMs, errorMessage, failureScreenshotPath, key, label, passed, prevScreenshotPath: null, runAt, screenshotPath, steps, timestamp, ...(variant ? {variant} : {})})
     }
   }
   return cards

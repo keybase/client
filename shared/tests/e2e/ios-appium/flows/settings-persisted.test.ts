@@ -104,7 +104,7 @@ import {
 } from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
-import {iosDark} from '../theme'
+import {iosTheme} from '../theme'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
 const SET_CONTACT = 'keybase.1.account.userSetContactSettings'
@@ -558,19 +558,20 @@ describe('settings persisted', function () {
 
   // -- display -------------------------------------------------------------------------------------
 
-  const runTheme = iosDark() ? 'dark' : 'light'
-  it(`Display > theme: ${runTheme} and the system theme picked from the phone, read back on the phone and after a relaunch, and back`, async function () {
+  it("Display > theme: the run's theme and the system theme picked from the phone, read back on the phone and after a relaunch, and back", async function () {
     // worst case (s): smoke 1, ask 22 x2; round with C = tap 37 and S 52: 945; = 990
     this.timeout(1_000_000)
     await requireAppIsSmoke()
+    const runTheme = iosTheme()
+    const runDark = runTheme === 'dark'
     const original = await guiValue('ui.darkMode')
     const was = original?.s ?? 'system'
-    const fixed = runTheme === 'dark' ? 'alwaysDark' : 'alwaysLight'
+    const fixed = runDark ? 'alwaysDark' : 'alwaysLight'
     check(was === 'system' || was === fixed, `refusing to change the theme: the phone is not on the ${runTheme} or the system theme (the run is ${runTheme})`)
     const dark = await darkModeState()
     check(dark.supported, 'refusing to change the theme: the phone does not offer "Respect system settings"')
     // the system theme is the other end: a system in the other appearance would change the app's
-    check(dark.systemDark === (runTheme === 'dark'), `refusing to change the theme: the simulator is not in ${runTheme} appearance (the run is ${runTheme})`)
+    check(dark.systemDark === runDark, `refusing to change the theme: the simulator is not in ${runTheme} appearance (the run is ${runTheme})`)
     const other = was === 'system' ? fixed : 'system'
     touched.theme = {original}
     await roundTrip<string>(
