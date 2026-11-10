@@ -33,7 +33,8 @@ type Options<RESULT, DATA> = {
  * @returns loadCount: number of successful loads, useful as a refresh token
  * @returns reload: kick off a load manually
  * @returns refresh: reload for a change notice from the service. While a load is in flight it
- *   queues one more after it instead of starting another, so a burst of notices costs two loads
+ *   queues one more after it instead of starting another, so a burst of notices costs two loads.
+ *   A load cut off by a lost link leaves it queued for the reconnect
  * @returns setData: overwrite data locally, for optimistic updates; the next load result wins
  */
 export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
@@ -55,14 +56,14 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
 
   // ignore out-of-order responses when reload fires while a load is in flight
   const requestID = React.useRef(0)
-  // id of the newest load until it settles, 0 when idle
-  const inFlightID = React.useRef(0)
+  // the newest load has not settled yet
+  const inFlight = React.useRef(false)
   const refreshQueued = React.useRef(false)
   // bumped when a load settles with a refresh queued; the effect below runs it
   const [refreshTick, setRefreshTick] = React.useState(0)
   const load = React.useEffectEvent(() => {
     const id = ++requestID.current
-    inFlightID.current = id
+    inFlight.current = true
     const keyAtCall = key
     const adopt = (data: DATA) => {
       setState(s => ({
@@ -84,10 +85,11 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
       setState(s => ({...s, cancelledKey: keyAtCall, loaded: true}))
     }
 
-    const settled = () => {
-      if (inFlightID.current !== id) return
-      inFlightID.current = 0
-      if (refreshQueued.current) {
+    const settled = (linkLost: boolean) => {
+      if (requestID.current !== id) return
+      inFlight.current = false
+      // with the link down the queued load would fail too; the reconnect runs it
+      if (refreshQueued.current && !linkLost) {
         refreshQueued.current = false
         setRefreshTick(t => t + 1)
       }
@@ -95,11 +97,11 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
 
     call(...args)
       .then((result: Awaited<ReturnType<F>>) => {
-        settled()
+        settled(false)
         if (requestID.current === id) adopt(map(result))
       })
       .catch((error: RPCError) => {
-        settled()
+        settled(isCancelled(error, 'disconnect'))
         if (requestID.current !== id) return
         if (isQuietCancel(error)) {
           endQuietly()
@@ -111,14 +113,18 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   })
 
   const refresh = React.useEffectEvent(() => {
-    if (inFlightID.current) {
+    if (inFlight.current) {
       refreshQueued.current = true
     } else {
       load()
     }
   })
+  // Remember the tick handled: a hidden <Activity> re-runs effects when shown again
+  const handledTick = React.useRef(0)
   React.useEffect(() => {
-    if (refreshTick) load()
+    if (refreshTick === handledTick.current) return
+    handledTick.current = refreshTick
+    load()
   }, [refreshTick])
 
   const setData = React.useEffectEvent(
@@ -159,7 +165,12 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   // a lost link rejects an in-flight load cancelled by the disconnect, which
   // leaves it loading; the reconnect's handshake loads it again
   useReloadOnReconnect(() => {
-    if (enabled && when !== 'manual') load()
+    if (refreshQueued.current) {
+      refreshQueued.current = false
+      load()
+    } else if (enabled && when !== 'manual') {
+      load()
+    }
   })
 
   const data = keyed ? (state.dataKey === key ? state.data : undefined) : state.data
