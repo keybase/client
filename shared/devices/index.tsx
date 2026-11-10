@@ -53,6 +53,17 @@ function ReloadableDevices() {
     loadDevices()
   })
 
+  // A device added or revoked elsewhere reaches us only as a badge, with no
+  // deviceHistoryChanged, so reload whenever the badge state names a new device
+  const lastStoreSet = React.useRef(storeSet)
+  React.useEffect(() => {
+    const prev = lastStoreSet.current
+    lastStoreSet.current = storeSet
+    if ([...storeSet].some(id => !prev.has(id))) {
+      loadDevices()
+    }
+  }, [storeSet, loadDevices])
+
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     navigateAppend({name: 'deviceAdd', params: {highlight}})
