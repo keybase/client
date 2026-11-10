@@ -35,6 +35,9 @@
 // KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 275)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
 //                             the settings/* tour entries (the census then reports gaps)
+// KB_E2E_THEME=dark           the flows with the simulator in dark appearance (theme.ts), as the
+//                             report's "dark" cards. The render and census are light only, so they
+//                             are skipped, and the report keeps every card (no --prune)
 import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -104,6 +107,7 @@ import {
 } from './release-lib.ts'
 import {pendingOutboxProblem} from './gate/outbox-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
+import {iosDark, iosFlowProject} from './theme.ts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -118,7 +122,8 @@ const out = {
 // where the render writes its runs (KB_VISUAL_RESULTS may put it outside tests/results)
 const renderRoot = path.join(visualResultsDir(), 'render')
 const logFile = (name: string) => path.join(logsDir, `${name}.log`)
-const project = 'ios-flows'
+const project = iosFlowProject()
+const dark = iosDark()
 const APPIUM_PORT = 4723
 const WDA_PORT = 8100
 const MIN = 60_000
@@ -205,6 +210,8 @@ let metroPgid: number | undefined
 // stop anything, and anything on those ports after that is this run's
 let preflightPassed = false
 let renderDir: string | undefined
+// the simulator's appearance before the launch set the run's, put back by cleanup
+let originalAppearance: string | undefined
 // renderDir, once this run's render wrote an iOS render.json there
 let iosRenderDir: string | undefined
 
@@ -288,6 +295,14 @@ const stopWhatItStarted = async () => {
     }
   }
   if (udid && !(await stopWda(udid, 'Appium left'))) ok = false
+  if (udid && originalAppearance) {
+    try {
+      runSync('xcrun', ['simctl', 'ui', udid, 'appearance', originalAppearance], 60_000)
+    } catch (e) {
+      ok = false
+      log(`could not put the simulator's appearance back to ${originalAppearance}: ${errText(e)}`)
+    }
+  }
   return ok
 }
 
@@ -422,6 +437,9 @@ const main = async () => {
       },
       sharedDir,
     })
+    // the app reads the appearance when it starts, so it is set before the relaunch
+    originalAppearance ??= runSync('xcrun', ['simctl', 'ui', id, 'appearance'], 60_000).trim()
+    runSync('xcrun', ['simctl', 'ui', id, 'appearance', dark ? 'dark' : 'light'], 60_000)
     const goLogMark = goLogMarkFor(id)
     const launchedAt = Date.now()
     const account = await relaunchApp({device, log, udid: id})
@@ -451,7 +469,7 @@ const main = async () => {
     })
     // only a clean exit: wdio also exits 1 when the app or session dies, and its results then hold
     // only the tests that started
-    flowsFull = !only && r.code === 0
+    flowsFull = !only && !dark && r.code === 0
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {
@@ -462,6 +480,7 @@ const main = async () => {
   })
 
   await phase('render', async () => {
+    if (dark) return {line: 'skipped: the visual tour renders light only', ok: true}
     const r = await runChild('render', 'node', node('tests/e2e/visual/cli.mts', 'render', '--ios', ...(only ? ['settings/*'] : [])), remainingMs(), {
       logFile: logFile('render'),
     })
@@ -480,6 +499,7 @@ const main = async () => {
   })
 
   await phase('census', async () => {
+    if (dark) return {line: 'skipped: it reads the light flows and render', ok: true}
     const start = Date.now()
     const dir = iosRenderDir
     const r = await runChild('census', 'node', node('tests/e2e/ios-appium/census.mts', ...(dir ? ['--render', dir] : ['--no-render'])), Math.min(5 * MIN, remainingMs()), {
