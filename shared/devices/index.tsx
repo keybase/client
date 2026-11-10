@@ -52,17 +52,12 @@ function ReloadableDevices() {
   useEngineActionListener('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', () => {
     loadDevices()
   })
-
-  // A device added or revoked elsewhere reaches us only as a badge, with no
-  // deviceHistoryChanged, so reload whenever the badge state names a new device
-  const lastStoreSet = React.useRef(storeSet)
-  React.useEffect(() => {
-    const prev = lastStoreSet.current
-    lastStoreSet.current = storeSet
-    if ([...storeSet].some(id => !prev.has(id))) {
-      loadDevices()
-    }
-  }, [storeSet, loadDevices])
+  // A device added or revoked elsewhere sends no deviceHistoryChanged. The service
+  // sends userChanged (only ever for us) once it has dropped its cached copy of our
+  // keys, so a reload then sees the change. The device badge arrives before that drop
+  useEngineActionListener('keybase.1.NotifyUsers.userChanged', () => {
+    loadDevices()
+  })
 
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {

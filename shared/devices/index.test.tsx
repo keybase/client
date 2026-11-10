@@ -211,7 +211,7 @@ test('a device history change from the service reloads the list, until the scree
   expect(historyCalls(fake)).toBe(2)
 })
 
-test('a device the badge state newly names reloads the list, so a just-revoked device leaves the active section', async () => {
+test('a user change from the service reloads the list, so a device revoked elsewhere leaves the active section', async () => {
   let results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old')]
   const fake = serve(() => results)
 
@@ -219,14 +219,14 @@ test('a device the badge state newly names reloads the list, so a just-revoked d
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old'])
   expect(historyCalls(fake)).toBe(1)
 
-  // revoked elsewhere: the service only says so through the badge state
+  // a revoke from elsewhere: the service sends userChanged, not deviceHistoryChanged
   results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1000})]
-  await badgeDevices(fake, ['id-testuser-old'])
+  await fake.push('keybase.1.NotifyUsers.userChanged', {uid: 'testuser-uid'}, {oneway: true})
+  await flush()
 
   expect(historyCalls(fake)).toBe(2)
+  // gone from the active section, into the collapsed revoked one
+  expect(renderedDevices()).toEqual(['testuser-mac'])
+  fireEvent.click(screen.getByText('Revoked devices'))
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old (revoked)'])
-
-  // the same badge state again names nothing new
-  await badgeDevices(fake, ['id-testuser-old'])
-  expect(historyCalls(fake)).toBe(2)
 })
