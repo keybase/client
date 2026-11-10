@@ -257,7 +257,8 @@ h1{font-size:20px;font-weight:600}
 .ov-compare .lbl-l{left:10px}.ov-compare .lbl-r{right:10px}
 @keyframes ov-fadein{from{opacity:0}to{opacity:1}}
 .ov-solo{display:block;max-height:90vh;max-width:90vw;width:auto;height:auto;animation:ov-fadein .25s ease}
-.ov-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:24px;padding:6px 14px}
+.ov-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:24px;padding:6px 14px;opacity:.15;transition:opacity .2s}
+.ov-controls:hover,.ov-controls:focus-within{opacity:1}
 .ov-controls button{background:none;border:none;color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85}
 .ov-controls button:hover{opacity:1;background:rgba(255,255,255,.15)}
 .ov-counter{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;letter-spacing:.04em;min-width:52px;text-align:center}
