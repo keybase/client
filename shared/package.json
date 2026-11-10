@@ -82,7 +82,7 @@
     "test:e2e:ios:release": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/release.mts",
     "test:e2e:ios:gate-report": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/e2e/ios-appium/report.mts && open tests/results/ios-report.html",
     "test:unit": "napi-postinstall unrs-resolver 1.11.1 check; jest --runInBand",
-    "visual:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/e2e/visual/ tests/e2e/shared/cli-read.test.mts tests/e2e/accounts/provisionee-script.test.mts tests/e2e/generate-report-shared.test.mts tests/e2e/ios-appium/census.test.mts tests/e2e/ios-appium/release-secrets.test.mts tests/e2e/shared/gate/census-cli.test.mts tests/e2e/shared/gate/flow-report.test.mts tests/e2e/shared/gate/release-run.test.mts",
+    "visual:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/e2e/visual/ tests/e2e/shared/cli-read.test.mts tests/e2e/accounts/provisionee-script.test.mts tests/e2e/generate-report-shared.test.mts tests/e2e/ios-appium/census.test.mts tests/e2e/ios-appium/release-secrets.test.mts tests/e2e/ios-appium/gate/run-stop-mocha.test.mts tests/e2e/shared/gate/timing-report.test.mts tests/e2e/shared/gate/census-cli.test.mts tests/e2e/shared/gate/flow-report.test.mts tests/e2e/shared/gate/release-run.test.mts",
     "visual:base": "node tests/e2e/visual/cli.mts base",
     "visual:check": "node tests/e2e/visual/cli.mts check",
     "visual:gate": "node tests/e2e/visual/cli.mts gate",

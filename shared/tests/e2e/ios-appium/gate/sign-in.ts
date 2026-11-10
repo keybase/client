@@ -48,7 +48,7 @@ export const waitStoredSecret = async (username: string, want: boolean) =>
   waitFor(
     `the phone ${want ? 'to keep' : 'to drop'} the stored secret of ${username}`,
     async () => ((await storedSecretOf(username)) === want ? true : undefined),
-    {interval: 1_000, timeout: 30_000}
+    {interval: 500, timeout: 30_000}
   )
 
 export const loginScreen = async () => jsEval<LoginScreen>(LOGIN_SCREEN_BODY)
@@ -149,7 +149,7 @@ export const signInWithPassword = async (username: string, password: string) => 
         const s = await loginScreen().catch(() => undefined)
         return s?.state === 'shown' && s.error ? {error: s.error} : undefined
       },
-      {interval: 1_000, timeout: SIGN_IN_MS}
+      {interval: 250, timeout: SIGN_IN_MS}
     )
     if ('error' in outcome) throw new Error(`the login screen refused the password of ${username}: ${outcome.error}`)
   } catch (e) {

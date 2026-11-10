@@ -478,7 +478,7 @@ const DomainList = (p: DomainListProps) => {
             return (
               <Kb.Box2
                 key={domain}
-                alignSelf="center"
+                alignSelf="stretch"
                 direction="horizontal"
                 justifyContent="space-between"
                 noShrink={true}

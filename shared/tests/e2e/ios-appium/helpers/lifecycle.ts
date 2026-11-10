@@ -1,13 +1,14 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {pidFromLaunchctl, runSync, udidForName} from './app'
+import {hostAppPid, runSync, udidForName} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {pollFor} from '../gate/wait-lib.ts'
 import {hiddenSimctlArgs} from '../gate/run-errors-lib'
 import {sessionPingDue} from '../gate/hang-lib.ts'
+import {harnessSite, timingOn, writeTiming} from '../../shared/gate/timing.ts'
 import {requireCurrentAttempt} from '../gate/attempt'
 import {appSnapshotBody} from '../gate/screen-params-lib.ts'
 import {goLogIn, markFile, type LogMark} from '../gate/go-log-lib.ts'
@@ -20,6 +21,8 @@ import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 // - Gate flows read JS log lines (logger.info/warn) through gate/app-log.ts's in-runtime capture.
 
 export const BUNDLE_ID = 'keybase.ios'
+// the app's executable inside Keybase.app (hostAppPid)
+const APP_EXECUTABLE = 'Keybase'
 
 export const deviceName = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 export const deviceUdid = () => process.env['KB_IOS_UDID'] ?? udidForName(deviceName())
@@ -33,7 +36,14 @@ const simctlMs = (args: ReadonlyArray<string>) => (args[0] === 'bootstatus' ? 30
 // the subcommand, never a link, path or name it was given (hiddenSimctlArgs).
 export const simctl = (...args: Array<string>): string => {
   requireCurrentAttempt()
-  return runSync('xcrun', ['simctl', ...args], simctlMs(args), {what: `simctl ${args[0] ?? ''}`, hidden: hiddenSimctlArgs(args)})
+  const site = timingOn() ? harnessSite() : ''
+  const start = Date.now()
+  try {
+    return runSync('xcrun', ['simctl', ...args], simctlMs(args), {what: `simctl ${args[0] ?? ''}`, hidden: hiddenSimctlArgs(args)})
+  } finally {
+    // only the subcommand: its arguments can name what a flow put on the phone
+    if (timingOn()) writeTiming({end: Date.now(), kind: 'command', name: `simctl ${args[0] ?? ''}`, site, start})
+  }
 }
 
 // Keeps the Appium session through a wait that sends it nothing (gate/hang-lib.ts sessionPingDue):
@@ -84,7 +94,10 @@ const statOrUndefined = (file: string) => fs.statSync(file, {throwIfNoEntry: fal
 // -- app process ------------------------------------------------------------
 
 // The pid of the running app on the simulator, or undefined when it isn't running.
-export const appPid = (udid = deviceUdid()): number | undefined => pidFromLaunchctl(simctl('spawn', udid, 'launchctl', 'list'), BUNDLE_ID)
+export const appPid = (udid = deviceUdid()): number | undefined => {
+  requireCurrentAttempt()
+  return hostAppPid(udid, APP_EXECUTABLE)
+}
 
 export const terminateApp = async (udid = deviceUdid()) => {
   try {

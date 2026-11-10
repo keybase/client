@@ -81,6 +81,7 @@ const write = (r: Running, record: AttemptRecord) => {
   fs.writeFileSync(path.join(attemptsDir(), `${r.id}.json`), JSON.stringify(record, null, 2))
 }
 
+// skill/running-e2e-release-gates/attempt-line.py matches this text to tell a running attempt from a failed one
 export const NEVER_ENDED = 'the attempt never ended (the test worker stopped during it)'
 
 // Writes a failed record at once, which ending the attempt replaces, so a worker that dies during a

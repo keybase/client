@@ -123,5 +123,5 @@ export const conversationOpened = async (what: string, convID: string, timeout =
 export const leaveOnPeople = async () => {
   await fromPeople()
   await waitFor('the app to save People as the route it opens at its next launch', async () =>
-    savedRouteIsPeople((await guiValue('ui.routeState2'))?.s) ? true : undefined, {interval: 1_000, timeout: 15_000})
+    savedRouteIsPeople((await guiValue('ui.routeState2'))?.s) ? true : undefined, {interval: 500, timeout: 15_000})
 }

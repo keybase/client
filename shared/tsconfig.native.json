@@ -28,6 +28,7 @@
     "./chat/conversation/input-area/suggestors/channels.test.tsx",
     "./chat/conversation/input-area/suggestors/emoji.test.tsx",
     "./chat/conversation/input-area/suggestors/index.test.tsx",
+    "./chat/conversation/messages/attachment/image/image-desktop.test.tsx",
     "./chat/conversation/messages/attachment/video/video-desktop.test.tsx",
     "./chat/conversation/messages/system-users-added-to-conv/container.test.tsx",
     "./chat/conversation/messages/text/coinflip/results.test.tsx",

@@ -6,7 +6,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import type {Page} from '@playwright/test'
-import {loadE2EEnv} from '@/tests/e2e/accounts/env'
+import {mainServiceLog} from '@/tests/e2e/accounts/env'
 import {KBFS_START_COMMAND} from '@/tests/e2e/shared/gate/processes'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
@@ -425,9 +425,8 @@ const developerClicks = 7
 
 // Whether the service is sending runtime stats: while on it logs an update every 4s
 // (go/runtimestats/stats.go), and the service has no call that says.
-const serviceLog = () => loadE2EEnv().serviceLog ?? '/tmp/kb-e2e/service.log'
 const lastStatsUpdate = () => {
-  const fd = fs.openSync(serviceLog(), 'r')
+  const fd = fs.openSync(mainServiceLog(), 'r')
   try {
     const size = fs.fstatSync(fd).size
     const len = Math.min(size, 4 * 1024 * 1024)

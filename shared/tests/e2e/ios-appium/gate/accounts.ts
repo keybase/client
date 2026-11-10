@@ -96,7 +96,7 @@ export const signInFromStoredSecret = async (username: string) => {
   await waitFor(`${username} to sign in`, async () => {
     const now = await signedInAs().catch(() => undefined)
     return now?.loggedIn && !now.switching && now.username === username ? true : undefined
-  }, {interval: 1_000, timeout: SIGN_IN_MS})
+  }, {interval: 250, timeout: SIGN_IN_MS})
 }
 
 // Waits out a switch or sign-in already under way, and returns where it landed.
