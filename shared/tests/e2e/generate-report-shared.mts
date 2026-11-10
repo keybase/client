@@ -385,16 +385,19 @@ const slideshowBtn = document.getElementById('slideshow-btn')
 function slideshowImages() {
   return Array.from(document.querySelectorAll('.grid .card:not(.hidden)')).flatMap(card => {
     const img = card.querySelector('.img-after') ?? card.querySelector('img.solo')
-    return img ? [img.src] : []
+    return img ? [{card, src: img.src}] : []
   })
 }
 
 function showSlide(idx) {
   if (!slideshowImgs.length) return
   slideshowIdx = ((idx % slideshowImgs.length) + slideshowImgs.length) % slideshowImgs.length
-  openSolo(slideshowImgs[slideshowIdx])
+  const {card, src} = slideshowImgs[slideshowIdx]
+  openSolo(src)
+  // keep the slide's card under the overlay, so closing it lands on that card's details
+  card.scrollIntoView({block: 'center'})
   // warm the next one so its decode is done before its turn
-  new Image().src = slideshowImgs[(slideshowIdx + 1) % slideshowImgs.length]
+  new Image().src = slideshowImgs[(slideshowIdx + 1) % slideshowImgs.length].src
   ovCounter.textContent = \`\${slideshowIdx + 1}/\${slideshowImgs.length}\`
 }
 
