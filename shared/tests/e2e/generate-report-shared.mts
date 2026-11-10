@@ -307,12 +307,15 @@ const ovPlayPause = ovControls.querySelector('.ov-playpause')
 const ovNext = ovControls.querySelector('.ov-next')
 const ovCounter = ovControls.querySelector('.ov-counter')
 
-function closeOverlay() { overlay.classList.remove('open'); stopSlideshow() }
+// bumped by every open and close, so a solo image still decoding never lands on a newer one
+let overlaySeq = 0
+function closeOverlay() { overlaySeq++; overlay.classList.remove('open'); stopSlideshow() }
 ovClose.addEventListener('click', closeOverlay)
 overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay() })
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay() })
 
 function openCompare(afterSrc, beforeSrc) {
+  overlaySeq++
   ovInner.innerHTML = \`<div class="ov-compare">
     <img class="img-after" src="\${afterSrc}">
     <img class="img-before" src="\${beforeSrc}">
@@ -326,9 +329,20 @@ function openCompare(afterSrc, beforeSrc) {
   overlay.classList.add('open')
 }
 
+// Swap in only a decoded image: an unloaded one has no size for a frame, which blips the
+// slideshow. Fade only when the overlay opens, not between slides.
 function openSolo(src) {
-  ovInner.innerHTML = \`<img class="ov-solo" src="\${src}">\`
-  overlay.classList.add('open')
+  const seq = ++overlaySeq
+  const img = new Image()
+  img.className = 'ov-solo'
+  img.src = src
+  const swap = () => {
+    if (seq !== overlaySeq) return
+    if (overlay.classList.contains('open')) img.style.animation = 'none'
+    ovInner.replaceChildren(img)
+    overlay.classList.add('open')
+  }
+  img.decode().then(swap, swap)
 }
 
 // ── expand buttons ───────────────────────────────────────────────────────────
@@ -378,6 +392,8 @@ function showSlide(idx) {
   if (!slideshowImgs.length) return
   slideshowIdx = ((idx % slideshowImgs.length) + slideshowImgs.length) % slideshowImgs.length
   openSolo(slideshowImgs[slideshowIdx])
+  // warm the next one so its decode is done before its turn
+  new Image().src = slideshowImgs[(slideshowIdx + 1) % slideshowImgs.length]
   ovCounter.textContent = \`\${slideshowIdx + 1}/\${slideshowImgs.length}\`
 }
 
