@@ -2,7 +2,9 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-set GOARCH=amd64
+if NOT DEFINED GOARCH set GOARCH=amd64
+if NOT DEFINED KEYBASE_ELECTRON_ARCH set KEYBASE_ELECTRON_ARCH=x64
+if NOT DEFINED WIX_PLATFORM set WIX_PLATFORM=x64
 
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
@@ -50,7 +52,7 @@ call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-%KEYBASE_ELECTRON_ARCH%\Keybase-win32-%KEYBASE_ELECTRON_ARCH%\Keybase.exe
 :: prompter
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 :: runquiet utility
@@ -81,7 +83,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that Keybase.exe gui is codesigned
-%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-%KEYBASE_ELECTRON_ARCH%\Keybase-win32-%KEYBASE_ELECTRON_ARCH%\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -102,7 +104,7 @@ set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
-msbuild WIX_Installers.sln  /p:Configuration=%CONFIGURATION% /p:Platform=x64 /t:Build
+msbuild WIX_Installers.sln  /p:Configuration=%CONFIGURATION% /p:Platform=%WIX_PLATFORM% /t:Build
 popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1

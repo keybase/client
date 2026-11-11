@@ -141,7 +141,8 @@ const _getWindowsPaths = () => {
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: _join(dir, socketName),
+    // _join collapses repeated separators, including the named-pipe namespace's leading \\.
+    socketPath: `${dir}\\${socketName}`,
   }
 }
 
