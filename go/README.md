@@ -11,7 +11,7 @@ Our intended architecture is that `keybase` runs a local service on Desktop
 environments, which can be connected to over a local Unix domain sockets on OSX/Linux,
 and over named pipes on Windows. The persistent service will eventually listen
 for asynchronous server updates, and will serve several clients, like the command-line
-utility, the graphical desktop app ([see `electron`](../electron)), and the Keybase
+utility, the graphical desktop app ([see `desktop`](../shared/desktop)), and the Keybase
 FUSE-mounted file system.
 
 Code in this repository can run against either our [production
