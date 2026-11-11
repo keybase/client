@@ -84,6 +84,7 @@ const MenuBar = () => {
         sandbox: true,
       },
       width: 360,
+      alwaysOnTop: true,
     },
     icon,
     index: false,
@@ -229,6 +230,9 @@ const MenuBar = () => {
     })
     mb.tray.on('click', (_: unknown, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
+    })
+    mb.on('focus-lost', () => {
+      mb.hideWindow()
     })
   })
 
