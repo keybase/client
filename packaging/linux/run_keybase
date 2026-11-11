@@ -27,7 +27,7 @@ kill_all() {
 
   # Only stop main Electron process; others have additional flags after the process name
   # Child Electron processes will be stopped by main process' handler
-  if main_electron_pids="$(pgrep 'Keybase$')"; then
+  if main_electron_pids="$(pgrep -f 'Keybase$')"; then
       # intentionally splitting pids
       # shellcheck disable=SC2046
       kill $(echo "$main_electron_pids" | xargs) &> /dev/null && echo Shutting down Keybase GUI...
