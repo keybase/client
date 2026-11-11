@@ -43,6 +43,25 @@ export const pidFromLaunchctl = (out: string, bundleId: string): number | undefi
   return undefined
 }
 
+// The app's pid read off the host's process table, or undefined when it isn't running: a simulator app
+// runs as a host process under its device's data folder. A few milliseconds; asking the simulator
+// (`simctl spawn launchctl list`) takes half a second, blocking the event loop.
+export const hostAppPid = (udid: string, executable: string): number | undefined => {
+  // plain node runs this file too (release.mts), which cannot load lodash's extensionless paths
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = `/CoreSimulator/Devices/${esc(udid)}/data/Containers/Bundle/Application/[^/]+/[^/]+\\.app/${esc(executable)}$`
+  let out: string
+  try {
+    out = execFileSync('pgrep', ['-f', pattern], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 10_000})
+  } catch (e) {
+    // pgrep exits 1 when nothing matches
+    if ((e as {status?: number}).status === 1) return undefined
+    throw e
+  }
+  const n = Number(out.split('\n')[0])
+  return Number.isInteger(n) && n > 0 ? n : undefined
+}
+
 export function udidForName(name: string): string {
   const json = runSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], 60_000)
   const devices = (JSON.parse(json) as {devices: Record<string, Array<{name: string; udid: string}>>}).devices

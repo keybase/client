@@ -32,11 +32,6 @@ export const IOS_KNOWN_FAILURES: KnownList = {
     // its chat UI
     'chat-location › chat location › with the app killed while sharing, the relaunched app restores the share and posts a move once it is in front':
       "the service restores the share at startup (go/service/main.go LiveLocationTracker.Start) before the app has registered its chat UI; getChatUI then hands back NullChatUI, whose ChatWatchPosition answers watch 0 with no error, so startWatch's retry for a UI that isn't ready never runs (go/chat/maps/livelocation.go), the app is never asked to watch, and the tracker waits for a fix that never comes; the same on master (PR 9)",
-    // PR 9 live 3 (3 of 3 runs, the PR 9 app and its base): the hang watch fires in this test, right
-    // after account-switch's; a debugger on the hung app showed the accessibility container chain as
-    // a loop through the More tab's recycled navigation bar
-    'account-login › account login › the second account signs out, a wrong password is refused, and its password signs it back in':
-      "after an account switch remounts the navigator, a recycled view that UIKit had marked as a navigation bar item is reused above that bar's recycled screen stack, so the accessibility container chain loops and the gate's accessibility read spins the main thread forever (React Native view recycling plus react-native-screens' kept navigation bar); not app code, same on master; owner follow-up",
   },
   render: {},
 }

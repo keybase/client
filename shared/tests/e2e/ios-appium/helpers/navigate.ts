@@ -140,8 +140,8 @@ export const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/*
 
 // A visible modal header button. Exact labels on buttons only: a tab root shows none of these,
 // while message snippets and feed text can contain the words.
-const MODAL_BUTTON_PRED =
-  '-ios predicate string:type == "XCUIElementTypeButton" AND label IN {"Cancel", "Done", "Close", "Back"} AND visible == 1'
+// The app's custom back button and a native bar's back by their ids, too, in the same search.
+const NOT_A_TAB_ROOT_PRED = `-ios predicate string:name IN {"${T.COMMON_BACK_BUTTON}", "BackButton"} OR (type == "XCUIElementTypeButton" AND label IN {"Cancel", "Done", "Close", "Back"} AND visible == 1)`
 
 // True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
 // it stays visible inside pushed stack screens, so also require that no back
@@ -158,13 +158,26 @@ export async function atTabs(): Promise<boolean> {
     if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
     return (await browser.$$('//*[@content-desc="Navigate up" or @content-desc="Back"]').length) === 0
   }
-  if ((await els('People').length) === 0) return false
-  if ((await els(T.COMMON_BACK_BUTTON).length) > 0) return false
-  if ((await els('BackButton').length) > 0) return false
-  // The tab bar stays in the tree under a modal sheet, so a presented modal (New chat, the
-  // account sheet) would otherwise read as a tab root and strand every later test behind it.
-  return (await browser.$$(MODAL_BUTTON_PRED).length) === 0
+  // The router says whether a tab's root shows: signed in, nothing above the tabs (a phone pushes every
+  // screen but a tab's root above them), no modal, and the tab's own stack at its root (a tablet pushes
+  // into it, and keeps the tab bar visible over those screens). A runtime the inspector cannot reach
+  // yet (just relaunched) is read off the tree instead.
+  const root = await jsEval<boolean>(TAB_ROOT_BODY).catch((e: unknown) => {
+    if (isAttemptOver(e)) throw e
+    return undefined
+  })
+  if (root === false) return false
+  // without the router's answer, the tab bar at least shows (the search below finds any back)
+  if (root === undefined && (await els('People').length) === 0) return false
+  // One search for what the router does not hold: a sheet or popup drawn outside navigation (the
+  // tab bar stays in the tree under it) shows a header or back button, and a pushed screen still
+  // sliding away keeps its back button for a moment.
+  return (await browser.$$(NOT_A_TAB_ROOT_PRED).length) === 0
 }
+
+const TAB_ROOT_BODY = `const NT = kbModule('constants/nav-tree.tsx')
+  const s = kbModule('constants/router.tsx').getRootState()
+  return NT.isLoggedIn(s) && (s.index ?? 0) === 0 && NT.modalStack(s).length === 0 && (NT.activeStack(s)?.routes?.length ?? 0) === 1`
 
 // Dismiss the keyboard ONLY when one is present — calling mobile: hideKeyboard
 // with no keyboard up hangs until timeout. The keyboard (raised by chat/crypto/

@@ -35,7 +35,7 @@ const appWindows = () => {
 process.exitCode = runCensusCli({
   defaultResults: path.join(sharedDir, 'tests/results/report/results.json'),
   exclusions: EXCLUSIONS,
-  flowsCommand: 'yarn test:e2e:desktop:flows',
+  flowsCommand: 'yarn test:e2e:desktop:release (for a run outside the gate, pass --results tests/results/targeted/report/results.json)',
   manualOnly: MANUAL_ONLY,
   outPrefix: '',
   platform: 'desktop',

@@ -842,7 +842,7 @@ export const waitSignedIn = async () =>
       const a = await signedInAs().catch(() => undefined)
       return a?.loggedIn && !a.switching ? true : undefined
     },
-    {interval: 1_000, timeout: 90_000}
+    {interval: 250, timeout: 90_000}
   )
 
 // Opens the account switcher sheet from the chat tab's avatar.
@@ -997,20 +997,6 @@ export const openMessageMenu = async (text: string) => {
   await openSheetWith(`the menu of the message "${text}"`, async () => {
     const {x, y} = await rowCentre(text)
     await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
-  })
-}
-
-// Long-presses the drawn row at `ordinal` (at its middle, read afresh each try) to open its menu, for
-// a message whose text must stay out of selectors, logs and errors.
-export const openMessageMenuAt = async (ordinal: number) => {
-  await openSheetWith(`the menu of the message at ${ordinal}`, async () => {
-    const r = rowOf(await requireThread(), ordinal)
-    if (!r) throw new Error(`row ${ordinal} is not drawn`)
-    // on its last line, the message's body: a row that opens a run of messages draws its author line
-    // above, outside the long-pressable body
-    const {width} = await browser.getWindowRect()
-    const y = Math.max((r.top + r.bottom) / 2, r.bottom - 12)
-    await browser.execute('mobile: touchAndHold', {duration: 0.8, x: Math.round(width / 2), y: Math.round(y)})
   })
 }
 

@@ -14,7 +14,7 @@ import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
 import {parseStampedName, runIdFromEnv, stampedChannelName, stampedTeamName} from '../accounts/run-id.ts'
-import {CORPUS} from '../fixtures/corpus/corpus.ts'
+import {CORPUS, corpusEntry} from '../fixtures/corpus/corpus.ts'
 import {runCli} from './cli-read.ts'
 import {expectSpawnList, keybaseBin} from './keybase-bin.ts'
 import {requireMainIsSmoke} from './peer-service.ts'
@@ -89,6 +89,8 @@ export const MEDIA_FIXTURES = [
   {file: path.join(fixturesDir, 'e2e-video.mp4'), title: 'e2e-media-video-tall'},
   {file: path.join(fixturesDir, 'e2e-image.png'), title: 'e2e-media-image'},
   {file: path.join(fixturesDir, 'e2e-file.txt'), title: 'e2e-media-file'},
+  // the pdf the visual tour's modal/chat-pdf shows
+  {file: corpusEntry('e2e-c.pdf').file, title: 'e2e-media-pdf'},
 ] as const
 
 const log = (line: string) => {
@@ -598,24 +600,6 @@ export const deleteFromCli = async (where: {topicName: string} | {tlfName: strin
   await withApi(async api => api.callWithin('delete', {channel, message_id: id}, 60_000))
 }
 
-// The oldest `count` messages of a conversation (as readFromCli names it), oldest first, read
-// through the host's CLI by paging back from the newest. Peeks. Bound: each page one call of 60s, at
-// most `maxPages` pages.
-export const oldestFromCli = async (where: {topicName: string} | {tlfName: string}, count: number, maxPages = 5): Promise<Array<CliMessage>> => {
-  const {team} = e2eAccounts()
-  const channel = 'topicName' in where ? channelRef(team, where.topicName) : {name: where.tlfName}
-  let all: Array<CliMessage> = []
-  let next: string | undefined
-  for (let page = 0; page < maxPages; page++) {
-    const pagination = {num: 1000, ...(next ? {next} : {})}
-    const res = await withApi(async api => api.callWithin<ReadResult>('read', {channel, pagination, peek: true}, 60_000))
-    all = [...all, ...unboxed(res)]
-    next = res.pagination?.next
-    if (res.pagination?.last || !next || !res.messages?.length) return all.slice(-count).reverse()
-  }
-  throw new Error(`the conversation holds more than ${maxPages} pages of messages`)
-}
-
 // The bot commands offered in a channel (none unless the team has a bot installed).
 export const botCommands = async (topicName: E2EChannel) => {
   const {team} = e2eAccounts()
@@ -774,8 +758,9 @@ export const retryTransient = async <R,>(f: () => Promise<R>, doneRe?: RegExp): 
 
 // A subteam of the e2e team for one run's flows, `<KB_E2E_TEAM>.<stampedTeamName(label)>` (so the
 // label is at most 7 characters), created by the CLI's account, which must be the smoke account (a team
-// admin), and joined by it as an admin: its creator is otherwise only an implicit admin, outside
-// its channels.
+// admin), and kept in it as an admin: its creator is otherwise only an implicit admin, outside its
+// channels. The create keeps the creator in (--join-subteam, as a writer), as leaving and joining again
+// costs ~5s of every subteam.
 // Returns its name and its general channel's id. Throws when it already exists; a subteam it made
 // but could not finish setting up is deleted again before it throws.
 export const createThrowawaySubteam = async (label: string) => {
@@ -783,9 +768,9 @@ export const createThrowawaySubteam = async (label: string) => {
   const part = stampedTeamName(label, currentRunId())
   const name = `${team}.${part}`
   // a create the server answered with a gateway error can still have happened
-  await retryTransient(async () => cli(['team', 'create', name]), /already exists|name is taken/i)
+  await retryTransient(async () => cli(['team', 'create', '--join-subteam', name]), /already exists|name is taken/i)
   try {
-    await retryTransient(async () => cli(['team', 'add-member', name, `--user=${smokeUser}`, '--role=admin']), /already a member/i)
+    await retryTransient(async () => cli(['team', 'edit-member', name, `--user=${smokeUser}`, '--role=admin']))
     // a small team's only channel has no topic name; a new team's channel can take a few seconds
     // to be listed
     const generalConvID = await withApi(async api => {

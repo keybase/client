@@ -35,6 +35,9 @@
 // KB_E2E_RELEASE_TIMEOUT_MIN  overall deadline (default 275)
 // KB_E2E_RELEASE_ONLY=<grep>  for trying the command itself: only flows matching <grep>, and only
 //                             the settings/* tour entries (the census then reports gaps)
+// KB_E2E_THEME=dark           the flows with the simulator in dark appearance (theme.ts), as the
+//                             report's "dark" cards. The render and census are light only, so they
+//                             are skipped
 import {spawn, spawnSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -77,6 +80,7 @@ import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {
   appHasPushPermission,
   appLocationPermission,
+  appDrawsDark,
   appPendingOutbox,
   BUNDLE_ID,
   forgetMetroPidfile,
@@ -97,6 +101,7 @@ import {
   IOS_RELEASE_PORTS,
   locationStartProblem,
   pushPermissionProblem,
+  themeProblem,
   secretScanDirs,
   simulatorFromList,
   strayChildren,
@@ -104,6 +109,7 @@ import {
 } from './release-lib.ts'
 import {pendingOutboxProblem} from './gate/outbox-lib.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
+import {iosFlowProject, iosTheme, type IosTheme} from './theme.ts'
 
 const sharedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const resultsDir = path.join(sharedDir, 'tests/results')
@@ -118,7 +124,9 @@ const out = {
 // where the render writes its runs (KB_VISUAL_RESULTS may put it outside tests/results)
 const renderRoot = path.join(visualResultsDir(), 'render')
 const logFile = (name: string) => path.join(logsDir, `${name}.log`)
-const project = 'ios-flows'
+const project = iosFlowProject()
+const theme = iosTheme()
+const dark = theme === 'dark'
 const APPIUM_PORT = 4723
 const WDA_PORT = 8100
 const MIN = 60_000
@@ -205,6 +213,9 @@ let metroPgid: number | undefined
 // stop anything, and anything on those ports after that is this run's
 let preflightPassed = false
 let renderDir: string | undefined
+// the simulator's appearance before the launch set the run's, put back by cleanup (light or dark
+// only: simctl answers "unsupported" for a runtime without the setting, and cannot set that back)
+let originalAppearance: IosTheme | undefined
 // renderDir, once this run's render wrote an iOS render.json there
 let iosRenderDir: string | undefined
 
@@ -288,6 +299,14 @@ const stopWhatItStarted = async () => {
     }
   }
   if (udid && !(await stopWda(udid, 'Appium left'))) ok = false
+  if (udid && originalAppearance) {
+    try {
+      runSync('xcrun', ['simctl', 'ui', udid, 'appearance', originalAppearance], 60_000)
+    } catch (e) {
+      ok = false
+      log(`could not put the simulator's appearance back to ${originalAppearance}: ${errText(e)}`)
+    }
+  }
   return ok
 }
 
@@ -422,6 +441,12 @@ const main = async () => {
       },
       sharedDir,
     })
+    // the app reads the appearance when it starts, so it is set before the relaunch
+    if (!originalAppearance) {
+      const was = runSync('xcrun', ['simctl', 'ui', id, 'appearance'], 60_000).trim()
+      if (was === 'light' || was === 'dark') originalAppearance = was
+    }
+    runSync('xcrun', ['simctl', 'ui', id, 'appearance', theme], 60_000)
     const goLogMark = goLogMarkFor(id)
     const launchedAt = Date.now()
     const account = await relaunchApp({device, log, udid: id})
@@ -429,7 +454,8 @@ const main = async () => {
       notSmokeProblem(account, e2eEnv) ??
       pushPermissionProblem(await appHasPushPermission(device), device) ??
       locationStartProblem(await appLocationPermission(device), device, id) ??
-      pendingOutboxProblem(await appPendingOutbox(goLogMark, launchedAt), device)
+      pendingOutboxProblem(await appPendingOutbox(goLogMark, launchedAt), device) ??
+      themeProblem(await appDrawsDark(device, dark), theme, device)
     if (problem) {
       console.error(`[ios-release] ${problem}`)
       return {line: problem, ok: false}
@@ -440,12 +466,18 @@ const main = async () => {
 
   if (await sweepPhase(run, e2eEnv, runId, {logFile: logFile('sweep')})) return endRun(1, 'the sweep did not stop after its deadline; no flow runs beside it')
 
+  // every flow ran to its end (no KB_E2E_RELEASE_ONLY, wdio not stopped at the deadline), so the
+  // report may drop the cards of tests the suite no longer has
+  let flowsFull = false
   await phase('flows', async () => {
     const start = Date.now()
     const r = await runChild('flows', path.join(sharedDir, 'node_modules/.bin/wdio'), ['run', 'tests/e2e/ios-appium/wdio.gate.conf.ts'], remainingMs(), {
       env: {...process.env, KB_IOS_DEVICE: device, ...(only ? {KB_E2E_RELEASE_ONLY: only} : {})},
       logFile: logFile('flows'),
     })
+    // only a clean exit: wdio also exits 1 when the app or session dies, and its results then hold
+    // only the tests that started
+    flowsFull = !only && r.code === 0
     const summarize = () => summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, IOS_KNOWN_FAILURES.flows)
     const {line, ok, summary: s} = flowsPhaseResult(r, {path: out.results, ...mtime(out.results)}, start, summarize)
     if (s) {
@@ -456,6 +488,7 @@ const main = async () => {
   })
 
   await phase('render', async () => {
+    if (dark) return {line: 'skipped: the visual tour renders light only', ok: true}
     const r = await runChild('render', 'node', node('tests/e2e/visual/cli.mts', 'render', '--ios', ...(only ? ['settings/*'] : [])), remainingMs(), {
       logFile: logFile('render'),
     })
@@ -474,6 +507,7 @@ const main = async () => {
   })
 
   await phase('census', async () => {
+    if (dark) return {line: 'skipped: it reads the light flows and render', ok: true}
     const start = Date.now()
     const dir = iosRenderDir
     const r = await runChild('census', 'node', node('tests/e2e/ios-appium/census.mts', ...(dir ? ['--render', dir] : ['--no-render'])), Math.min(5 * MIN, remainingMs()), {
@@ -485,7 +519,7 @@ const main = async () => {
   await phase('report', async () => {
     const start = Date.now()
     const dir = iosRenderDir
-    const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : [])), Math.min(5 * MIN, remainingMs()), {
+    const r = await runChild('report', 'node', node('tests/e2e/ios-appium/report.mts', ...(dir ? ['--render', dir] : []), ...(flowsFull ? ['--prune'] : [])), Math.min(5 * MIN, remainingMs()), {
       logFile: logFile('report'),
     })
     const p = reportPhaseResult(r, {path: out.report, ...mtime(out.report)}, start)

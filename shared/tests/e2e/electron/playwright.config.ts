@@ -1,4 +1,7 @@
 import {defineConfig} from '@playwright/test'
+import {flowResultsDir} from './results-dirs'
+
+const results = flowResultsDir('../../results')
 
 // The chat flows over the seeded e2e team and the self conversation. They check behaviour, not colours, so they run in the
 // light project only; each also turns retries off for itself (a retry would let an intermittent
@@ -26,11 +29,13 @@ export default defineConfig({
   expect: {timeout: 5_000},
   retries: 1,
   workers: 1,
-  outputDir: '../../results/test-results',
+  outputDir: `${results}/test-results`,
   reporter: [
     ['list'],
-    ['html', {outputFolder: '../../results/report', open: 'never'}],
-    ['json', {outputFile: '../../results/report/results.json'}],
+    ['html', {outputFolder: `${results}/report`, open: 'never'}],
+    ['json', {outputFile: `${results}/report/results.json`}],
+    // writes only with KB_E2E_TIMING_FILE set
+    ['./timing-reporter.ts'],
     // last: it scans what the reporters above wrote
     ['./secret-scan-reporter.ts'],
   ],

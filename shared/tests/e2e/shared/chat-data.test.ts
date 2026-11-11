@@ -5,12 +5,12 @@ import {newRunId} from '../accounts/run-id'
 import {createThrowawaySubteam, directReadFailure, newestDrawn, NoMessagesYet} from './chat-data'
 import {macTest} from './mac-test'
 
-// A stand-in `keybase` (KB_CLI): `team create` passes, `team add-member` fails, and `team delete`
+// A stand-in `keybase` (KB_CLI): `team create` passes, `team edit-member` fails, and `team delete`
 // asks for its confirmation and then fails.
 const fakeKeybase = `#!/bin/sh
 case "$1 $2" in
   "team create") exit 0 ;;
-  "team add-member") echo "add-member boom" >&2; exit 1 ;;
+  "team edit-member") echo "edit-member boom" >&2; exit 1 ;;
   "team delete") printf 'please type: '; read answer; echo "delete boom"; exit 1 ;;
 esac
 echo "unexpected: $*" >&2
@@ -46,8 +46,8 @@ macTest('createThrowawaySubteam keeps the setup error when deleting the half-mad
     (e: unknown) => e as AggregateError
   )
   expect(err).toBeInstanceOf(AggregateError)
-  expect(err.message).toMatch(/add-member boom.*; and then deleting the subteam e2e[0-9a-z]{6}x failed: .*delete boom/s)
-  expect(err.errors.map((e: unknown) => String(e))).toEqual([expect.stringMatching(/add-member boom/), expect.stringMatching(/delete boom/)])
+  expect(err.message).toMatch(/edit-member boom.*; and then deleting the subteam e2e[0-9a-z]{6}x failed: .*delete boom/s)
+  expect(err.errors.map((e: unknown) => String(e))).toEqual([expect.stringMatching(/edit-member boom/), expect.stringMatching(/delete boom/)])
   expect(String(err.cause)).toMatch(/delete boom/)
 }, 20_000)
 

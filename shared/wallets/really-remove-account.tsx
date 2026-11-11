@@ -12,6 +12,7 @@ type OwnProps = {
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const styles = useStyles()
+  const theme = Kb.Styles.useTheme()
   const {accountID, name} = props
   const waiting = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
   const [showingToast, setShowToast] = React.useState(false)
@@ -93,7 +94,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           If you save this secret key, you can use it in other wallets outside Keybase
         </Kb.Text>
         <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
-          {isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
+          {isMobile && <Kb.Icon type="iconfont-clipboard" color={theme.white} />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

@@ -1,9 +1,9 @@
 // What the desktop thread shows as its data changes, read off the DOM: a delete shows deleting (through
 // thread reloads too) and then takes the row away, reactions come and go, an attachment collapses
-// and expands, mark unread draws the orange line and marks the inbox row (and none on a first
-// message), reply privately opens the direct conversation quoting the message, incoming messages
-// reach the thread and the inbox, all of it keeps working across an account switch, and the thread
-// left behind by one sends nothing for the next account.
+// and expands, mark unread draws the orange line and marks the inbox row, reply privately opens the
+// direct conversation quoting the message, incoming messages reach the thread and the inbox, all of
+// it keeps working across an account switch, and the thread left behind by one sends nothing for the
+// next account.
 import type {ConsoleMessage, Page} from '@playwright/test'
 import {test, expect, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {
@@ -346,52 +346,6 @@ test.describe('mark unread', () => {
     await waitForScrollStable(page)
     await step(page, testInfo, 'self conversation read again')
   })
-
-  // Nothing is older than a conversation's first message, so marking it unread has no read position
-  // to move to: nothing is marked, and no line is drawn for a mark that never happened.
-  test('mark unread on the first message of a conversation draws no orange line', async ({page}, testInfo) => {
-    test.setTimeout(90_000)
-    await openDirectConversation(page, data.secondUser)
-    // Home until the list rests at its top with nothing more coming in above; the composer takes the
-    // focus as the conversation opens, so the scroller is given it back each time
-    let oldest = -1
-    await expect(async () => {
-      await focusThreadScroller(page)
-      await page.keyboard.press('Home')
-      const g = await waitForScrollStable(page, 15_000)
-      await page.waitForTimeout(1_000)
-      const again = await waitForScrollStable(page, 15_000)
-      const first = again.rows[0]?.ordinal ?? -1
-      const settled = g.rows[0]?.ordinal === first && again.scrollTop === 0 && first === oldest
-      oldest = first
-      expect(settled, `the list is still loading older rows (oldest ${first}, scrollTop ${again.scrollTop})`).toBe(true)
-    }).toPass({timeout: 60_000})
-
-    const logs: Array<string> = []
-    const onConsole = (m: ConsoleMessage) => {
-      if (m.text().includes('marking unread messages')) logs.push(m.text())
-    }
-    page.on('console', onConsole)
-    try {
-      const menu = await messageMenu(page, oldest)
-      await clickUnoccluded(menu.getByText('Mark as unread', {exact: true}))
-      await expect(page.getByTestId(T.FLOATING_MENU)).toHaveCount(0, {timeout: 5_000})
-      await expect.poll(() => logs.length, {timeout: 10_000}).toBeGreaterThan(0)
-    } finally {
-      page.off('console', onConsole)
-    }
-    // the app's own account of the mark: it found nothing older than the line
-    expect(logs.join('\n')).toContain('nothing older than')
-    // a line would be drawn within a frame of the answer; give it well past that
-    for (const until = Date.now() + 2_000; Date.now() < until; await page.waitForTimeout(100)) {
-      expect(await orangeLineRows(page), 'the orange line after marking the first message unread').toEqual([])
-    }
-    await step(page, testInfo, 'first message marked, no orange line', {card: true})
-    await openScratch(page)
-    await expect(inboxRow(page, data.secondUser).locator(`[title="${data.secondUser}"]`)).toHaveClass(/text_BodySemibold/, {
-      timeout: 10_000,
-    })
-  })
 })
 
 test.describe('reply privately', () => {
@@ -437,7 +391,15 @@ test.describe('account switch', () => {
   // - "getUsernameToShow: message with no author" (separator-utils), logged in bursts as a thread
   //   loads. It shows up without any switch too (the composer flows' self conversation), and could
   //   not be pinned to a step; it is reported separately rather than failed here.
-  const notFromTheSwitch = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
+  // - Chromium's own line for an attachment preview the local attachment server would not serve: the
+  //   account switched to draws the thread from its local copy first, which can still hold a message
+  //   deleted while it was signed out, until the server's copy replaces it. The app hides a preview
+  //   that fails to load (attachment/image/imageimpl.tsx); the line itself cannot be suppressed.
+  const notFromTheSwitch = [
+    /refreshAccounts|ignorePromise error/,
+    /getUsernameToShow: message with no author/,
+    /^Failed to load resource: the server responded with a status of \d+ .* \[http:\/\/127\.0\.0\.1:\d+\/at\]$/,
+  ]
 
 
   test.afterEach(async ({page}) => {

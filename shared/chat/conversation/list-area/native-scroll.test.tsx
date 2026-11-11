@@ -28,6 +28,7 @@ type Props = {
   datasetKey: string
   editingOrdinal: T.Chat.Ordinal | undefined
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
+  recenterVersion: number
 }
 
 // The keyboard is up unless asked otherwise, so the list rests over it.
@@ -56,6 +57,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
     datasetKey: 'conv1:0',
     editingOrdinal: undefined,
     messageOrdinals: newestFirst(1, 60),
+    recenterVersion: 0,
   }
   const hook = renderHook(
     (p: Props) =>
@@ -72,6 +74,7 @@ const mount = (opts: {containsLatestMessage?: boolean; keyboardVisible?: boolean
         loadOlder,
         loaded: true,
         messageOrdinals: p.messageOrdinals,
+        recenterVersion: p.recenterVersion,
       }),
     {initialProps, wrapper}
   )
@@ -350,6 +353,22 @@ test('a search for the same hit again waits for the reader again', () => {
   // the same hit, reloaded as a fresh window
   m.set({datasetKey: 'conv1:1'})
   act(() => jest.advanceTimersByTime(1001))
+  act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
+  act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
+  expect(m.loadNewer).not.toHaveBeenCalled()
+})
+
+test('the same hit asked for again with its row loaded is scrolled to again, and waits for the reader again', () => {
+  const m = windowOfHistory()
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => jest.advanceTimersByTime(5000))
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  const before = m.itemScrolls(T.Chat.numberToOrdinal(30))
+  // no reload: the same rows, the same dataset
+  m.set({recenterVersion: 1})
+  // the centring's own scrolls run on its schedule
+  act(() => jest.advanceTimersByTime(1001))
+  expect(m.itemScrolls(T.Chat.numberToOrdinal(30))).toBeGreaterThan(before)
   act(() => m.hook.result.current.onCellLayout(T.Chat.numberToOrdinal(1), {height: 100, y: 5900}))
   act(() => m.hook.result.current.onScroll(scrollIn(600, 6000)))
   expect(m.loadNewer).not.toHaveBeenCalled()

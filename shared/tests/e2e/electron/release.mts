@@ -41,6 +41,7 @@ import {groupAlive} from '../shared/gate/processes.ts'
 import {KNOWN_FAILURES} from './known-failures.ts'
 import {scanAndPurge, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {createWatchdog} from './watchdog.ts'
+import {RELEASE_ENV} from './results-dirs.ts'
 import {createReleaseRun, errText} from '../shared/gate/release-run.mts'
 import {logTally, nodeArgs, outcome, preflightPhase, releaseSettings, screenState, sweepPhase} from '../shared/gate/release-phases.mts'
 import {
@@ -103,6 +104,9 @@ const {endRun, log, phase, phases, remainingMs, runChild, runStart} = run
 
 let launchedPgid: number | undefined
 let renderDir: string | undefined
+// every flow ran to its end (no KB_E2E_RELEASE_ONLY, playwright not stopped at the deadline), so the
+// report may drop the cards of tests the suite no longer has
+let flowsFull = false
 // renderDir, when this run's render wrote its render.json there
 const renderedDir = () => (renderDir && fs.existsSync(path.join(renderDir, 'render.json')) ? renderDir : undefined)
 
@@ -208,6 +212,8 @@ const main = async () => {
   const secrets = watchEnvSecrets()
   // children that read the accounts from the environment alone see the ones preflight checked
   Object.assign(process.env, childEnvVars(e2eEnv))
+  // the flows write where the report and census below read
+  process.env[RELEASE_ENV] = '1'
 
   const launched = await phase('launch', async () => {
     const r = await runChild('launch', 'node', node('tests/e2e/electron/launch-app.mts'), 5 * MIN)
@@ -227,6 +233,9 @@ const main = async () => {
     if (!fs.existsSync(out.results) || fs.statSync(out.results).mtimeMs < start) {
       return {line: `playwright exited ${r.code} and wrote no ${out.results}`, ok: false}
     }
+    // playwright exits 1 for failed tests, but also for a global timeout or a setup that threw; the
+    // report drops nothing when the results show a run error or a test the run never reached
+    flowsFull = !only && (r.code === 0 || r.code === 1)
     const s = summarizeFlows(JSON.parse(fs.readFileSync(out.results, 'utf8')) as PwReport, project, KNOWN_FAILURES.flows)
     logTally(log, s, {listFile: 'known-failures.ts'})
     for (const n of flowProblems(s)) log(n)
@@ -256,7 +265,7 @@ const main = async () => {
   })
 
   await phase('report', async () => {
-    const r = await runChild('report', 'node', node('tests/e2e/generate-electron-report.mts', ...(renderedDir() ? ['--render', renderedDir() ?? ''] : [])), Math.min(5 * MIN, remainingMs()))
+    const r = await runChild('report', 'node', node('tests/e2e/generate-electron-report.mts', ...(renderedDir() ? ['--render', renderedDir() ?? ''] : []), ...(flowsFull ? ['--prune'] : [])), Math.min(5 * MIN, remainingMs()))
     if (r.code !== 0 || !fs.existsSync(out.report)) return {line: `report generator exited ${r.code}`, ok: false}
     if (!process.env['KB_E2E_NO_OPEN']) spawn('open', [out.report], {detached: true, stdio: 'ignore'}).unref()
     return {line: out.report, ok: true}

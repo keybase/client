@@ -47,9 +47,9 @@ test('mask without reason is refused', () => {
   const bad = {...base, masks: [{testID: 'a', reason: ''}]}
   assert.match(validateEntry(bad).join(), /mask a needs a reason/)
 })
-test('a nav with both append and thread is refused', () => {
-  const bad: TourEntry = {...base, nav: {append: {name: 'x'}, tab: 't', thread: {ref: 'conversationIDKey'}}}
-  assert.match(validateEntry(bad).join(), /both append and thread/)
+test('a nav with both append and thread validates', () => {
+  const both: TourEntry = {...base, nav: {append: {name: 'x'}, tab: 't', thread: {ref: 'conversationIDKey'}}}
+  assert.deepEqual(validateEntry(both), [])
 })
 test('a thread that is not a conversation is refused', () => {
   const bad: TourEntry = {...base, nav: {tab: 't', thread: {ref: 'teamID'}}}

@@ -7,6 +7,7 @@ import {useNavigation} from '@react-navigation/native'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
 import {useConversationMessage} from '../conversation/data-hooks'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -48,7 +49,7 @@ const ChatPDF = (props: Props) => {
         padding="none"
         footer={<Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />}
       >
-        <PdfEmbed url={url} />
+        <PdfEmbed url={url} testID={TestIDs.CHAT_PDF_VIEWER} />
       </Kb.ModalScreen>
     )
   }
@@ -73,6 +74,7 @@ const ChatPDF = (props: Props) => {
           pinnedURLMode={true}
           onError={err => setError(err)}
           style={nativeStyles.webViewContainer}
+          testID={TestIDs.CHAT_PDF_VIEWER}
         />
       ) : (
         <Kb.Text type="BodySmallError">Can&apos;t load this file {error}</Kb.Text>

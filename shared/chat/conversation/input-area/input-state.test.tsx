@@ -192,9 +192,13 @@ const holdPostText = () => {
     cancel: async () => {
       const call = held.at(-1)
       if (!call) throw new Error('no post held')
-      await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: call.params.sessionID as number})
-      call.reply(posted)
-      await act(flushPromises)
+      // the cancel restores the composer's text on a turn the push's own answer may or may
+      // not have reached yet, so the whole exchange runs inside act
+      await act(async () => {
+        await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: call.params.sessionID as number})
+        call.reply(posted)
+        await flushPromises()
+      })
     },
     held,
   }

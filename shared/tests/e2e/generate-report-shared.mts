@@ -23,6 +23,9 @@ export type CardData = {
   timestamp?: string | null
   // The test's step screenshots, in step order
   steps?: Array<{name: string; path: string}>
+  // true for a card of its section's newest run, false for an older run's card the report kept;
+  // unset for cards with no run (run errors, storybook), which the latest-run filter never hides
+  latest?: boolean
   // Text shown under a failed card: renderer errors and the app/service log tails
   details?: Array<{name: string; text: string}>
 }
@@ -88,6 +91,7 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
   const badge = card.passed
     ? '<span class="badge pass">PASS</span>'
     : '<span class="badge fail">FAIL</span>'
+  const latestBadge = card.latest ? '<span class="badge latest">LATEST</span>' : ''
   const error = card.errorMessage ? `<div class="error">${escapeHtml(card.errorMessage)}</div>` : ''
   const diff = card.diff
   const deltaBadge = diff
@@ -135,8 +139,8 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     : ''
 
   const hasDiff = card.diff !== null && card.diff.pct >= 0.05
-  return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}>
-  <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
+  return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}${card.latest === false ? ' data-older="1"' : ''}>
+  <div class="hdr">${badge}${latestBadge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
   ${failShot}${stepStrip}${details}
 </div>`
@@ -149,6 +153,7 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
   const allPassed = totalFailed === 0
   const allCards = sections.flatMap(s => s.cards)
   const diffCount = allCards.filter(c => c.diff !== null && c.diff.pct >= 0.05).length
+  const olderCount = allCards.filter(c => c.latest === false).length
 
   const relFn = (p: string) => path.relative(path.dirname(outputPath), p)
 
@@ -166,10 +171,10 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
     .map(s => `<a class="sec-link" href="#sec-${slug(s.header!)}">${escapeHtml(s.header!)}</a>`)
     .join('')
 
-  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks)
+  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks, olderCount)
 }
 
-export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, diffCount: number, timestamp: string, cards: string, navLinks = ''): string {
+export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, diffCount: number, timestamp: string, cards: string, navLinks = '', olderCount = 0): string {
   const hasDiff = diffCount > 0
   return `<!DOCTYPE html>
 <html lang="en">
@@ -184,7 +189,7 @@ ${sharedCss(allPassed)}
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
   <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ` <span>· ${diffCount} with diffs vs baseline</span>` : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
-  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${failed > 0 ? '' : ' disabled'}"${failed > 0 ? '' : ' title="No failing tests in this run"'}><input type="checkbox" id="fail-only"${failed > 0 ? '' : ' disabled'}> Failing only</label><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this run"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label></div>
+  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${failed > 0 ? '' : ' disabled'}"${failed > 0 ? '' : ' title="No failing tests in this report"'}><input type="checkbox" id="fail-only"${failed > 0 ? '' : ' disabled'}> Failing only</label><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this report"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label><label class="diff-only-label${olderCount > 0 ? '' : ' disabled'}"${olderCount > 0 ? '' : ' title="Every card is from the latest run"'}><input type="checkbox" id="latest-only"${olderCount > 0 ? '' : ' disabled'}> Latest run only</label></div>
 </header>
 <div class="grid">${cards}</div>
 ${sliderScript()}
@@ -196,7 +201,7 @@ export function sharedCss(allPassed: boolean): string {
   return `
 .steps { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; }
 .steps figure { margin: 0; flex: 0 0 160px; }
-.steps img { width: 160px; height: auto; border: 1px solid #8884; border-radius: 4px; display: block; }
+.steps img { width: 160px; height: auto; border: 1px solid #8884; border-radius: 4px; display: block; cursor: zoom-in; }
 .steps figcaption { font-size: 11px; opacity: .7; margin-top: 2px; word-break: break-word; }
 .detail { padding: 4px 12px; font-size: 12px; }
 .detail pre { max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
@@ -218,7 +223,7 @@ h1{font-size:20px;font-weight:600}
 .dur{font-size:12px;color:#999}
 .badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap}
 .badge.pass{background:#d4edda;color:#1a7a3a}.badge.fail{background:#fde8e8;color:#c0392b}
-.badge.diff-low{background:#e8f4fd;color:#1a5fa8}.badge.diff-mid{background:#fff3cd;color:#856404}.badge.diff-high{background:#fde8e8;color:#842029}
+.badge.latest,.badge.diff-low{background:#e8f4fd;color:#1a5fa8}.badge.diff-mid{background:#fff3cd;color:#856404}.badge.diff-high{background:#fde8e8;color:#842029}
 .error{width:100%;font-size:11px;color:#c0392b;background:#fde8e8;padding:3px 8px;border-radius:4px;word-break:break-word}
 .solo-wrap{position:relative;overflow:hidden;background:#000}
 .solo{width:100%;display:block}.dim{opacity:.85}
@@ -351,6 +356,10 @@ document.querySelectorAll('.solo-wrap').forEach(el => {
   })
 })
 
+document.querySelectorAll('.steps img').forEach(img => {
+  img.addEventListener('click', () => openSolo(img.src))
+})
+
 // ── slideshow ────────────────────────────────────────────────────────────────
 let slideshowTimer = null
 let slideshowPlaying = false
@@ -418,6 +427,7 @@ slideshowBtn.addEventListener('click', () => {
 const filterInput = document.getElementById('filter-input')
 const diffOnlyCheck = document.getElementById('diff-only')
 const failOnlyCheck = document.getElementById('fail-only')
+const latestOnlyCheck = document.getElementById('latest-only')
 
 // Sort cards by pixel-diff desc when diff-only is on; restore authored order when off.
 // Sorts within each section group so cards stay under their own header.
@@ -446,13 +456,15 @@ function applyFilter(q) {
   const lq = q.toLowerCase()
   const diffOnly = diffOnlyCheck?.checked ?? false
   const failOnly = failOnlyCheck?.checked ?? false
+  const latestOnly = latestOnlyCheck?.checked ?? false
   reorderCards(diffOnly)
   document.querySelectorAll('.grid .card').forEach(card => {
     const name = card.querySelector('.name')?.textContent?.toLowerCase() ?? ''
     const nameMatch = lq.length === 0 || name.includes(lq)
     const diffMatch = !diffOnly || card.dataset.hasDiff === '1'
     const failMatch = !failOnly || card.classList.contains('fail')
-    card.classList.toggle('hidden', !nameMatch || !diffMatch || !failMatch)
+    const latestMatch = !latestOnly || card.dataset.older !== '1'
+    card.classList.toggle('hidden', !nameMatch || !diffMatch || !failMatch || !latestMatch)
   })
   document.querySelectorAll('.section-hdr').forEach(hdr => {
     let el = hdr.nextElementSibling
@@ -479,6 +491,7 @@ filterInput.addEventListener('input', () => {
 
 diffOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
 failOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
+latestOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
 
 const initQ = new URL(location.href).searchParams.get('q') ?? ''
 if (initQ) { filterInput.value = initQ; applyFilter(initQ) }

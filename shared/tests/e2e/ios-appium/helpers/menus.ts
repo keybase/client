@@ -293,6 +293,13 @@ export const elementWithLabelPart = async (selector: string, name: string, what:
 // What a row's name can be drawn as: its own text, a pressable text (a link), or a tappable box
 // merging its texts.
 export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStaticText', 'XCUIElementTypeLink', 'XCUIElementTypeOther']
+
+// The labels of every visible element drawn as NAMED_ELEMENT_TYPES, off one page source: one read for
+// them all (a label asked of each element is a WebDriver call apiece). Bound: one read 2.
+export const drawnLabels = async (): Promise<Array<string>> =>
+  sourceElements(await browser.getPageSource())
+    .filter(e => NAMED_ELEMENT_TYPES.includes(e.type) && e.attrs['visible'] === 'true' && !!e.attrs['label'])
+    .map(e => e.attrs['label']!)
 // For a tap only, not a presence read: when XCUITest reports none of the matches visible (a modal
 // or sheet it reports invisible now and then), the one of them whose frame lies wholly on screen.
 export type DrawnOptions = {forTap?: boolean}

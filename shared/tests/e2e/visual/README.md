@@ -116,8 +116,11 @@ it beyond testIDs.
 ## Params
 
 An entry's route params are data: literals, plain objects and arrays (a wizard's state), and refs
-that `resolve.mts` fills in through the read-only CLI (team, conversation, folders, users, and
-`deviceID`, the account's device whose ID sorts first).
+that `resolve.mts` fills in through the read-only CLI (team, conversation, folders, users,
+`deviceID`, the account's device whose ID sorts first, and `messageID`, the attachment titled
+`title` in a team channel, which a chat flow seeds). A nav with both `thread` and `append` opens
+the thread first and appends over it, so a route that reads the thread's messages finds them
+loaded.
 
 ## Masks
 

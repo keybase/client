@@ -3,16 +3,18 @@ import QRLines from './lines'
 import QRNotAuthorized from './not-authorized'
 import QRScanner from './scanner'
 import useQR from './hooks'
+import {useDarkModeState} from '@/stores/darkmode'
 
 const QRScan = () => {
   const styles = useStyles()
   const {waiting, onSubmitTextCode} = useQR()
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
   if (!isMobile) {
     return (
       <Kb.Box2 direction="vertical" justifyContent="center" relative={true} style={styles.container}>
         <QRLines canScan={true} />
-        {waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={true} />}
+        {waiting && <Kb.ProgressIndicator style={styles.waiting} type="Large" white={!isDarkMode} />}
       </Kb.Box2>
     )
   }

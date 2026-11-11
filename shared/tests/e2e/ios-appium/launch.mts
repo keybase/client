@@ -30,6 +30,8 @@ const METRO_UP_MS = 3 * 60_000
 const APP_UP_MS = 5 * 60_000
 // the app reads its push permission from iOS shortly after launch, so a false holds this long first
 const PUSH_SETTLE_MS = 30_000
+// the app loads its theme preference shortly after launch, so a mismatch holds this long first
+const THEME_SETTLE_MS = 15_000
 const LOCATION_READ_MS = 15_000
 // the service's deliverer logs its start within a minute of a launch
 const DELIVERER_UP_MS = 60_000
@@ -161,6 +163,17 @@ export const appHasPushPermission = async (device: string): Promise<boolean> => 
   for (;;) {
     if (await evalInPage<boolean>(await inspectorPageFor(device, BUNDLE_ID), `return ${PUSH_HAS_PERMISSIONS}`)) return true
     if (Date.now() > end) return false
+    await sleep(1_000)
+  }
+}
+
+// Whether the just-launched app draws dark, once it agrees with `expected`, otherwise after
+// THEME_SETTLE_MS (stores/darkmode.tsx; no RPC). An eval that fails throws.
+export const appDrawsDark = async (device: string, expected: boolean): Promise<boolean> => {
+  const end = Date.now() + THEME_SETTLE_MS
+  for (;;) {
+    const dark = await evalInPage<boolean>(await inspectorPageFor(device, BUNDLE_ID), "return kbModule('stores/darkmode.tsx').useDarkModeState.getState().isDarkMode()")
+    if (dark === expected || Date.now() > end) return dark
     await sleep(1_000)
   }
 }

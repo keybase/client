@@ -8,10 +8,14 @@ import {
   useConversationThreadJumpToRecent,
   useConversationThreadLoadMessagesCentered,
   useConversationThreadSetMarkReadBlocked,
+  useConversationThreadStore,
 } from './thread-context'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined
+  // Bumped when search asks for its centred hit again with the row loaded, which reloads nothing:
+  // the lists centre it again on their own.
+  recenterVersion: number
   threadSearchVisible: boolean
 }
 
@@ -41,6 +45,10 @@ const CenterStateContext = React.createContext<CenterStateContextType>({
 })
 CenterStateContext.displayName = 'ConversationCenterStateContext'
 
+// Its own context: only the lists' scroll hooks read it, and a re-centre must not re-render every row.
+const RecenterVersionContext = React.createContext(0)
+RecenterVersionContext.displayName = 'ConversationRecenterVersionContext'
+
 const CenterActionsContext = React.createContext<CenterActionsContextType>({
   centerOnMessage: missingContext,
   clearCenter: missingContext,
@@ -50,6 +58,7 @@ CenterActionsContext.displayName = 'ConversationCenterActionsContext'
 
 export const useConversationCenter = () => React.useContext(CenterStateContext)
 export const useConversationCenterActions = () => React.useContext(CenterActionsContext)
+export const useConversationRecenterVersion = () => React.useContext(RecenterVersionContext)
 
 // The other half of the input-intent bus's type split: the input provider claims the other four
 // types (input-area/input-state.tsx). Neither may claim the other's or whichever mounts first
@@ -80,8 +89,10 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
   const jumpToRecentThread = useConversationThreadJumpToRecent()
   const setMarkReadBlocked = useConversationThreadSetMarkReadBlocked()
+  const threadStore = useConversationThreadStore()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
     center: undefined,
+    recenterVersion: 0,
     threadSearchVisible,
   }))
 
@@ -91,18 +102,12 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   if (currentCenterState !== centerState) {
     setCenterState(currentCenterState)
   }
-
-  const setCenterForMessage = (
-    messageID: T.Chat.MessageID,
-    highlightMode: T.Chat.CenterOrdinalHighlightMode
-  ) => {
-    const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setCenterState(state =>
-      produce(stateForThreadSearchVisible(state, threadSearchVisible), draft => {
-        draft.center = {highlightMode, ordinal}
-      })
-    )
-  }
+  // Read when a centre is asked for: callers may hold a centerOnMessage from an earlier render (search
+  // keeps the one it first got).
+  const centerRef = React.useRef(currentCenterState.center)
+  React.useLayoutEffect(() => {
+    centerRef.current = currentCenterState.center
+  }, [currentCenterState.center])
 
   const clearCenter = () => {
     setCenterState(state =>
@@ -113,10 +118,22 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   }
 
   const centerOnMessage = (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => {
-    setCenterForMessage(messageID, highlightMode)
-    loadMessagesCentered(messageID, highlightMode, {
-      ...getThreadLoadStatusOptions(),
-    })
+    const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
+    // Search ('always') asking for its centred hit again with the row loaded (it selects its first hit
+    // itself, and the reader then clicks it): a reload would clear the thread and rebuild every row,
+    // replaying the highlight. The lists centre it again on their own. Other jumps (a reply quote, the
+    // pinned message) still reload, so the message flashes again.
+    const recenter =
+      highlightMode === 'always' &&
+      centerRef.current?.ordinal === ordinal &&
+      !!threadStore.getState().messageOrdinals?.includes(ordinal)
+    setCenterState(state =>
+      produce(stateForThreadSearchVisible(state, threadSearchVisible), draft => {
+        draft.center = {highlightMode, ordinal}
+        if (recenter) draft.recenterVersion++
+      })
+    )
+    if (!recenter) loadMessagesCentered(messageID, highlightMode, getThreadLoadStatusOptions())
   }
 
   const jumpToRecent = () => {
@@ -166,7 +183,9 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
 
   return (
     <CenterActionsContext value={actionsValue}>
-      <CenterStateContext value={stateValue}>{children}</CenterStateContext>
+      <CenterStateContext value={stateValue}>
+        <RecenterVersionContext value={currentCenterState.recenterVersion}>{children}</RecenterVersionContext>
+      </CenterStateContext>
     </CenterActionsContext>
   )
 }

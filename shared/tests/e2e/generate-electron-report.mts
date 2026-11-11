@@ -3,7 +3,8 @@ import * as path from 'path'
 import {computeDiff} from './generate-report-shared.mts'
 import {MANUAL_ONLY} from './electron/manual-only.ts'
 import {KNOWN_FAILURES, KNOWN_FAILURES_FILE} from './electron/known-failures.ts'
-import {runFlowReport} from './shared/gate/flow-report.mts'
+import {darkVariantOf, runFlowReport} from './shared/gate/flow-report.mts'
+import {flowResultsDir} from './electron/results-dirs.ts'
 import type {CardData} from './generate-report-shared.mts'
 
 const storybookDir = 'tests/results/storybook-desktop'
@@ -45,6 +46,10 @@ function saveStorybookBaseline(cards: CardData[]) {
   console.log(`Storybook baseline saved: ${saved} screenshots to ${storybookPrevDir}/`)
 }
 
+// The last release gate's results by default; --targeted for a flows run outside the gate
+// (results-dirs.ts). Either way they go into the one report, which keeps the cards a run lacks.
+const targeted = process.argv.includes('--targeted')
+
 process.exitCode = runFlowReport({
   checklistPath: 'tests/results/manual-checklist.md',
   debugDir: 'tests/results/electron-debug',
@@ -57,9 +62,9 @@ process.exitCode = runFlowReport({
   manualOnly: MANUAL_ONLY,
   outputPath: 'tests/results/electron-report.html',
   prevDir: 'tests/results/electron-prev',
-  resultsPath: 'tests/results/report/results.json',
-  runHint: 'yarn test:e2e:desktop',
+  resultsPath: `${flowResultsDir('tests/results', !targeted)}/report/results.json`,
+  runHint: targeted ? 'yarn test:e2e:desktop' : 'yarn test:e2e:desktop:release',
   saveExtraBaseline: saveStorybookBaseline,
   title: 'Keybase Electron E2E Tests',
-  variantOf: projectName => (projectName.endsWith('-dark') ? 'dark' : undefined),
+  variantOf: darkVariantOf,
 })

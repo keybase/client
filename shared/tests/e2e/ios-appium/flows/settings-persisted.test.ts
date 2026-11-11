@@ -10,8 +10,9 @@
 // - Notifications: the first email notification setting (an account unsubscribed from all of them
 //   is refused; "Unsubscribe from all" is never pressed). The phone push group needs the push grant,
 //   which the native-surfaces flows cover.
-// - Display: the theme, light and "Respect system settings" only (the gate runs light: Dark is never
-//   pressed, and a dark system is refused), and Allow animated emoji.
+// - Display: the theme, "Respect system settings" and the fixed theme the run uses (Light, or Dark
+//   in a KB_E2E_THEME=dark run; the other one is never pressed, and a system in the other appearance
+//   is refused), and Allow animated emoji.
 // - Advanced: lockdown mode (refused unless it starts off), Save Proxy Settings with the settings the
 //   form loaded (refused unless the phone has no proxy, so the save can never point it at one; the
 //   network is checked after), Enable Detailed Logging (read off the phone's service log, where the
@@ -103,6 +104,7 @@ import {
 } from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
 import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
+import {iosTheme} from '../theme'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
 const SET_CONTACT = 'keybase.1.account.userSetContactSettings'
@@ -556,18 +558,21 @@ describe('settings persisted', function () {
 
   // -- display -------------------------------------------------------------------------------------
 
-  it('Display > theme: light and the system theme picked from the phone, read back on the phone and after a relaunch, and back', async function () {
+  it("Display > theme: the run's theme and the system theme picked from the phone, read back on the phone and after a relaunch, and back", async function () {
     // worst case (s): smoke 1, ask 22 x2; round with C = tap 37 and S 52: 945; = 990
     this.timeout(1_000_000)
     await requireAppIsSmoke()
+    const runTheme = iosTheme()
+    const runDark = runTheme === 'dark'
     const original = await guiValue('ui.darkMode')
     const was = original?.s ?? 'system'
-    check(was === 'system' || was === 'alwaysLight', 'refusing to change the theme: the phone is not on the light or the system theme (the gate runs light)')
+    const fixed = runDark ? 'alwaysDark' : 'alwaysLight'
+    check(was === 'system' || was === fixed, `refusing to change the theme: the phone is not on the ${runTheme} or the system theme (the run is ${runTheme})`)
     const dark = await darkModeState()
     check(dark.supported, 'refusing to change the theme: the phone does not offer "Respect system settings"')
-    // the system theme is the other end: a dark system would turn the app dark
-    check(!dark.systemDark, 'refusing to change the theme: the simulator is in dark appearance (the gate runs light)')
-    const other = was === 'system' ? 'alwaysLight' : 'system'
+    // the system theme is the other end: a system in the other appearance would change the app's
+    check(dark.systemDark === runDark, `refusing to change the theme: the simulator is not in ${runTheme} appearance (the run is ${runTheme})`)
+    const other = was === 'system' ? fixed : 'system'
     touched.theme = {original}
     await roundTrip<string>(
       {

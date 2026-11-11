@@ -44,10 +44,10 @@ import {el} from '../helpers/elements'
 import {filesRowNamed, fillHiddenField, tapButton, typeInFilter} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {waitFor} from '../helpers/lifecycle'
-import {check} from '../helpers/menus'
+import {check, drawnLabels} from '../helpers/menus'
 import {labelHas, labelParts} from '../gate/page-source-lib'
 import {escapeToTabs} from '../helpers/navigate'
-import {masked, tapHeaderAction, TEXTS} from '../helpers/teams'
+import {masked, tapHeaderAction} from '../helpers/teams'
 
 const ENCRYPT = 'keybase.1.saltpack.saltpackEncryptString'
 const DECRYPT = 'keybase.1.saltpack.saltpackDecryptString'
@@ -266,11 +266,11 @@ describe('crypto roundtrip', function () {
     })
 
   // How many drawn texts read each of `names` as a label part, in one read, compared in memory.
-  // Bound: one read 1.
+  // Bound: one read 2.
   const namesDrawn = async (names: ReadonlyArray<string>) => {
     const counts = names.map(() => 0)
-    for (const e of await browser.$$(TEXTS).getElements()) {
-      const parts = labelParts((await e.getAttribute('label').catch(() => null)) ?? '')
+    for (const label of await drawnLabels()) {
+      const parts = labelParts(label)
       names.forEach((n, i) => {
         if (parts.includes(n)) counts[i]!++
       })
@@ -297,12 +297,7 @@ describe('crypto roundtrip', function () {
   const expectRefused = async (text: string, what: string) => {
     await waitFor(
       what,
-      async () => {
-        for (const e of await browser.$$(TEXTS).getElements()) {
-          if (labelHas((await e.getAttribute('label').catch(() => null)) ?? '', text)) return true
-        }
-        return undefined
-      },
+      async () => ((await drawnLabels()).some(label => labelHas(label, text)) ? true : undefined),
       {interval: 250, timeout: 15_000}
     )
     check(!(await el(T.CRYPTO_OUTPUT).isExisting()), 'the output modal draws an output with its error')

@@ -142,6 +142,53 @@ const searchAndSelect = async (page: Page, token: string, marker: string) => {
   return waitForRow(page, marker)
 }
 
+// Records each start and end of a row's highlight fade, and each time a highlighted row is put into
+// the list, against the row element, so a replay on the same row is told from a rebuilt row.
+type HighlightEvent = {el: number; kind: string; ordinal: string | null}
+const recordHighlights = async (page: Page) =>
+  page.getByTestId(T.CHAT_MESSAGE_LIST).evaluate(node => {
+    type El = {getAttribute: (n: string) => string | null; querySelectorAll: (s: string) => ArrayLike<El>}
+    type Ev = {animationName: string; target: El}
+    type Rec = {addedNodes: ArrayLike<unknown>}
+    const g = globalThis as unknown as {
+      MutationObserver: new (f: (rs: Array<Rec>) => void) => {observe: (n: unknown, o: object) => void}
+      __e2eHighlight: Array<HighlightEvent>
+    }
+    const events: Array<HighlightEvent> = []
+    g.__e2eHighlight = events
+    const ids = new WeakMap<object, number>()
+    let nextId = 0
+    const idOf = (el: object) => {
+      let id = ids.get(el)
+      if (id === undefined) {
+        id = ++nextId
+        ids.set(el, id)
+      }
+      return id
+    }
+    const list = node as unknown as {addEventListener: (t: string, f: (e: Ev) => void, c: boolean) => void}
+    const record = (kind: string) => (e: Ev) => {
+      if (e.animationName !== 'highlightAnimation') return
+      events.push({el: idOf(e.target), kind, ordinal: e.target.getAttribute('data-ordinal')})
+    }
+    list.addEventListener('animationstart', record('start'), true)
+    list.addEventListener('animationend', record('end'), true)
+    new g.MutationObserver(rs => {
+      for (const r of rs) {
+        for (const added of Array.from(r.addedNodes) as Array<El>) {
+          if (typeof added.querySelectorAll !== 'function') continue
+          for (const row of Array.from(added.querySelectorAll('.highlighted[data-ordinal]'))) {
+            events.push({el: idOf(row), kind: 'move', ordinal: row.getAttribute('data-ordinal')})
+          }
+        }
+      }
+    }).observe(node, {childList: true, subtree: true})
+  })
+const allHighlights = async (page: Page) =>
+  page.evaluate(() => (globalThis as unknown as {__e2eHighlight: Array<HighlightEvent>}).__e2eHighlight)
+const highlightsOf = async (page: Page, ordinal: number) =>
+  (await allHighlights(page)).filter(e => e.ordinal === String(ordinal))
+
 const expectCentred = async (page: Page, ordinal: number) => {
   await expect
     .poll(async () => (await isOrdinalCentred(page, ordinal, centreTolerancePx)).offset, {timeout: 10_000})
@@ -325,6 +372,47 @@ test.describe('search', () => {
 
     await selectHit(page, 0)
     await expectCentred(page, ordinal)
+    await closeSearch(page)
+  })
+
+  // The chat tab is hidden (display: none) while another tab is shown, and showing an element again
+  // restarts its CSS animations: a highlight that has played must stay put when the tab comes back.
+  test('a hit highlight that has played does not replay when the chat tab is shown again', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    await recordHighlights(page)
+    const {index, token} = LONG_SEARCH_TOKENS.middle
+    const ordinal = await searchAndSelect(page, token, longMarker(index))
+    await expectCentred(page, ordinal)
+    await expect.poll(async () => (await highlightsOf(page, ordinal)).some(e => e.kind === 'end'), {timeout: 5_000}).toBe(true)
+    await page.getByTestId(T.NAV_TAB_PEOPLE).click({force: true, timeout: 5_000})
+    await page.waitForTimeout(500)
+    await page.getByTestId(T.NAV_TAB_CHAT).click({force: true, timeout: 5_000})
+    await expect(rowByOrdinal(page, ordinal)).toBeVisible()
+    await page.waitForTimeout(1_000)
+    const events = await highlightsOf(page, ordinal)
+    const summary = events.map(e => `${e.kind}#${e.el}`).join(' ')
+    expect(events.filter(e => e.kind === 'start'), `the highlight replayed: ${summary}`).toHaveLength(1)
+    await closeSearch(page)
+  })
+
+  // Clicking the hit the search selected by itself centres it where it already is: nothing reloads,
+  // so its row is never rebuilt and its highlight fades in once.
+  test('clicking the hit the search already selected flashes it once and reloads nothing', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    await recordHighlights(page)
+    const {index, token} = LONG_SEARCH_TOKENS.middle
+    await openThreadSearch(page)
+    expect(await searchFor(page, token)).toHaveLength(1)
+    // the search selects its first hit itself
+    const ordinal = await waitForRow(page, longMarker(index))
+    await expectCentred(page, ordinal)
+    await selectHit(page, 0)
+    await page.waitForTimeout(1_500)
+    await expectCentred(page, ordinal)
+    const events = await highlightsOf(page, ordinal)
+    const summary = events.map(e => `${e.kind}#${e.el}`).join(' ')
+    expect(events.filter(e => e.kind === 'start'), `the highlight played again: ${summary}`).toHaveLength(1)
+    expect(new Set(events.map(e => e.el)).size, `the hit's row was rebuilt: ${summary}`).toBe(1)
     await closeSearch(page)
   })
 

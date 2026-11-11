@@ -28,8 +28,10 @@ import {
   watchEnvSecrets,
   type SecretWatch,
 } from '../shared/gate/secret-scan'
+import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
+import {iosFlowProject} from './theme'
 
-const PROJECT = 'ios-flows'
+const PROJECT = iosFlowProject()
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
@@ -39,6 +41,9 @@ requireSmokeUser()
 const udid = process.env['KB_IOS_UDID'] ?? udidForName(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest')
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+const commandStarts: Array<{name: string; site: string; start: number}> = []
+let testStart = 0
 
 // started in onPrepare: every value the env file's secrets held during the run
 let secretWatch: SecretWatch | undefined
@@ -102,7 +107,20 @@ export const config: WebdriverIO.Config = {
       noteProtocolResult(event)
     })
   },
+  // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
+  // the same name (commands nest, and a Promise.all runs several at once)
+  beforeCommand: (name: string) => {
+    if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
+  },
+  afterCommand: (name: string) => {
+    if (!timingOn()) return
+    const i = commandStarts.findLastIndex(c => c.name === name)
+    if (i < 0) return
+    const [c] = commandStarts.splice(i, 1)
+    writeTiming({end: Date.now(), kind: 'command', name, site: c!.site, start: c!.start})
+  },
   beforeTest: async () => {
+    testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
     await escapeToTabs().catch((e: unknown) => {
@@ -112,7 +130,7 @@ export const config: WebdriverIO.Config = {
       rec.captureError = `starting the error capture: ${message(e)}`
     })
     const r = new PhoneRecording()
-    await r.begin().then(
+    await timed('command', 'gate: beforeTest, the recording begun', async () => r.begin()).then(
       () => {
         rec.recording = r
       },
@@ -130,9 +148,10 @@ export const config: WebdriverIO.Config = {
   },
   // The body may still be running (wdio's timer gave up on it): it is stopped first, and the failure
   // capture runs as a hook, bound to the attempt but to no body.
-  afterTest: async (_test, _context, result: TestResult) => {
+  afterTest: async (test, _context, result: TestResult) => {
     const token = leaveBody()
-    await runAttempt(token, async () => finishAttempt(result))
+    await timed('command', 'gate: afterTest, the attempt finished', async () => runAttempt(token, async () => finishAttempt(result)))
+    writeTiming({end: Date.now(), kind: 'test', name: [test.parent, test.title].filter(Boolean).join(' > '), start: testStart, status: result.passed ? 'passed' : 'failed'})
   },
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async
   // context, before sending it: a test body that is over is refused here. A request already sent, its

@@ -12,7 +12,7 @@ const OVERLAP = 0.9
 
 // Screenfuls of each page at the gate's window size. Every case checks the page still has exactly
 // this many, so a page that grows or shrinks fails and names the count to set.
-const MARKDOWN_SCREENS = 8
+const MARKDOWN_SCREENS = 10
 const TYPOGRAPHY_SCREENS = 5
 
 async function openDebugPage(page: Page, label: string, marker: string): Promise<void> {
