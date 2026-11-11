@@ -27,7 +27,7 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 
 	for _, arg := range ctx.Args() {
 		if len(arg) < keybase1.SigIDQueryMin {
-			return fmt.Errorf("sig id %q is too short; must be at least 16 characters long", arg)
+			return fmt.Errorf("sig id %q is too short; must be at least 8 characters long", arg)
 		}
 		c.queries = append(c.queries, strings.TrimSuffix(arg, "..."))
 	}
