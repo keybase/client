@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -316,6 +317,52 @@ func TestFlipManagerChannelFlip(t *testing.T) {
 		res1 := consumeFlipToResult(t, ui1, listener1, gameID, 2)
 		require.Equal(t, res0, res1)
 		assertNoFlip(t, ui2)
+	})
+}
+
+// A /flip posted the way the GUI posts text, but without a tlfName or clientPrev,
+// must run the same game as one that carries them: the game conversation has to
+// be created for the host conversation's TLF, not for an empty name.
+func TestFlipManagerStartFlipWithoutTlfName(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "FlipManagerStartFlipWithoutTlfName", 2)
+		defer ctc.cleanup()
+
+		users := ctc.users()
+		flip.DefaultCommitmentWindowMsec = 500
+
+		ui0 := kbtest.NewChatUI()
+		ui1 := kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui0
+		ctc.as(t, users[1]).h.mockChatUI = ui1
+		ctc.world.Tcs[users[0].Username].G.UIRouter = kbtest.NewMockUIRouter(ui0)
+		ctc.world.Tcs[users[1].Username].G.UIRouter = kbtest.NewMockUIRouter(ui1)
+		listener0 := newServerChatListener()
+		listener1 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
+
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctc.as(t, users[0]).startCtx,
+			chat1.PostTextNonblockArg{
+				ConversationID:   conv.Id,
+				Body:             "/flip",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		flipMsg := consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		require.True(t, flipMsg.IsValid())
+		require.NotNil(t, flipMsg.Valid().FlipGameID)
+		gameID := *flipMsg.Valid().FlipGameID
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		res0 := consumeFlipToResult(t, ui0, listener0, gameID, 2)
+		require.True(t, res0 == "HEADS" || res0 == "TAILS")
+		res1 := consumeFlipToResult(t, ui1, listener1, gameID, 2)
+		require.Equal(t, res0, res1)
 	})
 }
 
