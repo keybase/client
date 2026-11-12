@@ -17,6 +17,8 @@ type Props = ThreadSearchRouteProps & {
 
 const Conversation = function Conversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
+  // BadgeHeaderUpdater stays outside the keyed provider so its transition-done state survives
+  // the pendingWaiting -> real-conv switch, which is a setParams on this same screen.
   return (
     <>
       <BadgeHeaderUpdater conversationIDKey={conversationIDKey} />
