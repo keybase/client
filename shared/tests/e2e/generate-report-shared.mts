@@ -257,7 +257,8 @@ h1{font-size:20px;font-weight:600}
 .ov-compare .lbl-l{left:10px}.ov-compare .lbl-r{right:10px}
 @keyframes ov-fadein{from{opacity:0}to{opacity:1}}
 .ov-solo{display:block;max-height:90vh;max-width:90vw;width:auto;height:auto;animation:ov-fadein .25s ease}
-.ov-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:24px;padding:6px 14px}
+.ov-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:24px;padding:6px 14px;opacity:.15;transition:opacity .2s}
+.ov-controls:hover,.ov-controls:has(:focus-visible){opacity:1}
 .ov-controls button{background:none;border:none;color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:4px;opacity:.85}
 .ov-controls button:hover{opacity:1;background:rgba(255,255,255,.15)}
 .ov-counter{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;letter-spacing:.04em;min-width:52px;text-align:center}
@@ -307,12 +308,15 @@ const ovPlayPause = ovControls.querySelector('.ov-playpause')
 const ovNext = ovControls.querySelector('.ov-next')
 const ovCounter = ovControls.querySelector('.ov-counter')
 
-function closeOverlay() { overlay.classList.remove('open'); stopSlideshow() }
+// bumped by every open and close, so a solo image still decoding never lands on a newer one
+let overlaySeq = 0
+function closeOverlay() { overlaySeq++; overlay.classList.remove('open'); stopSlideshow() }
 ovClose.addEventListener('click', closeOverlay)
 overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay() })
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay() })
 
 function openCompare(afterSrc, beforeSrc) {
+  overlaySeq++
   ovInner.innerHTML = \`<div class="ov-compare">
     <img class="img-after" src="\${afterSrc}">
     <img class="img-before" src="\${beforeSrc}">
@@ -326,9 +330,20 @@ function openCompare(afterSrc, beforeSrc) {
   overlay.classList.add('open')
 }
 
+// Swap in only a decoded image: an unloaded one has no size for a frame, which blips the
+// slideshow. Fade only when the overlay opens, not between slides.
 function openSolo(src) {
-  ovInner.innerHTML = \`<img class="ov-solo" src="\${src}">\`
-  overlay.classList.add('open')
+  const seq = ++overlaySeq
+  const img = new Image()
+  img.className = 'ov-solo'
+  img.src = src
+  const swap = () => {
+    if (seq !== overlaySeq) return
+    if (overlay.classList.contains('open')) img.style.animation = 'none'
+    ovInner.replaceChildren(img)
+    overlay.classList.add('open')
+  }
+  img.decode().then(swap, swap)
 }
 
 // ── expand buttons ───────────────────────────────────────────────────────────
@@ -370,14 +385,19 @@ const slideshowBtn = document.getElementById('slideshow-btn')
 function slideshowImages() {
   return Array.from(document.querySelectorAll('.grid .card:not(.hidden)')).flatMap(card => {
     const img = card.querySelector('.img-after') ?? card.querySelector('img.solo')
-    return img ? [img.src] : []
+    return img ? [{card, src: img.src}] : []
   })
 }
 
 function showSlide(idx) {
   if (!slideshowImgs.length) return
   slideshowIdx = ((idx % slideshowImgs.length) + slideshowImgs.length) % slideshowImgs.length
-  openSolo(slideshowImgs[slideshowIdx])
+  const {card, src} = slideshowImgs[slideshowIdx]
+  openSolo(src)
+  // keep the slide's card under the overlay, so closing it lands on that card's details
+  card.scrollIntoView({block: 'center'})
+  // warm the next one so its decode is done before its turn
+  new Image().src = slideshowImgs[(slideshowIdx + 1) % slideshowImgs.length].src
   ovCounter.textContent = \`\${slideshowIdx + 1}/\${slideshowImgs.length}\`
 }
 

@@ -42,7 +42,7 @@ function ReloadableDevices() {
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   // Reloadable's reloadOnMount drives the initial load
-  const {data, reload: loadDevices} = useRPCLoad(
+  const {data, refresh: refreshDevices, reload: loadDevices} = useRPCLoad(
     T.RPCGen.deviceDeviceHistoryListRpcPromise,
     [undefined, C.waitingKeyDevices],
     {map: results => results?.map(rpcDeviceDetailToDevice) ?? [], when: 'manual'}
@@ -50,13 +50,13 @@ function ReloadableDevices() {
   const devices = data ?? noDevices
 
   useEngineActionListener('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', () => {
-    loadDevices()
+    refreshDevices()
   })
   // A device added or revoked elsewhere sends no deviceHistoryChanged. The service
   // sends userChanged (only ever for us) once it has dropped its cached copy of our
   // keys, so a reload then sees the change. The device badge arrives before that drop
   useEngineActionListener('keybase.1.NotifyUsers.userChanged', () => {
-    loadDevices()
+    refreshDevices()
   })
 
   const navigateAppend = C.Router2.navigateAppend

@@ -1,19 +1,12 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import {waitingKeyTrackerProfileLoad} from '@/constants/strings'
-import {ignorePromise} from '@/constants/utils'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
+import {useRPCLoad} from '@/util/use-rpc-load'
 
 const emptyProofSuggestions: ReadonlyArray<T.Tracker.Assertion> = []
-
-type ProofSuggestionsState = {
-  enabled: boolean
-  loadKey: number
-  suggestions: ReadonlyArray<T.Tracker.Assertion>
-}
 
 const rpcRowColorToColor = (color: T.RPCGen.Identify3RowColor): T.Tracker.AssertionColor => {
   switch (color) {
@@ -62,86 +55,32 @@ const rpcSuggestionToAssertion = (suggestion: T.RPCGen.ProofSuggestion): T.Track
   }
 }
 
-const loadProofSuggestions = async (
-  version: number,
-  requestVersionRef: React.RefObject<number>,
-  enabled: boolean,
-  loadKey: number,
-  setProofSuggestionsState: React.Dispatch<React.SetStateAction<ProofSuggestionsState>>
-) => {
-  try {
-    const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
-      undefined,
-      waitingKeyTrackerProfileLoad
-    )
-    if (requestVersionRef.current !== version) {
-      return
-    }
-    const nextSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
-    setProofSuggestionsState(state =>
-      state.enabled === enabled && state.loadKey === loadKey
-        ? {...state, suggestions: nextSuggestions}
-        : state
-    )
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (requestVersionRef.current !== version) {
-      return
-    }
-    logger.error(`Error loading proof suggestions: ${error.message}`)
-  }
+const mapSuggestions = ({suggestions}: T.RPCGen.ProofSuggestionsRes) =>
+  suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
+
+const logLoadError = (error: RPCError) => {
+  logger.error(`Error loading proof suggestions: ${error.message}`)
 }
 
 export const useProofSuggestions = (enabled = true) => {
   const uid = useCurrentUserState(s => s.uid)
-  const [proofSuggestionsState, setProofSuggestionsState] = React.useState<ProofSuggestionsState>({
-    enabled,
-    loadKey: 0,
-    suggestions: emptyProofSuggestions,
-  })
-  const requestVersionRef = React.useRef(0)
-  const loadKey =
-    proofSuggestionsState.enabled === enabled
-      ? proofSuggestionsState.loadKey
-      : proofSuggestionsState.loadKey + 1
-  const proofSuggestions =
-    proofSuggestionsState.enabled === enabled ? proofSuggestionsState.suggestions : emptyProofSuggestions
-
-  const reload = React.useCallback(() => {
-    if (!enabled) {
-      requestVersionRef.current += 1
-      return
-    }
-
-    const version = requestVersionRef.current + 1
-    requestVersionRef.current = version
-
-    ignorePromise(loadProofSuggestions(version, requestVersionRef, enabled, loadKey, setProofSuggestionsState))
-  }, [enabled, loadKey])
-
-  React.useEffect(() => {
-    reload()
-  }, [reload])
+  const {data, refresh, reload} = useRPCLoad(
+    T.RPCGen.userProofSuggestionsRpcPromise,
+    [undefined, waitingKeyTrackerProfileLoad],
+    // keyed on enabled so a disabled hook shows nothing and enabling it loads
+    {enabled, key: enabled ? 'enabled' : 'disabled', map: mapSuggestions, onError: logLoadError}
+  )
 
   useEngineActionListener('keybase.1.NotifyUsers.userChanged', action => {
     if (!enabled || action.payload.params.uid !== uid) {
       return
     }
-    reload()
+    // a burst of these (one per replayed key change) loads once more after the load in flight
+    refresh()
   })
 
-  if (proofSuggestionsState.enabled !== enabled) {
-    setProofSuggestionsState(state =>
-      state.enabled === enabled
-        ? state
-        : {enabled, loadKey: state.loadKey + 1, suggestions: emptyProofSuggestions}
-    )
-  }
-
   return {
-    proofSuggestions,
+    proofSuggestions: enabled ? (data ?? emptyProofSuggestions) : emptyProofSuggestions,
     reload,
   }
 }

@@ -2,6 +2,7 @@
 /// <reference types="jest" />
 
 import type * as React from 'react'
+import {Activity} from 'react'
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
@@ -146,6 +147,86 @@ test('reload() supersedes an in-flight request', async () => {
     await Promise.resolve()
   })
   expect(result.current.data).toBe('got:9')
+})
+
+test('refresh() during a load queues one more after it, however many arrive', async () => {
+  const resolvers: Array<(n: number) => void> = []
+  const call = jest.fn<() => Promise<number>>(
+    async () =>
+      new Promise<number>(resolve => {
+        resolvers.push(resolve)
+      })
+  )
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => `got:${r}`}))
+  advancePastMountLoad()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  act(() => {
+    for (let i = 0; i < 5; i++) result.current.refresh()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  await act(async () => {
+    resolvers[0]?.(1)
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe('got:1')
+
+  await act(async () => {
+    resolvers[1]?.(2)
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe('got:2')
+
+  // idle again: a refresh loads right away
+  act(() => {
+    result.current.refresh()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(3)
+})
+
+test('a queued refresh that already ran does not run again when a hidden Activity is shown', async () => {
+  const resolvers: Array<(n: number) => void> = []
+  const call = jest.fn<() => Promise<number>>(
+    async () =>
+      new Promise<number>(resolve => {
+        resolvers.push(resolve)
+      })
+  )
+  let mode: 'visible' | 'hidden' = 'visible'
+  const wrapper = ({children}: {children: React.ReactNode}) => <Activity mode={mode}>{children}</Activity>
+  const {result, rerender} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r}), {wrapper})
+  advancePastMountLoad()
+  await flush()
+  act(() => {
+    result.current.refresh()
+  })
+  await act(async () => {
+    resolvers[0]?.(1)
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  await act(async () => {
+    resolvers[1]?.(2)
+    await Promise.resolve()
+  })
+  await flush()
+
+  mode = 'hidden'
+  rerender()
+  await flush()
+  mode = 'visible'
+  rerender()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
 })
 
 test('surfaces a rejected load as an error', async () => {
@@ -351,6 +432,42 @@ test('a load cancelled by a lost link loads again on reconnect', async () => {
   expect(call).toHaveBeenCalledTimes(2)
   expect(result.current.data).toBe(7)
   expect(result.current.loading).toBe(false)
+})
+
+test('a refresh queued behind a load the lost link cut off runs on reconnect, not into the dead link', async () => {
+  let rejectFirst: ((e: RPCError) => void) | undefined
+  const call = jest
+    .fn<() => Promise<number>>()
+    .mockImplementationOnce(
+      async () =>
+        new Promise<number>((_resolve, reject) => {
+          rejectFirst = reject
+        })
+    )
+    .mockResolvedValue(7)
+  useDaemonState.setState({handshakeState: 'done'})
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, when: 'manual'}))
+  act(() => {
+    result.current.refresh()
+  })
+  act(() => {
+    result.current.refresh()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  await act(async () => {
+    rejectFirst?.(cancelledBy('disconnect'))
+    await Promise.resolve()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+
+  // a manual load has no reconnect reload of its own; the queued refresh is the one that runs
+  reconnect()
+  await flush()
+  expect(call).toHaveBeenCalledTimes(2)
+  expect(result.current.data).toBe(7)
 })
 
 test("the service's own error still surfaces", async () => {
