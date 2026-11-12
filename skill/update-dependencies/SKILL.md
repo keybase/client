@@ -144,13 +144,23 @@ Known still-needed entries (as of 2026-09), all because a parent pins an old ran
 
 ### 5. Evaluate existing patches
 
-After `yarn`, check whether any `patches/*.patch` files target a package you just updated — the filename encodes the version (e.g. `@legendapp+list+3.0.0-beta.56.patch`). For each such patch:
+`shared/patches/README.md` records, for every change inside every patch, why it exists, its upstream issue or PR, when it can go and how to check. Start from it:
 
-1. Run `yarn patch-package` to see if it applies cleanly.
-2. If it **fails**: the patch still addresses a real issue, but the upstream source has moved. Fix the source files in `node_modules` directly (re-apply the intent of the patch), then run `yarn patch-package <package>` to regenerate it. Delete the old patch file.
-3. If it **applies**: check whether the fix was merged upstream by searching the updated source for the patched code. If the upstream already has the fix, delete the patch file.
+```bash
+cd shared && python3 ../.claude/skills/update-dependencies/find-workarounds.py --patches
+```
+
+That prints each patch with its entries (upstream state, removal condition), flags a patch whose version no longer matches the installed package (this is how a transitive bump such as `metro` shows up), and fails if a patch or a file inside one has no entry. For each patch whose package moved:
+
+1. **Re-check every entry's Upstream** against the version now installed: the issue or PR state (`gh issue view <n> --repo <owner>/<repo> --json state,closedAt`, read-only), and whether the fix is in the release we install, not only on main. An entry whose **Remove when** is now true means that hunk goes, even if the patch still applies.
+2. Run `yarn patch-package` to see if it applies cleanly.
+3. If it **fails**: find which entry's hunk failed. If upstream now contains that fix, drop the hunk. Otherwise the source moved: fix the files in `node_modules` directly (re-apply the intent the entry describes), then run `yarn patch-package <package>` to regenerate. Delete the old patch file.
+4. If it **applies**: still search the updated source for each hunk's fix, since upstream may have fixed it differently in a place the hunk does not touch. Remove hunks that are no longer needed by reverting them in `node_modules` and regenerating; delete the patch file when none are left.
+5. **Update the README in the same commit**: the date and state in each Upstream field you checked, and delete the entries (or the section) for anything removed. Re-run `--patches` until it passes.
 
 **Never rename patch files or hand-edit the `.patch` file itself.** Let `patch-package` generate the correctly-named file from your source edits.
+
+If you learn something about a patch while here (a wrong issue number in its comment, a second thing it covers), put it in the entry.
 
 ### 6. If updating `electron`
 
@@ -161,6 +171,53 @@ cd shared && ./desktop/extract-electron-shasums.sh <new-version>
 ```
 
 This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 checksums for all platforms.
+
+### 7. Look for new features worth adopting
+
+A bump is also a chance to delete our own code. For every package you bumped, read what changed between the old and new version and decide whether anything in it is worth using here.
+
+Read the **changelog or release notes**, not the file diff of `node_modules`: the notes say what the maintainers consider a feature, a fix or a deprecation, and a diff of built output doesn't.
+
+- GitHub releases: `gh release view <tag> --repo <owner>/<repo>`, or `gh api repos/<owner>/<repo>/releases --jq '.[] | select(.tag_name=="<tag>") | .body'` for each version in the range (find the repo with `npm view <pkg> repository.url`).
+- Monorepos and packages without releases: the package's `CHANGELOG.md` (it usually ships in `node_modules/<pkg>/CHANGELOG.md`, so no network is needed; expo packages all do this).
+- Cover every version in the range, not only the newest one.
+
+Skip packages whose range is patch-only bug fixes once the notes confirm that. Spend the time on version-line and feature releases.
+
+For each entry, check it against this repo before reporting it:
+
+- **A new API or option that replaces something we hand-rolled**: a workaround, a wrapper, a polyfill, a `patches/*.patch`, a `resolutions` entry. Grep for the code it would replace and name the file.
+- **A fix for a bug we work around**: note it for step 8, which checks every workaround we have for the package.
+- **A deprecation of something we use**: grep for the deprecated API and list the call sites, so it gets migrated before it is removed.
+- **A new default or behavior change** that affects us even on a routine bump.
+
+Adopting a feature is not part of the deps pass. Don't change app code for it in the bump commit: report each candidate (package and version, the changelog entry, the file it would touch, what we would gain) and let the user decide. Report "nothing worth adopting" when that is the answer, and say which changelogs you read.
+
+### 8. Retire workarounds the bump may have made obsolete
+
+Step 7 starts from the changelog. This step starts from our code, because maintainers fix bugs without writing them up, and a workaround outlives the bug it covered unless someone goes back for it. Do it for every package bumped in this pass.
+
+**Inventory.** From `shared/`:
+
+```bash
+cd shared && python3 ../.claude/skills/update-dependencies/find-workarounds.py
+```
+
+With no arguments it takes the packages whose version differs from `master` (`--base <ref>` for another base, or pass package names). For each one it lists the `patches/` files, the `resolutions` entries, the comments anywhere in the repo that mention the package (all of them up to 40; past that, only those with a workaround signal within a few lines, such as an issue link, "until" or a version number, and `--all` for the rest), and the memory notes about it. Patches come with their `patches/README.md` entries and are settled by step 5, resolutions by 4c; the rest is this step's list.
+
+The inventory is a floor. A workaround's comment often describes the symptom without naming the library, so also skim the files that use the package (`git grep -l "from '<pkg>"`) for code that exists only to correct the library: re-pins, remounts, deferred calls, extra measuring, guards around its calls. The script searches for the npm name and the names in its `ALIASES` table only; if comments call a package something else, add that name there.
+
+**Check each one against the new version.** In order of cost:
+
+1. A note that names a version ("drop at RN 0.89") is due when the bump reaches that version.
+2. A linked upstream issue or PR: check it as in step 5.1 (read-only, never comment). Closed is a lead, not proof.
+3. No link: read the changelog range from step 7, then the new source in `node_modules/<pkg>` for the behavior the workaround corrects.
+
+For a patch-only bump, 1 and 2 are enough unless the notes mention the area.
+
+**Prove it by removal.** A candidate is removable only once the workaround has been taken out locally and the original symptom failed to come back on the new version: the unit test that covers it still passes, a probe against the real library shows the fixed behavior, or the real app or a targeted e2e flow does. Before removing, list every way the symptom can come back, not only the library behavior the comment names; one workaround often covers more than its comment says. If the only proof is something the user has to see on a device, it stays a candidate.
+
+**Report every workaround checked**: file and line, what it covers, keep / remove / could not tell, and the evidence (issue state and fixing release, changelog entry, what the removal test showed). Proven removals go in their own commit on top of the bump, never inside the bump commit, so either can be reverted alone; remove the comment and update or delete the memory note with the code. Candidates that were not proven are reported and left in place. Say "no workarounds to retire" when that is the answer, and which packages were checked.
 
 ## Other manifests: protocol/ and rnmodules/react-native-kb/
 
