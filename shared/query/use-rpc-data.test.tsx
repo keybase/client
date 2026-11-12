@@ -276,15 +276,127 @@ test('a load still on the wire when the last screen leaves finishes and is cache
   expect(held).toHaveLength(1)
 })
 
-test('a lost link with no screen left does not leave the data loading', async () => {
+test('a reload cut off by a lost link after its screen left does not leave the data loading', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const useFresh = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
+  const first = renderHook(useFresh)
+  await flush()
   fake.hold(listMethod)
-  const first = renderHook(useDevices)
+  act(() => first.result.current.reload())
   await flush()
   first.unmount()
   fake.drop()
   await flush()
-  const reader = renderHook(() => useRpcData(listRpc, undefined, {enabled: false}))
-  expect(reader.result.current.loading).toBe(false)
+
+  // fresh enough that this screen starts no load of its own
+  const next = renderHook(useFresh)
+  expect(next.result.current.data).toEqual(['laptop'])
+  expect(next.result.current.loading).toBe(false)
+})
+
+test('a notice during a load no screen is waiting for keeps its answer stale', async () => {
+  const held = fake.hold(listMethod)
+  const useFresh = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
+  const first = renderHook(useFresh)
+  await flush()
+  first.unmount()
+  await notice()
+  held[0]!.reply([device('from-before-the-notice')])
+  await flush()
+
+  // inside staleMs, but the answer predates the change
+  const next = renderHook(useFresh)
+  await flush()
+  expect(held).toHaveLength(2)
+  held[1]!.reply([device('current')])
+  await flush()
+  expect(next.result.current.data).toEqual(['current'])
+})
+
+test('a failed reload leaves data a notice made stale still stale', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const useFresh = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
+  const first = renderHook(useFresh)
+  await flush()
+  const held = fake.hold(listMethod)
+  await act(notice)
+  await flush()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
+  await flush()
+  first.unmount()
+
+  // past the failure backoff, a new screen reloads although the data is inside staleMs
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick'], now: Date.now() + 10_000})
+  try {
+    renderHook(useFresh)
+    await flush()
+    expect(held).toHaveLength(2)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('waiting on a load also waits for the one a notice queued behind it', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const {result} = renderHook(useDevices)
+  await flush()
+
+  const held = fake.hold(listMethod)
+  let done = false
+  let waiting = Promise.resolve()
+  act(() => {
+    waiting = (async () => {
+      await result.current.reloadAndWait()
+      done = true
+    })()
+  })
+  await flush()
+  await act(notice)
+  held[0]!.reply([device('from-before-the-notice')])
+  await flush()
+  expect(held).toHaveLength(2)
+  expect(done).toBe(false)
+  held[1]!.reply([device('current')])
+  await act(async () => waiting)
+  expect(done).toBe(true)
+  expect(result.current.data).toEqual(['current'])
+})
+
+test('data nothing has looked at for five minutes is dropped, with no new key needed', async () => {
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
+  try {
+    fake.answer(listMethod, () => [device('laptop')])
+    const useLongLived = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60 * 60_000})
+    const first = renderHook(useLongLived)
+    await flush()
+    first.unmount()
+
+    act(() => {
+      jest.advanceTimersByTime(4 * 60_000)
+    })
+    const stillCached = renderHook(useLongLived)
+    expect(stillCached.result.current.data).toEqual(['laptop'])
+    stillCached.unmount()
+
+    act(() => {
+      jest.advanceTimersByTime(11 * 60_000)
+    })
+    const held = fake.hold(listMethod)
+    const next = renderHook(useLongLived)
+    expect(next.result.current.data).toBeUndefined()
+    await flush()
+    expect(held).toHaveLength(1)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('a disabled instance is not loading while another screen loads the same data', async () => {
+  fake.hold(listMethod)
+  renderHook(useDevices)
+  const disabled = renderHook(() => useRpcData(listRpc, undefined, {enabled: false}))
+  await flush()
+  expect(disabled.result.current.loading).toBe(false)
 })
 
 test('an optimistic write shows at once, and the reload after the save wins', async () => {

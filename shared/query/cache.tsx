@@ -138,6 +138,9 @@ const start = (e: Entry) => {
   e.inFlight = controller
   e.inFlightNotice = 0
   e.queued = false
+  // cleared now, not when the answer lands: a notice that arrives meanwhile is about that answer
+  const wasStale = e.stale
+  e.stale = false
   update(e, {forgotten: false, loading: true})
   const run = async () => {
     let patch: Partial<Snapshot>
@@ -147,7 +150,6 @@ const start = (e: Entry) => {
       if (e.inFlight !== controller) return
       e.loadedAt = Date.now()
       e.failedAt = 0
-      e.stale = false
       patch = {
         data: reuseEqual(e.snapshot.data, data),
         error: undefined,
@@ -157,6 +159,7 @@ const start = (e: Entry) => {
       }
     } catch (caught) {
       if (e.inFlight !== controller) return
+      e.stale ||= wasStale
       if (isCancelled(caught, 'disconnect')) {
         // Nothing failed. While a screen wants it, it stays loading, and the handshake after the
         // reconnect loads it again.
@@ -215,22 +218,35 @@ export const forgetKey = (key: string) => {
   }
 }
 
-// data nothing has looked at for a while is dropped, so the cache does not grow for the whole session
+// Data nothing has looked at for idleEntryMs is dropped, so the cache does not grow for the whole
+// session. One timer for all of it, armed when something goes idle and again while any remains.
+let sweepTimer: ReturnType<typeof setTimeout> | undefined
 const sweepIdle = () => {
+  sweepTimer = undefined
   const now = Date.now()
+  let remaining = false
   for (const e of entries.values()) {
-    if (!e.listeners.size && !e.inFlight && e.loadedAt && now - e.idleSince > idleEntryMs) {
+    if (e.listeners.size || !e.loadedAt) continue
+    if (!e.inFlight && now - e.idleSince >= idleEntryMs) {
       clear(e)
+    } else {
+      remaining = true
     }
   }
+  if (remaining) {
+    scheduleSweep()
+  }
+}
+const scheduleSweep = () => {
+  sweepTimer ??= setTimeout(sweepIdle, idleEntryMs)
 }
 
-// resolves once no load is on the wire
+// resolves once no load is on the wire, nor one queued behind it
 const settled = async (e: Entry) => {
   if (e.inFlight) {
     await new Promise<void>(resolve => {
       const unsubscribe = e.subscribe(() => {
-        if (!e.inFlight) {
+        if (!e.inFlight && !e.queued) {
           unsubscribe()
           resolve()
         }
@@ -244,7 +260,6 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
   if (existing) {
     return existing
   }
-  sweepIdle()
   const e: Entry = {
     ensure: () => {
       if (!e.inFlight) {
@@ -278,6 +293,9 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
       return () => {
         e.listeners.delete(listener)
         e.idleSince = Date.now()
+        if (!e.listeners.size) {
+          scheduleSweep()
+        }
       }
     },
   }
@@ -412,6 +430,9 @@ const emptyCache = () => {
   for (const e of entries.values()) {
     clear(e)
   }
+  // nothing is left to drop
+  clearTimeout(sweepTimer)
+  sweepTimer = undefined
 }
 onNewAccountGeneration(emptyCache)
 // the store reset that a logout, an account switch and each test's cleanup all run
