@@ -6,7 +6,7 @@ import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
@@ -56,6 +56,15 @@ export const makeAddUserToTeamsResult = (
 type OwnProps = {username: string}
 
 const noTeamList = new Array<T.Teams.TeamProfileAddList>()
+const toTeamList = (result: ReadonlyArray<T.RPCGen.TeamProfileAddEntry> | null) => {
+  const teamlist = (result ?? []).map(team => ({
+    disabledReason: team.disabledReason,
+    open: team.open,
+    teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+  }))
+  teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+  return teamlist
+}
 
 const AddToTeam = (ownProps: OwnProps) => {
   const styles = useStyles()
@@ -75,22 +84,20 @@ const AddToTeam = (ownProps: OwnProps) => {
     React.useState<T.Teams.AddUserToTeamsState>('notStarted')
   const submitRequestID = React.useRef(0)
 
-  const {data: teamProfileAddList = noTeamList, reload: loadTeamList} = useRPCLoad(
+  const {
+    data: teamProfileAddList = noTeamList,
+    error: loadError,
+    reload: loadTeamList,
+  } = useRpcData(
     T.RPCGen.teamsTeamProfileAddListRpcPromise,
-    [{username: them}, C.waitingKeyTeamsProfileAddList],
-    {
-      map: result => {
-        const teamlist = (result ?? []).map(team => ({
-          disabledReason: team.disabledReason,
-          open: team.open,
-          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
-        }))
-        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-        return teamlist
-      },
-      onError: error => logger.info(`Failed to load profile add-to-team list for ${them}: ${error.message}`),
-    }
+    {username: them},
+    {select: toTeamList, waitingKey: C.waitingKeyTeamsProfileAddList}
   )
+  React.useEffect(() => {
+    if (loadError) {
+      logger.info(`Failed to load profile add-to-team list for ${them}: ${loadError.message}`)
+    }
+  }, [loadError, them])
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())

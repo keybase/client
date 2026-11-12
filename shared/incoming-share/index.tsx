@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {SendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import {IncomingShareHeaderTitle} from './routes'
 import {readAndroidShare} from '@/constants/init/android-share'
 import {sendShareToConversation} from '@/chat/send-to-chat/send-share'
@@ -206,16 +206,19 @@ const wasShareRouted = (id: string) => id !== '' && id === lastRoutedShareID
 // androidShareID: the Android share this screen is for, from its link.
 const useIncomingShareItems = (androidShareID?: number) => {
   const [incomingShare, setIncomingShare] = React.useState<Share>()
-  const {error: incomingShareError} = useRPCLoad(
-    T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise,
-    [undefined],
-    {
-      enabled: isIOS,
-      map: res => ({droppedCount: res.droppedCount, id: res.id, items: res.items || noShareItems}),
-      onResult: next =>
-        setIncomingShare(prev => nextShare(prev, wasShareRouted(next.id) ? noIncomingShare : next)),
-    }
-  )
+  // not kept: a share is handed over once, so a screen opened later must not see the last one
+  const {
+    data: loadedShare,
+    error: incomingShareError,
+    loadCount,
+  } = useRpcData(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise, undefined, {enabled: isIOS, keep: false})
+  // each load's share is taken once
+  const [takenLoadCount, setTakenLoadCount] = React.useState(0)
+  if (loadedShare && loadCount !== takenLoadCount) {
+    setTakenLoadCount(loadCount)
+    const next = {droppedCount: loadedShare.droppedCount, id: loadedShare.id, items: loadedShare.items || noShareItems}
+    setIncomingShare(prev => nextShare(prev, wasShareRouted(next.id) ? noIncomingShare : next))
+  }
 
   // An Android screen shows only the share its link names, read from native. When it is done with
   // is up to constants/init/android-share, from the navigation state.

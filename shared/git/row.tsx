@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL} from '@/util/misc'
 import * as FS from '@/constants/fs'
@@ -9,7 +9,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 import {useIsNew} from '@/util/use-local-badging'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 
 type OwnProps = {
   expanded: boolean
@@ -220,21 +220,13 @@ function ConnectedRow(ownProps: OwnProps) {
   // enabled. getAllGitMetadata no longer returns it. `loaded` stays true
   // across background refetches so we only show the spinner on the first load,
   // not on every reload.
-  const {
-    data: channelName,
-    loaded: channelLoaded,
-    reload: loadChannel,
-  } = useRPCLoad(
+  const wantsChannel = expanded && !!teamname && !chatDisabled
+  const {data: repoSettings, loaded: channelLoaded} = useRpcData(
     T.RPCGen.gitGetTeamRepoSettingsRpcPromise,
-    [{folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname ?? ''}, repoID}],
-    {map: res => res.channelName ?? undefined, when: 'manual'}
+    {folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname ?? ''}, repoID},
+    {enabled: wantsChannel, refreshKey: refreshToken}
   )
-  React.useEffect(() => {
-    if (!expanded || !teamname || chatDisabled) {
-      return
-    }
-    loadChannel()
-  }, [loadChannel, expanded, teamname, chatDisabled, repoID, refreshToken])
+  const channelName = repoSettings?.channelName ?? undefined
   const channelLoading = !!teamname && !chatDisabled && expanded && !channelLoaded
 
   const onArchiveGitRepo = () => {

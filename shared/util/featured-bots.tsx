@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 
 const featuredBotPageSize = 100
 
@@ -34,17 +34,17 @@ export const getFeaturedSorted = (featuredBots: ReadonlyArray<T.RPCGen.FeaturedB
 }
 
 export const useFeaturedBot = (botUsername?: string) => {
-  const {data} = useRPCLoad(
+  const {data, error} = useRpcData(
     T.RPCGen.featuredBotSearchRpcPromise,
-    [{limit: 10, offset: 0, query: botUsername ?? ''}],
-    {
-      enabled: !!botUsername,
-      key: botUsername ?? '',
-      map: result => pickFeaturedBot(botUsername ?? '', result.bots ?? []),
-      onError: error => logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`),
-    }
+    {limit: 10, offset: 0, query: botUsername ?? ''},
+    {enabled: !!botUsername}
   )
-  return botUsername ? data : undefined
+  React.useEffect(() => {
+    if (error) {
+      logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`)
+    }
+  }, [botUsername, error])
+  return botUsername && data ? pickFeaturedBot(botUsername, data.bots ?? []) : undefined
 }
 
 export const useFeaturedBotPage = () => {

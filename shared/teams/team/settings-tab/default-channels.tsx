@@ -3,10 +3,9 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {registerExternalResetter} from '@/util/zustand'
 import {ChannelsWidget} from '@/teams/common'
 import {useLoadedTeam} from '../use-loaded-team'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
+import {useLoadData} from '@/query'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -17,18 +16,9 @@ type DefaultChannelsData = ReadonlyArray<T.Teams.ChannelNameID>
 const defaultChannelsStaleMs = 5_000
 const emptyDefaultChannels: DefaultChannelsData = []
 
-// One cache per team, shared by every consumer: each load is a remote
+// One cache entry per team, shared by every consumer: each load is a remote
 // chat.1.remote.getDefaultTeamChannels round trip, so a per-instance cache turns
 // every extra mount of the settings tab into another hit on the chat rate limit.
-const defaultChannelsCaches = new Map<
-  T.Teams.TeamID,
-  CachedResourceCache<DefaultChannelsData, T.Teams.TeamID>
->()
-
-// module scope outlives sign-out, so the next user would inherit this user's channels
-registerExternalResetter('teams-default-channels-caches', () => {
-  defaultChannelsCaches.clear()
-})
 
 // resolve rather than reject on failure: consumers render an empty list (and no
 // spinner) on error, and a cached failure keeps a broken team from re-requesting
@@ -48,15 +38,12 @@ const loadDefaultChannels = async (teamID: T.Teams.TeamID): Promise<DefaultChann
 }
 
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
-  const cache = React.useMemo(
-    () => getCachedResourceCache(defaultChannelsCaches, emptyDefaultChannels, teamID),
-    [teamID]
-  )
-  const {data, loaded, loading, reload} = useCachedResource({
-    cache,
-    cacheKey: teamID,
-    initialData: emptyDefaultChannels,
-    load: async () => await loadDefaultChannels(teamID),
+  const {
+    data = emptyDefaultChannels,
+    loaded,
+    loading,
+    reload,
+  } = useLoadData('teams.defaultChannels', teamID, async () => loadDefaultChannels(teamID), {
     staleMs: defaultChannelsStaleMs,
   })
 
@@ -86,7 +73,7 @@ const DefaultChannels = (props: Props) => {
       [{convs, teamID}],
       () => {
         setWaiting(false)
-        void reloadDefaultChannels()
+        reloadDefaultChannels()
       },
       error => {
         setWaiting(false)
@@ -106,7 +93,7 @@ const DefaultChannels = (props: Props) => {
         [{convs, teamID}],
         () => {
           setWaiting(false)
-          void reloadDefaultChannels()
+          reloadDefaultChannels()
         },
         error => {
           setWaiting(false)

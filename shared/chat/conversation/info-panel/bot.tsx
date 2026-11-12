@@ -250,7 +250,7 @@ const BotTab = (props: Props) => {
     }
     reloadParticipants(conversationIDKey)
     if (!adhocTeam) {
-      C.ignorePromise(reloadTeamMembers())
+      reloadTeamMembers()
     }
   }, [
     adhocTeam,

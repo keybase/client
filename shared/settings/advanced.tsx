@@ -12,7 +12,7 @@ import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
 import {withWaiting} from '@/stores/waiting'
 import {useRandomPWState} from './use-random-pw'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {setRpcData, useRpcData} from '@/query'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -149,6 +149,8 @@ const stampDisableSpellCheckInitialValue = (value: boolean) => {
   }
 }
 
+const spellCheckPath = {path: 'ui.disableSpellCheck'}
+
 const Advanced = () => {
   const styles = useStyles()
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
@@ -164,30 +166,23 @@ const Advanced = () => {
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
   const submitRememberPassword = C.useRPC(T.RPCGen.configSetRememberPassphraseRpcPromise)
 
-  const {data: disableSpellCheck, setData: setDisableSpellcheck} = useRPCLoad(
-    T.RPCGen.configGuiGetValueRpcPromise,
-    [{path: 'ui.disableSpellCheck'}],
-    {
-      map: result => {
-        const res = result.b ?? false
-        stampDisableSpellCheckInitialValue(res)
-        return res
-      },
-      onError: () => {
-        stampDisableSpellCheckInitialValue(false)
-        setDisableSpellcheck(false)
-      },
+  const spellCheck = useRpcData(T.RPCGen.configGuiGetValueRpcPromise, spellCheckPath)
+  // a load that fails reads as off
+  const disableSpellCheck = spellCheck.data ? (spellCheck.data.b ?? false) : spellCheck.error ? false : undefined
+  const setDisableSpellcheck = (value: boolean) =>
+    setRpcData(T.RPCGen.configGuiGetValueRpcPromise, spellCheckPath, () => ({b: value, isNull: false}))
+  const spellCheckLoaded = spellCheck.loaded
+  React.useEffect(() => {
+    if (spellCheckLoaded && disableSpellCheck !== undefined) {
+      stampDisableSpellCheckInitialValue(disableSpellCheck)
     }
-  )
+  }, [spellCheckLoaded, disableSpellCheck])
 
-  const {data: rememberPassword, setData: setRememberPassword} = useRPCLoad(
-    T.RPCGen.configGetRememberPassphraseRpcPromise,
-    [undefined],
-    {
-      map: remember => remember,
-      onError: () => setRememberPassword(true),
-    }
-  )
+  const remember = useRpcData(T.RPCGen.configGetRememberPassphraseRpcPromise, undefined)
+  // a load that fails reads as on
+  const rememberPassword = remember.data ?? (remember.error ? true : undefined)
+  const setRememberPassword = (value: boolean | undefined) =>
+    setRpcData(T.RPCGen.configGetRememberPassphraseRpcPromise, undefined, () => value)
 
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
   const onChangeRememberPassword = (remember: boolean) => {
