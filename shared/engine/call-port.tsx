@@ -30,6 +30,7 @@ export type CallPort = {
   call: (p: CallParams) => SessionID
   listen: (p: ListenParams) => Promise<unknown>
   cancelOutstandingSessions: () => void
+  cancelSession: (sessionID: SessionID, reason?: ClientCancelReason) => void
 }
 
 let port: CallPort | undefined

@@ -6,7 +6,7 @@ import Row from './row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'
 import {NewItemsContext, useLocalBadging} from '@/util/use-local-badging'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import {useConfigState} from '@/stores/config'
 import * as dateFns from 'date-fns'
 
@@ -46,7 +46,9 @@ const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
+const toRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult> | null) => parseRepos(results ?? [])
+
+function parseRepos(results: ReadonlyArray<T.RPCGen.GitRepoResult>) {
   const errors: Array<Error> = []
   const repos = new Map<string, T.Git.GitInfo>()
   results.forEach(result => {
@@ -101,7 +103,8 @@ const GitRoot = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   // errors from row actions (toggling chat), load errors come from the hook
-  const [rowError, setRowError] = React.useState<Error | undefined>()
+  // a row's error shows until the next load lands
+  const [rowErrorAt, setRowErrorAt] = React.useState<{error?: Error; loadCount: number}>({loadCount: 0})
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const clearBadges = React.useCallback(() => {
     clearGitBadges(
@@ -118,15 +121,22 @@ const GitRoot = (ownProps: OwnProps) => {
     // channel name (e.g. after returning from the channel selector)
     loadCount: refreshToken,
     reload: load,
-  } = useRPCLoad(T.RPCGen.gitGetAllGitMetadataRpcPromise, [undefined, C.waitingKeyGitLoading], {
-    map: results => parseRepos(results || []),
-    onResult: ({errors}) => {
-      setRowError(undefined)
-      const {setGlobalError} = useConfigState.getState().dispatch
-      errors.forEach(e => setGlobalError(e))
-    },
-    when: 'focus',
+  } = useRpcData(T.RPCGen.gitGetAllGitMetadataRpcPromise, undefined, {
+    reloadOnFocus: true,
+    select: toRepos,
+    waitingKey: C.waitingKeyGitLoading,
   })
+  const rowError = rowErrorAt.loadCount === refreshToken ? rowErrorAt.error : undefined
+  const setRowError = (error: Error | undefined) => setRowErrorAt({error, loadCount: refreshToken})
+  const onLoaded = React.useEffectEvent(() => {
+    const {setGlobalError} = useConfigState.getState().dispatch
+    data?.errors.forEach(e => setGlobalError(e))
+  })
+  React.useEffect(() => {
+    if (refreshToken) {
+      onLoaded()
+    }
+  }, [refreshToken])
   const idToInfo = data?.repos ?? noRepos
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.Router2.navigateAppend

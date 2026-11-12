@@ -12,7 +12,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useGeneralConvIDKey} from '@/teams/common/general-conv'
 import {useFeaturedBot} from '@/util/featured-bots'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useLoadData} from '@/query'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
@@ -60,20 +60,20 @@ export const useBotTeamRole = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
   botUsername: string
 ) => {
-  const {data: teamRole} = useRPCLoad(
-    async (conversationIDKey: T.Chat.ConversationIDKey, username: string) =>
-      getChatRpc().getBotTeamRole(conversationIDKey, username),
-    [conversationIDKey ?? T.Chat.noConversationIDKey, botUsername],
-    {
-      enabled: !!conversationIDKey,
-      key: `${conversationIDKey ?? ''}:${botUsername}`,
-      map: role => {
-        const teamRole = Teams.teamRoleByEnum[role]
-        return teamRole === 'none' ? undefined : teamRole
-      },
-      onError: error => logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`),
-    }
+  const id = conversationIDKey ?? T.Chat.noConversationIDKey
+  const {data: role, error} = useLoadData(
+    'chat.botTeamRole',
+    [id, botUsername],
+    async () => getChatRpc().getBotTeamRole(id, botUsername),
+    {enabled: !!conversationIDKey}
   )
+  React.useEffect(() => {
+    if (error) {
+      logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`)
+    }
+  }, [error])
+  const loadedRole = role === undefined ? undefined : Teams.teamRoleByEnum[role]
+  const teamRole = loadedRole === 'none' ? undefined : loadedRole
   return conversationIDKey ? teamRole : undefined
 }
 

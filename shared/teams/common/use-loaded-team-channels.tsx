@@ -2,14 +2,11 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as React from 'react'
-import {nextReloadEpoch} from '@/util/reload-epoch'
-import {registerExternalResetter} from '@/util/zustand'
 import {registerTeamChannelsInvalidator} from './team-channels-invalidation'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
+import {forgetLoad, refreshLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -32,10 +29,6 @@ type LoadedTeamChannelsData = Pick<
   LoadedTeamChannels,
   'channels' | 'channelMetas' | 'channelParticipants'
 >
-type LoadedTeamChannelsCacheMap = Map<
-  T.Teams.TeamID | undefined,
-  CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
->
 
 export const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
 const loadedTeamChannelsReloadStaleMs = 5_000
@@ -43,27 +36,6 @@ const loadedTeamChannelsReloadStaleMs = 5_000
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
 const emptyChannelMetas: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ConversationMeta> = new Map()
 const emptyChannelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo> = new Map()
-
-// teamChangedByID fires for every incoming message in a team and reloads this,
-// and the result is nearly always identical to what is already cached. A fresh
-// Map each time gives the memo below a new identity, which wakes every consumer
-// of the context value - the cost this shared cache exists to remove. Reuse the
-// previous Map when nothing changed, and the previous entries when only some
-// did, so downstream memos can bail too.
-const recycleMap = <K, V>(old: ReadonlyMap<K, V>, next: Map<K, V>): ReadonlyMap<K, V> => {
-  let unchanged = old.size === next.size
-  for (const [key, value] of next) {
-    const previous = old.get(key)
-    if (previous !== undefined && isEqual(previous, value)) {
-      if (previous !== value) {
-        next.set(key, previous)
-      }
-    } else {
-      unchanged = false
-    }
-  }
-  return unchanged ? old : next
-}
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -74,45 +46,25 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
   channels: emptyChannels,
 }
 
-// One map for every consumer. The stale window and the single-flight both live on
-// the cache object, so callers holding separate maps cannot see each other's
+// One cache entry per team for every consumer. The stale window and the single-flight
+// both live on the entry, so callers holding separate caches cannot see each other's
 // in-flight request and each issue their own getTLFConversationsLocal - which
 // localizes every channel in the team. Measured at 7 calls for one team inside
 // 1.5s before this was shared.
-const loadedTeamChannelsCache: LoadedTeamChannelsCacheMap = new Map()
-const loadedTeamChannelsInvalidationListeners = new Set<
-  (teamID: T.Teams.TeamID | undefined, epoch: number) => void
->()
+//
+// teamChangedByID fires for every incoming message in a team and reloads this, and
+// the result is nearly always identical to what is already cached: the cache keeps
+// the previous Maps when nothing changed, and the previous entries when only some
+// did, so downstream memos can bail.
+const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
-// module scope outlives sign-out and this is per-user team data
-registerExternalResetter('loaded-team-channels-cache', () => {
-  loadedTeamChannelsCache.forEach(cache => cache.reset(emptyLoadedTeamChannelsData, undefined))
-  loadedTeamChannelsCache.clear()
-})
-
-// While every consumer held a private cache a remount happened to refetch, which
-// is what the channel list relied on after a create. Sharing one cache means a
-// remount inside the stale window serves the pre-change channels instead, so the
-// create/delete screens have to drop this explicitly.
+// A remount inside the stale window serves the cached channels, so the
+// create/delete screens have to say the list changed.
 registerTeamChannelsInvalidator((teamID: T.Teams.TeamID) => {
-  const key = loadableTeamID(teamID)
-  loadedTeamChannelsCache.get(key)?.invalidate(key)
-  // one invalidation is one event: every listener reloads against the same
-  // epoch so they share an rpc instead of superseding each other
-  const epoch = nextReloadEpoch()
-  loadedTeamChannelsInvalidationListeners.forEach(listener => listener(key, epoch))
+  refreshLoad(loadedTeamChannelsLoad, loadableTeamID(teamID) ?? T.Teams.noTeamID)
 })
 
-// forceLocalCache: a disabled "shadow" instance (one that returns the context
-// value instead of its own) must NOT share the loader's cache map. With enabled=false
-// useCachedResource resets the cache (loadedAt=0), which would clobber the loader's
-// loaded data. Give shadows a private throwaway map so their resets are harmless.
-const useLoadedTeamChannelsCacheMap = (forceLocalCache: boolean) => {
-  const [localCacheMap] = React.useState<LoadedTeamChannelsCacheMap>(() => new Map())
-  return forceLocalCache ? localCacheMap : loadedTeamChannelsCache
-}
-
-export const teamChannelsRPCParams = (teamname: string) => ({
+const teamChannelsRPCParams = (teamname: string) => ({
   membersType: T.RPCChat.ConversationMembersType.team,
   tlfName: teamname,
   topicType: T.RPCChat.TopicType.chat,
@@ -120,25 +72,20 @@ export const teamChannelsRPCParams = (teamname: string) => ({
 
 // keep a team's channel list fresh: reload on team changes, drop it when the
 // team is deleted or left
-export const useReloadOnTeamChannelChanges = (
-  teamID: T.Teams.TeamID | undefined,
-  enabled: boolean,
-  reload: () => unknown,
-  clear: () => void
-) => {
+const useReloadOnTeamChannelChanges = (teamID: T.Teams.TeamID, enabled: boolean) => {
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === teamID) {
-      void reload()
+      refreshLoad(loadedTeamChannelsLoad, teamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === teamID) {
-      clear()
+      forgetLoad(loadedTeamChannelsLoad, teamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === teamID) {
-      clear()
+      forgetLoad(loadedTeamChannelsLoad, teamID)
     }
   })
 }
@@ -146,38 +93,28 @@ export const useReloadOnTeamChannelChanges = (
 const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
   providedTeamname?: string,
-  enabled = true,
-  forceLocalCache = false
+  enabled = true
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
+  const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
   const {
     teamMeta: {teamname: loadedTeamname},
   } = useLoadedTeam(teamID, enabled)
   const teamnameToLoad = providedTeamname || loadedTeamname
-  // useCachedResource resets whatever cache it holds while disabled, so a
-  // disabled instance must never hold the shared one — including the ordinary
-  // consumer whose teamname has not resolved yet, which would otherwise wipe a
-  // real loader's data mid-flight. Gate the cache on exactly the load condition.
   const canLoad = enabled && !!validTeamID && !!teamnameToLoad
-  const cacheMap = useLoadedTeamChannelsCacheMap(forceLocalCache || !canLoad)
-  const cache = React.useMemo(
-    () => getCachedResourceCache(cacheMap, emptyLoadedTeamChannelsData, validTeamID),
-    [cacheMap, validTeamID]
-  )
-  const {data, loading, reload, clear} = useCachedResource({
-    cache,
-    cacheKey: validTeamID,
-    enabled: canLoad,
-    initialData: emptyLoadedTeamChannelsData,
-    load: async () => {
-      if (!teamnameToLoad) {
-        return emptyLoadedTeamChannelsData
-      }
-      const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
-      const teamname = teamnameToLoad
+  const {
+    data = emptyLoadedTeamChannelsData,
+    error,
+    loading,
+    reloadAndWait: reload,
+  } = useLoadData(
+    loadedTeamChannelsLoad,
+    teamIDToLoad,
+    async (signal): Promise<LoadedTeamChannelsData> => {
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
-        teamChannelsRPCParams(teamname),
-        C.waitingKeyTeamsGetChannels(teamIDToLoad)
+        teamChannelsRPCParams(teamnameToLoad),
+        C.waitingKeyTeamsGetChannels(teamIDToLoad),
+        signal
       )
       const channels = new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
       const channelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
@@ -198,45 +135,17 @@ const useLoadedTeamChannelsRaw = (
           channelMetas.set(meta.conversationIDKey, meta)
         }
       }
-
-      const previous = cache.getData()
-      const recycled = {
-        channelMetas: recycleMap(previous.channelMetas, channelMetas),
-        channelParticipants: recycleMap(previous.channelParticipants, channelParticipants),
-        channels: recycleMap(previous.channels, channels),
-      }
-      // nothing moved at all: hand back the very object the cache already holds,
-      // so useCachedResource settles without a state change
-      return recycled.channelMetas === previous.channelMetas &&
-        recycled.channelParticipants === previous.channelParticipants &&
-        recycled.channels === previous.channels
-        ? previous
-        : recycled
+      return {channelMetas, channelParticipants, channels}
     },
-    onError: error => {
-      logger.warn(`Failed to load team channels for ${validTeamID}`, error)
-    },
-    refreshKey: teamnameToLoad,
-    staleMs: loadedTeamChannelsReloadStaleMs,
-  })
-
-  useReloadOnTeamChannelChanges(validTeamID, enabled, reload, () => clear(validTeamID))
-
-  // a mounted list must pick up an invalidation too, not just the next mount
+    {enabled: canLoad, refreshKey: teamnameToLoad, staleMs: loadedTeamChannelsReloadStaleMs}
+  )
   React.useEffect(() => {
-    if (!enabled || !validTeamID) {
-      return
+    if (error) {
+      logger.warn(`Failed to load team channels for ${teamIDToLoad}`, error)
     }
-    const listener = (invalidatedTeamID: T.Teams.TeamID | undefined, epoch: number) => {
-      if (invalidatedTeamID === validTeamID) {
-        void reload(epoch)
-      }
-    }
-    loadedTeamChannelsInvalidationListeners.add(listener)
-    return () => {
-      loadedTeamChannelsInvalidationListeners.delete(listener)
-    }
-  }, [enabled, validTeamID, reload])
+  }, [error, teamIDToLoad])
+
+  useReloadOnTeamChannelChanges(teamIDToLoad, enabled && !!validTeamID)
 
   const {channelMetas, channelParticipants, channels} = data
   return React.useMemo(
@@ -266,7 +175,7 @@ export const useLoadedTeamChannels = (
   // a disabled consumer still reads a provider's already-loaded value when there
   // is one - it only must not issue a load of its own
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamChannelsRaw(teamID, teamname, enabled && !useContextValue, useContextValue)
+  const raw = useLoadedTeamChannelsRaw(teamID, teamname, enabled && !useContextValue)
   return useContextValue ? context : raw
 }
 

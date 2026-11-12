@@ -712,18 +712,30 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
     `export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}`,
     project.hasEngine
       ? `type PromiseMethod = ${promiseMethodUnion}
-export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
-  ? (params?: undefined, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
-  : (params: RpcIn<M>, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
+// method names the call for cache keys. An aborted signal cancels the call client-side.
+export type RpcFn<M extends PromiseMethod> = {readonly method: M} & ([RpcIn<M>] extends [undefined]
+  ? (params?: undefined, waitingKey?: WaitingKeys, signal?: AbortSignal) => Promise<RpcOut<M>>
+  : (params: RpcIn<M>, waitingKey?: WaitingKeys, signal?: AbortSignal) => Promise<RpcOut<M>>)
 const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
-  ((params?: RpcIn<M>, waitingKey?: WaitingKeys) =>
-    new Promise<RpcOut<M>>((resolve, reject) =>
-      getCallPort().call({
-        method,
-        params,
-        callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
-        waitingKey,
-      }))) as RpcFn<M>`
+  Object.assign(
+    (params?: RpcIn<M>, waitingKey?: WaitingKeys, signal?: AbortSignal) =>
+      new Promise<RpcOut<M>>((resolve, reject) => {
+        const port = getCallPort()
+        const sessionID = port.call({
+          method,
+          params,
+          callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
+          waitingKey,
+        })
+        const cancel = () => port.cancelSession(sessionID)
+        if (signal?.aborted) {
+          cancel()
+        } else {
+          signal?.addEventListener('abort', cancel, {once: true})
+        }
+      }),
+    {method}
+  ) as RpcFn<M>`
       : '',
     project.hasEngineListener
       ? `type ListenerMethod = ${listenerMethodUnion}

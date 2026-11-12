@@ -8,11 +8,10 @@ import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {settingsDevicesTab} from '@/constants/settings'
 import {NewItemsContext, useLocalBadging} from '@/util/use-local-badging'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import {useNotifState} from '@/stores/notifications'
 import {useNavigation} from '@react-navigation/native'
 import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
-import {useEngineActionListener} from '@/engine/action-listener'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -29,8 +28,10 @@ const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
 const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
   partition([...devices].sort(sortDevices), d => d.revokedAt)
 
-const itemHeight = {height: 48, type: 'fixed'} as const
 const noDevices = new Array<T.Devices.Device>()
+const itemHeight = {height: 48, type: 'fixed'} as const
+const toDevices = (results: ReadonlyArray<T.RPCGen.DeviceDetail> | null) =>
+  results?.map(rpcDeviceDetailToDevice) ?? noDevices
 
 function ReloadableDevices() {
   const styles = useStyles()
@@ -41,22 +42,10 @@ function ReloadableDevices() {
   const storeSet = useNotifState(s => s.deviceBadges)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
-  // Reloadable's reloadOnMount drives the initial load
-  const {data, refresh: refreshDevices, reload: loadDevices} = useRPCLoad(
-    T.RPCGen.deviceDeviceHistoryListRpcPromise,
-    [undefined, C.waitingKeyDevices],
-    {map: results => results?.map(rpcDeviceDetailToDevice) ?? [], when: 'manual'}
-  )
-  const devices = data ?? noDevices
-
-  useEngineActionListener('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', () => {
-    refreshDevices()
-  })
-  // A device added or revoked elsewhere sends no deviceHistoryChanged. The service
-  // sends userChanged (only ever for us) once it has dropped its cached copy of our
-  // keys, so a reload then sees the change. The device badge arrives before that drop
-  useEngineActionListener('keybase.1.NotifyUsers.userChanged', () => {
-    refreshDevices()
+  const {data: devices = noDevices, reload} = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
+    reloadOnFocus: true,
+    select: toDevices,
+    waitingKey: C.waitingKeyDevices,
   })
 
   const navigateAppend = C.Router2.navigateAppend
@@ -125,8 +114,7 @@ function ReloadableDevices() {
     <Kb.Reloadable
       onBack={isMobile ? navigateUp : undefined}
       waitingKeys={C.waitingKeyDevices}
-      onReload={loadDevices}
-      reloadOnMount={true}
+      onReload={reload}
       title=""
     >
       <NewItemsContext value={badged}>

@@ -1,10 +1,8 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {waitingKeyTrackerProfileLoad} from '@/constants/strings'
-import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
-import {useCurrentUserState} from '@/stores/current-user'
-import type {RPCError} from '@/util/errors'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 
 const emptyProofSuggestions: ReadonlyArray<T.Tracker.Assertion> = []
 
@@ -58,26 +56,18 @@ const rpcSuggestionToAssertion = (suggestion: T.RPCGen.ProofSuggestion): T.Track
 const mapSuggestions = ({suggestions}: T.RPCGen.ProofSuggestionsRes) =>
   suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
 
-const logLoadError = (error: RPCError) => {
-  logger.error(`Error loading proof suggestions: ${error.message}`)
-}
-
 export const useProofSuggestions = (enabled = true) => {
-  const uid = useCurrentUserState(s => s.uid)
-  const {data, refresh, reload} = useRPCLoad(
-    T.RPCGen.userProofSuggestionsRpcPromise,
-    [undefined, waitingKeyTrackerProfileLoad],
-    // keyed on enabled so a disabled hook shows nothing and enabling it loads
-    {enabled, key: enabled ? 'enabled' : 'disabled', map: mapSuggestions, onError: logLoadError}
-  )
-
-  useEngineActionListener('keybase.1.NotifyUsers.userChanged', action => {
-    if (!enabled || action.payload.params.uid !== uid) {
-      return
-    }
-    // a burst of these (one per replayed key change) loads once more after the load in flight
-    refresh()
+  // userChanged reloads it: see query/notifications
+  const {data, error, reload} = useRpcData(T.RPCGen.userProofSuggestionsRpcPromise, undefined, {
+    enabled,
+    select: mapSuggestions,
+    waitingKey: waitingKeyTrackerProfileLoad,
   })
+  React.useEffect(() => {
+    if (error) {
+      logger.error(`Error loading proof suggestions: ${error.message}`)
+    }
+  }, [error])
 
   return {
     proofSuggestions: enabled ? (data ?? emptyProofSuggestions) : emptyProofSuggestions,

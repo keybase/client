@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {startAddNewDevice} from '@/provision/flow'
 import * as T from '@/constants/types'
 import {getDeviceIconType} from './device-icon'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 
 type AddDeviceProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -15,21 +15,21 @@ const defaultIconNumbers = {
   mobile: 1 as T.Devices.IconNumber,
 } as const
 
+const toIconNumbers = (results: ReadonlyArray<T.RPCGen.DeviceDetail> | null) =>
+  T.Devices.nextDeviceIconNumbers(
+    results?.map(result => ({
+      deviceNumberOfType: result.device.deviceNumberOfType,
+      type: T.Devices.stringToDeviceType(result.device.type),
+    })) ?? []
+  )
+
 export default function AddDevice(ownProps: AddDeviceProps) {
   const styles = useStyles()
   const highlight = ownProps.highlight ?? noHighlight
-  const {data: iconNumbers = defaultIconNumbers, loaded} = useRPCLoad(
+  const {data: iconNumbers = defaultIconNumbers, loaded} = useRpcData(
     T.RPCGen.deviceDeviceHistoryListRpcPromise,
-    [undefined, C.waitingKeyDevices],
-    {
-      map: results =>
-        T.Devices.nextDeviceIconNumbers(
-          results?.map(result => ({
-            deviceNumberOfType: result.device.deviceNumberOfType,
-            type: T.Devices.stringToDeviceType(result.device.type),
-          })) ?? []
-        ),
-    }
+    undefined,
+    {select: toIconNumbers, waitingKey: C.waitingKeyDevices}
   )
 
   const onAddComputer = () => {
