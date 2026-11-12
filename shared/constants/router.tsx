@@ -349,11 +349,8 @@ export const createConversation = (
 }
 
 // Park the thread screen on the pending placeholder while localNewConversation runs, seeding it
-// with the participants we already know. The seed is what lets the switch to the created
-// conversation be a setParams instead of a new screen: iOS measures the header title subview once
-// and never re-measures one that started empty, so a title-less pending thread would leave the bar
-// blank for the real conv too (measured on device in bc6e852a97). It also just reads better - you
-// see who you're talking to while the conversation is being made.
+// with the participants we already know, so you see who you're talking to while the conversation
+// is being made.
 export const navigateToPendingThread = (participants: ReadonlyArray<string>) => {
   const {username} = useCurrentUserState.getState()
   // matches participants.name for a real conv: the tlf name, which includes you
@@ -634,11 +631,9 @@ export const navigateToThread = (
       // iOS (RNSScreenStack.mm passes `animated:previousTop.view.window != nil`, ignoring
       // stackAnimation, and the animationTypeForReplace:'pop' branch is an animated pop), so the
       // blank pending thread slides in and the real one slides in over it - one new chat reading
-      // as two pushes. setParams has no transition at all. It relies on the pending thread's
-      // header title already having content (seeded by navigateToPendingThread): iOS never
-      // re-measures a title subview it first measured empty, so a blank pending title would
-      // leave the bar blank for the real conv too. Same-conversation retargets ride this path
-      // too: the screen is already showing real content, so setParams is a plain in-place merge.
+      // as two pushes. setParams has no transition at all. Same-conversation retargets ride this
+      // path too: the screen is already showing real content, so setParams is a plain in-place
+      // merge.
       navigated = getNavigator().setRouteParams(visible?.key, params)
     } else {
       navigated = navigateAppend({name: threadRouteName, params})
