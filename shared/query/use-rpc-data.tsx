@@ -90,7 +90,7 @@ const useEntry = <RAW, DATA>(entry: Entry, load: Entry['load'], options: Options
     error: enabled ? snapshot.error : undefined,
     loadCount: snapshot.loadCount,
     loaded: enabled && snapshot.loaded,
-    loading: snapshot.loading || (enabled && !snapshot.settled && !snapshot.forgotten),
+    loading: enabled && (snapshot.loading || (!snapshot.settled && !snapshot.forgotten)),
     reload: entry.reload,
     reloadAndWait: entry.reloadAndWait,
     settled: enabled && snapshot.settled,
