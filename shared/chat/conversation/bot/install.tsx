@@ -61,17 +61,15 @@ export const useBotTeamRole = (
   botUsername: string
 ) => {
   const id = conversationIDKey ?? T.Chat.noConversationIDKey
-  const {data: role, error} = useLoadData(
+  const {data: role} = useLoadData(
     'chat.botTeamRole',
     [id, botUsername],
     async () => getChatRpc().getBotTeamRole(id, botUsername),
-    {enabled: !!conversationIDKey}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`)
+    {
+      enabled: !!conversationIDKey,
+      onError: error => logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`),
     }
-  }, [error])
+  )
   const loadedRole = role === undefined ? undefined : Teams.teamRoleByEnum[role]
   const teamRole = loadedRole === 'none' ? undefined : loadedRole
   return conversationIDKey ? teamRole : undefined

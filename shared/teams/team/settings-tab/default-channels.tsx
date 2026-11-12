@@ -16,10 +16,6 @@ type DefaultChannelsData = ReadonlyArray<T.Teams.ChannelNameID>
 const defaultChannelsStaleMs = 5_000
 const emptyDefaultChannels: DefaultChannelsData = []
 
-// One cache entry per team, shared by every consumer: each load is a remote
-// chat.1.remote.getDefaultTeamChannels round trip, so a per-instance cache turns
-// every extra mount of the settings tab into another hit on the chat rate limit.
-
 // resolve rather than reject on failure: consumers render an empty list (and no
 // spinner) on error, and a cached failure keeps a broken team from re-requesting
 // on every render. Module scope, not inline in the hook: a try/catch wrapping a
@@ -37,6 +33,8 @@ const loadDefaultChannels = async (teamID: T.Teams.TeamID): Promise<DefaultChann
   }
 }
 
+// Shared by every consumer of a team's: each load is a remote chat.1.remote.getDefaultTeamChannels
+// round trip, and every extra one is another hit on the chat rate limit.
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const {
     data = emptyDefaultChannels,

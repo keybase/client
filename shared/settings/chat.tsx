@@ -502,7 +502,6 @@ export const Links = () => {
   const onRemove = (list: UnfurlList) => (domain: string) =>
     setDraft(d => removeDomain(d ?? draftOf(saved), saved, list, domain))
 
-
   const lastModeRef = React.useRef(mode)
   React.useEffect(() => {
     if (lastModeRef.current !== mode) {

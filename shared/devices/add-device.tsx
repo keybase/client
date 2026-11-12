@@ -26,7 +26,7 @@ const toIconNumbers = (results: ReadonlyArray<T.RPCGen.DeviceDetail> | null) =>
 export default function AddDevice(ownProps: AddDeviceProps) {
   const styles = useStyles()
   const highlight = ownProps.highlight ?? noHighlight
-  const {data: iconNumbers = defaultIconNumbers, loaded} = useRpcData(
+  const {data: iconNumbers = defaultIconNumbers, settled: loaded} = useRpcData(
     T.RPCGen.deviceDeviceHistoryListRpcPromise,
     undefined,
     {select: toIconNumbers, waitingKey: C.waitingKeyDevices}

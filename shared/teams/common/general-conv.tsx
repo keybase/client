@@ -3,10 +3,6 @@ import * as Meta from '@/constants/chat/meta'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {useLoadData} from '@/query'
 
-type GeneralConvData = T.Chat.ConversationIDKey | undefined
-
-const noGeneralConv: GeneralConvData = undefined
-
 // A team's #general conversation does not move, but two screens ask for it - the
 // team rows and the bot install modal - and each used to hold the answer in its
 // own state, so every mount was another findGeneralConvFromTeamID. Share one
@@ -20,7 +16,7 @@ export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => 
   const {data} = useLoadData(
     'chat.generalConv',
     teamIDToLoad,
-    async (signal): Promise<GeneralConvData | null> => {
+    async (signal): Promise<T.Chat.ConversationIDKey | null> => {
       const conv = await T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise({teamID: teamIDToLoad}, undefined, signal)
       const meta = Meta.inboxUIItemToConversationMeta(conv)
       if (!meta) {
@@ -31,5 +27,5 @@ export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => 
     },
     {enabled: on, staleMs: generalConvStaleMs}
   )
-  return data ?? noGeneralConv
+  return data ?? undefined
 }

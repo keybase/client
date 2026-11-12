@@ -82,16 +82,13 @@ export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
   const {
     data = emptyActivityLevelsData,
-    error,
     loaded,
     loading,
     reload,
-  } = useLoadData('teams.activityLevels', null, loadActivityLevels, {staleMs: activityLevelsReloadStaleMs})
-  React.useEffect(() => {
-    if (error) {
-      logger.warn('Failed to load activity levels', error)
-    }
-  }, [error])
+  } = useLoadData('teams.activityLevels', null, loadActivityLevels, {
+    onError: error => logger.warn('Failed to load activity levels', error),
+    staleMs: activityLevelsReloadStaleMs,
+  })
   const value = React.useMemo(() => ({...data, loaded, loading, reload}), [data, loaded, loading, reload])
   return <ActivityLevelsContext value={value}>{children}</ActivityLevelsContext>
 }

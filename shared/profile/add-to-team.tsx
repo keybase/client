@@ -86,19 +86,16 @@ const AddToTeam = (ownProps: OwnProps) => {
 
   const {
     data: teamProfileAddList = noTeamList,
-    error: loadError,
     reload: loadTeamList,
   } = useRpcData(
     T.RPCGen.teamsTeamProfileAddListRpcPromise,
     {username: them},
-    {select: toTeamList, waitingKey: C.waitingKeyTeamsProfileAddList}
-  )
-  React.useEffect(() => {
-    if (loadError) {
-      logger.info(`Failed to load profile add-to-team list for ${them}: ${loadError.message}`)
+    {
+      onError: error => logger.info(`Failed to load profile add-to-team list for ${them}: ${error.message}`),
+      select: toTeamList,
+      waitingKey: C.waitingKeyTeamsProfileAddList,
     }
-  }, [loadError, them])
-
+  )
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)

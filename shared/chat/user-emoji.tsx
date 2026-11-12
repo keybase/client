@@ -12,10 +12,9 @@ type UserEmojiData = {
 
 const emptyUserEmojiData: UserEmojiData = {emojiGroups: emptyEmojiGroups, emojis: emptyEmojis}
 
-// One cache entry per request key, shared by every consumer. userEmojis is expensive on
-// the service side - it resolves two attachment URLs per custom emoji - so the
-// suggestor remounting on each ':' trigger used to refetch the entire set. The
-// shared cache also collapses concurrent mounts onto a single in-flight request.
+// One cache entry per request key, shared by every consumer: userEmojis is expensive on
+// the service side (it resolves two attachment URLs per custom emoji), and the suggestor
+// remounts on each ':' trigger.
 const userEmojiStaleMs = 60_000
 const userEmojisLoad = 'chat.userEmojis'
 

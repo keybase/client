@@ -27,12 +27,10 @@ type LoadedTeamData = {teamDetails: T.Teams.TeamDetails; teamMeta: Omit<T.Teams.
 
 export const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
 const loadedTeamReloadStaleMs = 5_000
+const teamNoticeDebounceMs = 2_000
 
-// One cache entry per team for every consumer: the stale window and the
-// single-flight live on the entry. While each provider and each provider-less
-// consumer held its own cache, 81% of getAnnotatedTeam calls in an e2e run landed
-// inside their own 5s stale window - the team screen, the channel screen and any
-// modal above them each paid a full 200ms team load.
+// One cache entry per team for every consumer: the team screen, the channel screen and any
+// modal above them would otherwise each pay a full team load.
 const loadedTeamLoad = 'teams.loadedTeam'
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
@@ -91,7 +89,6 @@ const useLoadedTeamRaw = (
   }, [validTeamID, listMeta])
   const {
     data = seeded,
-    error,
     loaded,
     loading,
     reload,
@@ -108,13 +105,12 @@ const useLoadedTeamRaw = (
         teamMeta: annotatedTeamToMeta(teamIDToLoad, annotatedTeam, undefined),
       }
     },
-    {enabled: enabled && !!validTeamID, staleMs: loadedTeamReloadStaleMs}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.warn(`Failed to load team data for ${teamIDToLoad}`, error)
+    {
+      enabled: enabled && !!validTeamID,
+      onError: error => logger.warn(`Failed to load team data for ${teamIDToLoad}`, error),
+      staleMs: loadedTeamReloadStaleMs,
     }
-  }, [error, teamIDToLoad])
+  )
   // builds a fresh object whenever the team is in the map, so without this the
   // memos below (and the context value built from them) never hit and every
   // consumer re-renders on every render of the provider
@@ -137,13 +133,11 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  // One logical change fires metadata, role map and changedByID, and a reconnect
-  // fires all three at once - measured as 4 getAnnotatedTeam for one team inside
-  // 116ms. The cache's change-notice rule holds a burst to the load in flight
-  // plus one more.
+  // One logical change fires metadata, role map and changedByID, a reconnect fires all three at
+  // once, and a busy team fires them per message: the first reloads at once and the rest once more.
   const onTeamChange = () => {
     if (enabled) {
-      refreshLoad(loadedTeamLoad, teamIDToLoad)
+      refreshLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
     }
   }
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, subscribeToUpdates)

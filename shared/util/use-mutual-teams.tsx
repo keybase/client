@@ -29,7 +29,6 @@ export const useMutualTeams = (
   // empty case as a real query, and skipping it would change what callers get
   const {
     data = emptyTeams,
-    error,
     loaded,
     loading,
   } = useLoadData(
@@ -39,13 +38,12 @@ export const useMutualTeams = (
       const res = await T.RPCChat.localGetMutualTeamsLocalRpcPromise({usernames: [...usernames]}, waitingKey, signal)
       return res.teams ?? emptyTeams
     },
-    {enabled, refreshKey, staleMs: mutualTeamsStaleMs}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.warn(`Failed to load mutual teams for ${cacheKey}`, error)
+    {
+      enabled,
+      onError: error => logger.warn(`Failed to load mutual teams for ${cacheKey}`, error),
+      refreshKey,
+      staleMs: mutualTeamsStaleMs,
     }
-  }, [cacheKey, error])
-
+  )
   return React.useMemo(() => ({loaded, loading, teams: data}), [loaded, loading, data])
 }

@@ -46,12 +46,10 @@ const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const toRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult> | null) => parseRepos(results ?? [])
-
-function parseRepos(results: ReadonlyArray<T.RPCGen.GitRepoResult>) {
+const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult> | null) => {
   const errors: Array<Error> = []
   const repos = new Map<string, T.Git.GitInfo>()
-  results.forEach(result => {
+  results?.forEach(result => {
     if (result.state === T.RPCGen.GitRepoResultState.ok) {
       const parsedRepo = parseRepoResult(result)
       if (parsedRepo) {
@@ -123,7 +121,7 @@ const GitRoot = (ownProps: OwnProps) => {
     reload: load,
   } = useRpcData(T.RPCGen.gitGetAllGitMetadataRpcPromise, undefined, {
     reloadOnFocus: true,
-    select: toRepos,
+    select: parseRepos,
     waitingKey: C.waitingKeyGitLoading,
   })
   const rowError = rowErrorAt.loadCount === refreshToken ? rowErrorAt.error : undefined
@@ -132,8 +130,11 @@ const GitRoot = (ownProps: OwnProps) => {
     const {setGlobalError} = useConfigState.getState().dispatch
     data?.errors.forEach(e => setGlobalError(e))
   })
+  // not for what was already cached when the screen opened
+  const reportedLoad = React.useRef(refreshToken)
   React.useEffect(() => {
-    if (refreshToken) {
+    if (refreshToken !== reportedLoad.current) {
+      reportedLoad.current = refreshToken
       onLoaded()
     }
   }, [refreshToken])

@@ -5,27 +5,36 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {refreshMethod} from './cache'
 
 type Rpc = {readonly method: string}
-// when: only for a notice this accepts
-type Stale = Rpc | {readonly rpc: Rpc; readonly when: (action: EngineGen.Actions) => boolean}
+type Stale = {
+  readonly rpc: Rpc
+  /** only for a notice this accepts */
+  readonly when?: (action: EngineGen.Actions) => boolean
+  /** for notices that keep coming: see refreshMethod */
+  readonly debounceMs?: number
+}
 
-const teamsLists = [T.RPCGen.teamsTeamListUnverifiedRpcPromise, T.RPCGen.teamsGetTeamRoleMapRpcPromise]
+// one per message in a busy team
+const teamNotice = {debounceMs: 2_000}
+const teamsList: Stale = {rpc: T.RPCGen.teamsTeamListUnverifiedRpcPromise, ...teamNotice}
+const teamsRoleMap: Stale = {rpc: T.RPCGen.teamsGetTeamRoleMapRpcPromise, ...teamNotice}
+const devices: Stale = {rpc: T.RPCGen.deviceDeviceHistoryListRpcPromise}
 
-// Which reads each service notification makes stale
 const isOurUser = (action: EngineGen.Actions) =>
   action.type === 'keybase.1.NotifyUsers.userChanged' &&
   action.payload.params.uid === useCurrentUserState.getState().uid
 
+// Which reads each service notification makes stale
 const staleOn: Partial<Record<EngineGen.ActionType, ReadonlyArray<Stale>>> = {
-  'keybase.1.NotifyDeviceHistory.deviceHistoryChanged': [T.RPCGen.deviceDeviceHistoryListRpcPromise],
-  'keybase.1.NotifyTeam.teamChangedByID': teamsLists,
-  'keybase.1.NotifyTeam.teamDeleted': teamsLists,
-  'keybase.1.NotifyTeam.teamExit': teamsLists,
-  'keybase.1.NotifyTeam.teamMetadataUpdate': [T.RPCGen.teamsTeamListUnverifiedRpcPromise],
-  'keybase.1.NotifyTeam.teamRoleMapChanged': teamsLists,
+  'keybase.1.NotifyDeviceHistory.deviceHistoryChanged': [devices],
+  'keybase.1.NotifyTeam.teamChangedByID': [teamsList, teamsRoleMap],
+  'keybase.1.NotifyTeam.teamDeleted': [teamsList, teamsRoleMap],
+  'keybase.1.NotifyTeam.teamExit': [teamsList, teamsRoleMap],
+  'keybase.1.NotifyTeam.teamMetadataUpdate': [teamsList],
+  'keybase.1.NotifyTeam.teamRoleMapChanged': [teamsList, teamsRoleMap],
   // A device added or revoked elsewhere sends no deviceHistoryChanged. The service sends userChanged
-  // (only ever for us) once it has dropped its cached copy of our keys, so a reload then sees it.
+  // once it has dropped its cached copy of our keys, so a reload then sees it.
   'keybase.1.NotifyUsers.userChanged': [
-    T.RPCGen.deviceDeviceHistoryListRpcPromise,
+    devices,
     {rpc: T.RPCGen.userProofSuggestionsRpcPromise, when: isOurUser},
   ],
 }
@@ -35,14 +44,12 @@ declare global {
 }
 const unsubs = (globalThis.__hmr_rpcDataNotificationUnsubs ??= [])
 for (const unsub of unsubs.splice(0)) unsub()
-for (const [type, rpcs] of Object.entries(staleOn)) {
+for (const [type, stale] of Object.entries(staleOn)) {
   unsubs.push(
     subscribeToEngineAction(type as EngineGen.ActionType, action => {
-      for (const stale of rpcs) {
-        if ('rpc' in stale) {
-          if (stale.when(action)) refreshMethod(stale.rpc.method)
-        } else {
-          refreshMethod(stale.method)
+      for (const {debounceMs, rpc, when} of stale) {
+        if (!when || when(action)) {
+          refreshMethod(rpc.method, undefined, debounceMs)
         }
       }
     })

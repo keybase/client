@@ -9,7 +9,7 @@ import {
   refreshMethod,
   selectFrom,
   setEntryData,
-  setLoad,
+  setLoader,
   stableKey,
   type Entry,
 } from './cache'
@@ -29,8 +29,8 @@ type Options<RAW, DATA> = {
   enabled?: boolean
   /** false: forget the data when the last screen loading it goes away, so the next one starts empty */
   keep?: boolean
-  /** false: only show what another screen loads, and never start a load */
-  load?: boolean
+  /** a load failed (not cancelled, not a lost link). Called once per load, not once per screen */
+  onError?: (error: Error) => void
   /** when this changes, load again if the data is older than staleMs */
   refreshKey?: unknown
   /** reload every time the screen comes into focus, not only when the data is older than staleMs */
@@ -41,33 +41,36 @@ type Options<RAW, DATA> = {
   staleMs?: number
 }
 
+const selected = <DATA,>(entry: Entry, raw: unknown, select: ((raw: never) => DATA) | undefined) =>
+  raw === undefined ? undefined : select ? selectFrom(entry, select, raw) : (raw as DATA)
+
 const useEntry = <RAW, DATA>(entry: Entry, load: Entry['load'], options: Options<RAW, DATA>) => {
-  const {enabled = true, keep = true, load: loadsData = true, refreshKey, reloadOnFocus = false, select, staleMs = 0} = options
+  const {enabled = true, keep = true, onError, refreshKey, reloadOnFocus = false, select, staleMs = 0} = options
   const snapshot = React.useSyncExternalStore(entry.subscribe, entry.getSnapshot)
-  const loads = enabled && loadsData
-  // before the effect below, which may start a load
+  // before the effect below, which may start a load. A function call, not an assignment: the
+  // compiler does not let an effect write to what the hook was given.
   React.useEffect(() => {
-    if (loads) {
-      setLoad(entry, load)
+    if (enabled) {
+      setLoader(entry, load, onError)
     }
   })
   React.useEffect(
-    () => (loads ? attachLoader(entry, staleMs, keep) : undefined),
-    [entry, keep, loads, staleMs]
+    () => (enabled ? attachLoader(entry, staleMs, keep) : undefined),
+    [enabled, entry, keep, staleMs]
   )
   const lastRefreshKey = React.useRef(refreshKey)
   React.useEffect(() => {
     if (lastRefreshKey.current !== refreshKey) {
       lastRefreshKey.current = refreshKey
-      if (loads) {
+      if (enabled) {
         void loadIfStale(entry, staleMs)
       }
     }
-  }, [entry, loads, refreshKey, staleMs])
+  }, [enabled, entry, refreshKey, staleMs])
   // the first focus is the mount, which has loaded already
   const hasFocused = React.useRef(false)
   const onFocus = React.useEffectEvent(() => {
-    if (!loads) {
+    if (!enabled) {
       return
     }
     if (reloadOnFocus) {
@@ -79,21 +82,18 @@ const useEntry = <RAW, DATA>(entry: Entry, load: Entry['load'], options: Options
   })
   const [focusEffect] = React.useState(() => () => {
     onFocus()
-    return undefined
   })
   C.Router2.useSafeFocusEffect(focusEffect)
 
-  const raw = enabled ? snapshot.data : undefined
-  const data =
-    raw === undefined ? undefined : select ? selectFrom(entry, select as (d: never) => DATA, raw) : (raw as DATA)
   return {
-    data,
+    data: selected(entry, enabled ? snapshot.data : undefined, select as ((raw: never) => DATA) | undefined),
     error: enabled ? snapshot.error : undefined,
     loadCount: snapshot.loadCount,
     loaded: enabled && snapshot.loaded,
-    loading: snapshot.loading || (loads && !snapshot.loaded),
+    loading: snapshot.loading || (enabled && !snapshot.settled && !snapshot.forgotten),
     reload: entry.reload,
     reloadAndWait: entry.reloadAndWait,
+    settled: enabled && snapshot.settled,
   }
 }
 
@@ -104,19 +104,19 @@ const rpcLoad =
     return call(params, waitingKey, signal)
   }
 
-const entryFor = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, waitingKey?: WaitingKeys) =>
-  getEntry(stableKey(rpc.method, params), rpc.method, rpcLoad(rpc, params, waitingKey))
+const rpcEntry = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, load = rpcLoad(rpc, params)) =>
+  getEntry(stableKey(rpc.method, params), rpc.method, load)
 
 /**
  * What a read rpc returns, from the cache every screen shares: screens asking for the same method
  * and params make one call and see one answer, and a screen opened later shows the cached answer
- * while it reloads. The load is cancelled when the last screen using it goes away, runs again
- * after a reconnect or when the service says the data changed (see notifications), and the cache
- * is emptied on an account change.
+ * while it reloads. It loads again after a reconnect or when the service says the data changed
+ * (see notifications), and the cache is emptied on an account change.
  * @returns data: undefined until a load lands
  * @returns error: from the last load, cleared by the next success
  * @returns loadCount: successful loads so far, useful as a refresh token
- * @returns loaded: a load finished, with data or an error
+ * @returns loaded: a load has succeeded, so data is the service's answer
+ * @returns settled: a load finished, with data or an error
  * @returns loading: a load is on the wire or about to be
  * @returns reload: load now, dropping the answer of a load already on the wire
  * @returns reloadAndWait: reload, resolving once the answer (or its failure) is in
@@ -125,10 +125,24 @@ export const useRpcData = <F extends AnyRpc, DATA = DataOf<F>>(
   rpc: F,
   params: ParamsOf<F>,
   options: Options<DataOf<F>, DATA> & {waitingKey?: WaitingKeys} = {}
-) => useEntry(entryFor(rpc, params, options.waitingKey), rpcLoad(rpc, params, options.waitingKey), options)
+) => {
+  const load = rpcLoad(rpc, params, options.waitingKey)
+  return useEntry(rpcEntry(rpc, params, load), load, options)
+}
 
-const loadEntryFor = <RAW,>(name: string, key: unknown, load: (signal: AbortSignal) => Promise<RAW>) =>
-  getEntry(stableKey(name, key), name, load)
+/**
+ * Only what another screen's useRpcData has loaded: never starts a load, and costs a list row no
+ * more than the subscription.
+ */
+export const useCachedRpcData = <F extends AnyRpc, DATA = DataOf<F>>(
+  rpc: F,
+  params: ParamsOf<F>,
+  select?: (raw: DataOf<F>) => DATA
+) => {
+  const entry = rpcEntry(rpc, params)
+  const snapshot = React.useSyncExternalStore(entry.subscribe, entry.getSnapshot)
+  return selected(entry, snapshot.data, select as ((raw: never) => DATA) | undefined)
+}
 
 /**
  * useRpcData for a load that is more than one rpc call. `name` and `key` identify the data:
@@ -139,13 +153,13 @@ export const useLoadData = <RAW, DATA = RAW>(
   key: unknown,
   load: (signal: AbortSignal) => Promise<RAW>,
   options: Options<RAW, DATA> = {}
-) => useEntry(loadEntryFor(name, key, load), load, options)
+) => useEntry(getEntry(stableKey(name, key), name, load), load, options)
 
 /** the service's data behind this rpc changed (after a write, or on a notice): reload it wherever it is shown */
-export const refreshRpc = (rpc: AnyRpc) => refreshMethod(rpc.method)
-/** refreshRpc for a useLoadData name, and with a key for just that one */
-export const refreshLoad = (name: string, ...key: [] | [unknown]) =>
-  refreshMethod(name, key.length ? stableKey(name, key[0]) : undefined)
+export const refreshRpc = (rpc: AnyRpc, debounceMs?: number) => refreshMethod(rpc.method, undefined, debounceMs)
+/** refreshRpc for a useLoadData name; with a key (not undefined) for just that one */
+export const refreshLoad = (name: string, key?: unknown, debounceMs?: number) =>
+  refreshMethod(name, key === undefined ? undefined : stableKey(name, key), debounceMs)
 
 /** drop a useLoadData's cached data: for when it no longer exists, where refreshLoad would reload it */
 export const forgetLoad = (name: string, key: unknown) => forgetKey(stableKey(name, key))
@@ -155,8 +169,8 @@ export const setRpcData = <F extends AnyRpc>(
   rpc: F,
   params: ParamsOf<F>,
   next: (prev: DataOf<F> | undefined) => DataOf<F> | undefined
-) => setEntryData(entryFor(rpc, params), next as (prev: unknown) => unknown)
+) => setEntryData(rpcEntry(rpc, params), next as (prev: unknown) => unknown)
 
 /** reload it if a screen is loading it and its data is older than staleMs; resolves when no load is on the wire */
 export const loadRpcIfStale = async <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, staleMs: number) =>
-  loadIfStale(entryFor(rpc, params), staleMs)
+  loadIfStale(rpcEntry(rpc, params), staleMs)

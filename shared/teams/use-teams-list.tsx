@@ -5,7 +5,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {loadRpcIfStale, refreshRpc, useRpcData} from '@/query'
+import {loadRpcIfStale, refreshRpc, useCachedRpcData, useRpcData} from '@/query'
 
 type TeamsList = {
   reload: () => void
@@ -21,13 +21,13 @@ const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
 const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: undefined, version: 0})
 const staleMs = 5 * 60_000
 
-const useWarnUnlessNetwork = (what: string, error: unknown) => {
-  React.useEffect(() => {
-    if (error && (error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
-      logger.warn(`Failed to load ${what}`, error)
-    }
-  }, [error, what])
+const warnUnlessNetwork = (what: string) => (error: Error) => {
+  if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
+    logger.warn(`Failed to load ${what}`, error)
+  }
 }
+const warnTeamsList = warnUnlessNetwork('teams list')
+const warnTeamsRoleMap = warnUnlessNetwork('teams role map')
 
 // Incoming team chat messages fire teamMetadataUpdate, which reloads the list; the result is
 // usually deep-equal to what we have. The cache keeps prior identities (the whole array when
@@ -41,43 +41,38 @@ export const invalidateLoadedTeams = () => {
   refreshRpc(T.RPCGen.teamsGetTeamRoleMapRpcPromise)
 }
 
-const useTeamsListData = (load: boolean): TeamsList => {
-  const username = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
-  const {data: teams = emptyTeams, error} = useRpcData(
-    T.RPCGen.teamsTeamListUnverifiedRpcPromise,
-    {includeImplicitTeams: false, userAssertion: username},
-    {enabled: !!username && loggedIn, load, select: toTeams, staleMs, waitingKey: C.waitingKeyTeamsLoaded}
-  )
-  useWarnUnlessNetwork('teams list', error)
-  return React.useMemo(() => ({reload: invalidateLoadedTeams, teams}), [teams])
-}
-
 const loadRoleMapIfStale = async () => loadRpcIfStale(T.RPCGen.teamsGetTeamRoleMapRpcPromise, undefined, staleMs)
-
-const useTeamsRoleMapData = (load: boolean): TeamsRoleMap => {
-  const username = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
-  const {data: roleMap = emptyTeamRoleMap, error} = useRpcData(
-    T.RPCGen.teamsGetTeamRoleMapRpcPromise,
-    undefined,
-    {enabled: !!username && loggedIn, load, staleMs}
-  )
-  useWarnUnlessNetwork('teams role map', error)
-  return React.useMemo(() => ({loadIfStale: loadRoleMapIfStale, roleMap}), [roleMap])
-}
 
 // The one place that loads both, and keeps them reloading on the service's notices
 export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
-  useTeamsListData(true)
-  useTeamsRoleMapData(true)
+  const username = useCurrentUserState(s => s.username)
+  const enabled = useConfigState(s => s.loggedIn) && !!username
+  useRpcData(
+    T.RPCGen.teamsTeamListUnverifiedRpcPromise,
+    {includeImplicitTeams: false, userAssertion: username},
+    {enabled, onError: warnTeamsList, staleMs, waitingKey: C.waitingKeyTeamsLoaded}
+  )
+  useRpcData(T.RPCGen.teamsGetTeamRoleMapRpcPromise, undefined, {enabled, onError: warnTeamsRoleMap, staleMs})
   return <>{props.children}</>
 }
 
 // Readers share the provider's load and never start one. The cache is one per app, so they work
 // in popup portals outside the provider too.
-export const useTeamsList = () => useTeamsListData(false)
-export const useTeamsRoleMap = () => useTeamsRoleMapData(false)
+export const useTeamsList = (): TeamsList => {
+  const username = useCurrentUserState(s => s.username)
+  const teams =
+    useCachedRpcData(
+      T.RPCGen.teamsTeamListUnverifiedRpcPromise,
+      {includeImplicitTeams: false, userAssertion: username},
+      toTeams
+    ) ?? emptyTeams
+  return React.useMemo(() => ({reload: invalidateLoadedTeams, teams}), [teams])
+}
+
+export const useTeamsRoleMap = (): TeamsRoleMap => {
+  const roleMap = useCachedRpcData(T.RPCGen.teamsGetTeamRoleMapRpcPromise, undefined) ?? emptyTeamRoleMap
+  return React.useMemo(() => ({loadIfStale: loadRoleMapIfStale, roleMap}), [roleMap])
+}
 
 export const useTeamsListMap = () => {
   const {teams} = useTeamsList()

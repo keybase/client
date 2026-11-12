@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import {afterEach, beforeEach, expect, test} from '@jest/globals'
+import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -13,7 +13,16 @@ import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
 import {reuseEqual, stableKey} from './cache'
-import {forgetLoad, loadRpcIfStale, refreshLoad, refreshRpc, setRpcData, useLoadData, useRpcData} from '.'
+import {
+  forgetLoad,
+  loadRpcIfStale,
+  refreshLoad,
+  refreshRpc,
+  setRpcData,
+  useCachedRpcData,
+  useLoadData,
+  useRpcData,
+} from '.'
 
 const listMethod = 'keybase.1.device.deviceHistoryList'
 const listRpc = T.RPCGen.deviceDeviceHistoryListRpcPromise
@@ -68,16 +77,16 @@ test('screens reading the same rpc share one call and one answer', async () => {
 test('a reload that brings back the same answer keeps the data’s identity', async () => {
   fake.answer(listMethod, () => [device('laptop')])
   const {result} = renderHook(useDevices)
-  const raw = renderHook(() => useRpcData(listRpc, undefined, {load: false}))
+  const raw = renderHook(() => useCachedRpcData(listRpc, undefined))
   await flush()
   const first = result.current.data
-  const firstRaw = raw.result.current.data
+  const firstRaw = raw.result.current
   expect(firstRaw).toHaveLength(1)
   act(() => result.current.reload())
   await flush()
   expect(listCalls()).toBe(2)
   expect(result.current.data).toBe(first)
-  expect(raw.result.current.data).toBe(firstRaw)
+  expect(raw.result.current).toBe(firstRaw)
 })
 
 test('data inside staleMs is not reloaded by the next screen to mount', async () => {
@@ -92,10 +101,10 @@ test('data inside staleMs is not reloaded by the next screen to mount', async ()
 
 test('a reader shows what a loader loads and never starts a load itself', async () => {
   fake.answer(listMethod, () => [device('laptop')])
-  const reader = renderHook(() => useRpcData(listRpc, undefined, {load: false, select: toNames}))
+  const reader = renderHook(() => useCachedRpcData(listRpc, undefined, toNames))
   await flush()
   expect(listCalls()).toBe(0)
-  expect(reader.result.current.data).toBeUndefined()
+  expect(reader.result.current).toBeUndefined()
   // nothing is loading it, so there is nothing to keep fresh
   await loadRpcIfStale(listRpc, undefined, 0)
   expect(listCalls()).toBe(0)
@@ -103,7 +112,7 @@ test('a reader shows what a loader loads and never starts a load itself', async 
   renderHook(useDevices)
   await flush()
   expect(listCalls()).toBe(1)
-  expect(reader.result.current.data).toEqual(['laptop'])
+  expect(reader.result.current).toEqual(['laptop'])
 
   // with a loader mounted it loads, and resolves only once the answer is in
   const held = fake.hold(listMethod)
@@ -121,7 +130,7 @@ test('a reader shows what a loader loads and never starts a load itself', async 
   held[0]!.reply([device('laptop'), device('phone')])
   await act(async () => waiting)
   expect(settled).toBe(true)
-  expect(reader.result.current.data).toEqual(['laptop', 'phone'])
+  expect(reader.result.current).toEqual(['laptop', 'phone'])
 })
 
 test('a burst of change notices during a load costs one more load, which carries the change', async () => {
@@ -198,7 +207,9 @@ test('a failed load shows its error, and the next success clears it', async () =
   held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
   await flush()
   expect((result.current.error as {desc?: string}).desc).toBe('nope')
-  expect(result.current.loaded).toBe(true)
+  // the attempt is over, but there is no answer
+  expect(result.current.settled).toBe(true)
+  expect(result.current.loaded).toBe(false)
   expect(result.current.loading).toBe(false)
   expect(result.current.data).toBeUndefined()
 
@@ -247,24 +258,33 @@ test('an account change empties the cache and refuses the old account’s late a
   expect(result.current.data).toEqual(['new-account-phone'])
 })
 
-test('leaving the last screen cancels the call and its waiting key, and drops the late answer', async () => {
+test('a load still on the wire when the last screen leaves finishes and is cached', async () => {
   const held = fake.hold(listMethod)
-  const first = renderHook(useDevices)
-  const second = renderHook(useDevices)
+  const first = renderHook(() => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000, waitingKey}))
   await flush()
-  expect(waitingCount()).toBe(1)
-
   first.unmount()
   await flush()
+  // the service is still doing the work
   expect(waitingCount()).toBe(1)
-  second.unmount()
-  await flush()
-  expect(waitingCount()).toBe(0)
 
   held[0]!.reply([device('laptop')])
   await flush()
-  const reader = renderHook(() => useRpcData(listRpc, undefined, {load: false}))
-  expect(reader.result.current.data).toBeUndefined()
+  expect(waitingCount()).toBe(0)
+  const next = renderHook(() => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000, waitingKey}))
+  expect(next.result.current.data).toEqual(['laptop'])
+  await flush()
+  expect(held).toHaveLength(1)
+})
+
+test('a lost link with no screen left does not leave the data loading', async () => {
+  fake.hold(listMethod)
+  const first = renderHook(useDevices)
+  await flush()
+  first.unmount()
+  fake.drop()
+  await flush()
+  const reader = renderHook(() => useRpcData(listRpc, undefined, {enabled: false}))
+  expect(reader.result.current.loading).toBe(false)
 })
 
 test('an optimistic write shows at once, and the reload after the save wins', async () => {
@@ -390,13 +410,14 @@ test('data that is not kept is gone once the last screen loading it leaves', asy
   const first = renderHook(useOnce)
   await flush()
   expect(first.result.current.data).toEqual(['laptop'])
-  expect(first.result.current.loadCount).toBe(1)
+  const loadCount = first.result.current.loadCount
   first.unmount()
 
   const held = fake.hold(listMethod)
   const second = renderHook(useOnce)
   expect(second.result.current.data).toBeUndefined()
-  expect(second.result.current.loadCount).toBe(0)
+  // the count goes on, so a screen that stayed up would know the next load from the last
+  expect(second.result.current.loadCount).toBe(loadCount)
   await flush()
   held[0]!.reply([device('phone')])
   await flush()
@@ -438,6 +459,10 @@ test('a multi-call load is shared by key, reloaded or forgotten by key, and uses
   act(() => forgetLoad('test.teamName', 'team-b'))
   expect(b.result.current.data).toBeUndefined()
   expect(b.result.current.loaded).toBe(false)
+  // gone, not about to load: no spinner that never ends
+  expect(b.result.current.loading).toBe(false)
+  await flush()
+  expect(fake.calls.filter(c => c.method === teamMethod)).toHaveLength(3)
   expect(a.result.current.data).toBe('name-of-team-a!')
 })
 
@@ -449,4 +474,120 @@ test('reuseEqual keeps Maps and Sets that did not change, and the entries of one
   expect(next.byID.get('a')).toBe(prev.byID.get('a'))
   expect(next.byID.get('b')).toEqual({n: 3})
   expect(next.tags).not.toBe(prev.tags)
+})
+
+test('an optimistic write beats a load that was already on the wire', async () => {
+  const getRpc = T.RPCGen.accountGetLockdownModeRpcPromise
+  fake.answer('keybase.1.account.getLockdownMode', () => ({history: null, status: false}))
+  const {result} = renderHook(() => useRpcData(getRpc, undefined))
+  await flush()
+
+  const held = fake.hold('keybase.1.account.getLockdownMode')
+  act(() => result.current.reload())
+  await flush()
+  act(() => setRpcData(getRpc, undefined, prev => (prev ? {...prev, status: true} : prev)))
+  expect(result.current.loading).toBe(false)
+  // the answer from before the write
+  held[0]!.reply({history: null, status: false})
+  await flush()
+  expect(result.current.data?.status).toBe(true)
+})
+
+test('one notice heard by several listeners is one load, and the next notice is one more', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  renderHook(useDevices)
+  await flush()
+  const held = fake.hold(listMethod)
+
+  // as every mounted screen's own listener does for one notice from the service
+  act(() => {
+    refreshRpc(listRpc)
+    refreshRpc(listRpc)
+    refreshRpc(listRpc)
+  })
+  await flush()
+  expect(held).toHaveLength(1)
+  held[0]!.reply([device('laptop')])
+  await flush()
+  expect(held).toHaveLength(1)
+
+  act(() => refreshRpc(listRpc))
+  await flush()
+  act(() => refreshRpc(listRpc))
+  await flush()
+  held[1]!.reply([device('laptop')])
+  await flush()
+  expect(held).toHaveLength(3)
+})
+
+test('debounced notices reload at once for the first, then once more after they stop', async () => {
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
+  try {
+    fake.answer(listMethod, () => [device('laptop')])
+    renderHook(useDevices)
+    await flush()
+    expect(listCalls()).toBe(1)
+
+    for (let i = 0; i < 6; i++) {
+      act(() => refreshRpc(listRpc, 2000))
+      await flush()
+      act(() => {
+        jest.advanceTimersByTime(1000)
+      })
+      await flush()
+    }
+    // the first, and nothing while they kept coming a second apart
+    expect(listCalls()).toBe(2)
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    await flush()
+    expect(listCalls()).toBe(3)
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    })
+    await flush()
+    expect(listCalls()).toBe(3)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('a failed load is reported once, however many screens show it', async () => {
+  const held = fake.hold(listMethod)
+  const errors: Array<string> = []
+  const onError = (e: Error) => {
+    errors.push(e.message)
+  }
+  const useReporting = () => useRpcData(listRpc, undefined, {onError})
+  renderHook(useReporting)
+  renderHook(useReporting)
+  await flush()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
+  await flush()
+  expect(errors).toHaveLength(1)
+  // a screen opened onto the cached failure does not report it again
+  renderHook(useReporting)
+  await flush()
+  expect(errors).toHaveLength(1)
+})
+
+test('what failed while logged out loads once the account is in', async () => {
+  const held = fake.hold(listMethod)
+  const {result} = renderHook(useDevices)
+  await flush()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'not logged in'))
+  await flush()
+  expect(result.current.error).toBeDefined()
+
+  fake.answer(listMethod, () => [device('laptop')])
+  act(() => {
+    useConfigState.setState({loggedIn: false})
+  })
+  act(() => {
+    useConfigState.setState({loggedIn: true, userSwitching: false})
+  })
+  await flush()
+  expect(result.current.data).toEqual(['laptop'])
+  expect(result.current.error).toBeUndefined()
 })

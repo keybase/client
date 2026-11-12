@@ -221,13 +221,13 @@ function ConnectedRow(ownProps: OwnProps) {
   // across background refetches so we only show the spinner on the first load,
   // not on every reload.
   const wantsChannel = expanded && !!teamname && !chatDisabled
-  const {data: repoSettings, loaded: channelLoaded} = useRpcData(
+  const {data: repoSettings, settled: channelLoaded} = useRpcData(
     T.RPCGen.gitGetTeamRepoSettingsRpcPromise,
     {folder: {created: false, folderType: T.RPCGen.FolderType.team, name: teamname ?? ''}, repoID},
     {enabled: wantsChannel, refreshKey: refreshToken}
   )
   const channelName = repoSettings?.channelName ?? undefined
-  const channelLoading = !!teamname && !chatDisabled && expanded && !channelLoaded
+  const channelLoading = wantsChannel && !channelLoaded
 
   const onArchiveGitRepo = () => {
     if (gitURL) {

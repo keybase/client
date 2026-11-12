@@ -46,11 +46,8 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
   channels: emptyChannels,
 }
 
-// One cache entry per team for every consumer. The stale window and the single-flight
-// both live on the entry, so callers holding separate caches cannot see each other's
-// in-flight request and each issue their own getTLFConversationsLocal - which
-// localizes every channel in the team. Measured at 7 calls for one team inside
-// 1.5s before this was shared.
+// One cache entry per team for every consumer: each load is a getTLFConversationsLocal,
+// which localizes every channel in the team.
 //
 // teamChangedByID fires for every incoming message in a team and reloads this, and
 // the result is nearly always identical to what is already cached: the cache keeps
@@ -104,7 +101,6 @@ const useLoadedTeamChannelsRaw = (
   const canLoad = enabled && !!validTeamID && !!teamnameToLoad
   const {
     data = emptyLoadedTeamChannelsData,
-    error,
     loading,
     reloadAndWait: reload,
   } = useLoadData(
@@ -137,14 +133,13 @@ const useLoadedTeamChannelsRaw = (
       }
       return {channelMetas, channelParticipants, channels}
     },
-    {enabled: canLoad, refreshKey: teamnameToLoad, staleMs: loadedTeamChannelsReloadStaleMs}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.warn(`Failed to load team channels for ${teamIDToLoad}`, error)
+    {
+      enabled: canLoad,
+      onError: error => logger.warn(`Failed to load team channels for ${teamIDToLoad}`, error),
+      refreshKey: teamnameToLoad,
+      staleMs: loadedTeamChannelsReloadStaleMs,
     }
-  }, [error, teamIDToLoad])
-
+  )
   useReloadOnTeamChannelChanges(teamIDToLoad, enabled && !!validTeamID)
 
   const {channelMetas, channelParticipants, channels} = data
