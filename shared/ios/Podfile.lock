@@ -3,9 +3,9 @@ PODS:
     - ReactNativeDependencies
   - DoubleConversion (1.1.6):
     - ReactNativeDependencies
-  - EXConstants (58.0.15):
+  - EXConstants (58.0.16):
     - ExpoModulesCore
-  - Expo (58.0.23):
+  - Expo (58.0.24):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -32,9 +32,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (58.0.20):
+  - ExpoAsset (58.0.21):
     - ExpoModulesCore
-  - ExpoAudio (58.0.11):
+  - ExpoAudio (58.0.12):
     - ExpoModulesCore
   - ExpoCamera (58.0.14):
     - ExpoModulesCore
@@ -46,17 +46,17 @@ PODS:
     - ExpoModulesCore
   - ExpoContacts (58.0.10):
     - ExpoModulesCore
-  - ExpoDocumentPicker (58.0.4):
+  - ExpoDocumentPicker (58.0.5):
     - ExpoModulesCore
   - ExpoDomWebView (58.0.2):
     - ExpoModulesCore
   - ExpoFileSystem (58.0.13):
     - ExpoModulesCore
-  - ExpoFont (58.0.11):
+  - ExpoFont (58.0.12):
     - ExpoModulesCore
   - ExpoGlassEffect (58.0.5):
     - ExpoModulesCore
-  - ExpoHaptics (58.0.7):
+  - ExpoHaptics (58.0.8):
     - ExpoModulesCore
   - ExpoImage (58.0.18):
     - ExpoModulesCore
@@ -67,18 +67,21 @@ PODS:
     - SDWebImageWebPCoder (~> 0.14.6)
   - ExpoImagePicker (58.0.10):
     - ExpoModulesCore
-  - ExpoKeepAwake (58.0.3):
+  - ExpoKeepAwake (58.0.4):
     - ExpoModulesCore
   - ExpoLocalization (58.0.5):
     - ExpoModulesCore
-  - ExpoLocation (58.0.20):
+  - ExpoLocation (58.0.21):
     - ExpoModulesCore
   - ExpoLogBox (58.0.15):
     - React-Core
-  - ExpoMediaLibrary (58.0.13):
+  - ExpoMediaLibrary (58.0.14):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (58.0.30):
+  - ExpoMediaLibraryImageLoader (58.0.14):
+    - React-Core
+    - React-RCTImage
+  - ExpoModulesCore (58.1.0):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -103,29 +106,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoModulesJSI (58.0.22):
+  - ExpoModulesJSI (58.0.23):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (58.0.30):
+  - ExpoModulesWorklets (58.1.0):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (58.0.30):
+  - ExpoModulesWorkletsAdapter (58.1.0):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
-  - ExpoNetwork (58.0.4):
+  - ExpoNetwork (58.0.5):
     - ExpoModulesCore
   - ExpoScreenCapture (58.0.6):
     - ExpoModulesCore
-  - ExpoSMS (58.0.2):
+  - ExpoSMS (58.0.3):
     - ExpoModulesCore
-  - ExpoStatusBar (58.0.4):
+  - ExpoStatusBar (58.0.5):
     - ExpoModulesCore
-  - ExpoTaskManager (58.0.13):
+  - ExpoTaskManager (58.0.14):
     - ExpoModulesCore
     - UMAppLoader
-  - ExpoVideo (58.0.13):
+  - ExpoVideo (58.0.14):
     - ExpoModulesCore
   - fast_float (8.0.0):
     - ReactNativeDependencies
@@ -2417,6 +2420,7 @@ DEPENDENCIES:
   - ExpoLocation (from `../node_modules/expo-location/ios`)
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
+  - ExpoMediaLibraryImageLoader (from `../node_modules/expo-media-library`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
@@ -2585,6 +2589,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@expo/log-box"
   ExpoMediaLibrary:
     :path: "../node_modules/expo-media-library/ios"
+  ExpoMediaLibraryImageLoader:
+    :path: "../node_modules/expo-media-library"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesJSI:
@@ -2804,37 +2810,38 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 8502bfdc46e2804408af2e163049ece181009af4
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
-  EXConstants: c1eb9dab7494834d85aa347165da9718cdfc21a6
-  Expo: f1442bfd3a128cb67832bac5fcc38e1900e94fdc
-  ExpoAsset: c080026976ef8f00dca12c4958c658b2ebd4d4e0
-  ExpoAudio: 3320c6e180bc5db81ac1a8440d9925ba51b8439d
+  EXConstants: aeda76f4be923fc719522ae162dd0b8c6483f9cc
+  Expo: 6202c03626ff16e7ef2da145f8124415712ff008
+  ExpoAsset: eda9e4844b55b78d4e71a0e2de767a038f3a0806
+  ExpoAudio: 04b22b00783fe443c15121138f827b808fdf8c71
   ExpoCamera: 5d9ae8e9c52e102d9a21b2a903478dcd79ce3ddc
   ExpoCameraBarcodeScanning: 31cb394606255ac478b9c33929e6b0a8f6c0925d
   ExpoClipboard: 244adf0a38b60ec7105e217042dd266a722f5a5e
   ExpoContacts: 110ae8546fd2c34a102416ce402e9cac290d8cb3
-  ExpoDocumentPicker: af0917aa6f1b54ab3a0f47977935a1e20ffb1537
+  ExpoDocumentPicker: 3e8fdb323db3ad2f7c8bbd21fdad3b982f1cf178
   ExpoDomWebView: b2a6d681b9d34c23b1f584321386ca8da1d36afb
   ExpoFileSystem: b619d80b490c53117a9a9c976021a4ce5a9da440
-  ExpoFont: 77eaad26c6a7ef6be8d431963358def09d8e3a73
+  ExpoFont: daea737a2e3742f9a946f2884518e70dd37011f3
   ExpoGlassEffect: 6594e055df1e0b88d34cc189ba0b21589adec6bf
-  ExpoHaptics: c95d1e2162895e710b68dd912eec619900ebdf33
+  ExpoHaptics: d3a61f836a88c0061644473761a6ca499a14b19a
   ExpoImage: 1fea785e0480502eb9b5a7cf65257e0f5a3e2b75
   ExpoImagePicker: a466134ec92fed0b38bbf9062c7eb5f3c8c49d94
-  ExpoKeepAwake: fd18a5d233329013c578030ad399d8e10b252b5f
+  ExpoKeepAwake: 3dc7cce59bdc13796f772ac54d3af1ca6b6954cd
   ExpoLocalization: ed930f5d68e7b3c2073a04787358839e1a8e1680
-  ExpoLocation: 743cb999a9e622b6cdb76298cd3dee0956e221f1
+  ExpoLocation: 7922c89279ae805871b08a39f35b328f28d417d4
   ExpoLogBox: 9bfba7bb99c806b678703e6c62323f3c4785e706
-  ExpoMediaLibrary: 378277a96cb72d49a7c21dddefdbfa69d734506f
-  ExpoModulesCore: 2a627184d5c82a38e71624ebd7f242138be0136f
-  ExpoModulesJSI: 68a068c5214c88982f236bb26dd44fa004f10f35
-  ExpoModulesWorklets: 25684e76e7b886dd31bf4538c3fd657bf07a694b
-  ExpoModulesWorkletsAdapter: 39a95a62785e53476830a21d21444404ebb74659
-  ExpoNetwork: a42e5fe6c3c70f517b0aad167f5a3eeec2fee7a4
+  ExpoMediaLibrary: 2576d9af48cc4c71f71089b4e6c5aeb6b9ade0d1
+  ExpoMediaLibraryImageLoader: 0a39917c5154e9c1fcc7330e7e2452ab125a9fe5
+  ExpoModulesCore: 330969c46aeb5a89ebd916e70bf2e8cec7a2d77d
+  ExpoModulesJSI: 038febce313f317add1a7354a4fb97953662a12b
+  ExpoModulesWorklets: 03d171c0296cdffc054e9570e9393a7655ef360d
+  ExpoModulesWorkletsAdapter: da13d3bb33f427fe5735362bcfff3fb2ba9efec6
+  ExpoNetwork: d6af33a2d31d3d48652b28ac3d67ac85b1cb04f4
   ExpoScreenCapture: 9d9d0f0ea42a137396791b9a91d5c5ff3bb3b7eb
-  ExpoSMS: c8b282d16f6ed0846beeec28f59bdf9218199d91
-  ExpoStatusBar: 56aa9746e1bee4d8adbab12f4d7efc97000ac49f
-  ExpoTaskManager: a47c4de3446e9754c6f11eef227e0b20141a19cd
-  ExpoVideo: 0b19d4dc0813a3799dfba992b3c15ab6e3379dab
+  ExpoSMS: a1da201e25d4d136971c7fdfe02582721c7dab56
+  ExpoStatusBar: 38eff05a54229c9a388cb56cef29117b8dc77eb1
+  ExpoTaskManager: 0eeb489a4bcaf2d6d997b4f8e38f6d04a488244e
+  ExpoVideo: c5e2fee14f8121f42077e3bf24ce7739ab3b8d9a
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: 07cb4c5b92110c132f2bb73b908e87f35cbe0a19
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93

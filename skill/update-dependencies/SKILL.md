@@ -162,6 +162,27 @@ cd shared && ./desktop/extract-electron-shasums.sh <new-version>
 
 This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 checksums for all platforms.
 
+### 7. Look for new features worth adopting
+
+A bump is also a chance to delete our own code. For every package you bumped, read what changed between the old and new version and decide whether anything in it is worth using here.
+
+Read the **changelog or release notes**, not the file diff of `node_modules`: the notes say what the maintainers consider a feature, a fix or a deprecation, and a diff of built output doesn't.
+
+- GitHub releases: `gh release view <tag> --repo <owner>/<repo>`, or `gh api repos/<owner>/<repo>/releases --jq '.[] | select(.tag_name=="<tag>") | .body'` for each version in the range (find the repo with `npm view <pkg> repository.url`).
+- Monorepos and packages without releases: the package's `CHANGELOG.md` (it usually ships in `node_modules/<pkg>/CHANGELOG.md`, so no network is needed; expo packages all do this).
+- Cover every version in the range, not only the newest one.
+
+Skip packages whose range is patch-only bug fixes once the notes confirm that. Spend the time on version-line and feature releases.
+
+For each entry, check it against this repo before reporting it:
+
+- **A new API or option that replaces something we hand-rolled**: a workaround, a wrapper, a polyfill, a `patches/*.patch`, a `resolutions` entry. Grep for the code it would replace and name the file.
+- **A fix for a bug we work around**: grep for comments and memory notes that name the upstream issue or the library behavior. If the workaround can go, say which one.
+- **A deprecation of something we use**: grep for the deprecated API and list the call sites, so it gets migrated before it is removed.
+- **A new default or behavior change** that affects us even on a routine bump.
+
+Adopting a feature is not part of the deps pass. Don't change app code for it in the bump commit: report each candidate (package and version, the changelog entry, the file it would touch, what we would gain) and let the user decide. Report "nothing worth adopting" when that is the answer, and say which changelogs you read.
+
 ## Other manifests: protocol/ and rnmodules/react-native-kb/
 
 Dependabot also watches `protocol/yarn.lock` and `rnmodules/react-native-kb/yarn.lock`. Cover them on each pass — the same scripts work there (`check-outdated.py` reads the cwd's `package.json` and skips `file:`/`link:`/`github:` deps automatically).
