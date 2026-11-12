@@ -73,10 +73,18 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
   // the list screen's load: opened from the list, the devices are already in the cache
-  const {data: details, settled: loaded} = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
+  const {
+    data: details,
+    error: loadError,
+    loadCount,
+  } = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
     enabled: !ownProps.device && !!selectedDeviceID,
     waitingKey: C.waitingKeyDevices,
   })
+  // The cached list may predate the device (one added elsewhere sends no notice): only a load
+  // that landed or failed since this screen opened says it is not there.
+  const [loadCountAtOpen] = React.useState(loadCount)
+  const loaded = loadCount !== loadCountAtOpen || !!loadError
   const loadedDevice = details?.map(rpcDeviceDetailToDevice).find(c => c.deviceID === selectedDeviceID)
   const device = ownProps.device ?? loadedDevice
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)

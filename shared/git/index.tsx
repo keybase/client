@@ -101,8 +101,7 @@ const GitRoot = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   // errors from row actions (toggling chat), load errors come from the hook
-  // a row's error shows until the next load lands
-  const [rowErrorAt, setRowErrorAt] = React.useState<{error?: Error; loadCount: number}>({loadCount: 0})
+  const [rowError, setRowError] = React.useState<Error | undefined>()
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const clearBadges = React.useCallback(() => {
     clearGitBadges(
@@ -124,8 +123,12 @@ const GitRoot = (ownProps: OwnProps) => {
     select: parseRepos,
     waitingKey: C.waitingKeyGitLoading,
   })
-  const rowError = rowErrorAt.loadCount === refreshToken ? rowErrorAt.error : undefined
-  const setRowError = (error: Error | undefined) => setRowErrorAt({error, loadCount: refreshToken})
+  // a row's error shows until the next load lands
+  const [rowErrorLoad, setRowErrorLoad] = React.useState(refreshToken)
+  if (rowErrorLoad !== refreshToken) {
+    setRowErrorLoad(refreshToken)
+    setRowError(undefined)
+  }
   const onLoaded = React.useEffectEvent(() => {
     const {setGlobalError} = useConfigState.getState().dispatch
     data?.errors.forEach(e => setGlobalError(e))

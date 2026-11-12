@@ -31,27 +31,29 @@ export type Entry = {
   onError?: (error: Error) => void
   readonly subscribe: (listener: () => void) => () => void
   readonly getSnapshot: () => Snapshot
+  readonly getData: () => unknown
   /** load now; a load on the wire may predate what the caller knows, so its answer is dropped */
   readonly reload: () => void
-  /** reload, resolving once the answer (or its failure) is in */
+  /** reload, resolving once it is over: answered, failed, or cut off by a lost link */
   readonly reloadAndWait: () => Promise<void>
-  /** load unless a load is already on the wire */
-  readonly ensure: () => void
   snapshot: Snapshot
   listeners: Set<() => void>
   // mounted hooks that load it; a reader only listens
   loaders: number
   inFlight?: AbortController
-  // the change notice the load in flight was started for, 0 if it was started for anything else
-  inFlightNotice: number
+  // what `stale` was when the load in flight started: it comes back if that load never lands
+  inFlightWasStale: boolean
   // a change notice came during the load in flight, whose answer may predate the change
   queued: boolean
   stale: boolean
   loadedAt: number
   failedAt: number
   idleSince: number
+  // the last change notice counted for it, and when
+  lastNotice: number
   lastNoticeAt: number
   noticeTimer?: ReturnType<typeof setTimeout>
+  retryTimer?: ReturnType<typeof setTimeout>
   selected: WeakMap<object, {input: unknown; output: unknown}>
 }
 
@@ -135,11 +137,12 @@ const update = (e: Entry, patch: Partial<Snapshot>) => {
 
 const start = (e: Entry) => {
   const controller = new AbortController()
+  clearTimeout(e.retryTimer)
+  e.retryTimer = undefined
   e.inFlight = controller
-  e.inFlightNotice = 0
   e.queued = false
   // cleared now, not when the answer lands: a notice that arrives meanwhile is about that answer
-  const wasStale = e.stale
+  e.inFlightWasStale = e.stale
   e.stale = false
   update(e, {forgotten: false, loading: true})
   const run = async () => {
@@ -150,6 +153,11 @@ const start = (e: Entry) => {
       if (e.inFlight !== controller) return
       e.loadedAt = Date.now()
       e.failedAt = 0
+      if (!e.listeners.size) {
+        // it landed after the last screen left
+        e.idleSince = e.loadedAt
+        scheduleSweep()
+      }
       patch = {
         data: reuseEqual(e.snapshot.data, data),
         error: undefined,
@@ -159,11 +167,12 @@ const start = (e: Entry) => {
       }
     } catch (caught) {
       if (e.inFlight !== controller) return
-      e.stale ||= wasStale
+      e.stale ||= e.inFlightWasStale
       if (isCancelled(caught, 'disconnect')) {
         // Nothing failed. While a screen wants it, it stays loading, and the handshake after the
-        // reconnect loads it again.
+        // reconnect loads it again, which covers a queued load too.
         e.inFlight = undefined
+        e.queued = false
         update(e, {loading: e.loaders > 0})
         return
       }
@@ -190,11 +199,17 @@ const start = (e: Entry) => {
 
 const stop = (e: Entry) => {
   const controller = e.inFlight
+  if (controller) {
+    // it never landed, so what it was loading for still stands
+    e.stale ||= e.inFlightWasStale
+  }
   // cleared first, so the cancelled call's rejection is not taken for a result
   e.inFlight = undefined
   e.queued = false
   controller?.abort()
 }
+
+const noLoader = async () => Promise.reject(new Error('rpc data: no screen is loading this'))
 
 // Back to not loaded. loadCount is kept, so a screen that stays mounted can tell the next load's
 // data from what it had.
@@ -202,6 +217,13 @@ const clear = (e: Entry, forgotten = false) => {
   stop(e)
   clearTimeout(e.noticeTimer)
   e.noticeTimer = undefined
+  clearTimeout(e.retryTimer)
+  e.retryTimer = undefined
+  if (!e.loaders) {
+    // an emptied entry lives on (see entries), but must not keep an unmounted screen's closures
+    e.load = noLoader
+    e.onError = undefined
+  }
   e.loadedAt = 0
   e.failedAt = 0
   e.lastNoticeAt = 0
@@ -210,7 +232,10 @@ const clear = (e: Entry, forgotten = false) => {
   update(e, {...empty, forgotten, loadCount: e.snapshot.loadCount})
 }
 
-/** drop what is cached under this key: its data is gone, not merely stale, and is not loaded again */
+/**
+ * Drop what is cached under this key: its data is gone, not merely stale. Notices and stale checks
+ * leave it alone; it loads again when a screen mounts for it or reloads it.
+ */
 export const forgetKey = (key: string) => {
   const e = entries.get(key)
   if (e) {
@@ -261,15 +286,12 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
     return existing
   }
   const e: Entry = {
-    ensure: () => {
-      if (!e.inFlight) {
-        start(e)
-      }
-    },
     failedAt: 0,
+    getData: () => e.snapshot.data,
     getSnapshot: () => e.snapshot,
     idleSince: Date.now(),
-    inFlightNotice: 0,
+    inFlightWasStale: false,
+    lastNotice: 0,
     lastNoticeAt: 0,
     listeners: new Set(),
     load,
@@ -304,13 +326,15 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
 }
 
 const isStale = (e: Entry, staleMs: number) => !e.loadedAt || e.stale || Date.now() - e.loadedAt >= staleMs
+// what a load nobody asked for by hand waits for after a failure
+const backoffLeft = (e: Entry) => e.failedAt + failureBackoffMs - Date.now()
 
 /**
- * If something is loading it (a mounted screen), load it when it is older than staleMs.
- * Resolves once no load is on the wire, whether or not it started one.
+ * If something is loading it (a mounted screen), load it when it is older than staleMs, unless it
+ * just failed or was forgotten. Resolves once no load is on the wire, whether or not it started one.
  */
 export const loadIfStale = async (e: Entry, staleMs: number) => {
-  if (e.loaders && !e.inFlight && isStale(e, staleMs)) {
+  if (e.loaders && !e.inFlight && !e.snapshot.forgotten && isStale(e, staleMs) && backoffLeft(e) <= 0) {
     start(e)
   }
   await settled(e)
@@ -330,14 +354,26 @@ export const setLoader = (e: Entry, load: Entry['load'], onError: Entry['onError
  */
 export const attachLoader = (e: Entry, staleMs: number, keep: boolean) => {
   e.loaders += 1
-  if (!e.inFlight && isStale(e, staleMs) && Date.now() - e.failedAt >= failureBackoffMs) {
-    start(e)
+  if (!e.inFlight && isStale(e, staleMs)) {
+    if (backoffLeft(e) <= 0) {
+      start(e)
+    } else {
+      // not now, but a screen that stays up must not be left with the failure
+      e.retryTimer ??= setTimeout(() => {
+        e.retryTimer = undefined
+        if (e.loaders && !e.inFlight) {
+          start(e)
+        }
+      }, backoffLeft(e))
+    }
   }
   return () => {
     e.loaders -= 1
     if (e.loaders) {
       return
     }
+    clearTimeout(e.retryTimer)
+    e.retryTimer = undefined
     if (!keep) {
       clear(e)
     } else if (!e.inFlight && e.snapshot.loading) {
@@ -348,7 +384,7 @@ export const attachLoader = (e: Entry, staleMs: number, keep: boolean) => {
 }
 
 // Every listener for one notice from the service runs in the same turn, and each may refresh the
-// same entry: they count as the one notice they are.
+// same entry: they count as the one notice they are, for the load, the stale flag and the debounce.
 let noticeNumber = 0
 let noticeOpen = false
 const currentNotice = () => {
@@ -363,15 +399,13 @@ const currentNotice = () => {
 }
 
 const refreshEntry = (e: Entry) => {
-  const notice = currentNotice()
   if (!e.loaders) {
     return
   }
-  if (!e.inFlight) {
-    start(e)
-    e.inFlightNotice = notice
-  } else if (e.inFlightNotice !== notice) {
+  if (e.inFlight) {
     e.queued = true
+  } else {
+    start(e)
   }
 }
 
@@ -383,9 +417,12 @@ const refreshEntry = (e: Entry) => {
  * at once, and the rest reload once, debounceMs after the last of them.
  */
 export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
+  const notice = currentNotice()
   const now = Date.now()
   for (const [entryKey, e] of entries) {
     if (e.method !== method || (key !== undefined && key !== entryKey)) continue
+    if (e.lastNotice === notice || e.snapshot.forgotten) continue
+    e.lastNotice = notice
     e.stale = true
     const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs
     e.lastNoticeAt = now
@@ -403,14 +440,15 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
 
 /**
  * Overwrite what is cached, for an optimistic update. A load on the wire predates the write, so
- * its answer is dropped; the next load's answer wins.
+ * it is dropped and nothing replaces it: the writer refreshes once its write has settled, and
+ * that load's answer wins.
  */
 export const setEntryData = (e: Entry, next: (prev: unknown) => unknown) => {
   if (e.inFlight) {
     stop(e)
     e.stale = true
   }
-  update(e, {data: next(e.snapshot.data), loading: false})
+  update(e, {data: next(e.snapshot.data), loading: false, settled: true})
 }
 
 /** select(data), computed once per data and keeping the identity of whatever did not change */
