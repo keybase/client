@@ -198,9 +198,7 @@ test('no options writes no intent', () => {
   expect(useInputIntentState.getState().intents.size).toBe(0)
 })
 
-// setParams keeps the native screen alive, and iOS never re-measures a header title subview it
-// first measured empty - so the pending thread has to have a title before it is shown.
-test('the pending thread is seeded with the participants so its header title is never empty', () => {
+test('the pending thread is seeded with the participants we already know', () => {
   useCurrentUserState.setState({username: 'testuser'})
   showing()
 

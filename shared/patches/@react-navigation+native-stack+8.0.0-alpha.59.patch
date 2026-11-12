@@ -1,8 +1,19 @@
 diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
-index 8ca77e4..c5c860f 100644
+index 8ca77e4..367cab4 100644
 --- a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
 +++ b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
-@@ -383,7 +383,9 @@ export function useHeaderConfigProps({
+@@ -314,6 +314,10 @@ export function useHeaderConfigProps({
+         hidesSharedBackground: headerLeftBackgroundVisible === false,
+         children: headerLeftElement
+       }) : null, headerTitleElement != null ? /*#__PURE__*/_jsx(ScreenStackHeaderCenterView, {
++        // KEYBASE PATCH: UINavigationBar takes the title view's size at its first layout and never
++        // lays out one that was zero-sized then, however much it grows later, so a title whose
++        // content arrives after that layout stays blank until the bar is rebuilt.
++        style: { minHeight: 1, minWidth: 1 },
+         children: headerTitleElement
+       }) : null]
+     }) : /*#__PURE__*/_jsxs(_Fragment, {
+@@ -383,7 +387,9 @@ export function useHeaderConfigProps({
      direction,
      disableBackButtonMenu: headerBackButtonMenuEnabled === false,
      hidden: headerShown === false,
@@ -14,10 +25,22 @@ index 8ca77e4..c5c860f 100644
      largeTitle: headerLargeTitleEnabled,
      largeTitleBackgroundColor,
 diff --git a/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx b/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
-index aaf684d..a846d6d 100644
+index aaf684d..f8de7cb 100644
 --- a/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
 +++ b/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
-@@ -556,7 +556,10 @@ export function useHeaderConfigProps({
+@@ -455,7 +455,10 @@ export function useHeaderConfigProps({
+             </ScreenStackHeaderLeftView>
+           ) : null}
+           {headerTitleElement != null ? (
+-            <ScreenStackHeaderCenterView>
++            // KEYBASE PATCH: UINavigationBar takes the title view's size at its first layout and never
++            // lays out one that was zero-sized then, however much it grows later, so a title whose
++            // content arrives after that layout stays blank until the bar is rebuilt.
++            <ScreenStackHeaderCenterView style={{ minHeight: 1, minWidth: 1 }}>
+               {headerTitleElement}
+             </ScreenStackHeaderCenterView>
+           ) : null}
+@@ -556,7 +559,10 @@ export function useHeaderConfigProps({
      direction,
      disableBackButtonMenu: headerBackButtonMenuEnabled === false,
      hidden: headerShown === false,
