@@ -34,16 +34,14 @@ export const getFeaturedSorted = (featuredBots: ReadonlyArray<T.RPCGen.FeaturedB
 }
 
 export const useFeaturedBot = (botUsername?: string) => {
-  const {data, error} = useRpcData(
+  const {data} = useRpcData(
     T.RPCGen.featuredBotSearchRpcPromise,
     {limit: 10, offset: 0, query: botUsername ?? ''},
-    {enabled: !!botUsername}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`)
+    {
+      enabled: !!botUsername,
+      onError: error => logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`),
     }
-  }, [botUsername, error])
+  )
   return botUsername && data ? pickFeaturedBot(botUsername, data.bots ?? []) : undefined
 }
 

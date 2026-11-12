@@ -212,8 +212,8 @@ const useIncomingShareItems = (androidShareID?: number) => {
     error: incomingShareError,
     loadCount,
   } = useRpcData(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise, undefined, {enabled: isIOS, keep: false})
-  // each load's share is taken once
-  const [takenLoadCount, setTakenLoadCount] = React.useState(0)
+  // each load that lands while this screen is up is taken once: not what another screen loaded
+  const [takenLoadCount, setTakenLoadCount] = React.useState(loadCount)
   if (loadedShare && loadCount !== takenLoadCount) {
     setTakenLoadCount(loadCount)
     const next = {droppedCount: loadedShare.droppedCount, id: loadedShare.id, items: loadedShare.items || noShareItems}

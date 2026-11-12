@@ -73,7 +73,7 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
   // the list screen's load: opened from the list, the devices are already in the cache
-  const {data: details, loaded} = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
+  const {data: details, settled: loaded} = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
     enabled: !ownProps.device && !!selectedDeviceID,
     waitingKey: C.waitingKeyDevices,
   })

@@ -5,23 +5,30 @@ import {onNewAccountGeneration} from '@/engine/account-generation'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {ensureError, isCancelled} from '@/util/errors'
+import {uint8ArrayToHex} from '@/util/uint8array'
 import {registerExternalResetter} from '@/util/zustand'
 
-export type Snapshot = {
+type Snapshot = {
   /** undefined until a load lands */
   readonly data: unknown
   readonly error: Error | undefined
-  /** successful loads so far */
+  /** dropped on purpose (forgetKey): nothing will load it until it is asked for again */
+  readonly forgotten: boolean
+  /** successful loads so far; never goes back, so it tells one load's data from the next */
   readonly loadCount: number
-  /** a load finished, with data or an error */
+  /** a load has succeeded: data is the service's answer */
   readonly loaded: boolean
   readonly loading: boolean
+  /** a load finished, with data or an error */
+  readonly settled: boolean
 }
 
 export type Entry = {
   readonly method: string
-  // the one the latest loading screen passed; every screen's is equivalent, by the key
+  // The load and error handler of the latest loading screen. Every screen's are equivalent, by the
+  // key, and the latest one's closure is the current one.
   load: (signal: AbortSignal) => Promise<unknown>
+  onError?: (error: Error) => void
   readonly subscribe: (listener: () => void) => () => void
   readonly getSnapshot: () => Snapshot
   /** load now; a load on the wire may predate what the caller knows, so its answer is dropped */
@@ -35,29 +42,41 @@ export type Entry = {
   // mounted hooks that load it; a reader only listens
   loaders: number
   inFlight?: AbortController
+  // the change notice the load in flight was started for, 0 if it was started for anything else
+  inFlightNotice: number
   // a change notice came during the load in flight, whose answer may predate the change
   queued: boolean
   stale: boolean
   loadedAt: number
   failedAt: number
   idleSince: number
+  lastNoticeAt: number
+  noticeTimer?: ReturnType<typeof setTimeout>
   selected: WeakMap<object, {input: unknown; output: unknown}>
 }
 
-const empty: Snapshot = {data: undefined, error: undefined, loadCount: 0, loaded: false, loading: false}
+const empty: Snapshot = {
+  data: undefined,
+  error: undefined,
+  forgotten: false,
+  loadCount: 0,
+  loaded: false,
+  loading: false,
+  settled: false,
+}
 // A mount does not retry a load that just failed: screens mounting one after another would
 // otherwise each reissue it. reload() and a change notice still load at once.
 const failureBackoffMs = 5_000
 const idleEntryMs = 5 * 60_000
+// Entries are never removed, only emptied: a screen can hold one it is not subscribed to (between
+// its render and its effects, or while hidden), and must find the same one when it comes back.
 const entries = new Map<string, Entry>()
-
-const bytesToKey = (bytes: Uint8Array) => `bytes:${Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')}`
 
 /** the same params give the same key whatever order their fields are written in */
 export const stableKey = (method: string, params: unknown) =>
   `${method} ${JSON.stringify(params ?? null, (_k, value: unknown) => {
     if (value instanceof Uint8Array) {
-      return bytesToKey(value)
+      return `bytes:${uint8ArrayToHex(value)}`
     }
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       const record = value as Record<string, unknown>
@@ -117,10 +136,12 @@ const update = (e: Entry, patch: Partial<Snapshot>) => {
 const start = (e: Entry) => {
   const controller = new AbortController()
   e.inFlight = controller
+  e.inFlightNotice = 0
   e.queued = false
-  update(e, {loading: true})
+  update(e, {forgotten: false, loading: true})
   const run = async () => {
     let patch: Partial<Snapshot>
+    let failure: Error | undefined
     try {
       const data = (await e.load(controller.signal)) ?? null
       if (e.inFlight !== controller) return
@@ -132,26 +153,33 @@ const start = (e: Entry) => {
         error: undefined,
         loadCount: e.snapshot.loadCount + 1,
         loaded: true,
+        settled: true,
       }
-    } catch (error) {
+    } catch (caught) {
       if (e.inFlight !== controller) return
-      if (isCancelled(error, 'disconnect')) {
-        // Nothing failed. It stays loading, and the handshake after the reconnect loads it again.
+      if (isCancelled(caught, 'disconnect')) {
+        // Nothing failed. While a screen wants it, it stays loading, and the handshake after the
+        // reconnect loads it again.
         e.inFlight = undefined
-        update(e, {})
+        update(e, {loading: e.loaders > 0})
         return
       }
-      if (isCancelled(error)) {
-        patch = {loaded: true}
+      if (isCancelled(caught)) {
+        patch = {settled: true}
       } else {
+        failure = ensureError(caught)
         e.failedAt = Date.now()
-        patch = {error: ensureError(error), loaded: true}
+        patch = {error: failure, settled: true}
       }
     }
     e.inFlight = undefined
     update(e, {...patch, loading: e.queued})
     if (e.queued) {
       start(e)
+    }
+    // last: whatever the handler does, the entry is already settled
+    if (failure) {
+      e.onError?.(failure)
     }
   }
   void run()
@@ -165,29 +193,49 @@ const stop = (e: Entry) => {
   controller?.abort()
 }
 
-const forget = (e: Entry) => {
+// Back to not loaded. loadCount is kept, so a screen that stays mounted can tell the next load's
+// data from what it had.
+const clear = (e: Entry, forgotten = false) => {
   stop(e)
+  clearTimeout(e.noticeTimer)
+  e.noticeTimer = undefined
   e.loadedAt = 0
   e.failedAt = 0
+  e.lastNoticeAt = 0
   e.stale = false
   e.selected = new WeakMap()
-  update(e, empty)
+  update(e, {...empty, forgotten, loadCount: e.snapshot.loadCount})
 }
 
-/** drop what is cached under this key: its data is gone, not merely stale */
+/** drop what is cached under this key: its data is gone, not merely stale, and is not loaded again */
 export const forgetKey = (key: string) => {
   const e = entries.get(key)
   if (e) {
-    forget(e)
+    clear(e, true)
   }
 }
 
+// data nothing has looked at for a while is dropped, so the cache does not grow for the whole session
 const sweepIdle = () => {
   const now = Date.now()
-  for (const [key, e] of entries) {
-    if (!e.listeners.size && now - e.idleSince > idleEntryMs) {
-      entries.delete(key)
+  for (const e of entries.values()) {
+    if (!e.listeners.size && !e.inFlight && e.loadedAt && now - e.idleSince > idleEntryMs) {
+      clear(e)
     }
+  }
+}
+
+// resolves once no load is on the wire
+const settled = async (e: Entry) => {
+  if (e.inFlight) {
+    await new Promise<void>(resolve => {
+      const unsubscribe = e.subscribe(() => {
+        if (!e.inFlight) {
+          unsubscribe()
+          resolve()
+        }
+      })
+    })
   }
 }
 
@@ -206,6 +254,8 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
     failedAt: 0,
     getSnapshot: () => e.snapshot,
     idleSince: Date.now(),
+    inFlightNotice: 0,
+    lastNoticeAt: 0,
     listeners: new Set(),
     load,
     loadedAt: 0,
@@ -235,20 +285,6 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
   return e
 }
 
-// resolves once no load is on the wire
-const settled = async (e: Entry) => {
-  if (e.inFlight) {
-    await new Promise<void>(resolve => {
-      const unsubscribe = e.subscribe(() => {
-        if (!e.inFlight) {
-          unsubscribe()
-          resolve()
-        }
-      })
-    })
-  }
-}
-
 const isStale = (e: Entry, staleMs: number) => !e.loadedAt || e.stale || Date.now() - e.loadedAt >= staleMs
 
 /**
@@ -262,25 +298,62 @@ export const loadIfStale = async (e: Entry, staleMs: number) => {
   await settled(e)
 }
 
+/** what a loading screen loads with, and where a failed load is reported, once per load */
+export const setLoader = (e: Entry, load: Entry['load'], onError: Entry['onError']) => {
+  e.load = load
+  e.onError = onError
+}
+
 /**
  * A mounted hook that loads the entry: loads it now if it is stale, and from then on the entry
- * reloads on change notices and reconnects. The last one to leave cancels the load in flight.
+ * reloads on change notices and reconnects. A load still on the wire when the last one leaves
+ * finishes and is cached: the service does the work either way, and the next screen would only
+ * ask again. Data that is not kept is dropped instead.
  */
-export const attachLoader = (e: Entry, staleMs: number, keep = true) => {
+export const attachLoader = (e: Entry, staleMs: number, keep: boolean) => {
   e.loaders += 1
   if (!e.inFlight && isStale(e, staleMs) && Date.now() - e.failedAt >= failureBackoffMs) {
     start(e)
   }
   return () => {
     e.loaders -= 1
-    if (!e.loaders) {
-      stop(e)
-      if (!keep) {
-        forget(e)
-      } else if (e.snapshot.loading) {
-        update(e, {loading: false})
-      }
+    if (e.loaders) {
+      return
     }
+    if (!keep) {
+      clear(e)
+    } else if (!e.inFlight && e.snapshot.loading) {
+      // it was waiting for a reconnect, which only reloads what a screen wants
+      update(e, {loading: false})
+    }
+  }
+}
+
+// Every listener for one notice from the service runs in the same turn, and each may refresh the
+// same entry: they count as the one notice they are.
+let noticeNumber = 0
+let noticeOpen = false
+const currentNotice = () => {
+  if (!noticeOpen) {
+    noticeOpen = true
+    noticeNumber += 1
+    queueMicrotask(() => {
+      noticeOpen = false
+    })
+  }
+  return noticeNumber
+}
+
+const refreshEntry = (e: Entry) => {
+  const notice = currentNotice()
+  if (!e.loaders) {
+    return
+  }
+  if (!e.inFlight) {
+    start(e)
+    e.inFlightNotice = notice
+  } else if (e.inFlightNotice !== notice) {
+    e.queued = true
   }
 }
 
@@ -288,28 +361,38 @@ export const attachLoader = (e: Entry, staleMs: number, keep = true) => {
  * The service says what this method returns has changed. A load on the wire may carry the old
  * answer, so it finishes and one more follows it: a burst of notices costs at most two loads.
  * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry.
+ * debounceMs is for notices that keep coming (one per message in a busy team): the first reloads
+ * at once, and the rest reload once, debounceMs after the last of them.
  */
-export const refreshMethod = (method: string, key?: string) => {
+export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
+  const now = Date.now()
   for (const [entryKey, e] of entries) {
     if (e.method !== method || (key !== undefined && key !== entryKey)) continue
     e.stale = true
-    if (!e.loaders) continue
-    if (e.inFlight) {
-      e.queued = true
-    } else {
-      start(e)
+    const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs
+    e.lastNoticeAt = now
+    if (!debounceMs || quiet) {
+      refreshEntry(e)
+      continue
     }
+    clearTimeout(e.noticeTimer)
+    e.noticeTimer = setTimeout(() => {
+      e.noticeTimer = undefined
+      refreshEntry(e)
+    }, debounceMs)
   }
 }
 
-/** a loading screen's load replaces the one before it: they are equivalent, and this one's closure is current */
-export const setLoad = (e: Entry, load: Entry['load']) => {
-  e.load = load
-}
-
-/** overwrite what is cached, for an optimistic update; the next load's answer wins */
+/**
+ * Overwrite what is cached, for an optimistic update. A load on the wire predates the write, so
+ * its answer is dropped; the next load's answer wins.
+ */
 export const setEntryData = (e: Entry, next: (prev: unknown) => unknown) => {
-  update(e, {data: next(e.snapshot.data)})
+  if (e.inFlight) {
+    stop(e)
+    e.stale = true
+  }
+  update(e, {data: next(e.snapshot.data), loading: false})
 }
 
 /** select(data), computed once per data and keeping the identity of whatever did not change */
@@ -326,11 +409,8 @@ export const selectFrom = <D,>(e: Entry, select: (data: never) => D, data: unkno
 // The cache belongs to one account. Everything is cancelled and emptied the moment the account's
 // generation changes, so no screen that stays mounted shows the last account's data.
 const emptyCache = () => {
-  for (const [key, e] of entries) {
-    forget(e)
-    if (!e.listeners.size) {
-      entries.delete(key)
-    }
+  for (const e of entries.values()) {
+    clear(e)
   }
 }
 onNewAccountGeneration(emptyCache)
@@ -345,7 +425,8 @@ const loadWhere = (needs: (e: Entry) => boolean) => {
   }
 }
 
-// Screens still mounted when the next account is in load for it
+// Screens still mounted when the next account is in load for it, including what failed while
+// there was no account
 const accountReady = () => {
   const {loggedIn, userSwitching} = useConfigState.getState()
   return loggedIn && !userSwitching
@@ -354,7 +435,7 @@ let wasAccountReady = accountReady()
 useConfigState.subscribe(() => {
   const ready = accountReady()
   if (ready && !wasAccountReady) {
-    loadWhere(e => !e.snapshot.loaded)
+    loadWhere(e => !e.snapshot.loaded && !e.snapshot.forgotten)
   }
   wasAccountReady = ready
 })
@@ -366,6 +447,6 @@ useDaemonState.subscribe(s => {
   const reconnected = s.handshakeState === 'done' && lastHandshake !== 'done'
   lastHandshake = s.handshakeState
   if (reconnected) {
-    loadWhere(() => true)
+    loadWhere(e => !e.snapshot.forgotten)
   }
 })

@@ -368,8 +368,6 @@ const policyToExplanation = (
   return exp
 }
 
-type TeamRetentionData = T.Retention.RetentionPolicy | undefined
-
 const teamRetentionStaleMs = 5_000
 
 const teamRetentionLoad = 'teams.retention'
@@ -397,11 +395,10 @@ const loadTeamRetention = async (teamID: T.Teams.TeamID): Promise<T.Retention.Re
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   // an adhoc conversation has no team
   const enabled = !!teamID && teamID !== T.Teams.noTeamID
-  const {data} = useLoadData(teamRetentionLoad, teamID, async () => loadTeamRetention(teamID), {
+  const {data: teamPolicy} = useLoadData(teamRetentionLoad, teamID, async () => loadTeamRetention(teamID), {
     enabled,
     staleMs: teamRetentionStaleMs,
   })
-  const teamPolicy: TeamRetentionData = data
 
   // the notification carries the new policy, but the reload is what updates every consumer
   useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {

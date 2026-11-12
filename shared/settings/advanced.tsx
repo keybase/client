@@ -171,12 +171,11 @@ const Advanced = () => {
   const disableSpellCheck = spellCheck.data ? (spellCheck.data.b ?? false) : spellCheck.error ? false : undefined
   const setDisableSpellcheck = (value: boolean) =>
     setRpcData(T.RPCGen.configGuiGetValueRpcPromise, spellCheckPath, () => ({b: value, isNull: false}))
-  const spellCheckLoaded = spellCheck.loaded
   React.useEffect(() => {
-    if (spellCheckLoaded && disableSpellCheck !== undefined) {
+    if (disableSpellCheck !== undefined) {
       stampDisableSpellCheckInitialValue(disableSpellCheck)
     }
-  }, [spellCheckLoaded, disableSpellCheck])
+  }, [disableSpellCheck])
 
   const remember = useRpcData(T.RPCGen.configGetRememberPassphraseRpcPromise, undefined)
   // a load that fails reads as on

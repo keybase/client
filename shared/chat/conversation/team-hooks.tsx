@@ -91,7 +91,6 @@ const useChatTeamMembersRaw = (
   const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
   const {
     data = emptyChatTeamMembersData,
-    error,
     loaded,
     loading,
     reload,
@@ -110,14 +109,12 @@ const useChatTeamMembersRaw = (
       )
       return members
     },
-    {enabled: enabled && !!validTeamID, staleMs: chatTeamReloadStaleMs}
-  )
-  React.useEffect(() => {
-    if (error) {
-      logger.warn(`Failed to reload chat team members for ${teamIDToLoad}`, error)
+    {
+      enabled: enabled && !!validTeamID,
+      onError: error => logger.warn(`Failed to reload chat team members for ${teamIDToLoad}`, error),
+      staleMs: chatTeamReloadStaleMs,
     }
-  }, [error, teamIDToLoad])
-
+  )
   useEngineActionListener(
     'keybase.1.NotifyTeam.teamChangedByID',
     action => {

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import {waitingKeyTrackerProfileLoad} from '@/constants/strings'
 import logger from '@/logger'
@@ -58,17 +57,12 @@ const mapSuggestions = ({suggestions}: T.RPCGen.ProofSuggestionsRes) =>
 
 export const useProofSuggestions = (enabled = true) => {
   // userChanged reloads it: see query/notifications
-  const {data, error, reload} = useRpcData(T.RPCGen.userProofSuggestionsRpcPromise, undefined, {
+  const {data, reload} = useRpcData(T.RPCGen.userProofSuggestionsRpcPromise, undefined, {
     enabled,
+    onError: error => logger.error(`Error loading proof suggestions: ${error.message}`),
     select: mapSuggestions,
     waitingKey: waitingKeyTrackerProfileLoad,
   })
-  React.useEffect(() => {
-    if (error) {
-      logger.error(`Error loading proof suggestions: ${error.message}`)
-    }
-  }, [error])
-
   return {
     proofSuggestions: enabled ? (data ?? emptyProofSuggestions) : emptyProofSuggestions,
     reload,
