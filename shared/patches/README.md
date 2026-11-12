@@ -4,9 +4,9 @@ What each `patch-package` patch here changes, why, and when it can go. A patch f
 output with no room for this, and a patch that only says what it changes cannot be judged on the
 next bump.
 
-One `##` section per patched package (its npm name, no version), one `###` entry per independent
-change in that patch. Every entry has the same five fields. Every file the patch touches is named
-in some entry's **Files**.
+One `##` section per patched package (its npm name, no version; `a > b` for a patch of the copy
+of `b` nested under `a`), one `###` entry per independent change in that patch. Every entry has the same five fields. Every file the patch touches is named,
+in backticks and by its path inside the package, in some entry's **Files**.
 
 Keep it in step with the patch files: add or edit the entry in the same commit that changes a
 patch, re-check **Upstream** whenever the package is bumped (give the date checked), and delete
@@ -17,7 +17,8 @@ python3 ../.claude/skills/update-dependencies/find-workarounds.py --patches
 ```
 
 prints every entry and fails if a patch, or a file inside one, is not described here, or if a
-section here has no patch left.
+section here has no patch left. It checks files, not hunks: a new change in a file that is already
+named still needs its own entry.
 
 ## @react-navigation/native-stack
 

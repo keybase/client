@@ -1,29 +1,21 @@
 #!/usr/bin/env python3
 # Run from shared/: python3 ../.claude/skills/update-dependencies/find-workarounds.py [--base REF] [--all] [pkg ...]
-#                    python3 ../.claude/skills/update-dependencies/find-workarounds.py --patches
+#                   python3 ../.claude/skills/update-dependencies/find-workarounds.py --patches
 #
-# Lists the places where we may be working around a package, so that after a bump each
-# one can be checked against the new version. With no package names it takes the
-# packages whose version differs between REF (default: master) and the working tree.
+# Default mode lists where we may be working around a package: its patch (with the
+# patches/README.md entries), `resolutions` entries, comments and memory notes. With no
+# package names it takes the packages whose version changed since the merge-base with
+# REF (default: master). It is an inventory, not a verdict: it cannot tell whether
+# upstream fixed anything, and a workaround whose comment never names the package is
+# not in it.
 #
-# For each package it prints:
-#   - patches/*.patch files for it (and whether the patch's version matches the install),
-#     with what patches/README.md records for each change: upstream state, when it can go
-#   - `resolutions` entries that name it
-#   - comments, anywhere in the repo, that mention it (by name, alias or upstream repo URL).
-#     Comments that also carry a workaround signal (bug, issue link, "until", a version
-#     number, ...) are printed; the rest are only counted unless --all is given.
-#   - memory notes about it (named in the note's title/description, or on 3+ lines)
-#
-# This is an inventory, not a verdict: it cannot tell whether upstream fixed anything.
-#
-# --patches checks patches/README.md against the patch files instead: it prints every
-# patch with its entries and exits 1 if a patch, or a file inside one, is not described
-# there, if an entry lacks a field, or if a README section has no patch left.
-import json, os, re, subprocess, sys
+# --patches checks patches/README.md against the patch files and exits 1 on a gap. It
+# checks that every patched file is named, not that every hunk is described.
+import argparse, json, os, re, subprocess, sys
 
-# Names we use for a package in comments that can't be derived from its npm name.
-# All-caps aliases match case-sensitively.
+# Names we use for a package in comments. The npm name is always searched; nothing is
+# derived from it, because the last segment of a scoped name is usually an ordinary word
+# (@storybook/react, @react-navigation/native). All-caps aliases match case-sensitively.
 ALIASES = {
     'react-native': ['RN', 'Fabric', 'Yoga', 'Hermes', 'Metro'],
     '@legendapp/list': ['LegendList', 'legend-list', 'legend list'],
@@ -35,7 +27,7 @@ ALIASES = {
     'react-native-webview': ['WebView'],
     'react-native-safe-area-context': ['SafeAreaView', 'safe area'],
     '@react-navigation/native': ['react-navigation', 'React Navigation'],
-    '@react-navigation/native-stack': ['native stack'],
+    '@react-navigation/native-stack': ['native-stack', 'native stack'],
     '@gorhom/bottom-sheet': ['BottomSheet'],
     'typescript-native': ['TS7', 'tsgo'],
     'babel-plugin-react-compiler': ['react compiler', 'react-compiler'],
@@ -43,29 +35,41 @@ ALIASES = {
 }
 
 SIGNAL = re.compile(
-    r'work(s|ed|ing)?[ -]?around|\bbug|\bissue|upstream|\bhack|\buntil\b|\bonce\b|\bdrop\b|\bremove\b|'
-    r'\bfix(ed|es)?\b|broken|regress|crash|quirk|\bnever\b|doesn\'?t|does not|won\'?t|can\'?t|cannot|'
-    r'\btodo\b|\bfixme\b|\bpatch|https?://|#\d{2,}|\b\d+\.\d+(\.\d+)?\b',
+    r'work(s|ed|ing)?[ -]?around|\bbug|\bissue|upstream|\bhack|\buntil\b|\bfix(ed|es)?\b|broken|regress|'
+    r'crash|quirk|\btodo\b|\bfixme\b|\bpatch|https?://|#\d{2,}|\b\d+\.\d+(\.\d+)?\b',
     re.I,
 )
 COMMENT = re.compile(r'(?<!:)//(.*)$|^\s*(?:/?\*+|#|<!--|\{/\*)(.*)$')
 SKIP_FILES = re.compile(
-    r'(^|/)(yarn\.lock|package\.json|package-lock\.json|Podfile\.lock|rpc-gen\.tsx)$|(^|/)patches/|'
-    r'\.(patch|snap|svg|json|lock|pbxproj|avdl)$|^go/|^protocol/|^skill/|(^|/)tests/results/'
+    r'(^|/)rpc-gen\.tsx$|(^|/)patches/|\.(snap|svg|json|lock|pbxproj|avdl)$|^go/|^protocol/|^skill/|(^|/)tests/results/'
 )
+FIELDS = ('Files', 'Why', 'Upstream', 'Remove when', 'Check')
+# How far a comment's reason may sit from the line that names the package.
+CONTEXT_LINES = 3
+# Real workaround comments are mostly plain prose, so the signal is a poor filter: it is
+# only used when a package is mentioned too often to read every comment.
+PRINT_ALL_UP_TO = 40
 
 
-def sh(*cmd, cwd=None):
-    r = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
-    return r.stdout if r.returncode in (0, 1) else ''
+def git(*args, cwd=None):
+    r = subprocess.run(('git',) + args, capture_output=True, text=True, cwd=cwd)
+    # git grep exits 1 for "no match"
+    if r.returncode > 1:
+        sys.exit(f'Error: git {" ".join(args[:2])} failed: {r.stderr.strip()}')
+    return r.stdout
+
+
+def installed_version(install_path):
+    try:
+        return json.load(open(f'node_modules/{install_path}/package.json'))['version']
+    except (OSError, ValueError, KeyError):
+        return None
 
 
 def bumped(base):
-    prefix = sh('git', 'rev-parse', '--show-prefix').strip()
-    old = sh('git', 'show', f'{base}:{prefix}package.json')
-    if not old:
-        sys.exit(f'Error: cannot read package.json at {base}. Pass --base or package names.')
-    old = json.loads(old)
+    prefix = git('rev-parse', '--show-prefix').strip()
+    fork = git('merge-base', base, 'HEAD').strip() or base
+    old = json.loads(git('show', f'{fork}:{prefix}package.json'))
     new = json.load(open('package.json'))
     out = []
     for sec in ('dependencies', 'devDependencies'):
@@ -77,15 +81,11 @@ def bumped(base):
 
 
 def terms_for(pkg):
-    terms = {pkg}
-    bare = pkg.split('/')[-1] if pkg.startswith('@') else pkg
-    if len(bare) >= 5:
-        terms.add(bare)
-    terms.update(ALIASES.get(pkg, []))
+    terms = {pkg, *ALIASES.get(pkg, [])}
     try:
         repo = json.load(open(f'node_modules/{pkg}/package.json')).get('repository')
         url = repo.get('url', '') if isinstance(repo, dict) else (repo or '')
-        m = re.search(r'github\.com[/:]([^/]+/[^/#.]+)', url)
+        m = re.search(r'github\.com[/:]([^/]+/[^/#]+?)(?:\.git)?(?:[/#]|$)', url)
         if m:
             terms.add(f'github.com/{m.group(1)}/')
     except (OSError, ValueError):
@@ -94,9 +94,11 @@ def terms_for(pkg):
 
 
 def matcher(terms):
+    # Not inside a longer name or path, except directly under node_modules/.
+    before = r'(?<![\w-])(?<!(?<!node_modules)/)'
     parts_ci, parts_cs = [], []
     for t in terms:
-        pat = r'(?<![\w/-])' + re.escape(t) + (r'' if t.endswith('/') else r'(?![\w-])')
+        pat = before + re.escape(t) + ('' if t.endswith('/') else r'(?![\w-])')
         (parts_cs if t.isupper() else parts_ci).append(pat)
     ci = re.compile('|'.join(parts_ci), re.I) if parts_ci else None
     cs = re.compile('|'.join(parts_cs)) if parts_cs else None
@@ -110,16 +112,41 @@ def comment_text(path, line):
     return (m.group(1) or m.group(2)) if m else None
 
 
-PATCH_NAME = re.compile(r'^(.+)\+(\d[^+]*)\.patch$')
-FIELDS = ('Files', 'Why', 'Upstream', 'Remove when', 'Check')
+def comments_for(pkg_hit, grep_terms, root, show_all):
+    # (printed rows, count of mentions left out)
+    rows, files = [], {}
+    for row in git('grep', '-nIi', '-E', grep_terms, cwd=root).splitlines():
+        path, _, rest = row.partition(':')
+        lineno, _, line = rest.partition(':')
+        if SKIP_FILES.search(path):
+            continue
+        text = comment_text(path, line)
+        if not text or not pkg_hit(text):
+            continue
+        if path not in files:
+            try:
+                files[path] = open(os.path.join(root, path), errors='replace').read().splitlines()
+            except OSError:
+                files[path] = []
+        n = int(lineno) - 1
+        near = files[path][max(0, n - CONTEXT_LINES) : n + CONTEXT_LINES + 1]
+        block = ' '.join(filter(None, (comment_text(path, l) for l in near))) or text
+        rows.append((bool(SIGNAL.search(block)), f'  COMMENT     {path}:{lineno}: {line.strip()[:160]}'))
+    if show_all or len(rows) <= PRINT_ALL_UP_TO:
+        return [r for _, r in rows], 0
+    kept = [r for signal, r in rows if signal]
+    return kept, len(rows) - len(kept)
 
 
 def patch_files():
+    # {package as README names it: (patch file, version, path under node_modules)}
+    # A patch of a nested copy, a++b+1.0.0.patch, is named "a > b".
     out = {}
     for p in sorted(os.listdir('patches')) if os.path.isdir('patches') else []:
-        m = PATCH_NAME.match(p)
+        m = re.match(r'^(.+)\+(\d[^+]*)\.patch$', p)
         if m:
-            out[m.group(1).replace('+', '/')] = (p, m.group(2))
+            chain = [seg.replace('+', '/') for seg in m.group(1).split('++')]
+            out[' > '.join(chain)] = (p, m.group(2), '/node_modules/'.join(chain))
     return out
 
 
@@ -144,20 +171,17 @@ def patch_notes():
     return notes
 
 
-def print_patch(pkg, patch, ver, notes):
+def print_patch(pkg, patch, ver, install_path, notes):
     # Prints one patch with its README entries; returns the problems found.
-    try:
-        installed = json.load(open(f'node_modules/{pkg}/package.json'))['version']
-    except (OSError, ValueError, KeyError):
-        installed = None
+    installed = installed_version(install_path)
     note = '' if installed in (None, ver) else f'  (patch is for {ver}, installed {installed})'
     print(f'  PATCH       patches/{patch}{note}')
     problems = []
-    entries = notes.get(pkg)
+    entries = notes.get(pkg, [])
     if not entries:
-        problems.append(f'patches/{patch}: no "## {pkg}" section in patches/README.md')
-    described = ''
-    for title, fields in entries or []:
+        problems.append(f'patches/{patch}: no "## {pkg}" section with entries in patches/README.md')
+    described = set()
+    for title, fields in entries:
         print(f'    - {title}')
         for f in ('Upstream', 'Remove when'):
             if fields.get(f):
@@ -165,13 +189,13 @@ def print_patch(pkg, patch, ver, notes):
         missing = [f for f in FIELDS if not fields.get(f)]
         if missing:
             problems.append(f'{pkg} / {title}: missing {", ".join(missing)}')
-        described += fields.get('Files', '')
+        described.update(re.findall(r'`([^`]+)`', fields.get('Files', '')))
     if entries:
-        touched = re.findall(r'^diff --git a/node_modules/\S+? b/node_modules/(\S+)$', open(f'patches/{patch}').read(), re.M)
-        for path in touched:
-            rel = path[len(pkg) + 1 :]
+        diff = open(f'patches/{patch}').read()
+        for path in re.findall(r'^diff --git a/node_modules/\S+ b/node_modules/(\S+)$', diff, re.M):
+            rel = path[len(install_path) + 1 :] if path.startswith(install_path + '/') else path
             if rel not in described:
-                problems.append(f'patches/{patch}: {rel} is not named in any entry\'s Files')
+                problems.append(f'patches/{patch}: `{rel}` is not named in any entry\'s Files')
     for prob in problems:
         print(f'    !! {prob}')
     return problems
@@ -180,47 +204,51 @@ def print_patch(pkg, patch, ver, notes):
 def check_patches():
     files, notes = patch_files(), patch_notes()
     problems = []
-    for pkg, (patch, ver) in files.items():
+    for pkg, info in files.items():
         print(f'\n=== {pkg} ===')
-        problems += print_patch(pkg, patch, ver, notes)
+        problems += print_patch(pkg, *info, notes)
     for pkg in notes:
         if pkg not in files:
             prob = f'patches/README.md: "## {pkg}" has no patch file; delete the section'
             print(f'\n!! {prob}')
             problems.append(prob)
     print(f'\n{len(problems)} problem(s)' if problems else '\nEvery patch is described in patches/README.md.')
-    sys.exit(1 if problems else 0)
+    return problems
 
 
-def memory_dir(root):
-    common = sh('git', 'rev-parse', '--path-format=absolute', '--git-common-dir').strip()
-    main = os.path.dirname(common) if common else root
-    slug = re.sub(r'[/.]', '-', main)
-    return os.path.expanduser(f'~/.claude/projects/{slug}/memory')
+def memory_notes():
+    common = git('rev-parse', '--path-format=absolute', '--git-common-dir').strip()
+    mem = os.path.expanduser(f'~/.claude/projects/{re.sub(r"[/.]", "-", os.path.dirname(common))}/memory')
+    out = []
+    for f in sorted(os.listdir(mem)) if os.path.isdir(mem) else []:
+        if f.endswith('.md') and f != 'MEMORY.md':
+            try:
+                out.append((f, open(os.path.join(mem, f)).read()))
+            except OSError:
+                pass
+    return out
 
 
 def main():
-    args = sys.argv[1:]
-    show_all = '--all' in args
-    base = 'master'
-    if '--base' in args:
-        base = args[args.index('--base') + 1]
-        del args[args.index('--base') : args.index('--base') + 2]
-    names = [a for a in args if not a.startswith('--')]
+    ap = argparse.ArgumentParser(description='Inventory of workarounds per package; see the header of this file.')
+    ap.add_argument('--base', default='master', help='ref to diff package.json against (default: master)')
+    ap.add_argument('--all', action='store_true', help='print every comment that mentions the package')
+    ap.add_argument('--patches', action='store_true', help='check patches/README.md against the patch files')
+    ap.add_argument('packages', nargs='*')
+    args = ap.parse_args()
     if not os.path.isfile('package.json'):
         sys.exit('Error: package.json not found. Run from shared/.')
-    if '--patches' in args:
-        check_patches()
-    pkgs = [(n, None, None) for n in names] or bumped(base)
+    if args.patches:
+        sys.exit(1 if check_patches() else 0)
+
+    pkgs = [(n, None, None) for n in args.packages] or bumped(args.base)
     if not pkgs:
-        print(f'No package versions differ from {base}.')
+        print(f'No package versions differ from {args.base}.')
         return
 
-    root = sh('git', 'rev-parse', '--show-toplevel').strip()
+    root = git('rev-parse', '--show-toplevel').strip()
     resolutions = json.load(open('package.json')).get('resolutions', {})
-    patches, notes = patch_files(), patch_notes()
-    mem = memory_dir(root)
-    mem_files = sorted(f for f in os.listdir(mem) if f.endswith('.md') and f != 'MEMORY.md') if os.path.isdir(mem) else []
+    patches, notes, memory = patch_files(), patch_notes(), memory_notes()
 
     for pkg, was, now in pkgs:
         print(f'\n=== {pkg}' + (f'  {was} -> {now}' if was else '') + ' ===')
@@ -228,40 +256,22 @@ def main():
         hit = matcher(terms)
         found = False
 
-        if pkg in patches:
-            print_patch(pkg, *patches[pkg], notes)
-            found = True
+        for name, info in patches.items():
+            if pkg in name.split(' > '):
+                print_patch(name, *info, notes)
+                found = True
 
         for key, ver in resolutions.items():
-            if pkg in [s for s in key.split('/') if s != '**'] or key.endswith('/' + pkg):
+            if f'/{pkg}/' in f'/{key}/':
                 print(f'  RESOLUTION  "{key}": "{ver}"')
                 found = True
 
-        grep_terms = '|'.join(re.escape(t) for t in terms)
-        likely, other = [], 0
-        for row in sh('git', 'grep', '-nIi', '-E', grep_terms, cwd=root).splitlines():
-            path, _, rest = row.partition(':')
-            lineno, _, line = rest.partition(':')
-            if SKIP_FILES.search(path):
-                continue
-            text = comment_text(path, line)
-            if not text or not hit(text):
-                continue
-            if show_all or SIGNAL.search(text):
-                likely.append(f'  COMMENT     {path}:{lineno}: {line.strip()[:160]}')
-            else:
-                other += 1
-        for row in likely:
-            print(row)
-        found = found or bool(likely)
-        if other:
-            print(f'  ({other} more comment(s) mention it without a workaround signal; --all shows them)')
+        rows, quiet = comments_for(hit, '|'.join(re.escape(t) for t in terms), root, args.all)
+        print('\n'.join(rows), end='\n' if rows else '')
+        if quiet:
+            print(f'  ({quiet} more comment(s) mention it without a workaround signal nearby; --all shows them)')
 
-        for f in mem_files:
-            try:
-                body = open(os.path.join(mem, f)).read()
-            except OSError:
-                continue
+        for f, body in memory:
             desc = re.search(r'^description:\s*(.*)$', body, re.M)
             head = f + ' ' + (desc.group(1) if desc else '')
             # a note is about the package when its name/description says so, or it keeps coming back to it
@@ -269,7 +279,7 @@ def main():
                 print(f'  MEMORY      {f}: {(desc.group(1).strip(chr(34)) if desc else "")[:150]}')
                 found = True
 
-        if not found and not other:
+        if not (found or rows or quiet):
             print('  nothing found')
 
 

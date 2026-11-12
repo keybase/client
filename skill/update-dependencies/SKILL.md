@@ -160,7 +160,7 @@ That prints each patch with its entries (upstream state, removal condition), fla
 
 **Never rename patch files or hand-edit the `.patch` file itself.** Let `patch-package` generate the correctly-named file from your source edits.
 
-A patch added or changed for any reason, on a deps pass or not, gets its README entry in the same commit, one entry per independent change, all five fields. If you learn something about a patch while here (a wrong issue number in its comment, a second thing it covers), put it in the entry.
+If you learn something about a patch while here (a wrong issue number in its comment, a second thing it covers), put it in the entry.
 
 ### 6. If updating `electron`
 
@@ -203,14 +203,14 @@ Step 7 starts from the changelog. This step starts from our code, because mainta
 cd shared && python3 ../.claude/skills/update-dependencies/find-workarounds.py
 ```
 
-With no arguments it takes the packages whose version differs from `master` (`--base <ref>` for another base, or pass package names). For each one it lists the `patches/` files, the `resolutions` entries, the comments anywhere in the repo that mention the package together with a workaround signal (an issue link, "until", a version number, ...), and the memory notes about it. Patches come with their `patches/README.md` entries and are settled by step 5, resolutions by 4c; the rest is this step's list.
+With no arguments it takes the packages whose version differs from `master` (`--base <ref>` for another base, or pass package names). For each one it lists the `patches/` files, the `resolutions` entries, the comments anywhere in the repo that mention the package (all of them up to 40; past that, only those with a workaround signal within a few lines, such as an issue link, "until" or a version number, and `--all` for the rest), and the memory notes about it. Patches come with their `patches/README.md` entries and are settled by step 5, resolutions by 4c; the rest is this step's list.
 
-The inventory is a floor. A workaround's comment often describes the symptom without naming the library, so also skim the files that use the package (`git grep -l "from '<pkg>"`) for code that exists only to correct the library: re-pins, remounts, deferred calls, extra measuring, guards around its calls. If a package uses a name in comments that the script misses, add it to `ALIASES` in the script.
+The inventory is a floor. A workaround's comment often describes the symptom without naming the library, so also skim the files that use the package (`git grep -l "from '<pkg>"`) for code that exists only to correct the library: re-pins, remounts, deferred calls, extra measuring, guards around its calls. The script searches for the npm name and the names in its `ALIASES` table only; if comments call a package something else, add that name there.
 
 **Check each one against the new version.** In order of cost:
 
 1. A note that names a version ("drop at RN 0.89") is due when the bump reaches that version.
-2. A linked upstream issue or PR: `gh issue view <n> --repo <owner>/<repo> --json state,closedAt,title` (read-only, never comment). Closed is a lead, not proof: confirm the fix is in a release at or below the version we now install.
+2. A linked upstream issue or PR: check it as in step 5.1 (read-only, never comment). Closed is a lead, not proof.
 3. No link: read the changelog range from step 7, then the new source in `node_modules/<pkg>` for the behavior the workaround corrects.
 
 For a patch-only bump, 1 and 2 are enough unless the notes mention the area.
