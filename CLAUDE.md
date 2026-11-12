@@ -19,6 +19,7 @@
 - Never hand-edit generated code (rpc-gen, protocol output, mocks, codegen'd files of any kind). Edit the source it's generated from and rerun the generator. CI regenerates and fails on any diff.
 - When updating `electron`: run `shared/desktop/extract-electron-shasums.sh <version>`.
 - Keep an open PR's description in step with its branch. Whenever new commits change what the PR does or how (a new fix, a changed approach, a removed piece, new tests or evidence), rewrite the affected sections with `gh pr edit --body-file`, and the title if the scope moved. It should read as a description of the current diff, not a changelog. Skip it for commits that don't change the story (lint, renames, test placeholders).
+- Every change inside a `shared/patches/*.patch` has an entry in `shared/patches/README.md` (why, upstream issue/PR and its state, when it can go, how to check). Add, update or delete the entry in the same commit that adds, changes or removes the hunk, then run `python3 ../.claude/skills/update-dependencies/find-workarounds.py --patches` from `shared/` and get it passing.
 - Never patch `react-native` itself (patch-package or node_modules edits): we use prebuilt RN core and don't compile its source, so native-side patches never take effect. Work around RN core bugs in app code.
 
 ## Debugging
