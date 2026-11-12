@@ -12,7 +12,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
-import {reuseEqual, stableKey} from './cache'
+import {getEntry, reuseEqual, stableKey} from './cache'
 import {
   forgetLoad,
   loadRpcIfStale,
@@ -702,4 +702,206 @@ test('what failed while logged out loads once the account is in', async () => {
   await flush()
   expect(result.current.data).toEqual(['laptop'])
   expect(result.current.error).toBeUndefined()
+})
+
+const fakeClock = async (body: () => Promise<void>) => {
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
+  try {
+    await body()
+  } finally {
+    jest.useRealTimers()
+  }
+}
+const advance = async (ms: number) => {
+  act(() => {
+    jest.advanceTimersByTime(ms)
+  })
+  await flush()
+}
+const useFreshDevices = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
+
+test('one debounced notice heard by several listeners is one load, with none trailing', async () => {
+  await fakeClock(async () => {
+    fake.answer(listMethod, () => [device('laptop')])
+    renderHook(useDevices)
+    await flush()
+    act(() => {
+      refreshRpc(listRpc, 2000)
+      refreshRpc(listRpc, 2000)
+    })
+    await flush()
+    expect(listCalls()).toBe(2)
+    await advance(10_000)
+    expect(listCalls()).toBe(2)
+  })
+})
+
+test('the answer to a notice heard by several listeners is fresh, not stale', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const first = renderHook(useFreshDevices)
+  await flush()
+  act(() => {
+    refreshRpc(listRpc)
+    refreshRpc(listRpc)
+  })
+  await flush()
+  expect(listCalls()).toBe(2)
+  first.unmount()
+  renderHook(useFreshDevices)
+  await flush()
+  expect(listCalls()).toBe(2)
+})
+
+test('a screen that mounts just after a failure loads once the backoff is over', async () => {
+  await fakeClock(async () => {
+    const held = fake.hold(listMethod)
+    const first = renderHook(useDevices)
+    await flush()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
+    await flush()
+    first.unmount()
+
+    const next = renderHook(useDevices)
+    await flush()
+    expect(held).toHaveLength(1)
+    // a stale check does not jump the backoff either
+    await act(async () => loadRpcIfStale(listRpc, undefined, 0))
+    expect(held).toHaveLength(1)
+
+    await advance(5_000)
+    expect(held).toHaveLength(2)
+    held[1]!.reply([device('laptop')])
+    await flush()
+    expect(next.result.current.data).toEqual(['laptop'])
+    expect(next.result.current.error).toBeUndefined()
+  })
+})
+
+test('an optimistic write before the first load lands is not left loading', async () => {
+  const getRpc = T.RPCGen.configGetRememberPassphraseRpcPromise
+  const held = fake.hold('keybase.1.config.getRememberPassphrase')
+  const {result} = renderHook(() => useRpcData(getRpc, undefined))
+  await flush()
+  expect(result.current.loading).toBe(true)
+  act(() => setRpcData(getRpc, undefined, () => true))
+  expect(result.current.data).toBe(true)
+  expect(result.current.loading).toBe(false)
+  expect(result.current.settled).toBe(true)
+  // the writer refreshes once its write has settled
+  act(() => refreshRpc(getRpc))
+  await flush()
+  held[1]!.reply(true)
+  await flush()
+  expect(result.current.loaded).toBe(true)
+})
+
+test('a reader does not render again for a reload that brought nothing new', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const loader = renderHook(useDevices)
+  let renders = 0
+  const reader = renderHook(() => {
+    renders += 1
+    return useCachedRpcData(listRpc, undefined, toNames)
+  })
+  await flush()
+  expect(reader.result.current).toEqual(['laptop'])
+  const before = renders
+  act(() => loader.result.current.reload())
+  await flush()
+  expect(listCalls()).toBe(2)
+  expect(renders).toBe(before)
+})
+
+test('a lost link ends a wait even with a notice queued behind the load', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const {result} = renderHook(useDevices)
+  await flush()
+  fake.hold(listMethod)
+  let done = false
+  let waiting = Promise.resolve()
+  act(() => {
+    waiting = (async () => {
+      await result.current.reloadAndWait()
+      done = true
+    })()
+  })
+  await flush()
+  await act(notice)
+  fake.drop()
+  await act(async () => waiting)
+  expect(done).toBe(true)
+})
+
+test('an explicit reload that fails leaves data a notice made stale still stale', async () => {
+  await fakeClock(async () => {
+    fake.answer(listMethod, () => [device('laptop')])
+    const first = renderHook(useFreshDevices)
+    await flush()
+    const held = fake.hold(listMethod)
+    await act(notice)
+    await flush()
+    act(() => first.result.current.reload())
+    await flush()
+    expect(held).toHaveLength(2)
+    held[1]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
+    await flush()
+    first.unmount()
+
+    await advance(10_000)
+    renderHook(useFreshDevices)
+    await flush()
+    expect(held).toHaveLength(3)
+  })
+})
+
+test('forgotten data is not loaded again by a notice or a stale check, only by asking for it', async () => {
+  fake.answer(teamMethod, (params: {teamID: string}) => ({name: `name-of-${params.teamID}`}))
+  const {rerender, result} = renderHook(
+    ({refreshKey}: {refreshKey: number}) =>
+      useLoadData(
+        'test.teamName',
+        'team-gone',
+        async signal => (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: 'team-gone'}, undefined, signal)).name,
+        {refreshKey}
+      ),
+    {initialProps: {refreshKey: 1}}
+  )
+  await flush()
+  const calls = () => fake.calls.filter(c => c.method === teamMethod).length
+  expect(calls()).toBe(1)
+
+  act(() => forgetLoad('test.teamName', 'team-gone'))
+  act(() => refreshLoad('test.teamName', 'team-gone'))
+  act(() => refreshLoad('test.teamName'))
+  rerender({refreshKey: 2})
+  await flush()
+  expect(calls()).toBe(1)
+  expect(result.current.data).toBeUndefined()
+
+  act(() => result.current.reload())
+  await flush()
+  expect(calls()).toBe(2)
+  expect(result.current.data).toBe('name-of-team-gone')
+})
+
+test('data that lands after its last screen left is still dropped once idle, and its closures let go', async () => {
+  await fakeClock(async () => {
+    const held = fake.hold(listMethod)
+    const useLongLived = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60 * 60_000})
+    const first = renderHook(useLongLived)
+    await flush()
+    first.unmount()
+    // the sweep armed by the unmount finds nothing loaded yet
+    await advance(6 * 60_000)
+    held[0]!.reply([device('laptop')])
+    await flush()
+    const entry = getEntry(stableKey(listMethod, undefined), listMethod, async () => Promise.resolve(null))
+    expect(entry.getData()).toHaveLength(1)
+    const loadWhileCached = entry.load
+
+    await advance(6 * 60_000)
+    expect(entry.getData()).toBeUndefined()
+    expect(entry.load).not.toBe(loadWhileCached)
+    expect(entry.onError).toBeUndefined()
+  })
 })

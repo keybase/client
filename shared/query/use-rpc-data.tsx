@@ -67,18 +67,11 @@ const useEntry = <RAW, DATA>(entry: Entry, load: Entry['load'], options: Options
       }
     }
   }, [enabled, entry, refreshKey, staleMs])
-  // the first focus is the mount, which has loaded already
-  const hasFocused = React.useRef(false)
+  // The focus that comes with the mount finds the mount's load on the wire, or its data fresh
   const onFocus = React.useEffectEvent(() => {
-    if (!enabled) {
-      return
+    if (enabled && (reloadOnFocus || staleMs > 0)) {
+      void loadIfStale(entry, reloadOnFocus ? 0 : staleMs)
     }
-    if (reloadOnFocus) {
-      entry.ensure()
-    } else if (hasFocused.current && staleMs > 0) {
-      void loadIfStale(entry, staleMs)
-    }
-    hasFocused.current = true
   })
   const [focusEffect] = React.useState(() => () => {
     onFocus()
@@ -119,7 +112,7 @@ const rpcEntry = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, load = rpcLoad(
  * @returns settled: a load finished, with data or an error
  * @returns loading: a load is on the wire or about to be
  * @returns reload: load now, dropping the answer of a load already on the wire
- * @returns reloadAndWait: reload, resolving once the answer (or its failure) is in
+ * @returns reloadAndWait: reload, resolving once it is over: answered, failed, or cut off by a lost link
  */
 export const useRpcData = <F extends AnyRpc, DATA = DataOf<F>>(
   rpc: F,
@@ -140,8 +133,9 @@ export const useCachedRpcData = <F extends AnyRpc, DATA = DataOf<F>>(
   select?: (raw: DataOf<F>) => DATA
 ) => {
   const entry = rpcEntry(rpc, params)
-  const snapshot = React.useSyncExternalStore(entry.subscribe, entry.getSnapshot)
-  return selected(entry, snapshot.data, select as ((raw: never) => DATA) | undefined)
+  // only the data: a reader does not render again for a reload that brought nothing new
+  const raw = React.useSyncExternalStore(entry.subscribe, entry.getData)
+  return selected(entry, raw, select as ((raw: never) => DATA) | undefined)
 }
 
 /**
@@ -164,7 +158,10 @@ export const refreshLoad = (name: string, key?: unknown, debounceMs?: number) =>
 /** drop a useLoadData's cached data: for when it no longer exists, where refreshLoad would reload it */
 export const forgetLoad = (name: string, key: unknown) => forgetKey(stableKey(name, key))
 
-/** show this now, for an optimistic update; the next load's answer wins */
+/**
+ * Show this now, for an optimistic update. Call refreshRpc when the write has settled: a load
+ * already on the wire is dropped, and nothing else brings the service's answer back.
+ */
 export const setRpcData = <F extends AnyRpc>(
   rpc: F,
   params: ParamsOf<F>,

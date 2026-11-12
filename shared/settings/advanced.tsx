@@ -12,7 +12,7 @@ import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
 import {withWaiting} from '@/stores/waiting'
 import {useRandomPWState} from './use-random-pw'
-import {setRpcData, useRpcData} from '@/query'
+import {refreshRpc, setRpcData, useRpcData} from '@/query'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -189,7 +189,7 @@ const Advanced = () => {
     setRememberPassword(remember)
     submitRememberPassword(
       [{remember}],
-      () => {},
+      () => refreshRpc(T.RPCGen.configGetRememberPassphraseRpcPromise),
       () => {
         setRememberPassword(previous)
       }
@@ -206,7 +206,7 @@ const Advanced = () => {
           value: {b: next, isNull: false},
         },
       ],
-      () => {},
+      () => refreshRpc(T.RPCGen.configGuiGetValueRpcPromise),
       () => {
         console.log('cant save spell check?')
         setDisableSpellcheck(!next)

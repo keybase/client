@@ -84,8 +84,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => 
 
 const useChatTeamMembersRaw = (
   teamID: T.Teams.TeamID,
-  enabled = true,
-  subscribeToUpdates = enabled
+  enabled = true
 ): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
   const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
@@ -122,7 +121,7 @@ const useChatTeamMembersRaw = (
         refreshLoad(chatTeamMembersLoad, teamIDToLoad)
       }
     },
-    subscribeToUpdates
+    enabled
   )
   useEngineActionListener(
     'keybase.1.NotifyTeam.teamDeleted',
@@ -131,7 +130,7 @@ const useChatTeamMembersRaw = (
         forgetLoad(chatTeamMembersLoad, teamIDToLoad)
       }
     },
-    subscribeToUpdates
+    enabled
   )
   useEngineActionListener(
     'keybase.1.NotifyTeam.teamExit',
@@ -140,7 +139,7 @@ const useChatTeamMembersRaw = (
         forgetLoad(chatTeamMembersLoad, teamIDToLoad)
       }
     },
-    subscribeToUpdates
+    enabled
   )
 
   // `loading` means "nothing to show yet" - a background revalidation of cached

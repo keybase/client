@@ -9,7 +9,7 @@ import {forgetLoad, refreshLoad, useLoadData} from '@/query'
 type LoadedTeam = {
   loaded: boolean
   loading: boolean
-  reload: () => void
+  reload: () => Promise<void>
   // whether teamMeta.showcasing is known: only the teams list carries it, and it can be missing
   // that team (still loading, a deep link, a failed load)
   showcasingKnown: boolean
@@ -72,8 +72,7 @@ const annotatedTeamToMeta = (
 
 const useLoadedTeamRaw = (
   teamID: T.Teams.TeamID,
-  enabled = true,
-  subscribeToUpdates = enabled
+  enabled = true
 ): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
@@ -91,7 +90,7 @@ const useLoadedTeamRaw = (
     data = seeded,
     loaded,
     loading,
-    reload,
+    reloadAndWait: reload,
   } = useLoadData(
     loadedTeamLoad,
     teamIDToLoad,
@@ -140,23 +139,23 @@ const useLoadedTeamRaw = (
       refreshLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
     }
   }
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, subscribeToUpdates)
+  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, enabled)
+  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, enabled)
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (action.payload.params.teamID === validTeamID) {
       onTeamChange()
     }
-  }, subscribeToUpdates)
+  }, enabled)
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       forgetLoad(loadedTeamLoad, teamIDToLoad)
     }
-  }, subscribeToUpdates)
+  }, enabled)
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       forgetLoad(loadedTeamLoad, teamIDToLoad)
     }
-  }, subscribeToUpdates)
+  }, enabled)
 
   const teamDetails = data.teamDetails
   return React.useMemo(

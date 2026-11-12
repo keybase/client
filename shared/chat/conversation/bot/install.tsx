@@ -67,6 +67,8 @@ export const useBotTeamRole = (
     async () => getChatRpc().getBotTeamRole(id, botUsername),
     {
       enabled: !!conversationIDKey,
+      // installing or removing the bot changes it, and each screen asks afresh
+      keep: false,
       onError: error => logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`),
     }
   )
