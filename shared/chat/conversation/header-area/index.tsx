@@ -118,22 +118,6 @@ const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: He
   )
 }
 
-// iOS: UINavigationBar takes the title view's size at its first layout, and a view that is
-// zero-sized then is never laid out again however much it grows: the title stays blank until
-// the bar is rebuilt (e.g. by a pop). The names can land after that first layout (a cold start
-// straight into a thread), so the title always occupies a non-zero box.
-const titleMinSize = {minHeight: 1, minWidth: 1} as const
-const HeaderTitle = (props: HeaderConversationProps) => {
-  const title = <HeaderBranchContainerInner conversationIDKey={props.conversationIDKey} />
-  return isIOS ? (
-    <Kb.Box2 direction="vertical" style={titleMinSize}>
-      {title}
-    </Kb.Box2>
-  ) : (
-    title
-  )
-}
-
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
   const {conversationIDKey, ...rest} = p
   const badgeNumber = useBackBadge(conversationIDKey)
@@ -249,7 +233,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
       : {
           headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
         }),
-    headerTitle: () => <HeaderTitle conversationIDKey={conversationIDKey} />,
+    headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
   }
 }
 
