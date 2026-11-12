@@ -226,7 +226,7 @@ test('a pushed notification reaches onEngineIncoming', async () => {
 })
 
 test('uninstalling restores the port that was installed before', () => {
-  const port = {call: jest.fn(() => 1), cancelOutstandingSessions: jest.fn(), listen: jest.fn()}
+  const port = {call: jest.fn(() => 1), cancelOutstandingSessions: jest.fn(), cancelSession: jest.fn(), listen: jest.fn()}
   installCallPort(port)
   const fake = installFakeEngine()
   expect(getCallPort()).toBe(fake.engine)

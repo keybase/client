@@ -7,7 +7,7 @@ import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 import {rpcDeviceDetailToDevice} from './common'
 import {getDeviceRevokeIconType} from './device-icon'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 
 type DeviceRevokeProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
@@ -72,14 +72,20 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   const styles = useStyles()
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
-  const {data: loadedDevice, loaded} = useRPCLoad(
-    T.RPCGen.deviceDeviceHistoryListRpcPromise,
-    [undefined, C.waitingKeyDevices],
-    {
-      enabled: !ownProps.device && !!selectedDeviceID,
-      map: results => results?.map(rpcDeviceDetailToDevice).find(c => c.deviceID === selectedDeviceID),
-    }
-  )
+  // the list screen's load: opened from the list, the devices are already in the cache
+  const {
+    data: details,
+    error: loadError,
+    loadCount,
+  } = useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined, {
+    enabled: !ownProps.device && !!selectedDeviceID,
+    waitingKey: C.waitingKeyDevices,
+  })
+  // The cached list may predate the device (one added elsewhere sends no notice): only a load
+  // that landed or failed since this screen opened says it is not there.
+  const [loadCountAtOpen] = React.useState(loadCount)
+  const loaded = loadCount !== loadCountAtOpen || !!loadError
+  const loadedDevice = details?.map(rpcDeviceDetailToDevice).find(c => c.deviceID === selectedDeviceID)
   const device = ownProps.device ?? loadedDevice
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const onCancel = navigateUp
@@ -105,14 +111,12 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   )
 
   const actingDevice = useCurrentUserState(s => s.deviceID)
-  const {data: endangeredTLFs} = useRPCLoad(
+  const {data: revokeWarning} = useRpcData(
     T.RPCGen.rekeyGetRevokeWarningRpcPromise,
-    [{actingDevice, targetDevice: selectedDeviceID}, C.waitingKeyDevices],
-    {
-      enabled: !!actingDevice && !!selectedDeviceID,
-      map: tlfs => tlfs.endangeredTLFs?.map(t => t.name) ?? [],
-    }
+    {actingDevice, targetDevice: selectedDeviceID},
+    {enabled: !!actingDevice && !!selectedDeviceID, waitingKey: C.waitingKeyDevices}
   )
+  const endangeredTLFs = revokeWarning?.endangeredTLFs?.map(t => t.name)
 
   if (!device) {
     return <Kb.LoadingScreen />

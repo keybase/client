@@ -10,7 +10,7 @@ import {loadSettings} from './load-settings'
 import {produce} from 'immer'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {refreshRpc, setRpcData, useRpcData} from '@/query'
 import {useShellState} from '@/stores/shell'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -21,20 +21,16 @@ type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
 
 const useContactSettings = () => {
   const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
-  const [error, setError] = React.useState('')
-  const {data: settings, reload} = useRPCLoad(T.RPCGen.accountUserGetContactSettingsRpcPromise, [undefined], {
-    map: s => s,
-    onError: () => setError('Unable to load contact settings, please try again.'),
-    onResult: () => setError(''),
-    when: 'manual',
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const [saveFailed, setSaveFailed] = React.useState(false)
+  const {data, error: loadError} = useRpcData(T.RPCGen.accountUserGetContactSettingsRpcPromise, undefined, {
+    enabled: loggedIn,
   })
-
-  const contactSettingsRefresh = React.useCallback(() => {
-    if (!useConfigState.getState().loggedIn) {
-      return
-    }
-    reload()
-  }, [reload])
+  const error = saveFailed
+    ? 'Unable to save contact settings, please try again.'
+    : loadError
+      ? 'Unable to load contact settings, please try again.'
+      : ''
 
   const contactSettingsSaved = React.useCallback(
     (
@@ -63,48 +59,34 @@ const useContactSettings = () => {
           C.waitingKeySettingsChatContactSettingsSave,
         ],
         () => {
-          contactSettingsRefresh()
+          setSaveFailed(false)
+          refreshRpc(T.RPCGen.accountUserGetContactSettingsRpcPromise)
         },
         () => {
-          setError('Unable to save contact settings, please try again.')
+          setSaveFailed(true)
         }
       )
     },
-    [contactSettingsRefresh, saveContactSettingsRPC]
+    [saveContactSettingsRPC]
   )
 
-  return {contactSettingsRefresh, contactSettingsSaved, error, settings}
+  return {contactSettingsSaved, error, settings: data ?? undefined}
 }
 
 const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
   const normalizeUnfurlDomainRPC = C.useRPC(T.RPCChat.localNormalizeUnfurlDomainRpcPromise)
-  const [error, setError] = React.useState('')
-  const {data, reload, setData} = useRPCLoad(
-    T.RPCChat.localGetUnfurlSettingsRpcPromise,
-    [undefined, C.waitingKeySettingsChatUnfurl],
-    {
-      map: result => ({
-        blocklist: result.blocklist ?? emptyList,
-        mode: result.mode,
-        whitelist: result.whitelist ?? emptyList,
-      }),
-      onError: () => setError('Unable to load link preview settings, please try again.'),
-      onResult: () => setError(''),
-      when: 'manual',
-    }
-  )
-  const loaded = data !== undefined
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const [actionError, setError] = React.useState('')
+  const {data, error: loadError} = useRpcData(T.RPCChat.localGetUnfurlSettingsRpcPromise, undefined, {
+    enabled: loggedIn,
+    waitingKey: C.waitingKeySettingsChatUnfurl,
+  })
+  const error = actionError || (loadError ? 'Unable to load link preview settings, please try again.' : '')
+  const loaded = !!data
   const mode = data?.mode
   const whitelist = data?.whitelist ?? emptyList
   const blocklist = data?.blocklist ?? emptyList
-
-  const unfurlSettingsRefresh = React.useCallback(() => {
-    if (!useConfigState.getState().loggedIn) {
-      return
-    }
-    reload()
-  }, [reload])
 
   const unfurlSettingsSaved = React.useCallback(
     (settings: ReturnType<typeof unfurlSaveArgs>, onSuccess: () => void) => {
@@ -115,10 +97,10 @@ const useUnfurlSettings = () => {
       saveUnfurlSettingsRPC(
         [settings, C.waitingKeySettingsChatUnfurl],
         () => {
-          // show what was saved until the refresh brings back the service's normalized form
-          setData(settings)
+          // show what was saved until the reload brings back the service's normalized form
+          setRpcData(T.RPCChat.localGetUnfurlSettingsRpcPromise, undefined, () => settings)
           onSuccess()
-          unfurlSettingsRefresh()
+          refreshRpc(T.RPCChat.localGetUnfurlSettingsRpcPromise)
         },
         e => {
           setError(
@@ -129,7 +111,7 @@ const useUnfurlSettings = () => {
         }
       )
     },
-    [saveUnfurlSettingsRPC, setData, unfurlSettingsRefresh]
+    [saveUnfurlSettingsRPC]
   )
 
   // the draft keys rows by the domain the service stores, so a url and its bare domain are one row
@@ -153,52 +135,43 @@ const useUnfurlSettings = () => {
     loaded,
     mode,
     normalizeDomain,
-    unfurlSettingsRefresh,
     unfurlSettingsSaved,
     whitelist,
   }
 }
 
 const useCompressPreference = () => {
-  const [error, setError] = React.useState('')
-  const {
-    data: compress,
-    reload,
-    setData,
-  } = useRPCLoad(T.RPCGen.incomingShareGetPreferenceRpcPromise, [undefined], {
-    map: pref => pref.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original,
-    onError: () => setError('Unable to load the attachment setting, please try again.'),
-    onResult: () => setError(''),
-  })
+  const [saveError, setSaveError] = React.useState('')
+  const {data: preference, error: loadError} = useRpcData(T.RPCGen.incomingShareGetPreferenceRpcPromise, undefined)
+  const compress = preference
+    ? preference.compressPreference !== T.RPCGen.IncomingShareCompressPreference.original
+    : undefined
+  const error = saveError || (loadError ? 'Unable to load the attachment setting, please try again.' : '')
   const setPreferenceRPC = C.useRPC(T.RPCGen.incomingShareSetPreferenceRpcPromise)
 
   const compressSaved = React.useCallback(
     (next: boolean) => {
-      const prev = compress
-      setError('')
+      const previous = preference
+      const saving = {
+        compressPreference: next
+          ? T.RPCGen.IncomingShareCompressPreference.compressed
+          : T.RPCGen.IncomingShareCompressPreference.original,
+      }
+      setSaveError('')
       // optimistic, the post-save reload has the final say
-      setData(next)
+      setRpcData(T.RPCGen.incomingShareGetPreferenceRpcPromise, undefined, () => saving)
       setPreferenceRPC(
-        [
-          {
-            preference: {
-              compressPreference: next
-                ? T.RPCGen.IncomingShareCompressPreference.compressed
-                : T.RPCGen.IncomingShareCompressPreference.original,
-            },
-          },
-        ],
+        [{preference: saving}],
         () => {
-          reload()
+          refreshRpc(T.RPCGen.incomingShareGetPreferenceRpcPromise)
         },
         () => {
-          // don't reload here: its onResult would clear the error we're about to show
-          setData(prev)
-          setError('Unable to save the attachment setting, please try again.')
+          setRpcData(T.RPCGen.incomingShareGetPreferenceRpcPromise, undefined, () => previous)
+          setSaveError('Unable to save the attachment setting, please try again.')
         }
       )
     },
-    [compress, reload, setData, setPreferenceRPC]
+    [preference, setPreferenceRPC]
   )
 
   return {compress, compressSaved, error}
@@ -248,7 +221,7 @@ const Attachments = () => {
 
 const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
   const styles = useStyles()
-  const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
+  const {contactSettingsSaved, error, settings} = useContactSettings()
   const {teams} = useTeamsList()
   const teamMeta = [...teams].sort((a, b) => a.teamname.localeCompare(b.teamname))
   const _contactSettingsEnabled = settings?.enabled
@@ -325,7 +298,6 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
   const loadOnMount = React.useEffectEvent(() => {
     loadSettings()
     refresh()
-    contactSettingsRefresh()
   })
   React.useEffect(() => {
     loadOnMount()
@@ -508,8 +480,7 @@ const DomainList = (p: DomainListProps) => {
 
 export const Links = () => {
   const styles = useStyles()
-  const {blocklist, error, loaded, mode, normalizeDomain, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} =
-    useUnfurlSettings()
+  const {blocklist, error, loaded, mode, normalizeDomain, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [draft, setDraft] = React.useState<UnfurlDraft>()
   const saved = {blocklist, whitelist}
@@ -530,14 +501,6 @@ export const Links = () => {
     })
   const onRemove = (list: UnfurlList) => (domain: string) =>
     setDraft(d => removeDomain(d ?? draftOf(saved), saved, list, domain))
-
-  // not keyed on unfurlSettingsRefresh: its identity changes with every load result
-  const refreshOnMount = React.useEffectEvent(() => {
-    unfurlSettingsRefresh()
-  })
-  React.useEffect(() => {
-    refreshOnMount()
-  }, [])
 
   const lastModeRef = React.useRef(mode)
   React.useEffect(() => {
