@@ -71,7 +71,7 @@ func (c *LinkCache) Put(m MetaContext, id LinkID, link ChainLink) {
 	if ok {
 		// A stubbed load of a chain returns stubs for links we may already hold
 		// in full; keep the full link so payload readers don't get a stub.
-		if existing, isLink := elt.Value.(ChainLink); isLink && link.IsStubbed() && !existing.IsStubbed() {
+		if existing := elt.Value.(ChainLink); link.IsStubbed() && !existing.IsStubbed() {
 			c.accessOrder.MoveToBack(elt)
 			return
 		}

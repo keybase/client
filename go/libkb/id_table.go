@@ -74,7 +74,12 @@ func (g *GenericChainLink) markRevoked(r TypedChainLink) {
 }
 
 func (g *GenericChainLink) ToDebugString() string {
-	return fmt.Sprintf("uid=%s, seq=%d, link=%s", g.Parent().uid, g.unpacked.seqno, g.id)
+	// Links loaded on their own (ImportLinkFromStorage) have no parent chain.
+	var uid keybase1.UID
+	if p := g.Parent(); p != nil {
+		uid = p.uid
+	}
+	return fmt.Sprintf("uid=%s, seq=%d, link=%s", uid, g.GetSeqno(), g.id)
 }
 
 func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)          { return }
