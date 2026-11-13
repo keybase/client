@@ -592,7 +592,15 @@ export const ensureSlowSelfBackup = onceUnlessFailed(async () =>
     let next: string | undefined
     // newest first; stops once every title is found
     for (;;) {
-      const res = await api.call<ReadResult>('read', {channel, pagination: next ? {next, num: 500} : {num: 500}, peek: true})
+      // an account that never wrote to itself has no self conversation yet: the first attach makes it
+      const first = !next
+      const res = await api
+        .call<ReadResult>('read', {channel, pagination: next ? {next, num: 500} : {num: 500}, peek: true})
+        .catch((e: unknown) => {
+          if (first && message(e).includes('no conversations matched')) return undefined
+          throw e
+        })
+      if (!res) break
       for (const m of unboxed(res)) {
         const object = m.content.type === 'attachment' ? m.content.attachment?.object : undefined
         if (object?.title && want.has(object.title) && (object.size ?? 0) >= SELF_BIG_BYTES) found.add(object.title)

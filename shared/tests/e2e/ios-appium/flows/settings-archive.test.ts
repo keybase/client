@@ -53,7 +53,7 @@ import {closeMessageMenu, dragUntilOnScreen, hideKeyboard, openConversation, ope
 import {el} from '../helpers/elements'
 import {filesRowNamed, openFolder, openRowMenu, tapButton} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
-import {appDataContainer, waitFor} from '../helpers/lifecycle'
+import {appDataContainer, keepingSession, waitFor} from '../helpers/lifecycle'
 import {BUTTON_ELEMENTS, check, chooseMenuItem, dragBetween, elementWithLabelPart, onScreen, press} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {masked} from '../helpers/teams'
@@ -392,7 +392,7 @@ describe('settings archive', function () {
     // a first seed uploads 500MB, each upload bounded on its own; setting the timeout again after it
     // restarts the clock
     this.timeout(0)
-    await ensureSlowSelfBackup()
+    await keepingSession(ensureSlowSelfBackup())
     this.timeout(920_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await masked(async () => directConvIDFromCli(smokeUser))

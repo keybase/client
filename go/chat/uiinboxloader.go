@@ -103,11 +103,12 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.uid = uid
 	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 	stopCh := h.stopCh
-	h.Unlock()
 	h.setLastLayout(nil)
+	// registered under the lock, so a Stop never waits on eg while this start is still adding to it
 	h.eg.Go(func() error { return h.transmitLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.layoutLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.bigTeamUnboxLoop(workCtx, stopCh) })
+	h.Unlock()
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
