@@ -104,6 +104,13 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 		// UPAK's chain links should be available on disk.
 		return nil, InconsistentCacheStateError{}
 	}
+	if link.IsStubbed() {
+		// A stub has no payload to parse. It can be on disk if a stubbed load
+		// of the follower's chain overwrote the full link; treat it like a
+		// missing link so the caller reloads the follower unstubbed.
+		m.Debug("| cached chainlink is stubbed")
+		return nil, InconsistentCacheStateError{}
+	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
 	m.VLogf(VLog0, "| ParseTrackChainLink -> found=%v", (ret != nil))
 	return ret, err
