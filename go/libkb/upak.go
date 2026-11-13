@@ -97,11 +97,11 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 		m.Debug("| failed to import link from storage")
 		return nil, err
 	}
-	if link == nil {
-		m.Debug("| no cached chainlink found")
-		// Such a bug is only possible if the DB cache was reset after
-		// this user was originally loaded in; otherwise, all of this
-		// UPAK's chain links should be available on disk.
+	if link == nil || link.IsStubbed() {
+		m.Debug("| no usable cached chainlink (stubbed=%v)", link != nil)
+		// The link is missing (the DB cache evicted it or was reset) or only
+		// stored as a stub, which has no payload to parse. Either way the
+		// caller reloads the follower unstubbed, which refetches it in full.
 		return nil, InconsistentCacheStateError{}
 	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
