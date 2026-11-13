@@ -365,6 +365,15 @@ const loadFolderChildrenAsync = async (
   }
 }
 
+// Runs `next` once `load` settles, failed or not; a failure still rejects the returned promise.
+const afterSettled = async (load: Promise<void>, next: () => void) => {
+  try {
+    await load
+  } finally {
+    next()
+  }
+}
+
 const loadTlfsAsync = async (
   username: string,
   loadTlfsInProgressRef: {current: boolean},
@@ -506,6 +515,16 @@ const FsDataProviderForUsername = ({
     }
   }, [subscriptionManager])
 
+  React.useEffect(() => {
+    const reloadFolderChildren = reloadFolderChildrenRef.current
+    const reloadPathMetadata = reloadPathMetadataRef.current
+    // a load still in flight when this account's provider goes runs nothing more after it
+    return () => {
+      reloadFolderChildren.clear()
+      reloadPathMetadata.clear()
+    }
+  }, [])
+
   const loadDownloadInfo = (downloadID: string) => {
     const loadingDownloadInfos = loadingDownloadInfosRef.current
     if (loadingDownloadInfos.has(downloadID)) {
@@ -574,20 +593,21 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingPathMetadata.add(path)
-    const f = async () => {
-      await loadPathMetadataAsync(
-        path,
-        loadingPathMetadata,
-        setFsSharedData,
-        errorToActionOrThrow,
-        setPathSoftError,
-        setTlfSoftError
-      )
-      if (reload.delete(path)) {
-        loadPathMetadata(path)
-      }
-    }
-    C.ignorePromise(f())
+    const load = loadPathMetadataAsync(
+      path,
+      loadingPathMetadata,
+      setFsSharedData,
+      errorToActionOrThrow,
+      setPathSoftError,
+      setTlfSoftError
+    )
+    C.ignorePromise(
+      afterSettled(load, () => {
+        if (reload.delete(path)) {
+          loadPathMetadata(path)
+        }
+      })
+    )
   }
 
   const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
@@ -599,20 +619,21 @@ const FsDataProviderForUsername = ({
       return
     }
     loadingFolderChildren.add(loadKey)
-    const f = async () => {
-      await loadFolderChildrenAsync(
-        rootPath,
-        initialLoadRecursive,
-        loadKey,
-        loadingFolderChildren,
-        setFsSharedData,
-        errorToActionOrThrow
-      )
-      if (reload.delete(loadKey)) {
-        loadFolderChildren(rootPath, initialLoadRecursive)
-      }
-    }
-    C.ignorePromise(f())
+    const load = loadFolderChildrenAsync(
+      rootPath,
+      initialLoadRecursive,
+      loadKey,
+      loadingFolderChildren,
+      setFsSharedData,
+      errorToActionOrThrow
+    )
+    C.ignorePromise(
+      afterSettled(load, () => {
+        if (reload.delete(loadKey)) {
+          loadFolderChildren(rootPath, initialLoadRecursive)
+        }
+      })
+    )
   }
 
   const loadTlfs = () => {

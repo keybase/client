@@ -36,6 +36,9 @@ type UIInboxLoader struct {
 	eg         errgroup.Group
 	// closed once the last stop's eg.Wait has returned; a Start waits on it before reusing eg
 	stoppedCh chan struct{}
+	// bumped by every Start and Stop: a Start that waited on stoppedCh gives up when a later Start or
+	// Stop came in meanwhile
+	gen uint64
 
 	clock                 clockwork.Clock
 	transmitCh            chan any
@@ -80,9 +83,16 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer h.Trace(ctx, nil, "Start")()
 	h.Lock()
 	waitCh := h.doStopLocked(ctx)
+	h.gen++
+	gen := h.gen
 	h.Unlock()
 	<-waitCh
 	h.Lock()
+	if h.gen != gen {
+		h.Unlock()
+		h.Debug(ctx, "Start: superseded while waiting for the previous stop")
+		return
+	}
 	h.transmitCh = make(chan any, 1000)
 	h.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1000)
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
@@ -104,6 +114,7 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 	defer h.Trace(ctx, nil, "Stop")()
 	h.Lock()
 	defer h.Unlock()
+	h.gen++
 	return h.doStopLocked(ctx)
 }
 

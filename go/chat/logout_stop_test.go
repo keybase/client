@@ -204,3 +204,81 @@ func TestUIInboxLoaderStartWaitsForPreviousStop(t *testing.T) {
 	}
 	<-loader.Stop(ctx)
 }
+
+// Holds the loader's previous stop pending: the returned func lets it finish.
+func holdUIInboxLoaderStop(ctx context.Context, loader *UIInboxLoader) (release func(), stopped chan struct{}) {
+	loader.Start(ctx, gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
+	ch := make(chan struct{})
+	loader.eg.Go(func() error {
+		<-ch
+		return nil
+	})
+	return func() { close(ch) }, loader.Stop(ctx)
+}
+
+func requireDone(t *testing.T, ch chan struct{}, what string) {
+	select {
+	case <-ch:
+	case <-time.After(5 * time.Second):
+		t.Fatal(what)
+	}
+}
+
+// Two Starts waiting on the same pending stop: only the later one starts the loader, so the
+// earlier one's loops are not left running with nothing to stop them.
+func TestUIInboxLoaderLaterStartWinsAfterPendingStop(t *testing.T) {
+	tc, g, _ := setupLogoutStopTest(t, "TestUIInboxLoaderLaterStartWinsAfterPendingStop")
+	defer tc.Cleanup()
+
+	ctx := context.TODO()
+	loader := NewUIInboxLoader(g)
+	release, stopped := holdUIInboxLoaderStop(ctx, loader)
+	uidB := gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
+	uidC := gregor1.UID([]byte("cccccccccccccccccccccccccccccccc"))
+	startedB, startedC := make(chan struct{}), make(chan struct{})
+	go func() {
+		loader.Start(ctx, uidB)
+		close(startedB)
+	}()
+	time.Sleep(100 * time.Millisecond)
+	go func() {
+		loader.Start(ctx, uidC)
+		close(startedC)
+	}()
+	time.Sleep(100 * time.Millisecond)
+	release()
+	<-stopped
+	requireDone(t, startedB, "the first Start did not return")
+	requireDone(t, startedC, "the second Start did not return")
+
+	loader.Lock()
+	uid := loader.uid
+	loader.Unlock()
+	require.Equal(t, uidC, uid)
+	// a single Stop ends every loop: none was left over from the superseded Start
+	requireDone(t, loader.Stop(ctx), "Stop did not finish: loops from a superseded Start are still running")
+}
+
+// A Stop that comes while a Start waits on the previous stop wins: the Start gives up.
+func TestUIInboxLoaderStopSupersedesWaitingStart(t *testing.T) {
+	tc, g, _ := setupLogoutStopTest(t, "TestUIInboxLoaderStopSupersedesWaitingStart")
+	defer tc.Cleanup()
+
+	ctx := context.TODO()
+	loader := NewUIInboxLoader(g)
+	release, _ := holdUIInboxLoaderStop(ctx, loader)
+	started := make(chan struct{})
+	go func() {
+		loader.Start(ctx, gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")))
+		close(started)
+	}()
+	time.Sleep(100 * time.Millisecond)
+	stopped := loader.Stop(ctx)
+	release()
+	requireDone(t, stopped, "Stop did not finish")
+	requireDone(t, started, "Start did not return")
+
+	loader.Lock()
+	defer loader.Unlock()
+	require.False(t, loader.started)
+}

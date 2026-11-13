@@ -1,12 +1,13 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {cleanup, render, screen} from '@testing-library/react'
 import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navigationWrapper} from '@/test/navigation'
-import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
 import {FsDaemonProvider} from './daemon'
@@ -38,7 +39,9 @@ const FolderScreen = () => {
   return (
     <>
       {childPaths.map(p => (
-        <span key={T.FS.pathToString(p)}>{T.FS.getPathName(p)}</span>
+        <Kb.Text key={T.FS.pathToString(p)} type="Body">
+          {T.FS.getPathName(p)}
+        </Kb.Text>
       ))}
     </>
   )
@@ -116,6 +119,33 @@ test('a subscription that answers during the first read still gets the folder re
   await flush()
   expect(heldReads).toHaveLength(1)
   heldReads[0]?.reply({entries: [], progress: 0})
+  await flush()
+  expect(heldReads).toHaveLength(2)
+  heldReads[1]?.reply({entries, progress: 0})
+  await flush()
+
+  screen.getByText('e2e-c.pdf')
+})
+
+// A read that fails still leaves the read asked for during it to run.
+test('a read asked for during a failed read still runs', async () => {
+  const heldSubscribes = fake.hold(subscribePath)
+  const heldReads = fake.hold('keybase.1.SimpleFS.simpleFSReadList')
+  render(
+    <FsDaemonProvider>
+      <FsDataProvider>
+        <FolderScreen />
+      </FsDataProvider>
+    </FsDaemonProvider>,
+    {wrapper: navigationWrapper({route: 'fsRoot', tab: Tabs.fsTab}).wrapper}
+  )
+  await flush()
+  expect(heldReads).toHaveLength(1)
+
+  entries = [dirent('e2e-c.pdf')]
+  for (const c of heldSubscribes) c.reply(null)
+  await flush()
+  heldReads[0]?.reply(fakeError(100, 'listing failed'))
   await flush()
   expect(heldReads).toHaveLength(2)
   heldReads[1]?.reply({entries, progress: 0})

@@ -121,7 +121,7 @@ const mergeVars = (names: ReadonlyArray<string>, file: string, env: NodeJS.Proce
 const missingError = (missing: ReadonlyArray<string>, file: string) =>
   new Error(`e2e env is missing ${missing.join(', ')} (from ${file} or the environment; yarn test:e2e:accounts:setup fills in the peers)`)
 
-export const LEGACY_USER_VAR = 'KB_LEGACY_USER'
+const LEGACY_USER_VAR = 'KB_LEGACY_USER'
 
 export type E2EAccounts = Pick<E2EEnv, 'smokeUser' | 'secondUser' | 'team' | 'legacyUser'>
 

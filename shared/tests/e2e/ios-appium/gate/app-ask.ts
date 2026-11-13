@@ -3,6 +3,7 @@
 // config, the photo compress preference, the KBFS debug level, runtime stats, backup jobs) is read
 // back and restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
+import {GATEWAY_ERROR_RE} from '../../shared/chat-data.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
 import {isVdebugLevel} from './persisted-lib.ts'
 import {withHarnessRpcs} from './recorder.ts'
@@ -306,9 +307,8 @@ const reachOnce = async (timeout: number) =>
     timeout
   )
 
-// A 5xx gateway answer: the server's gateway failing for a moment (as seen mid-run), or a broken
-// proxy; only one that lasts says the phone is cut off.
-const GATEWAY_ERROR = /\b50[234]\b|Bad Gateway|Service Unavailable|Gateway Timeout/i
+// A gateway error is the server's gateway failing for a moment (as seen mid-run), or a broken proxy;
+// only one that lasts says the phone is cut off.
 const REACH_WAITS_MS = [5_000, 10_000]
 
 // Whether the phone's service reaches the API server: one cheap authenticated read answers (its body
@@ -320,7 +320,7 @@ export const phoneReachesServer = async (timeout = 30_000) => {
       return await reachOnce(timeout)
     } catch (e) {
       const wait = REACH_WAITS_MS[tries]
-      if (wait === undefined || !GATEWAY_ERROR.test(e instanceof Error ? e.message : String(e))) throw e
+      if (wait === undefined || !GATEWAY_ERROR_RE.test(e instanceof Error ? e.message : String(e))) throw e
       await sleep(wait)
     }
   }

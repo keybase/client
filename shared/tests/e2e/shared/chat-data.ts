@@ -143,10 +143,15 @@ class RateLimited extends Error {}
 const cliTimeoutMs = 60_000
 
 const isRateLimit = (e: ApiError) => e.code === 2501 || /rate limit/i.test(e.message)
-// The server's gateway failing for a moment, or the main service mid account switch (an earlier
-// flow switching back to the smoke account): gone in seconds.
-const isTransient = (e: ApiError) => /\b50[234]\b|Bad Gateway|Service Unavailable|Login required/i.test(e.message)
+// A 5xx gateway answer: the server's gateway failing for a moment, gone in seconds.
+export const GATEWAY_ERROR_RE = /\b50[234]\b|Bad Gateway|Service Unavailable|Gateway Time-?out/i
+// The main service mid account switch (an earlier flow switching back to the smoke account): the
+// call never reached the server, gone in seconds.
+const LOGIN_REQUIRED_RE = /Login required/i
 const TRANSIENT_WAITS_MS = [2_000, 5_000, 10_000]
+// Calls that change nothing, so tried again after a gateway error: a write may have landed before
+// the gateway failed, and sending it again would post it twice.
+const READ_METHODS = new Set(['listcommands', 'listconvsonname', 'listmembers', 'read'])
 
 class Transient extends Error {}
 
@@ -178,7 +183,9 @@ class ChatApi {
     const res = JSON.parse(next.value) as ApiResponse<R>
     if (res.error) {
       if (isRateLimit(res.error)) throw new RateLimited(res.error.message)
-      if (isTransient(res.error)) throw new Transient(`chat api ${method}: ${res.error.message}`)
+      if (LOGIN_REQUIRED_RE.test(res.error.message) || (READ_METHODS.has(method) && GATEWAY_ERROR_RE.test(res.error.message))) {
+        throw new Transient(`chat api ${method}: ${res.error.message}`)
+      }
       throw new Error(`chat api ${method}: ${res.error.message}`)
     }
     return res.result as R
@@ -512,11 +519,24 @@ export type ChatData = E2EAccounts & {
   direct: DirectConversation
 }
 
-let ensured: Promise<ChatData> | undefined
+// Runs `make` once per process and hands back its promise to every caller; a failed run is not kept,
+// so the next test checks again rather than failing on this one's error.
+const onceUnlessFailed = <R,>(make: () => Promise<R>) => {
+  let p: Promise<R> | undefined
+  return async () => {
+    if (!p) {
+      const mine = make()
+      p = mine
+      mine.catch(() => {
+        if (p === mine) p = undefined
+      })
+    }
+    return p
+  }
+}
 
 // Creates and seeds whatever is missing. Cached per process: one check per test run.
-export const ensureChatData = async (): Promise<ChatData> => {
-  ensured ??= (async () => {
+export const ensureChatData = onceUnlessFailed(async (): Promise<ChatData> => {
     const accounts = e2eAccounts()
     const {secondUser, team} = accounts
     const api = new ChatApi()
@@ -539,14 +559,7 @@ export const ensureChatData = async (): Promise<ChatData> => {
     } finally {
       api.close()
     }
-  })()
-  // a failed check is not kept: the next test checks again rather than failing on this one's error
-  const mine = ensured
-  mine.catch(() => {
-    if (ensured === mine) ensured = undefined
-  })
-  return mine
-}
+})
 
 const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   const api = new ChatApi()
@@ -567,12 +580,10 @@ const selfBigTitle = (n: number) => `self conversation large attachment ${n}`
 // one 50MB upload; well over what the default call deadline allows
 const SELF_BIG_ATTACH_MS = 10 * 60_000
 
-let slowSelfBackupEnsured: Promise<void> | undefined
-
 // Attaches whichever of the large attachments the self conversation is missing. Cached per
 // process: one check per test run.
-export const ensureSlowSelfBackup = async (): Promise<void> => {
-  slowSelfBackupEnsured ??= withApi(async api => {
+export const ensureSlowSelfBackup = onceUnlessFailed(async () =>
+  withApi(async api => {
     const accounts = e2eAccounts()
     await requireMainIsSmoke(accounts)
     const channel = {name: accounts.smokeUser}
@@ -603,13 +614,7 @@ export const ensureSlowSelfBackup = async (): Promise<void> => {
       fs.rmSync(dir, {force: true, recursive: true})
     }
   })
-  // a failed check is not kept, as with ensureChatData
-  const mine = slowSelfBackupEnsured
-  mine.catch(() => {
-    if (slowSelfBackupEnsured === mine) slowSelfBackupEnsured = undefined
-  })
-  return mine
-}
+)
 
 // A text message sent through the host's CLI (not the app under test), as the smoke user: on the
 // phone that is the account's own message from another device, not an incoming one (peer-actors.ts
