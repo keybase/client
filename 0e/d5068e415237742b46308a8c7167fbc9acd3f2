@@ -1,0 +1,21 @@
+packaging/linux/docker_build.sh
+  s_b5d95ce11c6ae4::t_61a3c7d2dc17e1 73
+packaging/linux/Dockerfile
+  s_b5d95ce11c6ae4::t_4a7d815cac52c6 34-35,42-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0ed5068e415237742b46308a8c7167fbc9acd3f2",
+  "prompts": {},
+  "sessions": {
+    "s_b5d95ce11c6ae4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1037c39b-9bbc-4bda-909e-445a3904ada6",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
