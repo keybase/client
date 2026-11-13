@@ -14,6 +14,7 @@ import {test, expect, e2eRunId} from '@/tests/e2e/electron/helpers/fixtures'
 import {connectMainProcess} from '@/tests/e2e/electron/helpers/main-process'
 import {navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
 import {step} from '@/tests/e2e/electron/helpers/step'
+import {ensureSlowSelfBackup} from '@/tests/e2e/shared/chat-data'
 import {mainRpc} from '@/tests/e2e/shared/main-rpc'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -130,6 +131,12 @@ const pauseChatJob = async (page: Page, testInfo: TestInfo, row: Locator, out: s
 // output. What it does not: Cancel on a running job (the usual case), which has no e2e test while
 // the service's race stands.
 test('chat backup of the self conversation: pause, resume, cancel', async ({page}, testInfo) => {
+  // a first seed uploads 500MB, each upload bounded on its own: the flow's budget gets its time on top
+  const budget = testInfo.timeout
+  const seedStart = Date.now()
+  testInfo.setTimeout(0)
+  await ensureSlowSelfBackup()
+  testInfo.setTimeout(budget + (Date.now() - seedStart))
   const {smokeUser} = loadE2EAccounts()
   const out = path.join(runDir(), 'chat')
   await withCleanup(

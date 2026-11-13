@@ -172,10 +172,16 @@ type ApiMessage = {
 type ReadResult = {messages?: Array<ApiMessage> | null; pagination?: {next?: string; last?: boolean}}
 
 // The id of a one-on-one conversation (or the self one) by its tlf name, from its newest message;
-// '' when it has none.
+// '' when it has none, or was never created (a new account's: the chat API then answers "no
+// conversations matched").
 const directConvID = async (actor: Actor, tlfName: string) => {
-  const res = await chatApi<ReadResult>(actor, 'read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true})
-  return res.messages?.[0]?.msg?.conversation_id ?? ''
+  const res = await chatApi<ReadResult>(actor, 'read', {channel: {name: tlfName}, pagination: {num: 1}, peek: true}).catch(
+    (e: unknown) => {
+      if ((e instanceof Error ? e.message : String(e)).includes('no conversations matched')) return undefined
+      throw e
+    }
+  )
+  return res?.messages?.[0]?.msg?.conversation_id ?? ''
 }
 
 // Every text message and attachment in a conversation, by id. Peeks, so reading marks nothing read.

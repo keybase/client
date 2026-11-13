@@ -81,14 +81,25 @@ export const unscannedProblem = (dir: string, results = 'results.json'): string 
   return undefined
 }
 
-// With `armor`, a file that holds a saltpack message's armor is a hit too.
+// What the desktop flows write under `resultsRoot` (tests/results), gate and targeted runs both:
+// Playwright's test-results and report (electron/playwright.config.ts, under `targeted` for a run
+// outside the gate) and the screenshot report built from them. The desktop's own scan covers them. A
+// failed desktop crypto flow can leave its own test ciphertext in them, which is no secret: the iOS
+// gate, which treats saltpack armor as one in its own artifacts, leaves armor here alone.
+export const desktopFlowOutputs = (resultsRoot: string) => [
+  ...['test-results', 'report', 'targeted'].map(d => path.join(resultsRoot, d)),
+  ...['electron-report.html', 'electron-report.cards.json'].map(f => path.join(resultsRoot, f)),
+]
+
+// With `armor` (true, or true for the file), a file that holds a saltpack message's armor is a hit too.
 export const scanAndPurge = (
   dirs: ReadonlyArray<string>,
   secrets: ReadonlyArray<string> = envSecrets(),
-  opts: {armor?: boolean} = {}
+  opts: {armor?: boolean | ((file: string) => boolean)} = {}
 ): SecretScan => {
+  const {armor = false} = opts
   const files = dirs.flatMap(filesUnder)
-  const hits = files.filter(f => holdsSecretOrArmor(fs.readFileSync(f), secrets, !!opts.armor))
+  const hits = files.filter(f => holdsSecretOrArmor(fs.readFileSync(f), secrets, typeof armor === 'function' ? armor(f) : armor))
   for (const f of hits) fs.rmSync(f, {force: true})
   return {hits, line: secretScanLine(hits, files.length), scanned: files.length}
 }

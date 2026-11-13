@@ -48,11 +48,14 @@ export const tapBanner = async (body: string, timeout = BANNER_MS) => {
   })
 }
 
-const clearButtons = () => browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear"')
+// A swiped notification offers "Clear"; a swiped stack of an app's notifications offers "Clear All"
+// (with Options and View), which clears that app's stack.
+const clearButtons = () =>
+  browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND (label == "Clear" OR label == "Clear All")')
 
 // The one Clear button the swipe showed in the swiped row: the row's actions sit beside it at its
-// height, so a Clear whose middle is within the row's top and bottom is that row's (or its group's,
-// when iOS stacks them). Any other Clear on screen (another app's group) is never tapped.
+// height, so a Clear whose middle is within the row's top and bottom is that row's (its stack's, when
+// iOS stacks them). Any other Clear on screen (another app's group) is never tapped.
 const clearInRow = async (row: {y: number; height: number}) => {
   const inRow = []
   for (const b of await clearButtons().getElements()) {
@@ -76,7 +79,16 @@ const clearRunNotifications = async () => {
     const row = await browser.getElementRect(shown.elementId)
     await browser.execute('mobile: swipe', {direction: 'left', elementId: shown.elementId})
     const clear = await lookFor(async () => clearInRow(row), {timeout: 3_000})
-    if (!clear) throw new Error(`Notification Center showed no Clear for one of this run's notifications`)
+    if (!clear) {
+      // what the swipe did show beside the row (system buttons' own labels), for whoever reads the failure
+      const labels = []
+      for (const el of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton"').getElements()) {
+        const r = await browser.getElementRect(el.elementId)
+        const mid = r.y + r.height / 2
+        if (mid >= row.y && mid <= row.y + row.height) labels.push(await el.getAttribute('label'))
+      }
+      throw new Error(`Notification Center showed no Clear for one of this run's notifications (buttons in its row: ${labels.join(', ') || 'none'})`)
+    }
     await clear.click()
   }
 }

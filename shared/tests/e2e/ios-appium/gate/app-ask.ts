@@ -299,14 +299,32 @@ export const runtimeStatsEnabled = async () =>
      )`
   )
 
-// Whether the phone's service reaches the API server: one cheap authenticated read answers (its body
-// is not kept). Bound: `timeout`, plus the pause and resume.
-export const phoneReachesServer = async (timeout = 30_000) =>
+const reachOnce = async (timeout: number) =>
   askApp<boolean>(
     "the phone's service reaching the server",
     `${RPC_GEN}.apiserverGetWithSessionRpcPromise({args: [], endpoint: 'account/subscriptions'}).then(r => !!(r && r.body))`,
     timeout
   )
+
+// A 5xx gateway answer: the server's gateway failing for a moment (as seen mid-run), or a broken
+// proxy; only one that lasts says the phone is cut off.
+const GATEWAY_ERROR = /\b50[234]\b|Bad Gateway|Service Unavailable|Gateway Timeout/i
+const REACH_WAITS_MS = [5_000, 10_000]
+
+// Whether the phone's service reaches the API server: one cheap authenticated read answers (its body
+// is not kept), tried again after a gateway error. Bound: 3 x (`timeout` plus the pause and resume),
+// plus the waits 15: 111 at the default.
+export const phoneReachesServer = async (timeout = 30_000) => {
+  for (let tries = 0; ; tries++) {
+    try {
+      return await reachOnce(timeout)
+    } catch (e) {
+      const wait = REACH_WAITS_MS[tries]
+      if (wait === undefined || !GATEWAY_ERROR.test(e instanceof Error ? e.message : String(e))) throw e
+      await sleep(wait)
+    }
+  }
+}
 
 // The app's theme state (no RPC): the preference it shows, whether "Respect system settings" is
 // offered, and whether the system is dark.

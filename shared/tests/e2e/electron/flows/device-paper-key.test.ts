@@ -76,7 +76,14 @@ test('make a paper key, then revoke it', async ({page}, testInfo) => {
     // the ledger takes the name as deviceList gives it, which is what the sweeper compares
     recordPaperKey({deviceID: listed.deviceID, deviceName: listed.name, runId})
     const id = listed.deviceID
-    const name = (await deviceHistory()).find(d => d.deviceID === id)?.name ?? ''
+    // the history can list a new device a moment after deviceList does
+    let name = ''
+    await expect
+      .poll(async () => (name = (await deviceHistory()).find(d => d.deviceID === id)?.name ?? '') !== '', {
+        message: 'the new paper key in the device history',
+        timeout: 30_000,
+      })
+      .toBe(true)
     made = {deviceID: id, name}
     await expect.poll(async () => wordsState(page), {timeout: 30_000}).toBe('hidden')
     await step(page, testInfo, 'paper key made, its words hidden', {card: true})

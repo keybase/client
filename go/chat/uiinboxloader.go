@@ -34,6 +34,8 @@ type UIInboxLoader struct {
 	workCancel context.CancelFunc
 	started    bool
 	eg         errgroup.Group
+	// closed once the last stop's eg.Wait has returned; a Start waits on it before reusing eg
+	stoppedCh chan struct{}
 
 	clock                 clockwork.Clock
 	transmitCh            chan any
@@ -116,6 +118,7 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 		h.started = false
 		h.uid = nil
 		h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
+		h.stoppedCh = ch
 		go func() {
 			err := h.eg.Wait()
 			if err != nil {
@@ -123,6 +126,9 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 			}
 			close(ch)
 		}()
+	} else if h.stoppedCh != nil {
+		// an earlier stop may still be waiting on eg: hand back its channel
+		ch = h.stoppedCh
 	} else {
 		close(ch)
 	}

@@ -165,3 +165,42 @@ func TestPushHandlerStopCancelsInflightHandler(t *testing.T) {
 	stopped = ph.Stop(ctx)
 	src.requireCancelledBy(t, stopped)
 }
+
+// A Start right after a Stop, before the stop's wait on the work group has returned, must wait for
+// it: starting the work group again while it is being waited on panics ("WaitGroup is reused
+// before previous Wait has returned"). Back-to-back account switches do exactly this.
+func TestUIInboxLoaderStartWaitsForPreviousStop(t *testing.T) {
+	tc, g, _ := setupLogoutStopTest(t, "TestUIInboxLoaderStartWaitsForPreviousStop")
+	defer tc.Cleanup()
+
+	ctx := context.TODO()
+	loader := NewUIInboxLoader(g)
+	loader.Start(ctx, gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
+	// work that outlives the stop's cancel, so the stop's wait on the group stays pending
+	release := make(chan struct{})
+	loader.eg.Go(func() error {
+		<-release
+		return nil
+	})
+	stopped := loader.Stop(ctx)
+
+	started := make(chan struct{})
+	go func() {
+		loader.Start(ctx, gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")))
+		close(started)
+	}()
+	select {
+	case <-started:
+		t.Fatal("Start returned while the previous Stop was still waiting on the work group")
+	case <-time.After(200 * time.Millisecond):
+	}
+
+	close(release)
+	<-stopped
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Start did not return once the previous Stop finished")
+	}
+	<-loader.Stop(ctx)
+}

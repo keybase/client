@@ -1659,8 +1659,10 @@ export const tapControlIn = async (
   if (!button || !measuredRow) throw new Error(`${what} or its row was not measured`)
   const at = await row.getLocation()
   const size = await row.getSize()
-  // the row's view and its element are the same box: the difference places the button on screen
-  if (Math.abs(measuredRow.width - size.width) > 1 || Math.abs(measuredRow.height - size.height) > 1) {
+  // the row's view and its element are the same box: the difference places the button on screen.
+  // XCUITest reports the element's box rounded outwards to whole points, so a view with a fractional
+  // edge on each side reads up to (but not) 2 points larger.
+  if (Math.abs(measuredRow.width - size.width) >= 2 || Math.abs(measuredRow.height - size.height) >= 2) {
     throw new Error(`the row measured ${JSON.stringify(measuredRow)} is not the row element ${JSON.stringify({...at, ...size})}`)
   }
   const frame = {...button, x: button.x + at.x - measuredRow.x, y: button.y + at.y - measuredRow.y}

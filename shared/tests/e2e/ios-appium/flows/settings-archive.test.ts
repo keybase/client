@@ -24,7 +24,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {loadE2EAccounts} from '../../accounts/env'
-import {directConvIDFromCli} from '../../shared/chat-data'
+import {directConvIDFromCli, ensureSlowSelfBackup} from '../../shared/chat-data'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {kbfsCopyIn, kbfsMkdir, newWorkFolder, removeOwnKbfs, requireOwnPath, stampedEntry} from '../../shared/files.ts'
 import * as T from '../../shared/test-ids'
@@ -389,6 +389,10 @@ describe('settings archive', function () {
     // modal 13, step 2, start 20, newJob 152, button 6, page 26, row 16, step 2; pause 138, resume
     // (tapInRow 34), pause 138; cancel: the anchor 1, tapInRow 34, polled 32, rowGone 37, gone 21, step 2,
     // the sheet 7, its read 1 = 900
+    // a first seed uploads 500MB, each upload bounded on its own; setting the timeout again after it
+    // restarts the clock
+    this.timeout(0)
+    await ensureSlowSelfBackup()
     this.timeout(920_000)
     const {smokeUser} = loadE2EAccounts()
     const convID = await masked(async () => directConvIDFromCli(smokeUser))

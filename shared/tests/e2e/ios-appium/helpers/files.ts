@@ -354,19 +354,50 @@ export const fillHiddenField = async (fieldTestID: string, text: string, what: s
   })
 }
 
+// Whether the input the app has focused is inside a SearchFilter's box (the field itself carries no
+// testID). A keyboard alone says nothing: another screen's field (the encrypt screen's, focused by an
+// earlier flow) can hold focus and its keyboard while the filter is shown.
+const filterHasFocus = async () =>
+  jsEval<boolean>(`
+    const f = kbModule('node_modules/react-native/index.js').TextInput.State.currentlyFocusedInput()
+    let node = f && (f.__internalInstanceHandle || f._internalInstanceHandle)
+    for (; node; node = node.return) {
+      if (node.memoizedProps && node.memoizedProps.testID === ${JSON.stringify(T.SEARCH_FILTER)}) return true
+    }
+    return false
+  `)
+
 // Types `text` into the SearchFilter on screen (the team builder's, a picker's): its box is one
-// accessible element with the field not in the tree, so the box is pressed unless the keyboard is
-// already up, and the text goes in as key presses. Bound: the box 10, its press 2, the keyboard 5,
-// the keys 15 = 32.
+// accessible element with the field not in the tree, so the box is pressed unless its field already
+// has focus, and the text goes in as key presses once the field has focus and the keyboard is up.
+// Bound: the box 10, its press 2, the focus and keyboard 5, the keys 15 = 32.
 export const typeInFilter = async (text: string, what: string) => {
   await browser.$(`~${T.SEARCH_FILTER}`).waitForExist({timeout: 10_000})
-  if (!(await isKeyboardUp())) {
+  if (!(await filterHasFocus())) {
     // a filter of another tab's screen can be in the tree too: the visible one, else the newest
     const boxes = await browser.$$(`~${T.SEARCH_FILTER}`).getElements()
     let box = boxes.at(-1)!
     for (const e of boxes) if ((await e.getAttribute('visible').catch(() => null)) === 'true') box = e
     await press(box, what)
   }
-  await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {interval: 250, timeout: 5_000})
+  try {
+    await waitFor('the filter focused and the keyboard up', async () => ((await filterHasFocus()) && (await isKeyboardUp()) ? true : undefined), {
+      interval: 250,
+      timeout: 5_000,
+    })
+  } catch (e) {
+    // which filter boxes the tree held, for whoever reads the failure: frames and visibility only
+    const seen = []
+    for (const b of await browser.$$(`~${T.SEARCH_FILTER}`).getElements()) {
+      let frame = 'no frame'
+      let visible = '?'
+      try {
+        frame = JSON.stringify(await browser.getElementRect(b.elementId))
+        visible = (await b.getAttribute('visible')) ?? '?'
+      } catch {}
+      seen.push(`${frame} visible=${visible}`)
+    }
+    throw new Error(`${e instanceof Error ? e.message : String(e)} after pressing ${what} (filter boxes: ${seen.join('; ') || 'none'})`, {cause: e})
+  }
   await typeIntoFocused(what, text)
 }
