@@ -1126,4 +1126,34 @@ func TestStripUsernameFromConvName(t *testing.T) {
 		StripUsernameFromConvName("alice,bob", "alice"))
 	require.Equal(t, "alice,bob",
 		StripUsernameFromConvName("alice,bob", "charlie"))
+	// Regression: a bot username that is a substring of another member must not be stripped
+	require.Equal(t, "alice,gcalbotfan",
+		StripUsernameFromConvName("alice,gcalbotfan", "gcalbot"))
+	require.Equal(t, "gcalbotfan",
+		StripUsernameFromConvName("gcalbotfan,gcalbot", "gcalbot"))
+	require.Equal(t, "xgcalbot,alice",
+		StripUsernameFromConvName("xgcalbot,gcalbot,alice", "gcalbot"))
+}
+
+// Regression for substring username collisions: the bot "gcalbot" must only be
+// removed from a conversation name when it is a complete comma-separated member,
+// never when it is a substring of another member such as "gcalbotfan".
+func TestSearchableRemoteConversationNameSubstringCollisions(t *testing.T) {
+	// Bot is a substring of a real member, not a member itself: name is unchanged.
+	require.Equal(t, "alice,gcalbotfan",
+		searchableRemoteConversationNameFromStr("alice,gcalbotfan", "gcalbot"))
+	require.Equal(t, "gcalbotfan,alice",
+		searchableRemoteConversationNameFromStr("gcalbotfan,alice", "gcalbot"))
+	require.Equal(t, "alice,xgcalbot,gcalbotfan",
+		searchableRemoteConversationNameFromStr("alice,xgcalbot,gcalbotfan", "gcalbot"))
+	// Bot is a real member alongside a lookalike: only the real member is removed.
+	require.Equal(t, "gcalbotfan",
+		searchableRemoteConversationNameFromStr("gcalbotfan,gcalbot", "gcalbot"))
+	require.Equal(t, "alice,xgcalbot",
+		searchableRemoteConversationNameFromStr("alice,xgcalbot,gcalbot", "gcalbot"))
+	require.Equal(t, "alice,xgcalbot",
+		searchableRemoteConversationNameFromStr("gcalbot,alice,xgcalbot", "gcalbot"))
+	// Reader-suffixed names ("#") are not member lists and are returned as-is.
+	require.Equal(t, "alice,gcalbot#reader",
+		searchableRemoteConversationNameFromStr("alice,gcalbot#reader", "gcalbot"))
 }
