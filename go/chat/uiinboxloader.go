@@ -88,8 +88,8 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.Unlock()
 	<-waitCh
 	h.Lock()
+	defer h.Unlock()
 	if h.gen != gen {
-		h.Unlock()
 		h.Debug(ctx, "Start: superseded while waiting for the previous stop")
 		return
 	}
@@ -108,7 +108,6 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.eg.Go(func() error { return h.transmitLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.layoutLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.bigTeamUnboxLoop(workCtx, stopCh) })
-	h.Unlock()
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
