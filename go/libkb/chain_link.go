@@ -804,6 +804,11 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
+func isStubbedLinkRecord(packed []byte) bool {
+	_, err := jsonparserw.GetString(packed, "s2")
+	return err == nil
+}
+
 func (c *ChainLink) unpackFromLocalStorage(m MetaContext, selfUID keybase1.UID, packed []byte) error {
 	if s, err := jsonparserw.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
@@ -1502,12 +1507,28 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 		return false, err
 	}
 
+	key := DbKey{Typ: DBLink, Key: c.id.String()}
+
+	// A stubbed load of a chain returns stubs for links that may already be
+	// stored in full (e.g. our own track links, stored when we loaded our own
+	// chain). Overwriting those loses the payload that track lookups read.
+	if c.IsStubbed() {
+		existing, found, err := m.G().LocalDb.GetRaw(key)
+		if err != nil {
+			return false, err
+		}
+		if found && !isStubbedLinkRecord(existing) {
+			m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
+			c.storedLocally = true
+			c.dirty = false
+			return true, nil
+		}
+	}
+
 	packed, err := c.Pack()
 	if err != nil {
 		return false, err
 	}
-
-	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
 	if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
