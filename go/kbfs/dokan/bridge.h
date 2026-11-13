@@ -66,6 +66,8 @@ enum {
 extern uintptr_t kbfsLibdokanPtr_RemoveMountPoint;
 extern uintptr_t kbfsLibdokanPtr_OpenRequestorToken;
 extern uintptr_t kbfsLibdokanPtr_Main;
+extern uintptr_t kbfsLibdokanPtr_Init;
+extern uintptr_t kbfsLibdokanPtr_Shutdown;
 
 ULONG kbfsLibDokan_GetVersion(uintptr_t proc);
 

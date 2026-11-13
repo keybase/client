@@ -527,7 +527,7 @@ func kbfsLibdokanGetVolumeInformation(
 }
 
 //export kbfsLibdokanMounted
-func kbfsLibdokanMounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+func kbfsLibdokanMounted(mountPoint C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("Mounted")
 	// Signal that the filesystem is mounted and can be used.
 	fsTableGetErrChan(uint32(pfi.DokanOptions.GlobalContext)) <- nil
