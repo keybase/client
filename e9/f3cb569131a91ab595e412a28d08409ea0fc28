@@ -1,0 +1,23 @@
+packaging/linux/rpm/cron.template
+  s_8c86064dc3e4e7::t_6228244c8dca30 58-94
+packaging/code_signing_key_pub.asc
+  s_8c86064dc3e4e7::t_6228244c8dca30 15-27,38-51
+packaging/linux/rpm/postinst.template
+  s_8c86064dc3e4e7::t_6228244c8dca30 43-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e9f3cb569131a91ab595e412a28d08409ea0fc28",
+  "prompts": {},
+  "sessions": {
+    "s_8c86064dc3e4e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c4bd5066-b2ad-465b-9ff7-a0ba60766f55",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
