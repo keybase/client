@@ -312,7 +312,7 @@ func (c *ChainLink) getHighSkipFromPayload() *HighSkip {
 }
 
 func (c *ChainLink) IsStubbed() bool {
-	return c.unpacked.stubbed
+	return c.unpacked != nil && c.unpacked.stubbed
 }
 
 func (c *ChainLink) IsEldest() bool {
@@ -361,9 +361,10 @@ func (c *ChainLink) GetUID() keybase1.UID {
 func (c *ChainLink) UnmarshalPayloadJSON() *jsonw.Wrapper {
 	jw, err := c.G().PayloadCache.GetOrPrime(c)
 	if err != nil {
-		// Any unmarshal error here would already have
-		// happened in Unpack
-		return nil
+		// Stubbed links have no payload. Callers chain AtPath/AtKey on the
+		// result, which fail cleanly on a nil-valued wrapper but panic on nil.
+		c.G().Log.Debug("ChainLink.UnmarshalPayloadJSON(%s): %v", c.id, err)
+		return jsonw.NewNil()
 	}
 	return jw
 }
@@ -804,9 +805,14 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
-func isStubbedLinkRecord(packed []byte) bool {
-	_, err := jsonparserw.GetString(packed, "s2")
-	return err == nil
+// isFullLinkRecord reports whether a stored link record carries the full
+// link (what Pack writes for an unstubbed link), not a stub or junk.
+func isFullLinkRecord(packed []byte) bool {
+	if _, err := jsonparserw.GetString(packed, "s2"); err == nil {
+		return false
+	}
+	sig, err := jsonparserw.GetString(packed, "sig")
+	return err == nil && sig != ""
 }
 
 func (c *ChainLink) unpackFromLocalStorage(m MetaContext, selfUID keybase1.UID, packed []byte) error {
@@ -1512,29 +1518,31 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// A stubbed load of a chain returns stubs for links that may already be
 	// stored in full (e.g. our own track links, stored when we loaded our own
 	// chain). Overwriting those loses the payload that track lookups read.
+	keepFull := false
 	if c.IsStubbed() {
 		existing, found, err := m.G().LocalDb.GetRaw(key)
 		if err != nil {
 			return false, err
 		}
-		if found && !isStubbedLinkRecord(existing) {
-			m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
-			c.storedLocally = true
-			c.dirty = false
-			return true, nil
+		keepFull = found && isFullLinkRecord(existing)
+	}
+
+	if keepFull {
+		// The load cached this stub before storing it; drop it so readers
+		// fall through to the full link on disk.
+		m.G().LinkCache().Remove(c.id)
+		m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
+	} else {
+		packed, err := c.Pack()
+		if err != nil {
+			return false, err
 		}
+		// Don't write with any aliases
+		if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
+			return false, err
+		}
+		m.VLogf(VLog1, "| Store Link %s", c.id)
 	}
-
-	packed, err := c.Pack()
-	if err != nil {
-		return false, err
-	}
-
-	// Don't write with any aliases
-	if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
-		return false, err
-	}
-	m.VLogf(VLog1, "| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false

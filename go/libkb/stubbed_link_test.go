@@ -52,7 +52,7 @@ func TestTrackChainLinkFromUPK2AIStubbedLink(t *testing.T) {
 	didStore, err := link.Store(m)
 	require.NoError(t, err)
 	require.True(t, didStore)
-	require.True(t, isStubbedLinkRecord(storedLinkRecord(t, tc.G, link.id)))
+	require.Contains(t, string(storedLinkRecord(t, tc.G, link.id)), `"s2"`)
 
 	followee := keybase1.UID("295a7eea607af32040647123732bc819")
 	follower := &keybase1.UserPlusKeysV2AllIncarnations{
@@ -80,12 +80,39 @@ func TestStoreKeepsFullLinkOverStub(t *testing.T) {
 	link := makeStubbedTrackLink(t, tc.G)
 	full := []byte(`{"sig":"full-link-sig","payload_json":"{}"}`)
 	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, full))
+	// A load caches each link from the server before storing it.
+	putLinkToCache(m, link)
 
 	didStore, err := link.Store(m)
 	require.NoError(t, err)
 	// Reported as stored so SigChain.Store keeps walking to older links.
 	require.True(t, didStore)
 	require.Equal(t, string(full), string(storedLinkRecord(t, tc.G, link.id)))
+	_, cached := tc.G.LinkCache().Get(link.id)
+	require.False(t, cached, "the cached stub would hide the full link on disk")
+}
+
+func TestStoreReplacesUnreadableRecordWithStub(t *testing.T) {
+	tc := SetupTest(t, "stubbed_store_junk", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	link := makeStubbedTrackLink(t, tc.G)
+	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, []byte(`{"junk":1}`)))
+
+	_, err := link.Store(m)
+	require.NoError(t, err)
+	require.Contains(t, string(storedLinkRecord(t, tc.G, link.id)), `"s2"`)
+}
+
+func TestParseTrackChainLinkStubbedLink(t *testing.T) {
+	tc := SetupTest(t, "stubbed_parse", 1)
+	defer tc.Cleanup()
+
+	// Payload readers chain jsonw lookups on UnmarshalPayloadJSON; a stub
+	// must make them fail, not crash.
+	_, err := ParseTrackChainLink(GenericChainLink{makeStubbedTrackLink(t, tc.G)})
+	require.Error(t, err)
 }
 
 func TestLinkCacheKeepsFullLinkOverStub(t *testing.T) {
