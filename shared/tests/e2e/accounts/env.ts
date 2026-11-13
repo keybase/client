@@ -5,6 +5,10 @@
 // Peers are extra `keybase --home <dir> service` processes signed in as the other accounts:
 //   second  KB_SECOND_USER, the account the app talks to (or runs as, for owner-only flows)
 //   owner   KB_SMOKE_USER on its own device, for team-owner actions while the app runs as second
+//
+// KB_LEGACY_USER (optional) is an older account already signed in on the host's main service and in
+// the phone's app, holding what a new account cannot get (a Stellar wallet: the app no longer makes
+// one). It has no peer; a flow switches the app to it only to read that state, and writes nothing.
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
@@ -17,6 +21,8 @@ export type E2EEnv = {
   smokeUser: string
   secondUser: string
   team: string
+  // KB_LEGACY_USER, when set (see the top)
+  legacyUser?: string
   peers: Record<PeerRole, PeerAccount>
   // KB_E2E_SERVICE_LOG: the main service's log, when not the default
   serviceLog?: string
@@ -115,17 +121,37 @@ const mergeVars = (names: ReadonlyArray<string>, file: string, env: NodeJS.Proce
 const missingError = (missing: ReadonlyArray<string>, file: string) =>
   new Error(`e2e env is missing ${missing.join(', ')} (from ${file} or the environment; yarn test:e2e:accounts:setup fills in the peers)`)
 
-export type E2EAccounts = Pick<E2EEnv, 'smokeUser' | 'secondUser' | 'team'>
+const LEGACY_USER_VAR = 'KB_LEGACY_USER'
+
+export type E2EAccounts = Pick<E2EEnv, 'smokeUser' | 'secondUser' | 'team' | 'legacyUser'>
 
 // Just the account names, for code that needs no peer.
 export const loadE2EAccounts = (file = defaultEnvPath(), env: NodeJS.ProcessEnv = process.env): E2EAccounts => {
-  const {get, missing} = mergeVars(['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM'], file, env)
-  if (missing.length) throw missingError(missing, file)
-  return {secondUser: get('KB_SECOND_USER'), smokeUser: get('KB_SMOKE_USER'), team: get('KB_E2E_TEAM')}
+  const {get, missing} = mergeVars(['KB_SMOKE_USER', 'KB_SECOND_USER', 'KB_E2E_TEAM', LEGACY_USER_VAR], file, env)
+  const required = missing.filter(n => n !== LEGACY_USER_VAR)
+  if (required.length) throw missingError(required, file)
+  const legacyUser = get(LEGACY_USER_VAR)
+  return {
+    ...(legacyUser ? {legacyUser} : {}),
+    secondUser: get('KB_SECOND_USER'),
+    smokeUser: get('KB_SMOKE_USER'),
+    team: get('KB_E2E_TEAM'),
+  }
+}
+
+// The legacy account's name, for a flow that reads what only an older account has. Refuses when the
+// env file names none, or names one of the accounts the flows write to.
+export const requireLegacyUser = (accounts: E2EAccounts) => {
+  const {legacyUser, secondUser, smokeUser} = accounts
+  if (!legacyUser) throw new Error(`e2e env is missing ${LEGACY_USER_VAR}: an older account with a Stellar wallet, signed in on this device`)
+  if (legacyUser === smokeUser || legacyUser === secondUser) {
+    throw new Error(`${LEGACY_USER_VAR} names the smoke or the second account; it has to be an account of its own`)
+  }
+  return legacyUser
 }
 
 export const loadE2EEnv = (file = defaultEnvPath(), env: NodeJS.ProcessEnv = process.env): E2EEnv => {
-  const optional = ['KB_E2E_SERVICE_LOG', 'KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT']
+  const optional = ['KB_E2E_SERVICE_LOG', 'KB_SECOND_PASSWORD', 'KB_SECOND_PASSWORD_NEXT', LEGACY_USER_VAR]
   const {get, missing} = mergeVars([...envVarNames, ...optional], file, env)
   const required = missing.filter(n => !optional.includes(n))
   if (required.length) throw missingError(required, file)
@@ -133,7 +159,9 @@ export const loadE2EEnv = (file = defaultEnvPath(), env: NodeJS.ProcessEnv = pro
   const secondUser = get('KB_SECOND_USER')
   const serviceLog = get('KB_E2E_SERVICE_LOG')
   const secondPassword = get('KB_SECOND_PASSWORD')
+  const legacyUser = get(LEGACY_USER_VAR)
   return {
+    ...(legacyUser ? {legacyUser} : {}),
     peers: {
       owner: {home: get(homeVar('owner')), paperKey: get(paperKeyVar('owner')), user: smokeUser},
       second: {home: get(homeVar('second')), paperKey: get(paperKeyVar('second')), user: secondUser},
@@ -175,6 +203,7 @@ export const childEnvVars = (env: E2EEnv): Record<string, string> => ({
   KB_E2E_TEAM: env.team,
   KB_SECOND_USER: env.secondUser,
   KB_SMOKE_USER: env.smokeUser,
+  ...(env.legacyUser ? {[LEGACY_USER_VAR]: env.legacyUser} : {}),
   ...(env.serviceLog ? {KB_E2E_SERVICE_LOG: env.serviceLog} : {}),
 })
 

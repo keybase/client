@@ -184,6 +184,28 @@ describe('deleteConversationMessage', () => {
     expect(paramsOf(fake, postDelete)).toEqual([])
   })
 
+  // the row's Delete is how an attachment still uploading is stopped: its outbox entry is cancelled,
+  // which ends the upload, and nothing is posted
+  test('an attachment still uploading cancels its outbox entry', async () => {
+    const outboxID = T.Chat.stringToOutboxID('0c0d')
+    deleteConversationMessage(
+      conversationIDKey,
+      makeMessageAttachment({
+        author: 'testuser',
+        conversationIDKey,
+        id: T.Chat.numberToMessageID(0),
+        ordinal: T.Chat.numberToOrdinal(11),
+        outboxID,
+        title: 'upload',
+        transferProgress: 0.3,
+        transferState: 'uploading',
+      })
+    )
+    await settle()
+    expect(paramsOf(fake, cancelPost)).toEqual([{outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)}])
+    expect(paramsOf(fake, postDelete)).toEqual([])
+  })
+
   test('a message with neither id does nothing', async () => {
     deleteConversationMessage(conversationIDKey, textMessage({id: T.Chat.numberToMessageID(0)}))
     await settle()

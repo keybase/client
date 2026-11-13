@@ -1,10 +1,11 @@
 // Attachments sent from the app into e2e-scratch: every corpus file dropped on the thread, an image
-// pasted into the composer, an upload cancelled while it runs, and an attachment deleted. Each is
-// captioned with the run's stamp so the sweeper can find what a crashed run leaves.
+// pasted into the composer, and an attachment deleted (an upload deleted while it runs is covered by
+// chat/conversation/message-commands-storeless.test.tsx). Each is captioned with the run's stamp so
+// the sweeper can find what a crashed run leaves.
 import * as fs from 'fs'
 import * as path from 'path'
 import type {Locator, Page} from '@playwright/test'
-import {test, expect, e2eMarker, e2eRunId, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
 import {clickUnoccluded, composerInput, messageMenu, openE2EChannel, rowByOrdinal, waitForRow} from '@/tests/e2e/electron/helpers/chat'
 import {dropFiles, pasteFiles} from '@/tests/e2e/electron/helpers/drop'
 import {freshDownloadPath, removeOwnDownload} from '@/tests/e2e/electron/helpers/downloads'
@@ -12,7 +13,7 @@ import {reloadKeepingCoverage} from '@/tests/e2e/electron/helpers/persisted'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 import {recordMainWindowFullscreen} from '@/tests/e2e/electron/helpers/main-process'
 import {step} from '@/tests/e2e/electron/helpers/step'
-import {CORPUS, bigFile, type CorpusKind} from '@/tests/e2e/fixtures/corpus/corpus'
+import {CORPUS, type CorpusKind} from '@/tests/e2e/fixtures/corpus/corpus'
 import {E2E_CHANNELS, readFromCli} from '@/tests/e2e/shared/chat-data'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -176,37 +177,6 @@ test('paste an image sends it', async ({page}, testInfo) => {
   await expect(row.locator('.sendingStatus')).toHaveCount(0, {timeout: 60_000})
   await step(page, testInfo, 'pasted image sent')
   await expect.poll(async () => (await attachmentsTitled(title)).length, {message: 'the CLI reads the pasted image', timeout: 30_000}).toBe(1)
-})
-
-// The CLI read of a whole bigFile upload (uploaded: true) was measured landing within about 3s of
-// its row showing "Uploading"; the read-back watches several times that long for it to appear.
-const uploadWatchMs = 20_000
-
-test('delete an upload in flight', async ({page}, testInfo) => {
-  test.setTimeout(180_000)
-  const file = await bigFile(e2eRunId())
-  await openE2EChannel(page)
-  const title = e2eMarker('upcancel')
-  await dropFiles(page, thread(page), [file])
-  await sendFromModal(page, title)
-
-  const ordinal = await waitForRow(page, title, 60_000)
-  const row = rowByOrdinal(page, ordinal)
-  await expect(row.getByText('Uploading', {exact: true}), 'the upload in progress').toBeVisible({timeout: 30_000})
-  await step(page, testInfo, 'uploading', {settle: false})
-  // the row's Delete is how an upload in flight is stopped
-  const menu = await messageMenu(page, ordinal)
-  await clickUnoccluded(menu.getByText('Delete', {exact: true}))
-
-  await expect
-    .poll(async () => attachmentsTitled(title), {message: 'attachments with the deleted title, from the CLI', timeout: 30_000})
-    .toEqual([])
-  // and nothing lands after: an upload the delete missed would post once it finished
-  for (const until = Date.now() + uploadWatchMs; Date.now() < until; await page.waitForTimeout(1_000)) {
-    expect(await attachmentsTitled(title), 'attachments with the deleted title, from the CLI').toEqual([])
-  }
-  await expect(thread(page).locator('[data-ordinal]').filter({hasText: title}), 'no attachment row').toHaveCount(0, {timeout: 10_000})
-  await step(page, testInfo, 'upload deleted')
 })
 
 test('delete an attachment', async ({page}, testInfo) => {

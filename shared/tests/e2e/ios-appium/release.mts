@@ -49,6 +49,7 @@ import {ensurePeer, mainWhoami, runKeybase} from '../shared/peer-service.ts'
 import {assertNotLocked} from '../visual/lock.mts'
 import {resultsDir as visualResultsDir} from '../visual/store.mts'
 import {
+  desktopFlowOutputs,
   envSecrets,
   forgetRunInviteLinks,
   runInviteLinkSecrets,
@@ -158,7 +159,9 @@ const cleanup = async (code: number) => {
               const runId = process.env['KB_E2E_RUN_ID'] ?? ''
               return [...withPaperKeyNames(watch ? watch.secrets() : envSecrets(), runId), ...runInviteLinkSecrets(runId)]
             },
-            log
+            log,
+            // the desktop gate's files: its own scan covers them, and their saltpack is its crypto flows' test text
+            desktopFlowOutputs(resultsDir)
           )
         : undefined,
     log

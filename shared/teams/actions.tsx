@@ -127,23 +127,18 @@ export const ignoreRequest = (teamID: T.Teams.TeamID, teamname: string, username
   ignorePromise(f())
 }
 
-export const leaveTeam = (teamname: string, permanent: boolean, context: TeamExitContext) => {
-  const f = async () => {
-    logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
-    try {
-      await T.RPCGen.teamsTeamLeaveRpcPromise(
-        {name: teamname, permanent},
-        S.waitingKeyTeamsLeaveTeam(teamname)
-      )
-      logger.info(`leaveTeam: left ${teamname} successfully`)
-      exitTeamTo(context)
-    } catch (error) {
-      if (error instanceof RPCError) {
-        logger.warn('error:', error.message)
-      }
+// Settles (never rejects) once the leave has finished or failed.
+export const leaveTeam = async (teamname: string, permanent: boolean, context: TeamExitContext) => {
+  logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
+  try {
+    await T.RPCGen.teamsTeamLeaveRpcPromise({name: teamname, permanent}, S.waitingKeyTeamsLeaveTeam(teamname))
+    logger.info(`leaveTeam: left ${teamname} successfully`)
+    exitTeamTo(context)
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.warn('error:', error.message)
     }
   }
-  ignorePromise(f())
 }
 
 export const removeMember = (teamID: T.Teams.TeamID, username: string) => {

@@ -2,7 +2,7 @@
 // account. The app's service is the main service, so switching the app switches it too; each
 // wrapper checks it is back on the smoke account before it returns.
 import {expect, type Page} from '@playwright/test'
-import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
+import {loadE2EAccounts, requireLegacyUser} from '@/tests/e2e/accounts/env'
 import {mainWhoami, requireMainIsSmoke} from '@/tests/e2e/shared/peer-service'
 import {thenRestoring} from '@/tests/e2e/shared/restore'
 import * as T from '@/tests/e2e/shared/test-ids'
@@ -14,13 +14,13 @@ import {nameMatcher, tabBarName} from './second-sign-in'
 // signs in from a stored secret, so seconds; the bound covers a slow service
 const SIGN_IN_MS = 30_000
 
-// Runs `f` with the app (and the main service) switched to the second account, through the app's
-// own account switcher, then switches back to the smoke account whether `f` passed or threw.
-export const asSecond = async <T,>(page: Page, f: () => Promise<T>): Promise<T> => {
-  const {secondUser, smokeUser} = loadE2EAccounts()
+// Runs `f` with the app (and the main service) switched to `user`, through the app's own account
+// switcher, then switches back to the smoke account whether `f` passed or threw.
+const asUser = async <T,>(page: Page, user: string, f: () => Promise<T>): Promise<T> => {
+  const {smokeUser} = loadE2EAccounts()
   return thenRestoring(
     async () => {
-      await switchAccount(page, secondUser)
+      await switchAccount(page, user)
       return f()
     },
     async () => {
@@ -30,6 +30,13 @@ export const asSecond = async <T,>(page: Page, f: () => Promise<T>): Promise<T> 
     'switching back to the smoke account'
   )
 }
+
+export const asSecond = async <T,>(page: Page, f: () => Promise<T>): Promise<T> => asUser(page, loadE2EAccounts().secondUser, f)
+
+// As the legacy account (KB_LEGACY_USER, see accounts/env.ts): `f` only reads what that account
+// holds, and writes nothing to it.
+export const asLegacy = async <T,>(page: Page, f: () => Promise<T>): Promise<T> =>
+  asUser(page, requireLegacyUser(loadE2EAccounts()), f)
 
 // Signs the app out from the user menu's "Log in as another user" (the smoke account keeps its
 // stored secret, so it stays in the login screen's list), runs `f` on the login screen, then signs

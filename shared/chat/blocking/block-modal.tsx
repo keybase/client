@@ -135,47 +135,44 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
+// The checkboxes' changes as setUserBlocks takes them
+const blocksToSet = (newBlocks: NewBlocksMap) =>
+  [...newBlocks.entries()]
+    .filter(([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined)
+    .map(([username, userBlocks]) => ({
+      setChatBlock: userBlocks.chatBlocked,
+      setFollowBlock: userBlocks.followBlocked,
+      username,
+    }))
+
 const BlockModal = (ownProps: OwnProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
-  let {username: adderUsername, others} = ownProps
-  const waitingForLeave = C.Waiting.useAnyWaiting(teamname ? C.waitingKeyTeamsLeaveTeam(teamname) : undefined)
-  const waitingForBlocking = C.Waiting.useAnyWaiting(C.waitingKeyUsersSetUserBlocks)
-  const waitingForReport = C.Waiting.useAnyWaiting(C.waitingKeyUsersReportUser)
-  if (others?.length === 1 && !adderUsername) {
-    adderUsername = others[0]
-    others = undefined
-  }
+  const {username: usernameProp, others: othersProp} = ownProps
+  // a single other is the one this is about
+  const oneOther = othersProp?.length === 1 && !usernameProp
+  const adderUsername = oneOther ? othersProp[0] : usernameProp
+  const others = oneOther ? undefined : othersProp
 
   const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
   const navigateUp = C.Router2.navigateUp
-  const reportUserRPC = C.useRPC(T.RPCGen.userReportUserRpcPromise)
-  const setUserBlocksRPC = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
-  const leaveTeamAndBlock = (teamname: string) => {
-    leaveTeam(teamname, true, 'chat')
-  }
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const refreshBlocksFor = getBlockState
-  const reportUser = (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
-    reportUserRPC(
-      [
-        {
-          comment: report.extraNotes,
-          convID: conversationIDKey,
-          includeTranscript: report.includeTranscript && !!conversationIDKey,
-          reason: report.reason,
-          username,
-        },
-        S.waitingKeyUsersReportUser,
-      ],
-      () => {},
-      () => {}
+  const reportUser = async (username: string, conversationIDKey: string | undefined, report: ReportSettings) =>
+    T.RPCGen.userReportUserRpcPromise(
+      {
+        comment: report.extraNotes,
+        convID: conversationIDKey,
+        includeTranscript: report.includeTranscript && !!conversationIDKey,
+        reason: report.reason,
+        username,
+      },
+      S.waitingKeyUsersReportUser
     )
-  }
   const setConversationStatus = (reportUser: boolean) => {
     if (!conversationIDKey) {
       return
@@ -191,56 +188,49 @@ const BlockModal = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const setUserBlocks = (newBlocks: NewBlocksMap) => {
-    // Convert our state block array to action payload.
-    const blocks = [...newBlocks.entries()]
-      .filter(
-        ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
-      )
-      .map(([username, userBlocks]) => ({
-        setChatBlock: userBlocks.chatBlocked,
-        setFollowBlock: userBlocks.followBlocked,
-        username,
-      }))
-    if (blocks.length) {
-      setUserBlocksRPC(
-        [{blocks}, S.waitingKeyUsersSetUserBlocks],
-        () => {},
-        () => {}
-      )
-    }
-  }
 
   const otherUsernames = others && others.length > 0 ? others : undefined
-  const finishWaiting = waitingForLeave || waitingForBlocking || waitingForReport
   const isBlocked = (username: string, which: BlockType) => {
     const blockObj = _allKnownBlocks.get(username)
     return blockObj ? blockObj[which] : false
   }
 
+  // The modal closes once every call it started has settled (a failure too). Leaving a team clears
+  // the modals itself when it succeeds, and blocking a conversation goes to the inbox at once.
   const onFinish = (newBlocks: NewBlocksMap, blockTeam: boolean) => {
-    let takingAction = false
+    const calls: Array<Promise<unknown>> = []
+    let leavesByItself = false
     if (blockTeam) {
       if (teamname) {
-        takingAction = true
-        leaveTeamAndBlock(teamname)
+        calls.push(leaveTeam(teamname, true, 'chat'))
       } else if (conversationIDKey) {
-        takingAction = true
+        leavesByItself = true
         const anyReported = [...newBlocks.values()].some(v => v.report !== undefined)
         setConversationStatus(anyReported)
       }
     }
-    if (newBlocks.size) {
-      takingAction = true
-      setUserBlocks(newBlocks)
+    const blocks = blocksToSet(newBlocks)
+    if (blocks.length) {
+      calls.push(T.RPCGen.userSetUserBlocksRpcPromise({blocks}, S.waitingKeyUsersSetUserBlocks))
     }
-    newBlocks.forEach(({report}, username) => report && reportUser(username, conversationIDKey, report))
-    if (!takingAction) {
+    newBlocks.forEach(({report}, username) => {
+      if (report) {
+        calls.push(reportUser(username, conversationIDKey, report))
+      }
+    })
+    if (calls.length) {
+      const f = async () => {
+        await Promise.allSettled(calls)
+        setFinished(true)
+      }
+      C.ignorePromise(f())
+    } else if (!leavesByItself) {
       navigateUp()
     }
   }
   const [blockTeam, setBlockTeam] = React.useState(context !== 'message-popup')
-  const [finishClicked, setFinishClicked] = React.useState(false)
+  // set once the calls Finish started have settled; a modal already closed ignores it
+  const [finished, setFinished] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
   // "Finish" button. reports is the same thing for reporting.
   const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(() => {
@@ -273,13 +263,11 @@ const BlockModal = (ownProps: OwnProps) => {
     }
   }, [adderUsername, otherUsernames, refreshBlocksFor])
 
-  const lastFinishWaitingRef = React.useRef(finishWaiting)
   React.useEffect(() => {
-    if (finishClicked && lastFinishWaitingRef.current && !finishWaiting) {
+    if (finished) {
       navigateUp()
     }
-    lastFinishWaitingRef.current = finishWaiting
-  }, [finishClicked, navigateUp, finishWaiting])
+  }, [finished, navigateUp])
 
   const getBlockFor = (username: string, which: BlockType) => {
     // First get a current setting from a checkbox, if user has checked anything.
@@ -346,10 +334,7 @@ const BlockModal = (ownProps: OwnProps) => {
     }
   }
 
-  const onClickFinish = () => {
-    setFinishClicked(true)
-    onFinish(newBlocks, blockTeam)
-  }
+  const onClickFinish = () => onFinish(newBlocks, blockTeam)
 
   const shouldShowReport = (username: string): boolean => {
     if (adderUsername) {

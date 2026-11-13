@@ -1,4 +1,4 @@
-// Backups: a chat backup of the self conversation (paused, resumed, paused, cancelled), a KBFS backup of one
+// Backups: a chat backup of the self conversation (started and finished), a KBFS backup of one
 // folder this run makes, and the "all files" and "all git repos" backups, each cancelled or
 // dismissed from the Backup page. Every output goes under this run's own directory,
 // /tmp/kb-e2e/archive-<runid>, which the destination dialog is stubbed to pick; jobs that were there
@@ -94,42 +94,16 @@ const kbfsJobRow = (page: Page, label: string) =>
 // -- chat ------------------------------------------------------------------------------------------
 
 type ChatJob = {request: {jobID: string; outputPath: string}; status: number}
-const chatStatus = {complete: 4, paused: 1, running: 0} as const
+// ArchiveChatJobStatus.complete, as the service answers it
+const CHAT_COMPLETE = 4
 const chatJob = async (outputPath: string) =>
   (await mainRpc<{jobs?: Array<ChatJob> | null}>('chat.1.local.archiveChatList', {identifyBehavior: 0})).jobs?.find(j => j.request.outputPath === outputPath)
 
-// Pauses the chat backup job from its row. Pause is offered only while the job runs, so one that
-// already finished fails here.
-const pauseChatJob = async (page: Page, testInfo: TestInfo, row: Locator, out: string, what: string) => {
-  let before: number | undefined
-  await expect
-    .poll(
-      async () => {
-        before = (await chatJob(out))?.status
-        return before === chatStatus.running || before === chatStatus.complete
-      },
-      {message: `the chat backup running (or already finished) ${what}`, timeout: 10_000}
-    )
-    .toBe(true)
-  if (before === chatStatus.complete) {
-    throw new Error(`the chat backup finished ${what}, before it could be paused: the self conversation archives too fast for this flow`)
-  }
-  await row.getByText('Pause', {exact: true}).click({timeout: 5_000})
-  await expect.poll(async () => (await chatJob(out))?.status, {message: `the chat backup paused ${what}`, timeout: 10_000}).toBe(chatStatus.paused)
-  await expect(row.getByText('Resume', {exact: true}), 'the paused job offers Resume').toBeVisible()
-  await step(page, testInfo, `chat backup paused ${what}`)
-}
-
-// Paused, resumed, paused again and cancelled. Cancel deletes the output in the background,
-// unordered with the job's goroutine (go/chat/archive.go Delete), and that goroutine can still
-// create files after its context is cancelled (archiveConv opens each attachment file before the
-// download sees the cancel). Cancelling while paused only narrows that window: Pause marks the job
-// PAUSED without waiting for its goroutine to exit, so a goroutine still unwinding from the second
-// pause can recreate an attachment file after the delete, and the read-back of the output then
-// fails. What this covers: Cancel on a paused job removes it from the list and, nearly always, its
-// output. What it does not: Cancel on a running job (the usual case), which has no e2e test while
-// the service's race stands.
-test('chat backup of the self conversation: pause, resume, cancel', async ({page}, testInfo) => {
+// The chat backup of the self conversation, from its info panel to the job finished on the Backup
+// page and its compressed file written. The self conversation is small and backs up in a moment, so
+// the page's Pause, Resume and Cancel, offered only while a job runs, are covered by the page's unit
+// test (settings/archive/index.test.tsx), not here.
+test('chat backup of the self conversation: started, listed and finished', async ({page}, testInfo) => {
   const {smokeUser} = loadE2EAccounts()
   const out = path.join(runDir(), 'chat')
   await withCleanup(
@@ -142,32 +116,28 @@ test('chat backup of the self conversation: pause, resume, cancel', async ({page
       await expect(page.getByText(`Source: Chat conversation: ${smokeUser}`, {exact: true}), 'the backup modal for the self conversation').toBeVisible({timeout: 10_000})
       await startToDestination(page, out)
       await expect.poll(async () => (await chatJob(out))?.status, {message: 'the chat backup job on the service', timeout: 10_000}).toBeDefined()
+      const jobID = (await chatJob(out))?.request.jobID
       await page.getByText('See progress', {exact: true}).locator('visible=true').click()
       await expect(archivePage(page), 'the Backup page').toBeVisible({timeout: 10_000})
-      await step(page, testInfo, 'backup page')
-      // the job's row: its context line carries the output (the compressed file) in its title
-      const row = archivePage(page)
-        .locator('div')
-        .filter({has: page.locator(`[title$=" => ${out}.tar.gzip"]`)})
-        .filter({has: page.getByText('Cancel', {exact: true})})
-        .last()
-      await expect(row, 'the running chat backup listed').toBeVisible({timeout: 10_000})
-      await step(page, testInfo, 'chat backup listed', {card: true})
-      await pauseChatJob(page, testInfo, row, out, 'after the start')
-      await row.getByText('Resume', {exact: true}).click()
-      await pauseChatJob(page, testInfo, row, out, 'after Resume')
-      await row.getByText('Cancel', {exact: true}).click({timeout: 5_000})
-      await expect.poll(async () => chatJob(out), {message: 'the chat backup job after Cancel', timeout: 10_000}).toBeUndefined()
-      await expect(row, 'the cancelled job off the Backup page').toHaveCount(0, {timeout: 10_000})
-      // the cancel deletes the job's output
-      await expect.poll(() => fs.existsSync(out) || fs.existsSync(`${out}.tar.gzip`), {message: 'the chat backup output after Cancel', timeout: 10_000}).toBe(false)
-      await step(page, testInfo, 'chat backup cancelled')
+      const row = archivePage(page).getByTestId(`${T.SETTINGS_ARCHIVE_ROW_PREFIX}${jobID}`)
+      await expect(row, 'the chat backup listed').toBeVisible({timeout: 10_000})
+      // its context line carries the output (the compressed file) in its title
+      await expect(row.locator(`[title$=" => ${out}.tar.gzip"]`), "the listed job's output").toHaveCount(1)
+      await expect.poll(async () => (await chatJob(out))?.status, {message: 'the chat backup finished', timeout: 60_000}).toBe(CHAT_COMPLETE)
+      await expect(row.getByText(/^Show in /), 'the finished job offers its output').toBeVisible({timeout: 10_000})
+      expect(fs.statSync(`${out}.tar.gzip`, {throwIfNoEntry: false})?.isFile(), "the chat backup's compressed file").toBe(true)
+      await step(page, testInfo, 'chat backup finished', {card: true})
     },
     [
       async () => {
         const job = await chatJob(out)
         if (job) await mainRpc('chat.1.local.archiveChatDelete', {deleteOutputPath: true, identifyBehavior: 0, jobID: job.request.jobID})
         expect(await chatJob(out), 'the chat backup job after the cleanup').toBeUndefined()
+      },
+      async () => {
+        // the service's delete removes the job's folder, not its compressed file
+        removeOutputFile(`${out}.tar.gzip`)
+        return Promise.resolve()
       },
     ]
   )

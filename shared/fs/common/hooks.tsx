@@ -492,6 +492,10 @@ const FsDataProviderForUsername = ({
   const loadingDownloadInfosRef = React.useRef(new Set<string>())
   const loadingPathMetadataRef = React.useRef(new Set<T.FS.Path>())
   const loadingFolderChildrenRef = React.useRef(new Set<string>())
+  // loads asked for while the same load was in flight: each runs once more after it, since what it
+  // was asked for (a change, a new subscription) may have come after the in-flight one read
+  const reloadFolderChildrenRef = React.useRef(new Set<string>())
+  const reloadPathMetadataRef = React.useRef(new Set<T.FS.Path>())
   const loadingAdditionalTlfsRef = React.useRef(new Set<T.FS.Path>())
   const loadTlfsInProgressRef = React.useRef(false)
   const {downloads, downloadInfos, pathItems, tlfs} = fsSharedData
@@ -501,6 +505,16 @@ const FsDataProviderForUsername = ({
       resetFsSubscriptionManager(subscriptionManager)
     }
   }, [subscriptionManager])
+
+  React.useEffect(() => {
+    const reloadFolderChildren = reloadFolderChildrenRef.current
+    const reloadPathMetadata = reloadPathMetadataRef.current
+    // a load still in flight when this account's provider goes runs nothing more after it
+    return () => {
+      reloadFolderChildren.clear()
+      reloadPathMetadata.clear()
+    }
+  }, [])
 
   const loadDownloadInfo = (downloadID: string) => {
     const loadingDownloadInfos = loadingDownloadInfosRef.current
@@ -564,38 +578,52 @@ const FsDataProviderForUsername = ({
 
   const loadPathMetadata = (path: T.FS.Path) => {
     const loadingPathMetadata = loadingPathMetadataRef.current
+    const reload = reloadPathMetadataRef.current
     if (loadingPathMetadata.has(path)) {
+      reload.add(path)
       return
     }
     loadingPathMetadata.add(path)
+    const load = loadPathMetadataAsync(
+      path,
+      loadingPathMetadata,
+      setFsSharedData,
+      errorToActionOrThrow,
+      setPathSoftError,
+      setTlfSoftError
+    )
     C.ignorePromise(
-      loadPathMetadataAsync(
-        path,
-        loadingPathMetadata,
-        setFsSharedData,
-        errorToActionOrThrow,
-        setPathSoftError,
-        setTlfSoftError
-      )
+      load.finally(() => {
+        if (reload.delete(path)) {
+          loadPathMetadata(path)
+        }
+      })
     )
   }
 
   const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
     const loadKey = `${rootPath}:${initialLoadRecursive ? 'recursive' : 'shallow'}`
     const loadingFolderChildren = loadingFolderChildrenRef.current
+    const reload = reloadFolderChildrenRef.current
     if (loadingFolderChildren.has(loadKey)) {
+      reload.add(loadKey)
       return
     }
     loadingFolderChildren.add(loadKey)
+    const load = loadFolderChildrenAsync(
+      rootPath,
+      initialLoadRecursive,
+      loadKey,
+      loadingFolderChildren,
+      setFsSharedData,
+      errorToActionOrThrow
+    )
     C.ignorePromise(
-      loadFolderChildrenAsync(
-        rootPath,
-        initialLoadRecursive,
-        loadKey,
-        loadingFolderChildren,
-        setFsSharedData,
-        errorToActionOrThrow
-      )
+      load.finally(() => {
+        if (reload.delete(loadKey)) {
+          loadFolderChildren(rootPath, initialLoadRecursive)
+        }
+      })
     )
   }
 
@@ -720,11 +748,15 @@ const releaseFsSubscription = (
 const useFsSubscriptionEffect = ({
   enabled = true,
   errorPath,
+  onSubscribed,
   subscribe,
   subscriptionKey,
 }: {
   enabled?: boolean
   errorPath?: T.FS.Path
+  // called once the service holds the subscription and it is still wanted: a change made before
+  // then sent no notification, so whatever was loaded before it is reloaded here
+  onSubscribed?: () => void
   subscribe: (subscriptionID: string) => Promise<unknown>
   subscriptionKey: string
 }) => {
@@ -737,6 +769,7 @@ const useFsSubscriptionEffect = ({
     errorToActionOrThrow(error, errorPath)
   })
   const subscribeEvent = React.useEffectEvent(subscribe)
+  const onSubscribedEvent = React.useEffectEvent(() => onSubscribed?.())
   React.useEffect(() => {
     if (!connected || !enabled) {
       return
@@ -785,6 +818,9 @@ const useFsSubscriptionEffect = ({
           return
         }
         scheduleFsSubscriptionUnsubscribeIfUnused(manager, subscriptionKey, subscription)
+        if (subscription.count > 0) {
+          onSubscribedEvent()
+        }
       } catch (error) {
         removeSubscription()
         onError(error)
@@ -811,12 +847,14 @@ const useFsSubscriptionEffect = ({
 const useFsPathSubscriptionEffect = (
   path: T.FS.Path,
   topic: T.RPCGen.PathSubscriptionTopic,
-  enabled = true
+  enabled: boolean,
+  onSubscribed: () => void
 ) => {
   const pathString = T.FS.pathToString(path)
   useFsSubscriptionEffect({
     enabled: enabled && T.FS.getPathLevel(path) >= 3,
     errorPath: path,
+    onSubscribed,
     subscribe: async subscriptionID => {
       try {
         await T.RPCGen.SimpleFSSimpleFSSubscribePathRpcPromise({
@@ -933,8 +971,15 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   const isFile = pathItem.type === T.FS.PathType.File
   const isMaybeFolder = !isFile
 
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem)
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children, focused && pathIsItem && isMaybeFolder)
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem, () =>
+    routeData?.loadPathMetadata(path)
+  )
+  useFsPathSubscriptionEffect(
+    path,
+    T.RPCGen.PathSubscriptionTopic.children,
+    focused && pathIsItem && isMaybeFolder,
+    () => routeData?.loadFolderChildren(path, true)
+  )
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
 
   useEngineActionListener(

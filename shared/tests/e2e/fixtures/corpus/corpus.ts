@@ -2,8 +2,6 @@
 // checked in; rerun it after changing it. Paths resolve from shared/, where every runner starts.
 // Changing a photo or video means erasing the iOS simulator: its library keeps the old copy beside
 // the new (ios-appium gate/device.ts ensurePhotoCorpus adds by content).
-import {randomBytes} from 'crypto'
-import * as fs from 'fs'
 import * as path from 'path'
 
 export const CORPUS_DIR = path.resolve('tests/e2e/fixtures/corpus')
@@ -49,25 +47,3 @@ export const TEXT_CORPUS = {
   markdown: 'e2e *bold* _italic_ ~strike~ `code`\n> quoted\n* item one\n* item two',
   rtl: 'e2e rtl שלום עולם مرحبا بالعالم',
 } as const
-
-const bigFileBytes = 50 * 1024 * 1024
-
-// A 50MB file of random bytes (nothing a transfer could compress away) for upload-size flows, made
-// once per run under /tmp/kb-e2e and never checked in.
-export const bigFile = async (runId: string): Promise<string> => {
-  if (!/^[0-9a-z]+$/.test(runId)) throw new Error(`bigFile: not a run id: ${runId}`)
-  const file = `/tmp/kb-e2e/big-${runId}.bin`
-  const st = fs.statSync(file, {throwIfNoEntry: false})
-  if (st?.size === bigFileBytes) return file
-  await fs.promises.mkdir(path.dirname(file), {recursive: true})
-  const tmp = `${file}.tmp-${process.pid}`
-  const fh = await fs.promises.open(tmp, 'w')
-  try {
-    const chunkBytes = 1024 * 1024
-    for (let n = 0; n < bigFileBytes; n += chunkBytes) await fh.write(randomBytes(chunkBytes))
-  } finally {
-    await fh.close()
-  }
-  await fs.promises.rename(tmp, file)
-  return file
-}

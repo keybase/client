@@ -1,19 +1,27 @@
 // The iOS release run's secret scan, run from its cleanup once what it started has stopped, so every
 // way out of a run that took the release lock (a refused preflight, a failed phase, the overall
 // deadline, an interrupt, a crash) scans the files as they finally are.
+import * as path from 'path'
 import type {Phase} from '../shared/gate/release-lib.ts'
 import {errText} from '../shared/gate/release-run.mts'
 import {scanAndPurge} from '../shared/gate/secret-scan.ts'
 
 // Scans everything under `dirs` for `secrets()` (the run's ledger, or the env file's values when
-// the run stopped before starting one) and for saltpack armor (the crypto flows), deletes each file
-// that holds one and logs it. A hit, or a scan
-// that could not run, fails the run's secrets phase, which this returns.
-export const scanResults = (dirs: ReadonlyArray<string>, secrets: () => ReadonlyArray<string>, log: (s: string) => void): Phase => {
+// the run stopped before starting one) and, outside `notOurs`, for saltpack armor (this run's crypto
+// flows keep theirs out of every artifact, so one that got in is a leak; another gate's files under
+// `dirs` are its own to judge), deletes each file that holds one and logs it. A hit, or a scan that
+// could not run, fails the run's secrets phase, which this returns.
+export const scanResults = (
+  dirs: ReadonlyArray<string>,
+  secrets: () => ReadonlyArray<string>,
+  log: (s: string) => void,
+  notOurs: ReadonlyArray<string> = []
+): Phase => {
   const start = Date.now()
   let p: Omit<Phase, 'ms' | 'name'>
   try {
-    const scan = scanAndPurge(dirs, secrets(), {armor: true})
+    const ours = (f: string) => !notOurs.some(o => f === o || f.startsWith(`${o}${path.sep}`))
+    const scan = scanAndPurge(dirs, secrets(), {armor: ours})
     for (const f of scan.hits) log(`secret found, deleted: ${f}`)
     p = {line: scan.line, ok: !scan.hits.length}
   } catch (e) {

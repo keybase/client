@@ -15,7 +15,7 @@ export type Props = {
 }
 
 const getProgress = (dlState: T.FS.DownloadState, styles: ReturnType<typeof useStyles>) => (
-  <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" testID={TestIDs.FILES_DOWNLOAD_PROGRESS}>
+  <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
     <Kb.Box2 alignSelf="center" direction="vertical" flex={1} relative={true}>
       <Kb.Box2 alignSelf="center" direction="vertical" style={styles.tube} />
       <Kb.Box2 alignSelf="center"

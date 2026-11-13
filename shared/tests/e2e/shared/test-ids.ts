@@ -178,8 +178,6 @@ export const FILES_TLF_ROW = 'files-tlf-row'
 export const FILES_ROW = 'files-row'
 // a download's card in the Files footer
 export const FILES_DOWNLOAD = 'files-download'
-// a running download's progress bar and time left, inside its card
-export const FILES_DOWNLOAD_PROGRESS = 'files-download-progress'
 // a text file's preview, once its content has loaded
 export const FILES_TEXT_PREVIEW = 'files-text-preview'
 // the phone's image, video (and audio) and pdf previews: the image once it is drawn, the pdf once its
@@ -353,12 +351,6 @@ export const SETTINGS_PROXY_SAVE = 'settings-proxy-save'
 // the add-email screen's address field, and an email row's gear (repeated per row)
 export const SETTINGS_EMAIL_INPUT = 'settings-email-input'
 export const SETTINGS_EMAIL_ROW_MENU = 'settings-email-row-menu'
-// the phone's Backup page: a chat job's pause, resume and cancel icons, and a running files job's
-// remove icon (each repeated per job)
-export const SETTINGS_ARCHIVE_JOB_PAUSE = 'settings-archive-job-pause'
-export const SETTINGS_ARCHIVE_JOB_RESUME = 'settings-archive-job-resume'
-export const SETTINGS_ARCHIVE_JOB_CANCEL = 'settings-archive-job-cancel'
-export const SETTINGS_ARCHIVE_KBFS_REMOVE = 'settings-archive-kbfs-remove'
 // a Backup page job's row: the prefix, then the job's id
 export const SETTINGS_ARCHIVE_ROW_PREFIX = 'settings-archive-row-'
 export const SETTINGS_DISPLAY           = 'settings-display'

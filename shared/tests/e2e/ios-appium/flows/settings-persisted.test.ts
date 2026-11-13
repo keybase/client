@@ -232,7 +232,7 @@ const moreListDraws = async () => {
 describe('settings persisted', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   smoke     requireAppIsSmoke 1;  host  a host read 150;  ask  an askApp 22 (20, the pause and
-  //             resume 2);  reach  phoneReachesServer 32
+  //             resume 2);  reach  phoneReachesServer 111
   //   round     roundTrip 715 + 2C + 3S, C the change's bound, S its settles (host 180, phone 52)
   //   tap       tapAndCall 37;  save  saveAndCall 37;  shown  expectShown 41;  control  tapControl 21
   //   open      openSettingsPage 126;  more  openMore 50;  relaunched  291
@@ -274,7 +274,7 @@ describe('settings persisted', function () {
     }
   }
 
-  // Bound: ask 22, the set 22, the read 22, reach 32 = 98.
+  // Bound: ask 22, the set 22, the read 22, reach 111 = 177.
   const restoreProxy = guarded(
     'the proxy settings',
     'on the phone open Settings > Advanced, choose No proxy and press Save Proxy Settings, then check the phone reaches the network',
@@ -630,9 +630,9 @@ describe('settings persisted', function () {
 
   it('Advanced > proxy: the settings the form loaded saved from the phone, read back on the phone and after a relaunch, and put back', async function () {
     // worst case (s): smoke 1, ask 22, open 126, the Save drawn (the drag 20, loaded 10) 30, step 2,
-    // the save (seq 2, its tap 1, calledOnce 14) 17, settles 52, reach 32, step 2; relaunched 291,
-    // settles 52, reach 32, open 126, the Save drawn 30, step 2; restoreProxy 98, step 2 = 917
-    this.timeout(950_000)
+    // the save (seq 2, its tap 1, calledOnce 14) 17, settles 52, reach 111, step 2; relaunched 291,
+    // settles 52, reach 111, open 126, the Save drawn 30, step 2; restoreProxy 177, step 2 = 1154
+    this.timeout(1_190_000)
     await requireAppIsSmoke()
     const original = await proxyData()
     // with no proxy, the address the save writes is never used: the phone cannot be cut off

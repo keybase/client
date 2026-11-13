@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {childEnvVars, loadE2EAccounts, loadE2EEnv, parseEnvText, requireSecondPassword, setEnvVars} from './env'
+import {childEnvVars, loadE2EAccounts, loadE2EEnv, parseEnvText, requireLegacyUser, requireSecondPassword, setEnvVars} from './env'
 
 let dir = ''
 beforeEach(() => {
@@ -146,4 +146,21 @@ test('requireSecondPassword refuses while KB_SECOND_PASSWORD_NEXT is set, naming
   }
   expect(message).toMatch(/KB_SECOND_PASSWORD_NEXT.*stopped part way/)
   expect(message).not.toMatch(/e2e-abc|e2e-def/)
+})
+
+test('the legacy account is optional, comes from KB_LEGACY_USER and is handed to children', () => {
+  expect(loadE2EAccounts(writeEnv(fullFile), noEnv).legacyUser).toBeUndefined()
+  expect(childEnvVars(loadE2EEnv(writeEnv(fullFile), noEnv))).not.toHaveProperty('KB_LEGACY_USER')
+  const p = writeEnv(`${fullFile}export KB_LEGACY_USER='testuser-old'\n`)
+  expect(loadE2EAccounts(p, noEnv).legacyUser).toBe('testuser-old')
+  expect(loadE2EEnv(p, noEnv).legacyUser).toBe('testuser-old')
+  expect(childEnvVars(loadE2EEnv(p, noEnv))['KB_LEGACY_USER']).toBe('testuser-old')
+})
+
+test('requireLegacyUser names the missing variable, and refuses the smoke or second account', () => {
+  const accounts = loadE2EAccounts(writeEnv(fullFile), noEnv)
+  expect(() => requireLegacyUser(accounts)).toThrow(/KB_LEGACY_USER/)
+  expect(requireLegacyUser({...accounts, legacyUser: 'testuser-old'})).toBe('testuser-old')
+  expect(() => requireLegacyUser({...accounts, legacyUser: accounts.smokeUser})).toThrow(/an account of its own/)
+  expect(() => requireLegacyUser({...accounts, legacyUser: accounts.secondUser})).toThrow(/an account of its own/)
 })

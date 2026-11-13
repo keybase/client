@@ -18,6 +18,12 @@ const walletRemove = 'needs a stellar wallet account to remove, and removing one
 const backupAll =
   "manual-only: backup-all (a whole-account backup copies every folder and repo of the account onto the phone, non-test teams' too, and the phone's backup status lists only some of the jobs it starts, so they cannot all be proven cancelled and removed)"
 
+// The Backup page offers pause, resume and remove only while a job runs, and the flows back up small
+// data that finishes at once (no flow sends large data); settings/archive/index.test.tsx covers what
+// each sends, on the real page. A finished job's only removal on the phone is Clear completed,
+// which would also remove jobs from before the run.
+const backupRunningOnly = 'offered only while a backup job runs; covered by settings/archive/index.test.tsx'
+
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     cryptoRoot:
@@ -103,12 +109,16 @@ export const IOS_EXCLUSIONS: Exclusions = {
       'no screen that sends it opens: its one sender is the teamInviteByContact screen (teams/invite-by-contact/team-invite-by-contacts.tsx), and nothing in the app navigates to it',
     'keybase.1.teams.teamReAddMemberAfterReset':
       'needs a member who reset their account (the files reset banner, fs/banner/reset-banner.tsx); account resets are owner: excluded',
+    'chat.1.local.archiveChatDelete': backupRunningOnly,
+    'chat.1.local.archiveChatPause': backupRunningOnly,
+    'chat.1.local.archiveChatResume': backupRunningOnly,
+    'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob': backupRunningOnly,
     'keybase.1.SimpleFS.simpleFSArchiveAllFiles': backupAll,
     'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': backupAll,
     'keybase.1.SimpleFS.simpleFSDismissUpload':
       "manual-only: files-upload-failed-dismiss (the phone sends it only from a failed upload row's Dismiss, fs/browser/rows/still.tsx; a successful upload's card hides itself and sends nothing)",
     'keybase.1.SimpleFS.simpleFSCancelDownload':
-      "iOS sends it only when another file action is picked while a Save runs (fs/common/path-item-action/menu-container.tsx cancelAfter); the phone has no download card (Save is not a regular download), and the user's cancel, the menu's Close, sends simpleFSDismissDownload, which the service cancels the download in (go/kbfs/simplefs/downloads.go dismissDownload; files-save-photos cancels a save that way). The desktop gate sends it from the download card",
+      "iOS sends it only when another file action is picked while a Save runs (fs/common/path-item-action/menu-container.tsx cancelAfter); the phone has no download card (Save is not a regular download), and the user's cancel, the menu's Close, sends simpleFSDismissDownload, which the service cancels the download in (go/kbfs/simplefs/downloads.go dismissDownload; files-save-photos cancels a save that way). The download card's cancel is covered by fs/footer/download.test.tsx",
     'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': `${desktopOnly}: the system file manager banner (util/fs-platform.tsx returns on mobile)`,
   },
   surfaces: {

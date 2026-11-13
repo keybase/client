@@ -36,8 +36,8 @@ const dlState = {
   progress: 1,
 }
 
-// The service, with kbfs up, has one finished download of a.pdf
-const serve = () => {
+// The service, with kbfs up, has one download of a.pdf: finished, unless `state` says otherwise
+const serve = (state: typeof dlState = dlState) => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.waitForClient', () => true)
   fake.answer('keybase.1.SimpleFS.simpleFSSubscribeNonPath', () => null)
@@ -47,7 +47,7 @@ const serve = () => {
   fake.answer('keybase.1.SimpleFS.simpleFSConfigureDownload', () => null)
   fake.answer('keybase.1.SimpleFS.simpleFSGetDownloadStatus', (): T.RPCGen.DownloadStatus => ({
     regularDownloadIDs: ['id1'],
-    states: [dlState],
+    states: [state],
   }))
   fake.answer('keybase.1.SimpleFS.simpleFSGetDownloadInfo', (): T.RPCGen.DownloadInfo => ({
     downloadID: 'id1',
@@ -60,8 +60,8 @@ const serve = () => {
 }
 
 // The footer's download list on the files tab, signed in, once the service answered
-const renderDownloads = async (layout: 'desktop' | 'phone' = 'desktop') => {
-  serve()
+const renderDownloads = async (layout: 'desktop' | 'phone' = 'desktop', state: typeof dlState = dlState) => {
+  const fake = serve(state)
   useConfigState.setState({loggedIn: true})
   render(
     <FsDaemonProvider>
@@ -72,6 +72,7 @@ const renderDownloads = async (layout: 'desktop' | 'phone' = 'desktop') => {
     {wrapper: navigationWrapper({layout, route: 'fsRoot', tab: Tabs.fsTab}).wrapper}
   )
   await flush()
+  return fake
 }
 
 const filename = () => screen.getByText('a.pdf')
@@ -154,4 +155,36 @@ test('on iOS the name is not tappable and opens nothing', async () => {
   await flush()
   expect(openers.androidOpenFile).not.toHaveBeenCalled()
   expect(openers.openPathInFinder).not.toHaveBeenCalled()
+})
+
+// The card's remove icon: on a download still running it cancels it, and on a finished one it
+// dismisses it. Each sends the service only that one call, for that download.
+const removeIcon = () => {
+  const icons = document.querySelectorAll<HTMLElement>('.icon-gen-iconfont-remove')
+  expect(icons).toHaveLength(1)
+  return icons[0]!
+}
+
+const sentOnRemove = async (state: typeof dlState) => {
+  const fake = await renderDownloads('desktop', state)
+  const sent: Array<{method: string; downloadID: string}> = []
+  for (const method of ['keybase.1.SimpleFS.simpleFSCancelDownload', 'keybase.1.SimpleFS.simpleFSDismissDownload']) {
+    fake.answer(method, (p: {downloadID: string}) => {
+      sent.push({downloadID: p.downloadID, method})
+      return null
+    })
+  }
+  fireEvent.click(removeIcon())
+  await flush()
+  return sent
+}
+
+test("a running download's remove icon cancels it", async () => {
+  expect(await sentOnRemove({...dlState, done: false, progress: 0.3})).toEqual([
+    {downloadID: 'id1', method: 'keybase.1.SimpleFS.simpleFSCancelDownload'},
+  ])
+})
+
+test("a finished download's remove icon dismisses it", async () => {
+  expect(await sentOnRemove(dlState)).toEqual([{downloadID: 'id1', method: 'keybase.1.SimpleFS.simpleFSDismissDownload'}])
 })

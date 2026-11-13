@@ -2,6 +2,7 @@ import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings, navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
+import {asLegacy} from '@/tests/e2e/electron/helpers/accounts'
 import {closeModal} from '@/tests/e2e/electron/helpers/modal'
 
 test('password modal opens', async ({page}, testInfo) => {
@@ -43,10 +44,14 @@ test('archive modal opens', async ({page}, testInfo) => {
 })
 
 test('wallet section renders', async ({page}, testInfo) => {
-  await navigateToSettings(page)
-  const walletRow = page.getByTestId(T.SETTINGS_ROW_WALLET).locator('visible=true')
-  await expect(walletRow, 'the Wallet row in the settings nav').toBeVisible({timeout: 5_000})
-  await walletRow.click()
-  await expect(page.getByText('Secret key').first()).toBeVisible({timeout: 10_000})
-  await step(page, testInfo, 'wallet section')
+  test.setTimeout(240_000)
+  // only an older account has a Stellar wallet for the page to list (the app no longer makes one)
+  await asLegacy(page, async () => {
+    await navigateToSettings(page)
+    const walletRow = page.getByTestId(T.SETTINGS_ROW_WALLET).locator('visible=true')
+    await expect(walletRow, 'the Wallet row in the settings nav').toBeVisible({timeout: 5_000})
+    await walletRow.click()
+    await expect(page.getByTestId(T.SETTINGS_WALLET).getByText('Secret key', {exact: true}).first()).toBeVisible({timeout: 10_000})
+    await step(page, testInfo, 'wallet section')
+  })
 })

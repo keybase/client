@@ -1,9 +1,10 @@
 // Uploads into and downloads from a folder each test makes (e2e-<runid>-files-<hex> in the smoke
 // account's private folder): the Upload button through a stubbed picker, a drop of every corpus
-// file, a download saved to ~/Downloads and one cancelled, and the preview of each kind the app shows.
+// file, a download saved to ~/Downloads, and the preview of each kind the app shows. A running
+// download's cancel is covered by the download card's unit test (fs/footer/download.test.tsx).
 import * as fs from 'fs'
 import type {Page} from '@playwright/test'
-import {test, expect, e2eRunId} from '@/tests/e2e/electron/helpers/fixtures'
+import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {dropFiles} from '@/tests/e2e/electron/helpers/drop'
 import {freshDownloadPath, removeOwnDownload} from '@/tests/e2e/electron/helpers/downloads'
@@ -11,7 +12,6 @@ import {
   clickFresh,
   expectUploadedRow,
   filesRow,
-  kbfsCopyIn,
   kbfsList,
   newWorkFolder,
   openKbfsFolder,
@@ -22,7 +22,7 @@ import {
 } from '@/tests/e2e/electron/helpers/files'
 import {connectMainProcess} from '@/tests/e2e/electron/helpers/main-process'
 import {step} from '@/tests/e2e/electron/helpers/step'
-import {CORPUS, bigFile} from '@/tests/e2e/fixtures/corpus/corpus'
+import {CORPUS} from '@/tests/e2e/fixtures/corpus/corpus'
 import {mainRpc} from '@/tests/e2e/shared/main-rpc'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -174,75 +174,6 @@ test('download and dismiss', async ({page}, testInfo) => {
     [
       async () => dismissDownloadsSince(before),
       async () => Promise.resolve().then(() => fs.existsSync(target) && removeOwnDownload(target, size)),
-      async () => removeOwnKbfs(folder),
-    ]
-  )
-})
-
-type CancelGlobals = {
-  __kbE2ECancelled?: boolean
-  __kbE2ECancelWatch?: {disconnect: () => void}
-  MutationObserver: new (f: () => void) => {observe: (n: unknown, o: object) => void; disconnect: () => void}
-  document: {body: unknown; querySelectorAll: (s: string) => ArrayLike<{textContent: string | null; querySelector: (s: string) => {click: () => void} | null}>}
-}
-
-// Presses the download card's cancel the moment it shows the download running. The file comes from
-// the local KBFS cache in well under a second, faster than a driven click lands, so the press is
-// made in the page as the card renders.
-const cancelWhenRunning = async (page: Page, name: string) =>
-  page.evaluate(
-    ([testID, progressID, n]) => {
-      const g = globalThis as unknown as CancelGlobals
-      g.__kbE2ECancelled = false
-      const watch = new g.MutationObserver(() => {
-        for (const card of Array.from(g.document.querySelectorAll(`[data-testid="${testID}"]`))) {
-          // a running download's card shows its progress, and its remove button cancels
-          const cancel = card.textContent?.includes(n) && card.querySelector(`[data-testid="${progressID}"]`) && card.querySelector('.icon-gen-iconfont-remove')
-          if (!cancel) continue
-          watch.disconnect()
-          g.__kbE2ECancelled = true
-          cancel.click()
-          return
-        }
-      })
-      watch.observe(g.document.body, {childList: true, subtree: true})
-      g.__kbE2ECancelWatch = watch
-    },
-    [T.FILES_DOWNLOAD, T.FILES_DOWNLOAD_PROGRESS, name] as const
-  )
-
-test('cancel a download', async ({page}, testInfo) => {
-  test.setTimeout(240_000)
-  const name = stampedEntry('big.bin')
-  const target = freshDownloadPath(name)
-  const before = await downloadIDs()
-  const folder = newWorkFolder()
-  await withCleanup(
-    async () => {
-      await workFolderWith(page, folder)
-      await kbfsCopyIn(await bigFile(e2eRunId()), `${folder}/${name}`)
-      await openKbfsFolder(page, folder)
-      await expect(filesRow(page, name)).toHaveCount(1, {timeout: 20_000})
-      await cancelWhenRunning(page, name)
-      await pickFromRowMenu(page, name, 'Download')
-      await expect.poll(async () => page.evaluate(() => (globalThis as unknown as CancelGlobals).__kbE2ECancelled), {message: 'cancel pressed'}).toBe(true)
-      await expect
-        .poll(async () => (await downloadStatus()).states?.filter(s => !before.includes(s.downloadID)).map(s => ({canceled: s.canceled, done: s.done})), {
-          message: 'the download from the service',
-          timeout: 20_000,
-        })
-        .toEqual([{canceled: true, done: false}])
-      expect(fs.existsSync(target), `${target} after the cancel`).toBe(false)
-      await step(page, testInfo, 'cancelled', {card: true})
-      await clickFresh(downloadCard(page, name).locator('.icon-gen-iconfont-remove'), 'the cancelled card')
-      await expect(downloadCard(page, name), 'the dismissed card').toHaveCount(0, {timeout: 10_000})
-    },
-    [
-      async () => page.evaluate(() => (globalThis as unknown as CancelGlobals).__kbE2ECancelWatch?.disconnect()),
-      async () => dismissDownloadsSince(before),
-      async () => {
-        if (fs.existsSync(target)) removeOwnDownload(target, fs.statSync(await bigFile(e2eRunId())).size)
-      },
       async () => removeOwnKbfs(folder),
     ]
   )

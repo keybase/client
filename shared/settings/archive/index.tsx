@@ -214,13 +214,13 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     let pauseOrResume: React.ReactNode
     if (isPaused || isErr) {
       pauseOrResume = isMobile ? (
-        <Kb.Icon type="iconfont-play" onClick={onResume} testID={TestIDs.SETTINGS_ARCHIVE_JOB_RESUME} />
+        <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
         <Kb.Button label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
       )
     } else if (job.status === T.RPCChat.ArchiveChatJobStatus.running) {
       pauseOrResume = isMobile ? (
-        <Kb.Icon type="iconfont-pause" onClick={onPause} testID={TestIDs.SETTINGS_ARCHIVE_JOB_PAUSE} />
+        <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
         <Kb.Button label="Pause" onClick={onPause} small={true} />
       )
@@ -230,7 +230,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
       <Kb.Box2 alignSelf="center" direction="horizontal" noShrink={true} gap="tiny">
         {pauseOrResume}
         {isMobile ? (
-          <Kb.Icon color={theme.red} type="iconfont-remove" onClick={onCancel} testID={TestIDs.SETTINGS_ARCHIVE_JOB_CANCEL} />
+          <Kb.Icon color={theme.red} type="iconfont-remove" onClick={onCancel} />
         ) : (
           <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
         )}
@@ -351,7 +351,6 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
                     color={theme.red}
                     type="iconfont-remove"
                     onClick={onCancelOrDismiss}
-                    testID={TestIDs.SETTINGS_ARCHIVE_KBFS_REMOVE}
                   />
                 )}
               </Kb.Box2>

@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {createReleaseRun} from '../shared/gate/release-run.mts'
-import {watchEnvSecrets} from '../shared/gate/secret-scan.ts'
+import {desktopFlowOutputs, watchEnvSecrets} from '../shared/gate/secret-scan.ts'
 import {scanResults, stopThenScan} from './release-secrets.mts'
 
 const quiet = async (f: () => Promise<void>) => {
@@ -102,6 +102,22 @@ test('saltpack armor in a result file or a log fails the scan and is deleted', (
   assert.equal(fs.existsSync(path.join(dir, 'ios-logs/metro.log')), false)
   assert.equal(fs.existsSync(path.join(dir, 'ios-appium/run.json')), false)
   assert.equal(fs.existsSync(path.join(dir, 'ios-appium/clean.json')), true)
+})
+
+test("another gate's files are scanned for secrets but not for armor", () => {
+  const dir = resultsWith({
+    'test-results/flows-crypto/error-context.md': 'BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb.',
+    'report/index.html': 'BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOUtMhcc4NXXRb.',
+    'report/data/leak.md': 'typed some-secret-value',
+    'ios-logs/metro.log': 'BEGIN SALTPACK SIGNED MESSAGE. kiOUtMhcc4NXXRb.',
+  })
+  const phase = scanResults([dir], () => ['some-secret-value'], () => {}, desktopFlowOutputs(dir))
+  assert.equal(phase.ok, false)
+  assert.match(phase.line, /^secret found in 2 artifacts \(deleted\)/)
+  assert.equal(fs.existsSync(path.join(dir, 'test-results/flows-crypto/error-context.md')), true)
+  assert.equal(fs.existsSync(path.join(dir, 'report/index.html')), true)
+  assert.equal(fs.existsSync(path.join(dir, 'report/data/leak.md')), false)
+  assert.equal(fs.existsSync(path.join(dir, 'ios-logs/metro.log')), false)
 })
 
 test('a scan whose secrets cannot be read fails', () => {

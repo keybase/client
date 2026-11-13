@@ -142,6 +142,17 @@ class RateLimited extends Error {}
 const cliTimeoutMs = 60_000
 
 const isRateLimit = (e: ApiError) => e.code === 2501 || /rate limit/i.test(e.message)
+// A 5xx gateway answer: the server's gateway failing for a moment, gone in seconds.
+export const GATEWAY_ERROR_RE = /\b50[234]\b|Bad Gateway|Service Unavailable|Gateway Time-?out/i
+// The main service mid account switch (an earlier flow switching back to the smoke account): the
+// call never reached the server, gone in seconds.
+const LOGIN_REQUIRED_RE = /Login required/i
+const TRANSIENT_WAITS_MS = [2_000, 5_000, 10_000]
+// Calls that change nothing, so tried again after a gateway error: a write may have landed before
+// the gateway failed, and sending it again would post it twice.
+const READ_METHODS = new Set(['listcommands', 'listconvsonname', 'listmembers', 'read'])
+
+class Transient extends Error {}
 
 // One long-lived `keybase chat api` process: it reads a stream of requests on stdin and answers
 // each with one line on stdout, so seeding does not pay a process start per message.
@@ -171,6 +182,9 @@ class ChatApi {
     const res = JSON.parse(next.value) as ApiResponse<R>
     if (res.error) {
       if (isRateLimit(res.error)) throw new RateLimited(res.error.message)
+      if (LOGIN_REQUIRED_RE.test(res.error.message) || (READ_METHODS.has(method) && GATEWAY_ERROR_RE.test(res.error.message))) {
+        throw new Transient(`chat api ${method}: ${res.error.message}`)
+      }
       throw new Error(`chat api ${method}: ${res.error.message}`)
     }
     return res.result as R
@@ -183,14 +197,21 @@ class ChatApi {
   }
 
   // Retries rate-limit errors (the service allows about 9000 chat calls per 15 minutes), waiting
-  // longer each time, for up to the length of one window.
+  // longer each time, for up to the length of one window; and transient ones a few times.
   async call<R>(method: string, options: object): Promise<R> {
     let waitMs = 30_000
     let waited = 0
+    let transientTries = 0
     for (;;) {
       try {
         return await this.callOnce<R>(method, options)
       } catch (e) {
+        if (e instanceof Transient && transientTries < TRANSIENT_WAITS_MS.length) {
+          const wait = TRANSIENT_WAITS_MS[transientTries++]!
+          log(`${e.message}; trying again in ${wait / 1000}s`)
+          await sleep(wait)
+          continue
+        }
         if (!(e instanceof RateLimited) || waited > 16 * 60_000) throw e
         log(`rate limited on ${method}; waiting ${waitMs / 1000}s`)
         await sleep(waitMs)
@@ -497,11 +518,24 @@ export type ChatData = E2EAccounts & {
   direct: DirectConversation
 }
 
-let ensured: Promise<ChatData> | undefined
+// Runs `make` once per process and hands back its promise to every caller; a failed run is not kept,
+// so the next test checks again rather than failing on this one's error.
+const onceUnlessFailed = <R,>(make: () => Promise<R>) => {
+  let p: Promise<R> | undefined
+  return async () => {
+    if (!p) {
+      const mine = make()
+      p = mine
+      mine.catch(() => {
+        if (p === mine) p = undefined
+      })
+    }
+    return p
+  }
+}
 
 // Creates and seeds whatever is missing. Cached per process: one check per test run.
-export const ensureChatData = async (): Promise<ChatData> => {
-  ensured ??= (async () => {
+export const ensureChatData = onceUnlessFailed(async (): Promise<ChatData> => {
     const accounts = e2eAccounts()
     const {secondUser, team} = accounts
     const api = new ChatApi()
@@ -524,9 +558,7 @@ export const ensureChatData = async (): Promise<ChatData> => {
     } finally {
       api.close()
     }
-  })()
-  return ensured
-}
+})
 
 const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   const api = new ChatApi()

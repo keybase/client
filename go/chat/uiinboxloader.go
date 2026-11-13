@@ -34,6 +34,11 @@ type UIInboxLoader struct {
 	workCancel context.CancelFunc
 	started    bool
 	eg         errgroup.Group
+	// closed once the last stop's eg.Wait has returned; a Start waits on it before reusing eg
+	stoppedCh chan struct{}
+	// bumped by every Start and Stop: a Start that waited on stoppedCh gives up when a later Start or
+	// Stop came in meanwhile
+	gen uint64
 
 	clock                 clockwork.Clock
 	transmitCh            chan any
@@ -78,9 +83,16 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer h.Trace(ctx, nil, "Start")()
 	h.Lock()
 	waitCh := h.doStopLocked(ctx)
+	h.gen++
+	gen := h.gen
 	h.Unlock()
 	<-waitCh
 	h.Lock()
+	defer h.Unlock()
+	if h.gen != gen {
+		h.Debug(ctx, "Start: superseded while waiting for the previous stop")
+		return
+	}
 	h.transmitCh = make(chan any, 1000)
 	h.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1000)
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
@@ -91,8 +103,8 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.uid = uid
 	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 	stopCh := h.stopCh
-	h.Unlock()
 	h.setLastLayout(nil)
+	// registered under the lock, so a Stop never waits on eg while this start is still adding to it
 	h.eg.Go(func() error { return h.transmitLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.layoutLoop(workCtx, stopCh) })
 	h.eg.Go(func() error { return h.bigTeamUnboxLoop(workCtx, stopCh) })
@@ -102,6 +114,7 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 	defer h.Trace(ctx, nil, "Stop")()
 	h.Lock()
 	defer h.Unlock()
+	h.gen++
 	return h.doStopLocked(ctx)
 }
 
@@ -116,6 +129,7 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 		h.started = false
 		h.uid = nil
 		h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
+		h.stoppedCh = ch
 		go func() {
 			err := h.eg.Wait()
 			if err != nil {
@@ -123,6 +137,9 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 			}
 			close(ch)
 		}()
+	} else if h.stoppedCh != nil {
+		// an earlier stop may still be waiting on eg: hand back its channel
+		ch = h.stoppedCh
 	} else {
 		close(ch)
 	}

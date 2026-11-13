@@ -3,6 +3,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {openMenu} from './menu'
+import {nameMatcher, tabBarName} from './second-sign-in'
 import {retriedNavigation} from './step'
 
 async function clickNavTab(page: Page, tabTestID: string): Promise<void> {
@@ -100,7 +101,9 @@ export async function openOwnProfile(page: Page): Promise<void> {
   // from the People feed, whatever profile an earlier test left stacked on it
   await navigateToPeople(page)
   const item = page.getByText('View/Edit profile', {exact: true})
-  await openMenu(page, page.getByText(`Hi ${smokeUser}!`, {exact: true}), item, 'the user menu')
+  const name = tabBarName(page)
+  await expect(name, "the tab bar's name before opening the user menu").toHaveText(nameMatcher(smokeUser), {timeout: 5_000})
+  await openMenu(page, name, item, 'the user menu')
   await item.click({timeout: 5_000})
   await page.waitForSelector(`[data-testid="${T.PROFILE_PAGE}"]`, {timeout: 10_000})
   await expect(item, 'the user menu after the pick').toBeHidden({timeout: 5_000})
