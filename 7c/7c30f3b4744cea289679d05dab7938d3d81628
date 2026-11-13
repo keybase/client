@@ -1,0 +1,19 @@
+go/chat/utils/utils_test.go
+  s_d5529a557e9706::t_cee4ce57915fd8 1129-1158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "7c7c30f3b4744cea289679d05dab7938d3d81628",
+  "prompts": {},
+  "sessions": {
+    "s_d5529a557e9706": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f936e8b9-ac71-41ae-88aa-328f66ea3228",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
