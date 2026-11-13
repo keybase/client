@@ -6,7 +6,6 @@ import * as path from 'path'
 import type {ArchiveJobStates, ArchiveJobs} from './app-ask'
 
 // ArchiveChatJobStatus and SimpleFSArchiveJobPhase, as the phone's service answers them
-export const CHAT_RUNNING = 0
 export const CHAT_PAUSED = 1
 export const CHAT_COMPLETE = 4
 export const KBFS_DONE = 6

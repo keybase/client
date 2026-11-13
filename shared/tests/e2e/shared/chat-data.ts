@@ -10,7 +10,6 @@
 //   KB_E2E_TEAM    the team the e2e channels live in
 import {spawn, type ChildProcessWithoutNullStreams} from 'child_process'
 import {randomBytes} from 'crypto'
-import * as fs from 'fs'
 import * as path from 'path'
 import * as readline from 'readline'
 import {loadE2EAccounts, type E2EAccounts} from '../accounts/env.ts'
@@ -115,7 +114,7 @@ type ApiMessage = {
     content: {
       type: string
       text?: {body: string}
-      attachment?: {object?: {filename?: string; mimeType?: string; size?: number; title?: string}}
+      attachment?: {object?: {filename?: string; mimeType?: string; title?: string}}
     }
     // each emoji's reactions, by the usernames that reacted
     reactions?: {reactions?: Record<string, {users?: Record<string, unknown> | null}> | null} | null
@@ -569,60 +568,6 @@ const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
     api.close()
   }
 }
-
-// The chat backup flows pause a backup of the self conversation while it runs, so that backup has
-// to take seconds. Text does not: the service backs up thousands of messages from its local cache
-// in well under a second. Ten 50MB attachments of random bytes (nothing for the backup to compress)
-// take about 12s. Their titles carry no run stamp, so the sweeper keeps them.
-const SELF_BIG_COUNT = 10
-const SELF_BIG_BYTES = 50 * 1024 * 1024
-const selfBigTitle = (n: number) => `self conversation large attachment ${n}`
-// one 50MB upload; well over what the default call deadline allows
-const SELF_BIG_ATTACH_MS = 10 * 60_000
-
-// Attaches whichever of the large attachments the self conversation is missing. Cached per
-// process: one check per test run.
-export const ensureSlowSelfBackup = onceUnlessFailed(async () =>
-  withApi(async api => {
-    const accounts = e2eAccounts()
-    await requireMainIsSmoke(accounts)
-    const channel = {name: accounts.smokeUser}
-    const want = new Set(Array.from({length: SELF_BIG_COUNT}, (_, i) => selfBigTitle(i + 1)))
-    const found = new Set<string>()
-    let next: string | undefined
-    // newest first; stops once every title is found
-    for (;;) {
-      // an account that never wrote to itself has no self conversation yet: the first attach makes it
-      const first = !next
-      const res = await api
-        .call<ReadResult>('read', {channel, pagination: next ? {next, num: 500} : {num: 500}, peek: true})
-        .catch((e: unknown) => {
-          if (first && message(e).includes('no conversations matched')) return undefined
-          throw e
-        })
-      if (!res) break
-      for (const m of unboxed(res)) {
-        const object = m.content.type === 'attachment' ? m.content.attachment?.object : undefined
-        if (object?.title && want.has(object.title) && (object.size ?? 0) >= SELF_BIG_BYTES) found.add(object.title)
-      }
-      if (found.size === want.size || !res.pagination?.next || res.pagination.last || !res.messages?.length) break
-      next = res.pagination.next
-    }
-    const missing = [...want].filter(t => !found.has(t))
-    if (!missing.length) return
-    const dir = fs.mkdtempSync('/tmp/kb-e2e-self-big-')
-    const file = path.join(dir, 'self-big.bin')
-    try {
-      fs.writeFileSync(file, randomBytes(SELF_BIG_BYTES))
-      for (const title of missing) {
-        log(`attaching ${title} (${SELF_BIG_BYTES / 1024 / 1024}MB) to the self conversation`)
-        await api.callWithin('attach', {channel, filename: file, title}, SELF_BIG_ATTACH_MS)
-      }
-    } finally {
-      fs.rmSync(dir, {force: true, recursive: true})
-    }
-  })
-)
 
 // A text message sent through the host's CLI (not the app under test), as the smoke user: on the
 // phone that is the account's own message from another device, not an incoming one (peer-actors.ts

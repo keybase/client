@@ -55,20 +55,6 @@ const keepSession = async () => {
   await browser.getTimeouts()
 }
 
-// Waits for `work` (host-side work that sends the session nothing, such as seeding data through the
-// host's CLI), keeping the Appium session meanwhile.
-export const keepingSession = async <R,>(work: Promise<R>): Promise<R> => {
-  const settled = work.then(
-    () => true,
-    () => true
-  )
-  while (!(await Promise.race([settled, sleep(SESSION_PING_POLL_MS).then(() => false)]))) {
-    await keepSession()
-  }
-  return work
-}
-const SESSION_PING_POLL_MS = 5_000
-
 // Retries until check returns a value, or throws with the last error once the timeout passes. A check
 // throws gate/wait-lib.ts WaitStopped to end the wait at once.
 export const waitFor = async <R>(
