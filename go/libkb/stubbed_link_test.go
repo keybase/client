@@ -49,10 +49,8 @@ func TestTrackChainLinkFromUPK2AIStubbedLink(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	link := makeStubbedTrackLink(t, tc.G)
-	didStore, err := link.Store(m)
+	_, err := link.Store(m)
 	require.NoError(t, err)
-	require.True(t, didStore)
-	require.Contains(t, string(storedLinkRecord(t, tc.G, link.id)), `"s2"`)
 
 	followee := keybase1.UID("295a7eea607af32040647123732bc819")
 	follower := &keybase1.UserPlusKeysV2AllIncarnations{
@@ -90,6 +88,24 @@ func TestStoreKeepsFullLinkOverStub(t *testing.T) {
 	require.Equal(t, string(full), string(storedLinkRecord(t, tc.G, link.id)))
 	_, cached := tc.G.LinkCache().Get(link.id)
 	require.False(t, cached, "the cached stub would hide the full link on disk")
+}
+
+func TestStoreKeepsFullLinkWithStubKeyState(t *testing.T) {
+	tc := SetupTest(t, "stubbed_store_cki", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	link := makeStubbedTrackLink(t, tc.G)
+	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, []byte(`{"sig":"full-link-sig","payload_json":"{}"}`)))
+	// The tail of a load carries the chain's computed key state.
+	link.PutSigCheckCache(NewComputedKeyInfos(tc.G))
+
+	_, err := link.Store(m)
+	require.NoError(t, err)
+	stored := string(storedLinkRecord(t, tc.G, link.id))
+	require.Contains(t, stored, `"sig":"full-link-sig"`)
+	require.Contains(t, stored, `"computed_key_infos"`)
+	require.NotContains(t, stored, `"s2"`)
 }
 
 func TestStoreReplacesUnreadableRecordWithStub(t *testing.T) {

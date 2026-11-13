@@ -808,9 +808,6 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 // isFullLinkRecord reports whether a stored link record carries the full
 // link (what Pack writes for an unstubbed link), not a stub or junk.
 func isFullLinkRecord(packed []byte) bool {
-	if _, err := jsonparserw.GetString(packed, "s2"); err == nil {
-		return false
-	}
 	sig, err := jsonparserw.GetString(packed, "sig")
 	return err == nil && sig != ""
 }
@@ -1518,27 +1515,40 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// A stubbed load of a chain returns stubs for links that may already be
 	// stored in full (e.g. our own track links, stored when we loaded our own
 	// chain). Overwriting those loses the payload that track lookups read.
-	keepFull := false
+	var full []byte
 	if c.IsStubbed() {
 		existing, found, err := m.G().LocalDb.GetRaw(key)
 		if err != nil {
 			return false, err
 		}
-		keepFull = found && isFullLinkRecord(existing)
+		if found && isFullLinkRecord(existing) {
+			full = existing
+		}
 	}
 
-	if keepFull {
+	var record *jsonw.Wrapper
+	if full != nil {
 		// The load cached this stub before storing it; drop it so readers
 		// fall through to the full link on disk.
 		m.G().LinkCache().Remove(c.id)
 		m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
-	} else {
-		packed, err := c.Pack()
-		if err != nil {
-			return false, err
+		// Key state at a link doesn't depend on stubbing; keep what this load
+		// computed so the next load can start from it.
+		if c.cki != nil {
+			if record, err = jsonw.Unmarshal(full); err != nil {
+				return false, err
+			}
+			if err = record.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki)); err != nil {
+				return false, err
+			}
 		}
+	} else if record, err = c.Pack(); err != nil {
+		return false, err
+	}
+
+	if record != nil {
 		// Don't write with any aliases
-		if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
+		if err = m.G().LocalDb.Put(key, nil, record); err != nil {
 			return false, err
 		}
 		m.VLogf(VLog1, "| Store Link %s", c.id)
