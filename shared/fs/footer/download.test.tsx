@@ -160,11 +160,8 @@ test('on iOS the name is not tappable and opens nothing', async () => {
 // The card's remove icon: on a download still running it cancels it, and on a finished one it
 // dismisses it. Each sends the service only that one call, for that download.
 const removeIcon = () => {
-  // the native type-check, which has no DOM library, covers this file too
-  const icons = (globalThis as unknown as {document: {querySelectorAll: (s: string) => {length: number; [i: number]: unknown}}}).document.querySelectorAll(
-    '.icon-gen-iconfont-remove'
-  )
-  expect(icons.length).toBe(1)
+  const icons = document.querySelectorAll<HTMLElement>('.icon-gen-iconfont-remove')
+  expect(icons).toHaveLength(1)
   return icons[0]!
 }
 
@@ -177,7 +174,7 @@ const sentOnRemove = async (state: typeof dlState) => {
       return null
     })
   }
-  fireEvent.click(removeIcon() as Parameters<typeof fireEvent.click>[0])
+  fireEvent.click(removeIcon())
   await flush()
   return sent
 }

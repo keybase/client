@@ -48,21 +48,26 @@ export const tapBanner = async (body: string, timeout = BANNER_MS) => {
   })
 }
 
-// A swiped notification offers "Clear"; a swiped stack of an app's notifications offers "Clear All"
-// (with Options and View), which clears that app's stack.
-const clearButtons = () =>
-  browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND (label == "Clear" OR label == "Clear All")')
-
-// The one Clear button the swipe showed in the swiped row: the row's actions sit beside it at its
-// height, so a Clear whose middle is within the row's top and bottom is that row's (its stack's, when
-// iOS stacks them). Any other Clear on screen (another app's group) is never tapped.
-const clearInRow = async (row: {y: number; height: number}) => {
+// The buttons matching `selector` drawn in the row: a swipe draws a row's actions beside it at its
+// height, so a button whose middle is within the row's top and bottom is that row's (its stack's,
+// when iOS stacks them). Any other on screen (another app's group) is never one of them.
+const buttonsInRow = async (selector: string, row: {y: number; height: number}) => {
   const inRow = []
-  for (const b of await clearButtons().getElements()) {
+  for (const b of await browser.$$(selector).getElements()) {
     const r = await browser.getElementRect(b.elementId)
     const mid = r.y + r.height / 2
     if (mid >= row.y && mid <= row.y + row.height) inRow.push(b)
   }
+  return inRow
+}
+
+// A swiped notification offers "Clear"; a swiped stack of an app's notifications offers "Clear All"
+// (with Options and View), which clears that app's stack.
+const CLEAR_BUTTONS = '-ios predicate string:type == "XCUIElementTypeButton" AND (label == "Clear" OR label == "Clear All")'
+
+// The one Clear button the swipe showed in the swiped row.
+const clearInRow = async (row: {y: number; height: number}) => {
+  const inRow = await buttonsInRow(CLEAR_BUTTONS, row)
   if (inRow.length > 1) throw new Error(`the swiped notification showed ${inRow.length} Clear buttons in its row`)
   return inRow[0]
 }
@@ -82,11 +87,7 @@ const clearRunNotifications = async () => {
     if (!clear) {
       // what the swipe did show beside the row (system buttons' own labels), for whoever reads the failure
       const labels = []
-      for (const el of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton"').getElements()) {
-        const r = await browser.getElementRect(el.elementId)
-        const mid = r.y + r.height / 2
-        if (mid >= row.y && mid <= row.y + row.height) labels.push(await el.getAttribute('label'))
-      }
+      for (const el of await buttonsInRow('-ios predicate string:type == "XCUIElementTypeButton"', row)) labels.push(await el.getAttribute('label'))
       throw new Error(`Notification Center showed no Clear for one of this run's notifications (buttons in its row: ${labels.join(', ') || 'none'})`)
     }
     await clear.click()

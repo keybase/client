@@ -365,15 +365,6 @@ const loadFolderChildrenAsync = async (
   }
 }
 
-// Runs `next` once `load` settles, failed or not; a failure still rejects the returned promise.
-const afterSettled = async (load: Promise<void>, next: () => void) => {
-  try {
-    await load
-  } finally {
-    next()
-  }
-}
-
 const loadTlfsAsync = async (
   username: string,
   loadTlfsInProgressRef: {current: boolean},
@@ -602,7 +593,7 @@ const FsDataProviderForUsername = ({
       setTlfSoftError
     )
     C.ignorePromise(
-      afterSettled(load, () => {
+      load.finally(() => {
         if (reload.delete(path)) {
           loadPathMetadata(path)
         }
@@ -628,7 +619,7 @@ const FsDataProviderForUsername = ({
       errorToActionOrThrow
     )
     C.ignorePromise(
-      afterSettled(load, () => {
+      load.finally(() => {
         if (reload.delete(loadKey)) {
           loadFolderChildren(rootPath, initialLoadRecursive)
         }

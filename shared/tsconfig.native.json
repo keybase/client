@@ -19,6 +19,7 @@
     "./common-adapters/icon.constants-gen.native.tsx",
     "./common-adapters/icon.constants-gen.shared.tsx",
     "./chat/conversation/normal/container.test.tsx",
+    "./fs/footer/download.test.tsx",
     "./chat/conversation/messages/separator.test.tsx",
     "./chat/conversation/messages/reply-gestures.test.tsx",
     "./chat/conversation/input-area/composer.test.tsx",

@@ -9,6 +9,12 @@ const firstDevice = 'owner: excluded (first-device provisioning screens; no test
 const resetStart = 'owner: excluded (account reset start and cancel)'
 const resetFromProvisioning = 'owner: excluded (account reset start and cancel; reached only from first-device provisioning screens)'
 
+// The Backup page offers Pause, Resume and Cancel only while a job runs, and the flows back up small
+// data that finishes at once (no flow sends large data); settings/archive/index.test.tsx covers what
+// each sends, on the real page. A finished job's only removal is Clear completed, which would also
+// remove jobs from before the run.
+const backupRunningOnly = 'offered only while a backup job runs; covered by settings/archive/index.test.tsx'
+
 export const EXCLUSIONS: Exclusions = {
   routes: {
     accountSwitcher: `${phoneOnly} (opened only from the phone header avatar)`,
@@ -51,6 +57,11 @@ export const EXCLUSIONS: Exclusions = {
     webLinks: `${phoneOnly} (desktop's Settings > About opens Terms and Privacy Policy in the browser)`,
   },
   rpcs: {
+    'chat.1.local.archiveChatDelete': backupRunningOnly,
+    'chat.1.local.archiveChatPause': backupRunningOnly,
+    'chat.1.local.archiveChatResume': backupRunningOnly,
+    'keybase.1.SimpleFS.simpleFSCancelDownload':
+      "a running download's cancel on its card: flows send no large files, so a download is done before a press lands; covered by fs/footer/download.test.tsx",
     'keybase.1.account.cancelReset': resetStart,
     'keybase.1.account.enterResetPipeline': resetFromProvisioning,
     'chat.1.local.addTeamMemberAfterReset': 'needs a member who reset their account; account resets are owner: excluded',

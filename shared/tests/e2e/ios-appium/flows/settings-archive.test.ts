@@ -2,10 +2,10 @@
 // "Backup channel" and a folder's "Backup folder" from its files row menu, each listed on the Backup
 // page and finished there. Both back up small data that finishes in a moment, so the page's pause,
 // resume and remove controls, offered only while a job runs, are covered by the page's unit test
-// (settings/archive/index.test.tsx), not here. The Backup
-// page's "Backup all files" and "Backup all Git repos" are never pressed: they copy every folder and
-// repo of the account, non-test teams' too, onto the phone, and the status lists only some of the
-// jobs they start (census exclusions, manual-only 'backup-all').
+// (settings/archive/index.test.tsx), not here. The Backup page's "Backup all files" and "Backup all
+// Git repos" are never pressed: they copy every folder and repo of the account, non-test teams' too,
+// onto the phone, and the status lists only some of the jobs they start (census exclusions,
+// manual-only 'backup-all').
 //
 // The jobs run on the phone's own service and write into the phone's storage (the phone has no
 // destination to pick: its modal only shares), so they are read and cleaned up through the phone's
@@ -83,7 +83,7 @@ describe('settings archive', function () {
   //   button    tapButton 6;  label  a labelled element read 1;  screen  expectScreen 11, 16 with 15s
   //   calls     seq 2;  waited for  waitForCall 12
   //   page      the Backup page from See progress: screen 16, its marker 10 = 26
-  //   row       a job's row 16 (15, one read 1);  in row  elementInRow 2 and its tap 1 = 3
+  //   row       a job's row 16 (15, one read 1)
   //   storage   the simulator's storage 120 (its container, once);  gone  20s of reads 21
   //   step      2 (its 1s settle and the attach)
 

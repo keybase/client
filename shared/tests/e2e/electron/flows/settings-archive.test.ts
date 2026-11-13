@@ -94,7 +94,8 @@ const kbfsJobRow = (page: Page, label: string) =>
 // -- chat ------------------------------------------------------------------------------------------
 
 type ChatJob = {request: {jobID: string; outputPath: string}; status: number}
-const chatStatus = {complete: 4} as const
+// ArchiveChatJobStatus.complete, as the service answers it
+const CHAT_COMPLETE = 4
 const chatJob = async (outputPath: string) =>
   (await mainRpc<{jobs?: Array<ChatJob> | null}>('chat.1.local.archiveChatList', {identifyBehavior: 0})).jobs?.find(j => j.request.outputPath === outputPath)
 
@@ -122,7 +123,7 @@ test('chat backup of the self conversation: started, listed and finished', async
       await expect(row, 'the chat backup listed').toBeVisible({timeout: 10_000})
       // its context line carries the output (the compressed file) in its title
       await expect(row.locator(`[title$=" => ${out}.tar.gzip"]`), "the listed job's output").toHaveCount(1)
-      await expect.poll(async () => (await chatJob(out))?.status, {message: 'the chat backup finished', timeout: 60_000}).toBe(chatStatus.complete)
+      await expect.poll(async () => (await chatJob(out))?.status, {message: 'the chat backup finished', timeout: 60_000}).toBe(CHAT_COMPLETE)
       await expect(row.getByText(/^Show in /), 'the finished job offers its output').toBeVisible({timeout: 10_000})
       expect(fs.statSync(`${out}.tar.gzip`, {throwIfNoEntry: false})?.isFile(), "the chat backup's compressed file").toBe(true)
       await step(page, testInfo, 'chat backup finished', {card: true})

@@ -175,14 +175,7 @@ func TestUIInboxLoaderStartWaitsForPreviousStop(t *testing.T) {
 
 	ctx := context.TODO()
 	loader := NewUIInboxLoader(g)
-	loader.Start(ctx, gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))
-	// work that outlives the stop's cancel, so the stop's wait on the group stays pending
-	release := make(chan struct{})
-	loader.eg.Go(func() error {
-		<-release
-		return nil
-	})
-	stopped := loader.Stop(ctx)
+	release, stopped := holdUIInboxLoaderStop(ctx, loader)
 
 	started := make(chan struct{})
 	go func() {
@@ -195,13 +188,9 @@ func TestUIInboxLoaderStartWaitsForPreviousStop(t *testing.T) {
 	case <-time.After(200 * time.Millisecond):
 	}
 
-	close(release)
+	release()
 	<-stopped
-	select {
-	case <-started:
-	case <-time.After(5 * time.Second):
-		t.Fatal("Start did not return once the previous Stop finished")
-	}
+	requireDone(t, started, "Start did not return once the previous Stop finished")
 	<-loader.Stop(ctx)
 }
 
