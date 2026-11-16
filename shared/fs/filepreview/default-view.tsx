@@ -56,11 +56,11 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
         {isMobile && <LastModifiedLine path={path} mode="default" />}
-        {note ? (
+        {!!note && (
           <Kb.Text type="BodySmall" style={styles.note}>
             {note}
           </Kb.Text>
-        ) : null}
+        )}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (pathItem.linkTarget ? ` to: ${pathItem.linkTarget}.` : '.')}

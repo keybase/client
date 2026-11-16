@@ -9,6 +9,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {useFsFileContext} from '../common'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {isAndroidPreP} from '@/constants/platform'
 
 type Props = {
   path: T.FS.Path
@@ -96,6 +97,10 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
       if (fileContext.contentType === 'image/webp') {
         return <DefaultView path={path} />
       }
+      // Chromium has no HEIC decoder, nor does Android before 9
+      if (heifTypes.has(fileContext.contentType) && (!isMobile || isAndroidPreP)) {
+        return <DefaultView path={path} note={cantPreviewImage} />
+      }
 
       return (
         <>
@@ -126,13 +131,16 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 }
 
+const heifTypes = new Set(['image/heic', 'image/heif'])
+const cantPreviewImage = "Can't preview image"
+
 // keyed by url so a reload or a fresh url retries an image that failed to draw
 const ImagePreview = ({path, url, onUrlError}: Props & {url: string}) => {
   const styles = useStyles()
-  // the image's format can be one the platform can't decode (HEIC on desktop and Android)
+  // desktop only: mobile images retry on their own and don't report errors
   const [failed, setFailed] = React.useState(false)
   if (failed) {
-    return <DefaultView path={path} note="Can't preview image" />
+    return <DefaultView path={path} note={cantPreviewImage} />
   }
   return (
     <Kb.ZoomableImage

@@ -249,16 +249,10 @@ type NativeSwipeDirection = 'left' | 'right' | 'up' | 'down'
 
 const NativeZoomableImage = (p: Props) => {
   const styles = useStyles()
-  const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap, onError, testID} = p
+  const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap, testID} = p
 
-  const {isFetching, resolution, error} = useImageResolution({uri: src})
+  const {isFetching, resolution} = useImageResolution({uri: src})
   const srcDims = p.srcDims?.width && p.srcDims.height ? p.srcDims : undefined
-  // a format the platform can't decode (HEIC on Android) can't be measured, so nothing would draw
-  const sizeFailed = !!error && !srcDims
-  const onSizeFailed = React.useEffectEvent(() => onError?.())
-  React.useEffect(() => {
-    if (sizeFailed) onSizeFailed()
-  }, [sizeFailed])
   const imageResolution = resolution ?? srcDims
   const imageResolutionHeight = imageResolution?.height
   const imageResolutionWidth = imageResolution?.width
@@ -330,7 +324,6 @@ const NativeZoomableImage = (p: Props) => {
         style={size}
         showLoadingStateUntilLoaded={false}
         allowDownscaling={false}
-        onError={onError}
       />
     )
   }
