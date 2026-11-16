@@ -140,7 +140,6 @@ See [STYLEGUIDE.md](STYLEGUIDE.md).
 
 [Launch Agents, Services, XPC](https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html): Describes how services are installed and run.
 
-[App Extensions](https://developer.apple.com/library/mac/documentation/General/Conceptual/ExtensibilityPG/ExtensionCreation.html): Describes app extensions for Actions, Share and Finder Sync.
 
 [Privileged Helper Tool](https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html#//apple_ref/doc/uid/TP40002589-SW2): Describes the Helper tool functionality.
 

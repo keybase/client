@@ -14,17 +14,6 @@ target "Installer" do
   pod "KBKit", :path => "KBKit"
 end
 
-
-target "Status" do
-  use_frameworks!
-  platform :osx, "10.13"
-  pod "ObjectiveSugar"
-  pod "GBCli"
-  pod "Slash"
-  pod "MPMessagePack", :path => "MPMessagePack"
-  pod "KBKit", :path => "KBKit"
-end
-
 # This runs as a privileged helper so keep dependencies
 # here to a minimum.
 target "keybase.Helper" do
