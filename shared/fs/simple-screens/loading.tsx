@@ -1,7 +1,13 @@
 import * as Kb from '@/common-adapters'
+import {useDelayedShow} from '../common'
 
 const LoadingScreen = (p: {why?: string}) => {
   const styles = useStyles()
+  const show = useDelayedShow(true)
+
+  if (!show) {
+    return <Kb.Box2 direction="vertical" style={styles.empty} fullHeight={true} fullWidth={true} />
+  }
   return (
     <Kb.Box2
       direction="vertical"
@@ -25,5 +31,6 @@ const useStyles = Kb.Styles.createStyleHook(
         backgroundColor: theme.blueLighter3,
         ...Kb.Styles.globalStyles.flexGrow,
       },
+      empty: Kb.Styles.globalStyles.flexGrow,
     }) as const
 )

@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
-import {useFsPathItem, useFsTlfs} from '../common'
+import {useDelayedShow, useFsPathItem, useFsTlfs} from '../common'
 
 // The behavior is to only show spinner when user first time lands on a screen
 // and when don't have the data that drives it yet. Since RPCs happen
@@ -48,6 +48,7 @@ const Loading = (op: OwnProps) => {
     default:
   }
 
-  return show ? <Kb.ProgressIndicator style={styles.progressIndicator} /> : null
+  const delayedShow = useDelayedShow(show)
+  return delayedShow ? <Kb.ProgressIndicator style={styles.progressIndicator} /> : null
 }
 export default Loading
