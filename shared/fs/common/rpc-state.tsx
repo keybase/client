@@ -317,10 +317,13 @@ export const makePathItemsFromDirents = ({
     return [path, entry] as const
   }
 
+  // When the listing lands before the folder's own stat, its write permission is guessed from its
+  // entries (KBFS grants it per TLF, so the folder and its entries normally share it) until the stat
+  // lands. An empty folder has none to go by and reads as not writable until then.
   const rootFolder: T.FS.FolderPathItem = {
     ...(rootPathItem.type === T.FS.PathType.Folder
       ? rootPathItem
-      : {...FS.emptyFolder, name: T.FS.getPathName(rootPath)}),
+      : {...FS.emptyFolder, name: T.FS.getPathName(rootPath), writable: entries.some(d => d.writable)}),
     children: new Set(childMap.get(rootPath)),
     progress: T.FS.ProgressType.Loaded,
   }

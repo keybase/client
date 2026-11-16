@@ -695,7 +695,10 @@ export const showSortSetting = (
 ) =>
   !isMobile &&
   path !== defaultPath &&
-  (T.FS.getPathLevel(path) === 2 || (pathItem.type === T.FS.PathType.Folder && !!pathItem.children.size)) &&
+  (T.FS.getPathLevel(path) === 2 ||
+    // most folders have entries: show it while the listing loads rather than popping it in after
+    (pathItem.type === T.FS.PathType.Folder &&
+      (pathItem.progress === T.FS.ProgressType.Pending || !!pathItem.children.size))) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
 export const getSoftError = (softErrors: T.FS.SoftErrors, path: T.FS.Path): T.FS.SoftError | undefined => {

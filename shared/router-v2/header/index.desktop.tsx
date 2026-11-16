@@ -233,12 +233,8 @@ function DesktopHeader(p: Props) {
           {/* TODO have headerLeft be the back button */}
           {backButton}
           <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
-            <SyncingFolders
-              negative={
-                p.style?.backgroundColor !== theme.transparent &&
-                p.style?.backgroundColor !== theme.white
-              }
-            />
+            {/* a transparent header (profile) sits on the screen's colored band, not the white header */}
+            <SyncingFolders negative={!!headerTransparent} />
             {!title && rightActions}
             {windowControls.right > 0 && <WindowControlsSpace width={windowControls.right} />}
           </Kb.Box2>
@@ -325,11 +321,13 @@ const useStyles = Kb.Styles.createStyleHook(
 type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControls'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
-  params?: unknown
+  // native-stack hands the header its route; a component headerTitle gets the route's params
+  route?: {params?: unknown}
 }
 
 function DesktopHeaderWrapper(p: HeaderProps) {
-  const {options: _options, back, style, params, navigation} = p
+  const {options: _options, back, style, route, navigation} = p
+  const params = route?.params
   const windowControls = useWindowControlsInsets()
   const loggedIn = useLoggedInScreens()
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options

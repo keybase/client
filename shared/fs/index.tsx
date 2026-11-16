@@ -6,6 +6,7 @@ import * as SimpleScreens from './simple-screens'
 import * as FS from '@/constants/fs'
 import {MainBanner} from './nav-header'
 import {IosHeaderMenu} from './nav-header/ios-header'
+import {browseSeed, type FsScreenParams} from './route-seeds'
 
 type ChooseComponentProps = {
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -41,14 +42,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = {
-  initialLastModifiedTimestamp?: number
-  initialPathType?: T.FS.PathType
-  lastClosedPublicBannerTlf?: string
-  path?: T.FS.Path
-}
-
-const ConnectedInner = (ownProps: OwnProps) => {
+const ConnectedInner = (ownProps: FsScreenParams) => {
   const path = ownProps.path ?? FS.defaultPath
   Kbfs.useFsScreenCoordinator(path)
   const _pathItem = Kbfs.useFsPathItem(path)
@@ -71,13 +65,9 @@ const ConnectedInner = (ownProps: OwnProps) => {
   )
 }
 
-const Connected = (ownProps: OwnProps) => (
+const Connected = (ownProps: FsScreenParams) => (
   <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider
-      initialLastModifiedTimestamp={ownProps.initialLastModifiedTimestamp}
-      initialPath={ownProps.path}
-      initialPathType={ownProps.initialPathType}
-    >
+    <Kbfs.FsDataProvider {...browseSeed(ownProps.path ?? FS.defaultPath, ownProps)}>
       <ConnectedInner {...ownProps} />
     </Kbfs.FsDataProvider>
   </Kbfs.FsErrorProvider>

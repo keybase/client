@@ -91,6 +91,7 @@ type FsDataContextType = {
   recordDownloadStarted: (downloadID: string, path: T.FS.Path, type: DownloadStartType) => void
   subscriptionManager: FsSubscriptionManager
   tlfs: T.FS.Tlfs
+  tlfsSettled: boolean
 }
 
 const FsDataContext = React.createContext<FsDataContextType | null>(null)
@@ -123,6 +124,8 @@ type FsSharedData = {
   downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   pathItems: T.FS.PathItems
   tlfs: T.FS.Tlfs
+  // a favorites load has come back, successfully or not
+  tlfsSettled: boolean
 }
 
 const makeEmptyDownloads = (): T.FS.Downloads => ({
@@ -137,6 +140,7 @@ const makeEmptyFsSharedData = (): FsSharedData => ({
   downloadInfos: new Map(),
   pathItems: new Map(),
   tlfs: makeEmptyTlfs(),
+  tlfsSettled: false,
 })
 
 type SetFsSharedData = React.Dispatch<React.SetStateAction<FsSharedData>>
@@ -381,6 +385,7 @@ const loadTlfsAsync = async (
     errorToActionOrThrow(error)
   } finally {
     loadTlfsInProgressRef.current = false
+    setFsSharedData(prevData => (prevData.tlfsSettled ? prevData : {...prevData, tlfsSettled: true}))
   }
 }
 
@@ -435,26 +440,58 @@ const loadAdditionalTlfAsync = async (
   }
 }
 
-export const FsDataProvider = ({
-  children,
-  initialLastModifiedTimestamp,
-  initialPath,
-  initialPathType,
-}: {
-  children: React.ReactNode
+// What the screen that opened a path already knew about it (from its listing row, or the folder a
+// breadcrumb leads up from). Seeding it lets a fresh provider draw the path right on its first frame
+// instead of drawing an unknown path and then changing once its own loads land.
+export type FsDataSeed = {
   initialLastModifiedTimestamp?: number
   initialPath?: T.FS.Path
   initialPathType?: T.FS.PathType
-}) => {
+  initialPrefetchStatus?: T.FS.PrefetchStatus
+  // KBFS write permission is per TLF, so a folder's is the same as its parent's and its entries'
+  initialWritable?: boolean
+}
+
+// Seeded items whose prefetch status nobody passed: theirs reads "not started" only because a path
+// item has to hold one. Loading the path replaces the item, which drops it from here.
+const seededWithoutPrefetch = new WeakSet<object>()
+
+export const isPrefetchStatusSeedOnly = (pathItem: T.Immutable<T.FS.PathItem>) =>
+  seededWithoutPrefetch.has(pathItem)
+
+const makeSeedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
+  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialPrefetchStatus, initialWritable} = seed
+  if (!initialPath) {
+    return undefined
+  }
+  const name = T.FS.getPathName(initialPath)
+  const prefetchStatus = initialPrefetchStatus ?? FS.prefetchNotStarted
+  if (initialPathType === T.FS.PathType.File) {
+    return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name, prefetchStatus}
+  }
+  // an unknown writable stays an unknown path: a folder item claims a writable value
+  if (initialPathType === T.FS.PathType.Folder && initialWritable !== undefined) {
+    return {...FS.emptyFolder, name, prefetchStatus, writable: initialWritable}
+  }
+  return undefined
+}
+
+export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
+  const item = makeSeedPathItem(seed)
+  if (item && !seed.initialPrefetchStatus) {
+    seededWithoutPrefetch.add(item)
+  }
+  return item
+}
+
+const noSeed: FsDataSeed = {}
+
+export const FsDataProvider = ({children, ...seed}: FsDataSeed & {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
+  // the seed only holds for the account signed in when this screen opened, not one switched to later
+  const [seedUsername] = React.useState(username)
   return (
-    <FsDataProviderForUsername
-      key={username}
-      username={username}
-      initialLastModifiedTimestamp={initialLastModifiedTimestamp}
-      initialPath={initialPath}
-      initialPathType={initialPathType}
-    >
+    <FsDataProviderForUsername key={username} username={username} seed={username === seedUsername ? seed : noSeed}>
       {children}
     </FsDataProviderForUsername>
   )
@@ -462,30 +499,20 @@ export const FsDataProvider = ({
 
 const FsDataProviderForUsername = ({
   children,
-  initialLastModifiedTimestamp,
-  initialPath,
-  initialPathType,
+  seed,
   username,
 }: {
   children: React.ReactNode
-  initialLastModifiedTimestamp?: number
-  initialPath?: T.FS.Path
-  initialPathType?: T.FS.PathType
+  seed: FsDataSeed
   username: string
 }) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const [fsSharedData, setFsSharedData] = React.useState(() => {
-    if (initialPath && initialPathType === T.FS.PathType.File) {
-      const pathItems = new Map<T.FS.Path, T.FS.PathItem>()
-      pathItems.set(initialPath, {
-        ...FS.emptyFile,
-        lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0,
-        name: T.FS.getPathName(initialPath),
-      })
-      return {...makeEmptyFsSharedData(), pathItems}
-    }
-    return makeEmptyFsSharedData()
+    const seeded = seedPathItem(seed)
+    return seed.initialPath && seeded
+      ? {...makeEmptyFsSharedData(), pathItems: new Map([[seed.initialPath, seeded]])}
+      : makeEmptyFsSharedData()
   })
   const [subscriptionManager] = React.useState<FsSubscriptionManager>(() => ({subscriptions: new Map()}))
   const seenDownloadIDsRef = React.useRef(new Set<string>())
@@ -498,7 +525,7 @@ const FsDataProviderForUsername = ({
   const reloadPathMetadataRef = React.useRef(new Set<T.FS.Path>())
   const loadingAdditionalTlfsRef = React.useRef(new Set<T.FS.Path>())
   const loadTlfsInProgressRef = React.useRef(false)
-  const {downloads, downloadInfos, pathItems, tlfs} = fsSharedData
+  const {downloads, downloadInfos, pathItems, tlfs, tlfsSettled} = fsSharedData
 
   React.useEffect(() => {
     return () => {
@@ -661,6 +688,7 @@ const FsDataProviderForUsername = ({
         recordDownloadStarted,
         subscriptionManager,
         tlfs,
+        tlfsSettled,
       }}
     >
       {children}
@@ -963,13 +991,16 @@ export const useFsFolderChildItems = (
 
 export const useFsTlfs = () => useLoadedTlfs()
 
-export const useFsScreenCoordinator = (path: T.FS.Path) => {
+export const useFsTlfsSettled = () => React.useContext(FsDataContext)?.tlfsSettled ?? false
+
+// `loadChildren = false` is for data that draws nothing from the folder's listing (a header)
+export const useFsScreenCoordinator = (path: T.FS.Path, loadChildren = true) => {
   const routeData = React.useContext(FsDataContext)
   const focused = useSafeIsFocused()
   const pathIsItem = isPathItem(path)
   const pathItem = useFsPathItem(path)
   const isFile = pathItem.type === T.FS.PathType.File
-  const isMaybeFolder = !isFile
+  const loadsChildren = !isFile && loadChildren
 
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem, () =>
     routeData?.loadPathMetadata(path)
@@ -977,7 +1008,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   useFsPathSubscriptionEffect(
     path,
     T.RPCGen.PathSubscriptionTopic.children,
-    focused && pathIsItem && isMaybeFolder,
+    focused && pathIsItem && loadsChildren,
     () => routeData?.loadFolderChildren(path, true)
   )
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
@@ -989,7 +1020,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
       if (clientID !== fsClientID || updatedPath !== T.FS.pathToString(path)) {
         return
       }
-      if (isMaybeFolder && topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
+      if (loadsChildren && topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
         routeData?.loadFolderChildren(path, true)
       }
       if (topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
@@ -1016,7 +1047,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   })
 
   useFsLoadOnMountAndFocus({
-    enabled: pathIsItem && !!routeData && isMaybeFolder,
+    enabled: pathIsItem && !!routeData && loadsChildren,
     load: () => routeData?.loadFolderChildren(path, true),
     reloadKey: path,
   })

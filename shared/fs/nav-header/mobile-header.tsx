@@ -5,6 +5,7 @@ import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import Actions from './actions'
+import FsHeaderData from './header-data'
 import * as FS from '@/constants/fs'
 import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
@@ -21,6 +22,7 @@ import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
 type Props = {
   path: T.FS.Path
+  seed?: Kbfs.FsDataSeed
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
@@ -135,11 +137,9 @@ const useStyles = Kb.Styles.createStyleHook(
 )
 
 const NavMobileHeader = (props: Props) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
-      <NavMobileHeaderInner {...props} />
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
+  <FsHeaderData path={props.path} seed={props.seed}>
+    <NavMobileHeaderInner {...props} />
+  </FsHeaderData>
 )
 
 export default NavMobileHeader

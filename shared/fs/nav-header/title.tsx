@@ -22,6 +22,16 @@ const Breadcrumb = (props: Props) => {
           .slice(1, -1)
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
   const {inDestinationPicker} = props
+  const pathItem = Kbfs.useFsPathItem(apath)
+  // KBFS grants write permission per TLF (bar read-only views such as an archived revision), so an
+  // ancestor inside the TLF most likely has this path's, once that is known. Above a TLF there is none
+  // to borrow, so those ancestors start unknown, as does every ancestor while this path's is unknown.
+  // Its sync progress says nothing about an ancestor's, so that is left for the ancestor's stat.
+  const knownWritable = pathItem.type !== T.FS.PathType.Unknown ? pathItem.writable : undefined
+  const ancestorSeed = (path: T.FS.Path) =>
+    FS.isInTlf(path) && knownWritable !== undefined
+      ? {initialPathType: T.FS.PathType.Folder, initialWritable: knownWritable}
+      : {}
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {
     if (inDestinationPicker) {
@@ -32,7 +42,10 @@ const Breadcrumb = (props: Props) => {
         })
       }
     } else {
-      nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+      nav.safeNavigateAppend({
+        name: 'fsRoot',
+        params: {...ancestorSeed(path), path},
+      })
     }
   }
 
@@ -114,7 +127,9 @@ const MainTitle = (props: Props) => {
   )
 }
 
-const FsNavHeaderTitleInner = (props: Props) => {
+// Reads the data of whatever it is drawn in: the header's own (header-data.tsx) or the destination
+// picker's screen
+const FsNavHeaderTitle = (props: Props) => {
   const styles = useStyles()
   return props.path === FS.defaultPath ? (
       <Kb.Text type="Header" style={styles.rootTitle}>
@@ -127,14 +142,6 @@ const FsNavHeaderTitleInner = (props: Props) => {
       </Kb.Box2>
     )
 }
-
-const FsNavHeaderTitle = (props: Props) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
-      <FsNavHeaderTitleInner {...props} />
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
-)
 
 export default FsNavHeaderTitle
 

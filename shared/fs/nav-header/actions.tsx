@@ -19,7 +19,6 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
     }))
   )
-  Kbfs.useFsScreenCoordinator(props.path)
   const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
     if (!isMobile) {
@@ -52,14 +51,11 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   ) : null
 }
 
+// Reads the header's data (header-data.tsx), which its parent provides
 const FsNavHeaderRightActions = (props: Props) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
-      <FsBrowserEditProvider path={props.path}>
-        <FsNavHeaderRightActionsInner {...props} />
-      </FsBrowserEditProvider>
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
+  <FsBrowserEditProvider path={props.path}>
+    <FsNavHeaderRightActionsInner {...props} />
+  </FsBrowserEditProvider>
 )
 
 export default FsNavHeaderRightActions
