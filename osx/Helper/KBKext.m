@@ -188,10 +188,10 @@
   KBLog(@"Unload kext status: %@", @(status));
   
   if (status == kOSKextReturnNotPrivileged) {
-    // macOS 11 has a bug in KextManagerUnloadKextWithIdentifier that returns
-    // kOSKextReturnNotPrivileged (-603947004) even if it's already running as
-    // root. So have a fallback where we delegate to kmutil.
-    KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier. Since we are on macOS 11, will fallback to kmutil.");
+    // Since macOS 11, KextManagerUnloadKextWithIdentifier can return
+    // kOSKextReturnNotPrivileged (-603947004) even when running as root,
+    // so fall back to kmutil.
+    KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier, falling back to kmutil.");
     NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
     if (error != nil) {
       *error = KBMakeError(KBHelperErrorKext,

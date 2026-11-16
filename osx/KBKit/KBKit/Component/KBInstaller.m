@@ -42,7 +42,7 @@
       NSString *desc = [[installable installDescription:@"\n"] join:@"\n"];
       DDLogInfo(@"%@: %@", name, desc);
     }
-    completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
+    completion([KBInstallable combineErrors:installables]);
   };
   [rover run];
 }

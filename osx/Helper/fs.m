@@ -48,8 +48,6 @@
     CFURLRef url = (__bridge CFURLRef)bin;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
-    // This requirement string is taken from Installer/Info.plist.
-
     if (identifier == nil) {
       identifier = @"";
     }

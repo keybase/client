@@ -58,15 +58,14 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
   completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
-+ (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings {
++ (NSError *)combineErrors:(NSArray *)installables {
   NSMutableArray *errors = [NSMutableArray array];
   for (KBInstallable *installable in installables) {
     NSError *error = installable.error;
     if (!error) error = installable.componentStatus.error;
     if (!error) continue;
 
-    // Ignore warnings
-    if (ignoreWarnings && KBIsWarning(error)) {
+    if (KBIsWarning(error)) {
       continue;
     }
 

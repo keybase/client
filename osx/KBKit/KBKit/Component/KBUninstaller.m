@@ -22,7 +22,7 @@
     }];
   };
   rover.completion = ^(NSArray *installables) {
-    completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
+    completion([KBInstallable combineErrors:installables]);
   };
   [rover run];
 }

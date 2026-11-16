@@ -35,6 +35,7 @@ typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus)
 - (NSArray *)installDescription:(NSString *)delimeter;
 - (NSArray *)statusDescription:(NSString *)delimeter;
 
-+ (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings;
+// Combines the installables' errors, skipping warnings.
++ (NSError *)combineErrors:(NSArray *)installables;
 
 @end

@@ -10,8 +10,6 @@ cd $dir
 
 plist=$dir/../Installer/Info.plist
 echo "Plist: $plist"
-app_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $plist`"
-app_build="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $plist`"
 
 helper_list=$dir/../Helper/Info.plist
 kb_helper_version="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $helper_list`"

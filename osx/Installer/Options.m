@@ -14,7 +14,6 @@
 @property NSString *sourcePath;
 @property UninstallOptions uninstallOptions;
 @property KBInstallOptions installOptions;
-@property NSInteger installTimeout; // In (whole) seconds
 @property GBSettings *settings;
 @end
 
@@ -102,9 +101,11 @@
     self.installOptions |= KBInstallOptionCLI;
   }
 
-  self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
-  if (self.installTimeout <= 0) {
-    if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(self.installTimeout));
+  // The Go caller always passes --timeout; nothing uses the value any more, but
+  // a missing or invalid one still fails the run, as it always has.
+  NSInteger timeout = [[self.settings objectForKey:@"timeout"] intValue];
+  if (timeout <= 0) {
+    if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(timeout));
     return NO;
   }
 

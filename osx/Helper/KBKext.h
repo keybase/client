@@ -32,6 +32,4 @@
  */
 + (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion;
 
-+ (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error;
-
 @end

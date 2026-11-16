@@ -54,10 +54,9 @@
   va_end(args);
 }
 
-- (void)doInstallAlert:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion {
+- (void)doInstallAlertForRunningVersion:(KBSemVersion *)runningVersion {
+  // No alert when the running helper reported no version.
   if ([runningVersion.version length] == 0) {
-    // No need to show anything if the user is explicitly choosing to install
-    // and just clicked on something.
     return;
   }
 
@@ -96,7 +95,7 @@
       // If we couldn't run this, just act like it is a very old version running that we don't know how to
       // talk to so we can still run checks on the bundle version
       KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0"];
-      [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+      [self doInstallAlertForRunningVersion:runningVersion];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
@@ -111,7 +110,7 @@
         } else {
           if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-          [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+          [self doInstallAlertForRunningVersion:runningVersion];
           completion(self.componentStatus);
         }
       } else {
