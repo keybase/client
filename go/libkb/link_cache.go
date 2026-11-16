@@ -69,14 +69,6 @@ func (c *LinkCache) Put(m MetaContext, id LinkID, link ChainLink) {
 
 	elt, ok := c.cache[linkID]
 	if ok {
-		// A stubbed load of a chain returns stubs for links we may already hold
-		// in full; keep the full link so payload readers don't get a stub.
-		// ChainLink.Store instead removes the entry whenever it keeps a full
-		// link on disk, so readers fall through to that link.
-		if existing := elt.Value.(ChainLink); link.IsStubbed() && !existing.IsStubbed() {
-			c.accessOrder.MoveToBack(elt)
-			return
-		}
 		// if this link already exists, remove it from
 		// the accessOrder list.
 		c.accessOrder.Remove(elt)
@@ -110,6 +102,23 @@ func (c *LinkCache) Remove(id LinkID) {
 	if ok {
 		c.accessOrder.Remove(elt)
 	}
+	delete(c.cache, linkID)
+}
+
+// RemoveStub deletes a ChainLink from the cache if it is cached as a stub.
+func (c *LinkCache) RemoveStub(id LinkID) {
+	c.Lock()
+	defer c.Unlock()
+	var linkID linkIDFixed
+	copy(linkID[:], id)
+	elt, ok := c.cache[linkID]
+	if !ok {
+		return
+	}
+	if link := elt.Value.(ChainLink); !link.IsStubbed() {
+		return
+	}
+	c.accessOrder.Remove(elt)
 	delete(c.cache, linkID)
 }
 

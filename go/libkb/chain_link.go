@@ -810,13 +810,6 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
-// isFullLinkRecord reports whether a stored link record carries the full
-// link (what Pack writes for an unstubbed link), not a stub or junk.
-func isFullLinkRecord(packed []byte) bool {
-	sig, err := jsonparserw.GetString(packed, "sig")
-	return err == nil && sig != ""
-}
-
 func (c *ChainLink) unpackFromLocalStorage(m MetaContext, selfUID keybase1.UID, packed []byte) error {
 	if s, err := jsonparserw.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
@@ -1357,26 +1350,54 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
 	}
 }
 
+// namesOwnerOf reports whether c, a full link, names the owner of the chain
+// that other is in. A stored full link is marked chain-verified, so a chain
+// that takes it in place of its own stub never runs CheckNameAndID on it; the
+// stub's chain can't vouch for it either, since stubs skip that check.
+func (c *ChainLink) namesOwnerOf(other *ChainLink) bool {
+	chain := other.parent
+	return chain != nil && c.CheckNameAndID(chain.username, chain.uid) == nil
+}
+
+func linkDbKey(id LinkID) DbKey {
+	return DbKey{Typ: DBLink, Key: id.String()}
+}
+
+// importLinkFromDisk reads and unpacks the stored record of a link, skipping
+// the LinkCache. It returns nil if there is no record.
+func importLinkFromDisk(m MetaContext, id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
+	data, _, err := m.G().LocalDb.GetRaw(linkDbKey(id))
+	if err != nil || data == nil {
+		return nil, err
+	}
+	// May as well recheck onload (maybe revisit this)
+	ret := NewChainLink(m.G(), nil, id)
+	if err = ret.unpackFromLocalStorage(m, selfUID, data); err != nil {
+		return nil, err
+	}
+	ret.storedLocally = true
+	return ret, nil
+}
+
 func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
 	link, ok := m.G().LinkCache().Get(id)
 	if ok {
+		// The DB cleaner evicts records that weren't used since its last
+		// pass, and this read never reaches the DB. Without the mark, the
+		// links of a chain that stays cached here get evicted from disk, and
+		// only some of them, since a link missing from this cache is read
+		// from the DB and so kept.
+		m.G().LocalDb.MarkRecentlyUsed(linkDbKey(id))
 		link.Contextified = NewContextified(m.G())
 		return &link, nil
 	}
 
-	var ret *ChainLink
-	data, _, err := m.G().LocalDb.GetRaw(DbKey{Typ: DBLink, Key: id.String()})
-	if err == nil && data != nil {
-		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(m.G(), nil, id)
-		if err = ret.unpackFromLocalStorage(m, selfUID, data); err != nil {
-			return nil, err
-		}
-		ret.storedLocally = true
-
-		m.G().LinkCache().Put(m, id, ret.Copy())
+	ret, err := importLinkFromDisk(m, id, selfUID)
+	if err != nil || ret == nil {
+		return nil, err
 	}
-	return ret, err
+	m.G().LinkCache().Put(m, id, ret.Copy())
+	return ret, nil
 }
 
 func (c *ChainLink) VerifyLink() error {
@@ -1515,8 +1536,6 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 		return false, err
 	}
 
-	key := DbKey{Typ: DBLink, Key: c.id.String()}
-
 	// A stubbed load of a chain returns stubs for links that may already be
 	// stored in full (e.g. our own track links, stored when we loaded our own
 	// chain). Overwriting those loses the payload that track lookups read.
@@ -1525,21 +1544,21 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// per-user lock (loadUserLockTab).
 	keepFull := false
 	if c.IsStubbed() {
-		// On a read error, store the stub as before rather than failing the
-		// whole chain store.
-		existing, found, err := m.G().LocalDb.GetRaw(key)
+		// Keep the record only if a load can use it: it must unpack and
+		// verify, exactly as ImportLinkFromStorage requires. A record that
+		// can't be read or unpacked fails every load that reaches it, so the
+		// stub replaces it and a failed read never fails the chain store.
+		existing, err := importLinkFromDisk(m, c.id, "")
 		if err != nil {
-			m.Debug("| ChainLink.Store: reading %s: %v", c.id, err)
+			m.Debug("| ChainLink.Store: replacing unusable record of %s: %v", c.id, err)
 		}
-		keepFull = err == nil && found && isFullLinkRecord(existing)
+		keepFull = err == nil && existing != nil && !existing.IsStubbed() && existing.namesOwnerOf(c)
 	}
 
 	if keepFull {
-		// The load cached this stub before storing it; drop it so readers
-		// fall through to the full link on disk. The stub's key state isn't
-		// kept: it was computed over stubs, so the next load of this
-		// now stub-free chain recomputes it anyway (see stubDerivedFor).
-		m.G().LinkCache().Remove(c.id)
+		// The load may have cached this stub before storing it; drop it so
+		// readers fall through to the full link on disk.
+		m.G().LinkCache().RemoveStub(c.id)
 		m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
 	} else {
 		packed, err := c.Pack()
@@ -1547,7 +1566,7 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 			return false, err
 		}
 		// Don't write with any aliases
-		if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
+		if err = m.G().LocalDb.Put(linkDbKey(c.id), nil, packed); err != nil {
 			return false, err
 		}
 		m.VLogf(VLog1, "| Store Link %s", c.id)

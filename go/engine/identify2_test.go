@@ -451,7 +451,11 @@ func TestIdentify2WithUIDWithStubbedTrackLink(t *testing.T) {
 	trackBob(tc, fu, libkb.KeybaseSignatureV2)
 	defer untrackBob(tc, fu, libkb.KeybaseSignatureV2)
 
-	upak, _, err := tc.G.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithUID(fu.UID()))
+	// Identify loads the logged-in user with these options. Loading that way
+	// here fills the UPAK cache slot identify reads, so identify gets the
+	// UPAK alone and has to look the track link up in storage.
+	meArg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(fu.UID()).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(meArg)
 	require.NoError(t, err)
 	remote, ok := upak.Current.RemoteTracks[aliceUID]
 	require.True(t, ok, "the UPAK should list the follow of t_alice")
@@ -485,6 +489,16 @@ func TestIdentify2WithUIDWithStubbedTrackLink(t *testing.T) {
 	link, err := libkb.ImportLinkFromStorage(m, lid, fu.UID())
 	require.NoError(t, err)
 	require.True(t, link.IsStubbed())
+	tc.G.LinkCache().Remove(lid)
+
+	// With a full user object identify would read the track from it and
+	// never touch the stored link.
+	cachedUPAK, fullUser, err := tc.G.GetUPAKLoader().LoadV2(meArg)
+	require.NoError(t, err)
+	require.Nil(t, fullUser, "identify must get the cached UPAK, not a full user load")
+	_, err = libkb.TrackChainLinkFromUPK2AI(m, cachedUPAK, libkb.NewNormalizedUsername("t_alice"), aliceUID)
+	var inconsistent libkb.InconsistentCacheStateError
+	require.ErrorAs(t, err, &inconsistent)
 	tc.G.LinkCache().Remove(lid)
 
 	tester := newIdentify2WithUIDTester(tc.G)

@@ -158,6 +158,9 @@ type LocalDb interface {
 	Close() error
 	Nuke() (string, error)
 	Clean(force bool) error
+	// MarkRecentlyUsed counts a use of id that didn't read the database, e.g.
+	// one served from an in-memory copy, so Clean doesn't evict the record.
+	MarkRecentlyUsed(id DbKey)
 	OpenTransaction() (LocalDbTransaction, error)
 	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }

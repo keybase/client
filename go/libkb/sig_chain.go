@@ -178,9 +178,6 @@ func (sc SigChain) GetComputedKeyInfosWithVersionBust() (cki *ComputedKeyInfos) 
 	if ret.IsStaleVersion() {
 		sc.G().Log.Debug("Threw out CKI due to stale version (%d)", ret.Version)
 		ret = nil
-	} else if ret.stubDerivedFor(sc.chainLinks) {
-		sc.G().Log.Debug("Threw out CKI computed over stubs this chain no longer has")
-		ret = nil
 	}
 	return ret
 }
@@ -1380,23 +1377,6 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 // ========================================================================
 
-func (sc *SigChain) HasStubs() bool {
-	for _, link := range sc.chainLinks {
-		if link.IsStubbed() {
-			return true
-		}
-	}
-	return len(sc.chainLinks) != 0
-}
-
-// ========================================================================
-
-func (l *SigChainLoader) HasStubs() bool {
-	return l.chain.HasStubs()
-}
-
-// ========================================================================
-
 func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
 		return
@@ -1468,6 +1448,26 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 	return lastLink.ToEldestKID().Equal(l.leaf.eldest)
 }
 
+// tipKeyStateIsStubDerived reports whether verifySubchain will refuse the key
+// state cached on the chain tip (see stubDerivedFor). It must look at the same
+// links verifySubchain does, the current subchain: a load that takes the
+// fully-cached path never stores what it recomputes, so judging by the whole
+// chain would recompute on every load for a chain whose only stubs are in
+// older subchains.
+func (l *SigChainLoader) tipKeyStateIsStubDerived() bool {
+	links, err := l.chain.GetCurrentSubchain(l.M(), l.leaf.eldest)
+	if err != nil {
+		l.M().Debug("| tipKeyStateIsStubDerived: %v", err)
+		return true
+	}
+	tip := last(links)
+	if tip == nil {
+		return false
+	}
+	cki := tip.GetSigCheckCache()
+	return cki != nil && cki.stubDerivedFor(links)
+}
+
 // Load is the main entry point into the SigChain loader.  It runs through
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
@@ -1529,6 +1529,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		// but we might still need to proceed with the rest of the load if the
 		// eldest KID has changed.
 		l.M().Debug("| Merkle leaf doesn't match the chain tip.")
+	} else if l.tipKeyStateIsStubDerived() {
+		l.M().Debug("| Need to reverify chain since its ComputedKeyInfos were computed over stubs it no longer has")
 	} else {
 		// The chain tip has a cached cki, AND the current eldest kid matches
 		// it. Use what's cached and short circuit.

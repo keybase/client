@@ -290,13 +290,14 @@ type JSONLocalDb struct {
 	engine LocalDb
 }
 
-func NewJSONLocalDb(e LocalDb) *JSONLocalDb   { return &JSONLocalDb{e} }
-func (j *JSONLocalDb) Open() error            { return j.engine.Open() }
-func (j *JSONLocalDb) ForceOpen() error       { return j.engine.ForceOpen() }
-func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
-func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
-func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
-func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func NewJSONLocalDb(e LocalDb) *JSONLocalDb      { return &JSONLocalDb{e} }
+func (j *JSONLocalDb) Open() error               { return j.engine.Open() }
+func (j *JSONLocalDb) ForceOpen() error          { return j.engine.ForceOpen() }
+func (j *JSONLocalDb) Close() error              { return j.engine.Close() }
+func (j *JSONLocalDb) Nuke() (string, error)     { return j.engine.Nuke() }
+func (j *JSONLocalDb) Clean(force bool) error    { return j.engine.Clean(force) }
+func (j *JSONLocalDb) Stats() string             { return j.engine.Stats() }
+func (j *JSONLocalDb) MarkRecentlyUsed(id DbKey) { j.engine.MarkRecentlyUsed(id) }
 func (j *JSONLocalDb) CompactionStats() (bool, bool, error) {
 	return j.engine.CompactionStats()
 }

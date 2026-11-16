@@ -320,10 +320,7 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	sgl.chain = nil
 	sgl.dirtyTail = nil
 	var sc2 *SigChain
-	// Reset the link cache so that we're sure our loads hits storage.
-	tc.G.cacheMu.Lock()
-	tc.G.linkCache = NewLinkCache(1000, time.Hour)
-	tc.G.cacheMu.Unlock()
+	emptyLinkCache(tc)
 	sc2, err = sgl.Load()
 	require.NoError(t, err)
 
