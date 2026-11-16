@@ -8,20 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBSemVersion.h"
 #import "KBDefines.h"
 #import "KBRModels.h"
-#import <GHODictionary/GHODictionary.h>
 
 typedef void (^KBOnServiceStatus)(NSError *error, KBRServiceStatus *serviceStatus);
-typedef void (^KBOnServiceStatuses)(NSError *error, NSArray *serviceStatuses);
 
 @interface KBKeybaseLaunchd : NSObject
 
-+ (void)list:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatuses)completion;
-
 + (void)status:(NSString *)binPath name:(NSString *)name timeout:(NSTimeInterval)timeout completion:(KBOnServiceStatus)completion;
-
-+ (void)run:(NSString *)binPath args:(NSArray *)args completion:(KBCompletion)completion;
 
 @end

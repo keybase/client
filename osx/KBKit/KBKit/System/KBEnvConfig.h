@@ -31,13 +31,8 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 @interface KBEnvConfig : NSObject
 
-@property (nonatomic, readonly) NSString *homeDir;
-@property (readonly, getter=isDebugEnabled) BOOL debugEnabled;
 @property (readonly) NSString *mountDir;
-@property (readonly) NSString *title;
-@property (readonly) NSString *info;
 @property (readonly) KBRunMode runMode;
-@property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 @property (readonly) KBInstallOptions installOptions;
 @property (readonly) NSTimeInterval installTimeout;
 @property (readonly) NSString *appPath;
@@ -48,11 +43,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
 
-- (NSString *)sockFile;
-
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
-- (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
-- (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
 
 - (NSString *)appName;
 - (NSString *)serviceBinName;
@@ -63,8 +54,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)redirectorMount;
 - (NSString *)volumesRedirectorMount;
 - (BOOL)redirectorDisabled;
-
-- (BOOL)validate:(NSError **)error;
 
 - (NSString *)launchdServiceLabel;
 - (NSString *)launchdKBFSLabel;

@@ -14,12 +14,10 @@
 
 @interface Installer ()
 @property Options *options;
-@property KBMemLogger *memLogger;
 @end
 
 typedef NS_ENUM (NSInteger, KBExit) {
   KBExitOK = 0,
-  KBExitIgnoreError = 0,
   KBExitError = 1,
   KBExitFuseKextError = 4,
   KBExitFuseKextPermissionError = 5,
@@ -48,9 +46,6 @@ typedef NS_ENUM (NSInteger, KBExit) {
 #endif
 
   [KBWorkspace setupLogging:debug];
-
-  _memLogger = [[KBMemLogger alloc] init];
-  [DDLog addLogger:_memLogger withLevel:DDLogLevelDebug];
 
   DDLogDebug(@"Version: %@", NSBundle.mainBundle.infoDictionary[(NSString *)kCFBundleVersionKey]);
 
@@ -90,7 +85,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)install {
-  [self install:^(NSError *error, KBEnvironment *environment, KBExit exitCode) {
+  [self install:^(KBExit exitCode) {
     dispatch_async(dispatch_get_main_queue(), ^{
       DDLogInfo(@"Exit(%@)", @(exitCode));
       [self exit:exitCode];
@@ -110,123 +105,52 @@ typedef NS_ENUM (NSInteger, KBExit) {
   }];
 }
 
-+ (instancetype)sharedDelegate {
-  return (Installer *)[NSApp delegate];
-}
-
 - (IBAction)quit:(id)sender {
   [NSApplication.sharedApplication terminate:sender];
 }
 
-- (void)install:(void (^)(NSError *error, KBEnvironment *environment, KBExit exit))completion {
+- (void)install:(void (^)(KBExit exit))completion {
   KBEnvironment *environment = [self.options environment];
 
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:environment force:NO stopOnError:YES completion:^(NSError *error, NSArray *installables) {
-    [self checkError:error environment:environment completion:^(NSError *error, KBExit exit) {
-      completion(error, environment, exit);
+    [self checkError:error completion:^(KBExit exit) {
+      completion(exit);
     }];
   }];
 }
 
-- (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
+- (void)checkError:(NSError *)error completion:(void (^)(KBExit exit))completion {
   if (!error) {
-    completion(nil, KBExitOK);
+    completion(KBExitOK);
     return;
   }
 
   if (error.code == KBErrorCodeFuseKextPermission) {
-    completion(nil, KBExitFuseKextPermissionError);
+    completion(KBExitFuseKextPermissionError);
     return;
   }
 
   if (error.code == KBErrorCodeFuseKext) {
-    completion(nil, KBExitFuseKextError);
+    completion(KBExitFuseKextError);
     return;
   }
 
   if (error.code == errAuthorizationCanceled) {
-    completion(nil, KBExitAuthCanceledError);
+    completion(KBExitAuthCanceledError);
     return;
   }
 
   if (error.code == KBErrorCodeFuseKextMountsPresent) {
-    completion(nil, KBExitFuseKextMountsPresentError);
+    completion(KBExitFuseKextMountsPresentError);
     return;
   }
     
   if (error.code == KBErrorCodeFuseCriticalUpdate) {
-    completion(nil, KBExitFuseCriticalUpdate);
+    completion(KBExitFuseCriticalUpdate);
   }
 
-  completion(nil, KBExitError);
-}
-
-- (void)showErrorDialog:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert setMessageText:@"Keybase Error"];
-
-  NSString *info = error.localizedDescription;
-  if (![NSString gh_isBlank:error.localizedRecoverySuggestion]) {
-    info = NSStringWithFormat(@"%@\n\n%@", info, error.localizedRecoverySuggestion);
-  }
-
-  [alert setInformativeText:info];
-  [alert addButtonWithTitle:@"OK"];
-
-  NSURL *URL = error.userInfo[NSURLErrorKey];
-  if (URL) {
-    [alert addButtonWithTitle:@"Troubleshoot"];
-  } else {
-    [alert addButtonWithTitle:@"More Details"];
-  }
-
-  [alert setAlertStyle:NSWarningAlertStyle];
-  NSModalResponse response = [alert runModal];
-  if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitIgnoreError);
-  } else if (response == NSAlertSecondButtonReturn) {
-    if (URL) {
-      [[NSWorkspace sharedWorkspace] openURL:URL];
-    } else {
-      [self showMoreDetails:error environment:environment completion:completion];
-    }
-  } else {
-    DDLogError(@"Unknown error dialog return button");
-    completion(error, KBExitIgnoreError);
-  }
-}
-
-- (void)showMoreDetails:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert setMessageText:@"Keybase Error"];
-  [alert setInformativeText:error.localizedDescription];
-  [alert addButtonWithTitle:@"OK"];
-
-  NSMutableString *info = [NSMutableString stringWithString:[environment debugInstallables]];
-  if (_memLogger) {
-    [info appendString:@"Log:\n"];
-    [info appendString:[_memLogger messages]];
-  }
-
-  NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:CGRectMake(0, 0, 500, 200)];
-  scrollView.hasVerticalScroller = YES;
-  scrollView.autohidesScrollers = YES;
-  scrollView.borderType = NSBezelBorder;
-
-  NSTextView *textView = [[NSTextView alloc] initWithFrame:CGRectMake(0, 0, scrollView.contentSize.width, scrollView.contentSize.height)];
-  textView.autoresizingMask = NSViewWidthSizable;
-  textView.editable = NO;
-  textView.textContainerInset = CGSizeMake(5, 5);
-  textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
-  textView.font = [NSFont fontWithName:@"Monaco" size:11] ?: [NSFont userFixedPitchFontOfSize:11];
-  textView.string = info;
-
-  scrollView.documentView = textView;
-  alert.accessoryView = scrollView;
-  [alert runModal];
-
-  completion(error, KBExitIgnoreError);
+  completion(KBExitError);
 }
 
 @end

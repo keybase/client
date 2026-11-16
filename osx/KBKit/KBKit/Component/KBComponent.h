@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
 
 #import "KBDefines.h"
 #import "KBComponentStatus.h"

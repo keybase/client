@@ -26,10 +26,6 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
   return self;
 }
 
-- (KBInstallRuntimeStatus)runtimeStatus {
-  return KBInstallRuntimeStatusNone;
-}
-
 + (NSError *)checkForStatusErrorFromResponse:(id)response {
   if ([response isKindOfClass:NSDictionary.class]) {
     NSDictionary *dict = (NSDictionary *)response;
@@ -53,22 +49,11 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 
 - (NSArray *)statusDescription:(NSString *)delimeter {
   NSMutableArray *status = [NSMutableArray array];
-  if (self.isInstallDisabled) {
-    [status addObject:@"Install Disabled"];
-  }
   if (self.componentStatus.error) {
     [status addObject:NSStringWithFormat(@"Error: %@", self.componentStatus.error.localizedDescription)];
   }
   [status gh_addObject:[self.componentStatus statusDescription:delimeter]];
   return status;
-}
-
-- (NSString *)action {
-  if (self.isInstallDisabled) {
-    return NSStringFromKBRInstallAction(KBRInstallActionNone);
-  } else {
-    return NSStringFromKBRInstallAction(self.componentStatus.installAction);
-  }
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
@@ -80,14 +65,6 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
-
-- (void)start:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
-
-- (void)stop:(KBCompletion)completion {
   completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 

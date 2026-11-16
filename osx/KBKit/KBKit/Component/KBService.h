@@ -15,7 +15,6 @@
 
 @interface KBService : KBInstallable
 
-
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath;
 
 @end

@@ -16,11 +16,6 @@
 
 @implementation KBKext
 
-+ (NSDictionary *)kextInfo:(NSString *)label {
-  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], NULL);
-  return kexts[label];
-}
-
 + (BOOL)isKextLoaded:(NSString *)label {
   NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
   return [kexts[label][@"OSBundleStarted"] boolValue];
@@ -96,7 +91,6 @@
   }];
 }
 
-
 + (NSNumber *)permissionsForPath:(NSString *)path {
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
   if (!fileAttributes) return nil;
@@ -167,16 +161,6 @@
   }
 
   return YES;
-}
-
-+ (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
-  [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
-    if (error) {
-      completion(error, @(0));
-      return;
-    }
-    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
-  }];
 }
 
 + (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {

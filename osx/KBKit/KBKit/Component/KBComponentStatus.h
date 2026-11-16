@@ -11,10 +11,8 @@
 #import <GHODictionary/GHODictionary.h>
 #import "KBDefines.h"
 #import "KBRModels.h"
-#import "KBSemVersion.h"
 
 NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);
-NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 
 @interface KBComponentStatus : NSObject
 

@@ -10,10 +10,8 @@
 
 #import "KBRunOver.h"
 #import "KBInstallable.h"
-#import "KBWorkspace.h"
 
 #import "KBDefines.h"
-#import "KBSharedFileList.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <GHKit/GHKit.h>
@@ -48,21 +46,6 @@
       DDLogInfo(@"%@: %@", name, desc);
     }
     completion([KBInstallable combineErrors:installables ignoreWarnings:YES], installables);
-  };
-  [rover run];
-}
-
-- (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion {
-  KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [installables reverseObjectEnumerator];
-  rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
-    [installable uninstall:^(NSError *error) {
-      // TODO Set error
-      runCompletion(installable, NO);
-    }];
-  };
-  rover.completion = ^(NSArray *installables, BOOL stopped) {
-    completion();
   };
   [rover run];
 }

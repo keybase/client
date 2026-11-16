@@ -6,8 +6,6 @@ MessagePack is an efficient binary serialization format. It lets you exchange da
 
 This is a trimmed copy of [gabriel/MPMessagePack](https://github.com/gabriel/MPMessagePack) used by the Keybase installer and helper tool (`osx/Installer`, `osx/Helper`). Only the reader/writer and the msgpack-rpc over XPC pieces are kept.
 
-# MPMessagePack
-
 ## Writing
 
 ```objc
@@ -29,15 +27,6 @@ Or via ```MPMessagePackWriter```.
 ```objc
 NSError *error = nil;
 NSData *data = [MPMessagePackWriter writeObject:dict error:&error];
-```
-
-If you need to use an ordered dictionary.
-
-```objc
-MPOrderedDictionary *dict = [[MPOrderedDictionary alloc] init];
-[dict addEntriesFromDictionary:@{@"c": @(1), @"b": @(2), @"a": @(3)}];
-[dict sortKeysUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-NSData *data = [dict mp_messagePack];
 ```
 
 ## Reading

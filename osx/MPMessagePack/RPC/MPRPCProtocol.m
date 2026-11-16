@@ -11,69 +11,6 @@
 
 NSString *const MPErrorInfoKey = @"MPErrorInfoKey";
 
-@implementation MPRPCProtocol
-
-- (NSData *)_frameData:(NSData *)data {
-  NSError *error = nil;
-  NSData *frameSize = [MPMessagePackWriter writeObject:@(data.length) options:0 error:&error];
-  NSAssert(frameSize, @"Error packing frame size: %@", error);
-
-  NSMutableData *framedData = [NSMutableData dataWithCapacity:data.length + frameSize.length];
-  [framedData appendData:frameSize];
-  [framedData appendData:data];
-  return framedData;
-}
-
-- (NSData *)encodeRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSInteger)messageId options:(MPMessagePackWriterOptions)options framed:(BOOL)framed error:(NSError **)error {
-  NSArray *request = @[@(0), @(messageId), method, params ? params : NSNull.null];
-  NSData *data = [MPMessagePackWriter writeObject:request options:options error:error];
-
-  if (!data) {
-    return nil;
-  }
-  
-  return framed ? [self _frameData:data] : data;
-}
-
-- (NSData *)encodeResponseWithResult:(id)result error:(id)error messageId:(NSInteger)messageId options:(MPMessagePackWriterOptions)options framed:(BOOL)framed encodeError:(NSError **)encodeError {
-  NSArray *response = @[@(1), @(messageId), error ? error : NSNull.null, result ? result : NSNull.null];
-  NSData *data = [MPMessagePackWriter writeObject:response options:options error:encodeError];
-  
-  if (!data) {
-    return nil;
-  }
-  
-  return framed ? [self _frameData:data] : data;
-}
-
-- (NSArray *)decodeMessage:(NSData *)data framed:(BOOL)framed error:(NSError **)error {
-  MPMessagePackReader *reader = [[MPMessagePackReader alloc] initWithData:data];
-
-  if (framed) {
-    NSNumber *frameSize = [reader readObject:error];
-    if (![frameSize isKindOfClass:NSNumber.class] || *error) {
-      if (!error) *error = MPMakeError(-1, @"Invalid frame");
-      return nil;
-    }
-  }
-
-  id<NSObject> obj = [reader readObject:error];
-  if (!obj || *error) {
-    if (!error) *error = MPMakeError(-1, @"Invalid object");
-    return nil;
-  }
-
-  if (!MPVerifyMessage(obj, error)) {
-    if (!error) *error = MPMakeError(-1, @"Invalid message");
-    return nil;
-  }
-
-  NSArray *message = (NSArray *)obj;
-  return message;
-}
-
-@end
-
 BOOL MPVerifyMessage(id message, NSError **error) {
   if (![message isKindOfClass:NSArray.class]) {
     if (error) *error = MPMakeError(MPRPCErrorRequestInvalid, @"Invalid request; Not NSArray type");

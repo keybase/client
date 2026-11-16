@@ -50,7 +50,7 @@
     3. Certificate 1 corresponds to the "Developer ID Certification Authority" certificate and must have the field "1.2.840.113635.100.6.2.6"
     4. The leaf of "Developer ID Application: Keybase, Inc. (99229SGT5K)" certificate must have the field "field.1.2.840.113635.100.6.1.13"
     5. The leaf must have subject OU of "99229SGT5K"
-    6. The identifier be "keybase.Keybase" or "keybase.Electron"
+    6. The identifier be "keybase.Electron"
 
     This requirement is the standard one issued by Xcode when signing with developer ID certificate.
 
@@ -60,7 +60,7 @@
       https://red-sweater.com/blog/2390/developer-id-gotcha
       https://opensource.apple.com/source/libsecurity_codesigning/libsecurity_codesigning-55032/lib/syspolicy.sql
    */
-  NSString *requirementText = @"anchor apple generic and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\") and (identifier \"keybase.Keybase\" or identifier \"keybase.Electron\")";
+  NSString *requirementText = @"anchor apple generic and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\") and identifier \"keybase.Electron\"";
 
   SecRequirementRef requirementRef = NULL;
   if (SecRequirementCreateWithString((__bridge CFStringRef)requirementText, kSecCSDefaultFlags, &requirementRef) != errSecSuccess) {

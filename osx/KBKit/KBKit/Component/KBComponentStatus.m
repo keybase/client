@@ -82,16 +82,6 @@
 
 @end
 
-NSString *NSStringFromKBRInstallAction(KBRInstallAction action) {
-  switch (action) {
-    case KBRInstallActionNone: return nil;
-    case KBRInstallActionUnknown: return @"Unknown";
-    case KBRInstallActionInstall: return @"Install";
-    case KBRInstallActionUpgrade: return @"Upgrade";
-    case KBRInstallActionReinstall: return @"Re-Install";
-  }
-}
-
 NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status) {
   switch (status) {
     case KBRInstallStatusError: return @"Error";

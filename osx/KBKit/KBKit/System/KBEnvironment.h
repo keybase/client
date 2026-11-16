@@ -18,14 +18,10 @@
 
 @property (readonly) KBHelperTool *helperTool;
 @property (readonly) KBEnvConfig *config;
-@property (readonly) KBService *service;
-@property (readonly) KBFSService *kbfs;
 @property (readonly) KBFuseComponent *fuse;
 @property (readonly) KBCommandLine *cli;
 @property (readonly) NSArray */*of KBInstallable*/installables;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;
-
-- (NSString *)debugInstallables;
 
 @end

@@ -11,7 +11,6 @@
 		003634081C6039770089465B /* Uninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003634071C6039770089465B /* Uninstaller.m */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
-		003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0097BA671DD2589C0047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
@@ -35,25 +34,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		0043D1051B28ED290036C532 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		004EF2CA1B3340D8007822CE /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Fonts;
-			dstSubfolderSpec = 7;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0057B0DA1AE57B4C00BFB0E7 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -73,7 +53,6 @@
 		003C454B1AE6CECD00431829 /* KBKext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKext.h; sourceTree = "<group>"; };
 		003C454C1AE6CECD00431829 /* KBKext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKext.m; sourceTree = "<group>"; };
 		003C454E1AE6D1CA00431829 /* KBHelperDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperDefines.h; sourceTree = "<group>"; };
-		003C454F1AE6D1CA00431829 /* KBHelperDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperDefines.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		0057B0B41AE57A4900BFB0E7 /* keybase.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = keybase.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
 		0057B0BE1AE57A7A00BFB0E7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -95,17 +74,13 @@
 		00E1CEEE1C44313B00ED3A35 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
-		274108FC21CC410600B9C9F1 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.release.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.release.xcconfig"; sourceTree = "<group>"; };
 		5037409F21DB05F7001C0893 /* fs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fs.h; sourceTree = "<group>"; };
 		503740A021DB05F7001C0893 /* fs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = fs.m; sourceTree = "<group>"; };
 		50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
 		647177609208B611C8346C28 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Installer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2BEDB094F7E7A69C2DD1031 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
-		DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF54D7C94B2D7756B784F46B /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
-		FEBE5DD9D5816FD9CB306E1D /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,7 +124,6 @@
 				003C454B1AE6CECD00431829 /* KBKext.h */,
 				003C454C1AE6CECD00431829 /* KBKext.m */,
 				003C454E1AE6D1CA00431829 /* KBHelperDefines.h */,
-				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
 				00A8E4AD1D42A4CD00B77F08 /* KBLogger.h */,
 				00A8E4AE1D42A4CD00B77F08 /* KBLogger.m */,
 			);
@@ -207,8 +181,6 @@
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				274108FC21CC410600B9C9F1 /* MapKit.framework */,
-				DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */,
 				69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */,
 				647177609208B611C8346C28 /* libPods-keybase.Helper.a */,
 			);
@@ -218,8 +190,6 @@
 		8470D57F499F34CBF2C57F18 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				FEBE5DD9D5816FD9CB306E1D /* Pods-Keybase.debug.xcconfig */,
-				D2BEDB094F7E7A69C2DD1031 /* Pods-Keybase.release.xcconfig */,
 				DF54D7C94B2D7756B784F46B /* Pods-keybase.Helper.debug.xcconfig */,
 				50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */,
 				10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */,
@@ -257,9 +227,7 @@
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
-				004EF2CA1B3340D8007822CE /* CopyFiles */,
 				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
-				0043D1051B28ED290036C532 /* Embed Frameworks */,
 				6EBF4CB0181E5A8EE38B470D /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -283,65 +251,9 @@
 				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
-					001C6B361B24F8630048F086 = {
-						CreatedOnToolsVersion = 6.3.2;
-						DevelopmentTeam = 99229SGT5K;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.Mac = {
-								enabled = 1;
-							};
-							com.apple.Keychain = {
-								enabled = 1;
-							};
-							com.apple.Sandbox = {
-								enabled = 1;
-							};
-						};
-					};
-					0036081B1C442ED200B3300E = {
-						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = 99229SGT5K;
-						LastSwiftMigration = 0830;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.Mac = {
-								enabled = 1;
-							};
-							com.apple.Keychain = {
-								enabled = 1;
-							};
-						};
-					};
-					004624B01B2917AB00E218AC = {
-						CreatedOnToolsVersion = 6.3.2;
-						DevelopmentTeam = 99229SGT5K;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.Mac = {
-								enabled = 1;
-							};
-							com.apple.Keychain = {
-								enabled = 1;
-							};
-						};
-					};
 					0057B0B31AE57A4900BFB0E7 = {
 						CreatedOnToolsVersion = 6.3;
 						DevelopmentTeam = 99229SGT5K;
-					};
-					009E13651B27B39300C72B28 = {
-						CreatedOnToolsVersion = 6.3.2;
-						DevelopmentTeam = 99229SGT5K;
-						SystemCapabilities = {
-							com.apple.ApplicationGroups.Mac = {
-								enabled = 1;
-							};
-							com.apple.Keychain = {
-								enabled = 1;
-							};
-						};
-					};
-					00AA750E1B27635D0069A6CC = {
-						CreatedOnToolsVersion = 6.3.2;
-						TestTargetID = 00CC43481A3A9E6C006118A9;
 					};
 					00CC43481A3A9E6C006118A9 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -494,7 +406,6 @@
 				00A8E4AF1D42A4CD00B77F08 /* KBLogger.m in Sources */,
 				503740A121DB05F7001C0893 /* fs.m in Sources */,
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
-				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -14,32 +14,10 @@
 extern NSString *const MPErrorInfoKey;
 
 typedef NS_ENUM (NSInteger, MPRPCError) {
-  MPRPCErrorNone = 0,
-  MPRPCErrorSocketCreateError = -3,
-  MPRPCErrorSocketOpenError = -6,
-  MPRPCErrorSocketOpenTimeout = -7,
   MPRPCErrorRequestInvalid = -20,
-  MPRPCErrorRequestTimeout = -21,
-  MPRPCErrorRequestCanceled = -22,
-  MPRPCErrorResponseInvalid = -30,
 };
 
-typedef void (^MPErrorHandler)(NSError *error);
 // Callback after we send request
-typedef void (^MPRequestCompletion)(NSError *error, id result);
-typedef void (^MPRequestHandler)(NSNumber *messageId, NSString *method, NSArray *params, MPRequestCompletion completion);
-
-
-@interface MPRPCProtocol : NSObject
-
-- (NSData *)encodeRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSInteger)messageId options:(MPMessagePackWriterOptions)options framed:(BOOL)framed error:(NSError **)error;
-
-- (NSData *)encodeResponseWithResult:(id)result error:(id)error messageId:(NSInteger)messageId options:(MPMessagePackWriterOptions)options framed:(BOOL)framed encodeError:(NSError **)encodeError;
-
-- (NSArray *)decodeMessage:(NSData *)data framed:(BOOL)framed error:(NSError **)error;
-
-@end
-
 
 // Verify the object is a valid msgpack rpc message
 BOOL MPVerifyMessage(id request, NSError **error);

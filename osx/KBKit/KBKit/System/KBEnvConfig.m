@@ -13,13 +13,8 @@
 #import "KBPath.h"
 
 @interface KBEnvConfig ()
-@property NSString *homeDir;
-@property (getter=isDebugEnabled) BOOL debugEnabled;
 @property NSString *mountDir;
-@property NSString *title;
-@property NSString *info;
 @property KBRunMode runMode;
-@property BOOL installDisabled;
 @property KBInstallOptions installOptions;
 @property NSTimeInterval installTimeout;
 @property NSString *appPath;
@@ -50,29 +45,7 @@
       }
     }
 
-    switch (_runMode) {
-      case KBRunModeProd: {
-        self.title = @"Keybase.io";
-        self.mountDir = mountDir;
-        self.debugEnabled = YES;
-        self.info = @"Uses keybase.io";
-        break;
-      }
-      case KBRunModeStaging: {
-        self.title = @"Staging";
-        self.mountDir = mountDir;
-        self.debugEnabled = YES;
-        self.info = @"Uses staging server.";
-        break;
-      }
-      case KBRunModeDevel: {
-        self.title = @"Devel";
-        self.mountDir = mountDir;
-        self.debugEnabled = YES;
-        self.info = @"Uses the local web server.";
-        break;
-      }
-    }
+    self.mountDir = mountDir;
   }
   return self;
 }
@@ -119,17 +92,6 @@
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
   return [KBPath pathInDir:homeDir path:appPath options:options];
-}
-
-- (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options {
-  return [self cachePath:filename options:options];
-}
-
-- (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options {
-  NSString *homeDir = self.homeDir;
-  NSString *cachePath = NSStringWithFormat(@"Library/Caches/%@", [self appName]);
-  if (filename) cachePath = [cachePath stringByAppendingPathComponent:filename];
-  return [KBPath pathInDir:homeDir path:cachePath options:options];
 }
 
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
@@ -192,39 +154,10 @@
 }
 
 - (NSString *)homeDir {
-  NSString *homeDir = _homeDir ? _homeDir : @"~";
-  return [KBPath path:homeDir options:0];
-}
-
-- (NSString *)sockFile {
-  NSString *sockFile = [self runtimePath:@"keybased.sock" options:0];
-  if ([sockFile length] > 103) {
-    [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
-  }
-  return sockFile;
-}
-
-- (BOOL)validate:(NSError **)error {
-  NSString *homeDir = self.homeDir;
-  if (homeDir && ![NSFileManager.defaultManager fileExistsAtPath:homeDir isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (homeDir)", homeDir);
-    return NO;
-  }
-  NSString *sockFile = self.sockFile;
-  if (sockFile && ![NSFileManager.defaultManager fileExistsAtPath:sockFile isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (sockFile)", sockFile);
-    return NO;
-  }
-  NSString *mountDir = self.mountDir;
-  if (mountDir && ![NSFileManager.defaultManager fileExistsAtPath:mountDir isDirectory:nil]) {
-    if (error) *error = KBMakeError(KBErrorCodePathNotFound, @"%@ doesn't exist (mountDir)", mountDir);
-    return NO;
-  }
-  return YES;
+  return [KBPath path:@"~" options:0];
 }
 
 - (NSString *)launchdServiceLabel {
-  if (_installDisabled) return nil;
   switch (_runMode) {
     case KBRunModeDevel: return @"keybase.service.devel";
     case KBRunModeStaging: return @"keybase.service.staging";
@@ -233,7 +166,6 @@
 }
 
 - (NSString *)launchdKBFSLabel {
-  if (_installDisabled) return nil;
   switch (_runMode) {
     case KBRunModeDevel: return @"keybase.kbfs.devel";
     case KBRunModeStaging: return @"keybase.kbfs.staging";
@@ -242,7 +174,6 @@
 }
 
 - (NSString *)launchdUpdaterLabel {
-  if (_installDisabled) return nil;
   switch (_runMode) {
     case KBRunModeDevel: return @"keybase.updater.devel";
     case KBRunModeStaging: return @"keybase.updater.staging";

@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
 
 @interface KBWorkspace : NSObject
 

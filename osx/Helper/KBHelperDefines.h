@@ -17,7 +17,3 @@ typedef void (^KBOnCompletion)(NSError *error, id value);
 
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
 
-#define KBOr(obj, dv) (obj ? obj : dv)
-#define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
-
-NSString *KBNSStringWithFormat(NSString *formatString, ...);

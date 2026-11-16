@@ -14,7 +14,6 @@
 #import "MPXPCProtocol.h"
 #import "MPRPCProtocol.h"
 
-
 @interface MPXPCClient ()
 @property NSString *serviceName;
 @property BOOL privileged;
@@ -75,14 +74,6 @@
   xpc_connection_resume(_connection);
   [self.logDelegate log:MPLogLevelInfo format:@"Connected"];
   return YES;
-}
-
-- (void)close {
-  [self.logDelegate log:MPLogLevelInfo format:@"Closing connection"];
-  if (_connection) {
-    xpc_connection_cancel(_connection);
-    _connection = nil;
-  }
 }
 
 - (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, id value))completion {

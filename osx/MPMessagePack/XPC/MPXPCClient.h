@@ -28,6 +28,4 @@
 
 - (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, id value))completion;
 
-- (void)close;
-
 @end

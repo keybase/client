@@ -8,7 +8,6 @@
 
 #import "KBHelperTool.h"
 
-
 #import <ServiceManagement/ServiceManagement.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -245,24 +244,5 @@
     completion(nil);
   }
 }
-
-/*
-- (BOOL)uninstallPrivilegedServiceWithName:(NSString *)name error:(NSError **)error {
-  AuthorizationRef authRef = [self authorization:error];
-  if (!authRef) {
-    return NO;
-  }
-  CFErrorRef cerror = NULL;
-  BOOL success = SMJobRemove(kSMDomainSystemLaunchd, (__bridge CFStringRef)(name), authRef, true, &cerror);
-  AuthorizationFree(authRef, kAuthorizationFlagDefaults);
-
-  if (!success) {
-    if (error) *error = (NSError *)CFBridgingRelease(cerror);
-    return NO;
-  } else {
-    return YES;
-  }
-}
- */
 
 @end

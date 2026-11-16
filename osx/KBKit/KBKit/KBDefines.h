@@ -16,21 +16,14 @@ static const int ddLogLevel = DDLogLevelDebug;
 
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
-typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
-typedef void (^KBOnTarget)(id sender);
 
 typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeWarning = 0,
   KBErrorCodeGeneric = -1,
   KBErrorCodeUnsupported = -10,
-  KBErrorCodePermissionDenied = -11,
 
   KBErrorCodeInstallError = -101,
-  KBErrorCodePathNotFound = -102,
-  KBErrorCodePathInaccessible = -103,
 
-  KBErrorCodeAlreadyOpening = -201,
-  KBErrorCodeAlreadyOpen = -202,
   KBErrorCodeTimeout = -210,
 
   KBErrorCodeFuseKext = -300,
@@ -44,9 +37,6 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
 #define KBMakeWarning(MSG, ...) KBMakeError(KBErrorCodeWarning, MSG, ##__VA_ARGS__)
 #define KBIsWarning(ERR) ((ERR.code == KBErrorCodeWarning))
 
-#define KBOr(obj, dv) (obj ? obj : dv)
 #define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
 #define KBIfBlank(s, dv) ((!s || [s isEqualToString:@""]) ? dv : s)
-
-NSString *KBNSStringWithFormat(NSString *formatString, ...);
 

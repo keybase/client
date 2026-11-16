@@ -8,19 +8,14 @@
 
 #import "KBService.h"
 
-#import "KBSemVersion.h"
 #import "KBRModels.h"
-#import "KBSemVersion.h"
 #import "KBTask.h"
 #import "KBKeybaseLaunchd.h"
 
 @interface KBService ()
-
 @property NSString *label;
 @property NSString *servicePath;
-
 @property KBRServiceStatus *serviceStatus;
-
 @end
 
 @implementation KBService
@@ -31,11 +26,6 @@
     _servicePath = servicePath;
   }
   return self;
-}
-
-- (KBInstallRuntimeStatus)runtimeStatus {
-  if (!self.serviceStatus) return KBInstallRuntimeStatusNone;
-  return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
@@ -63,14 +53,6 @@
   [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"uninstall", @"--components=service"] timeout:KBDefaultTaskTimeout completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
-}
-
-- (void)load:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] args:@[@"launchd", @"start", _label] completion:completion];
-}
-
-- (void)unload:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 @end

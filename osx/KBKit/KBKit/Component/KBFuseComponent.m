@@ -12,6 +12,7 @@
 #import "KBTask.h"
 
 #import "KBDefines.h"
+
 @interface KBFuseComponent ()
 @property KBSemVersion *version;
 @property KBHelperTool *helperTool;
@@ -96,11 +97,6 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     }
     completion(self.fuseStatus, self.componentStatus);
   }];
-}
-
-- (KBInstallRuntimeStatus)runtimeStatus {
-  if (!self.fuseStatus) return KBInstallRuntimeStatusNone;
-  return self.fuseStatus.kextStarted ? KBInstallRuntimeStatusStarted : KBInstallRuntimeStatusStopped;
 }
 
 - (BOOL)hasKBFuseMounts:(KBRFuseStatus *)fuseStatus {
@@ -199,16 +195,6 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)loadKext:(KBCompletion)completion {
   [self.helperTool.helper sendRequest:@"kextLoad" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
-    completion(error);
-  }];
-}
-
-- (void)start:(KBCompletion)completion {
-  [self loadKext:completion];
-}
-
-- (void)stop:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kextUnload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

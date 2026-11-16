@@ -8,7 +8,6 @@
 
 #import "KBFSService.h"
 #import "KBKeybaseLaunchd.h"
-#import "KBSemVersion.h"
 #import "KBTask.h"
 #import "KBMountDir.h"
 
@@ -28,11 +27,6 @@
   return self;
 }
 
-- (KBInstallRuntimeStatus)runtimeStatus {
-  if (!self.serviceStatus) return KBInstallRuntimeStatusNone;
-  return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
-}
-
 - (void)install:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
   [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=file", @"install", @"--format=json", @"--components=kbfs", NSStringWithFormat(@"--timeout=%@s", @(self.config.installTimeout))] timeout:KBDefaultTaskTimeout completion:^(NSError *error, id response) {
@@ -46,14 +40,6 @@
   [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"uninstall", @"--components=kbfs"] timeout:KBDefaultTaskTimeout completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
-}
-
-- (void)start:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] args:@[@"launchd", @"start", _label] completion:completion];
-}
-
-- (void)stop:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {

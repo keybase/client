@@ -30,7 +30,7 @@ pod install
 open Keybase.xcworkspace
 ```
 
-Then select the target ```Keybase``` and run.
+The `Installer` target builds KeybaseInstaller.app (it also builds and embeds `keybase.Helper`). Don't run it from Xcode on your own machine without reading what it does: it installs privileged components.
 
 ## Building
 
@@ -140,9 +140,7 @@ See [STYLEGUIDE.md](STYLEGUIDE.md).
 
 [Launch Agents, Services, XPC](https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html): Describes how services are installed and run.
 
-
 [Privileged Helper Tool](https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html#//apple_ref/doc/uid/TP40002589-SW2): Describes the Helper tool functionality.
-
 
 ### Xcode Settings
 
