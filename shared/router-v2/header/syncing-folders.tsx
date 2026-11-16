@@ -4,6 +4,11 @@ import * as T from '@/constants/types'
 import PieSlice from '@/fs/common/pie-slice'
 import {useFsOverallSyncStatus, useKbfsDaemonStatus} from '@/fs/common/status'
 
+// Only a background the route sets, other than the plain ones, is dark; no background is the header's
+// own light one
+export const hasDarkBackground = (backgroundColor: unknown, theme: Kb.Styles.Theme) =>
+  backgroundColor !== undefined && backgroundColor !== theme.transparent && backgroundColor !== theme.white
+
 type OwnProps = {
   negative?: boolean
 }

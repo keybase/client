@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
-import SyncingFolders from './syncing-folders'
+import SyncingFolders, {hasDarkBackground} from './syncing-folders'
 import {useLoggedInScreens} from '../logged-in-screens'
 import {useWindowControlsInsets, type WindowControlsInsets} from '@/util/window-controls-overlay.desktop'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
@@ -233,12 +233,7 @@ function DesktopHeader(p: Props) {
           {/* TODO have headerLeft be the back button */}
           {backButton}
           <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
-            <SyncingFolders
-              negative={
-                p.style?.backgroundColor !== theme.transparent &&
-                p.style?.backgroundColor !== theme.white
-              }
-            />
+            <SyncingFolders negative={hasDarkBackground(p.style?.backgroundColor, theme)} />
             {!title && rightActions}
             {windowControls.right > 0 && <WindowControlsSpace width={windowControls.right} />}
           </Kb.Box2>
