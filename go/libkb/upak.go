@@ -98,7 +98,7 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 		return nil, err
 	}
 	if link == nil || link.IsStubbed() {
-		m.Debug("| no usable cached chainlink (stubbed=%v)", link != nil)
+		m.Debug("| no usable cached chainlink (missing=%v)", link == nil)
 		// The link is missing (the DB cache evicted it or was reset) or only
 		// stored as a stub, which has no payload to parse. Either way the
 		// caller reloads the follower unstubbed, which refetches it in full.

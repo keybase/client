@@ -361,9 +361,14 @@ func (c *ChainLink) GetUID() keybase1.UID {
 func (c *ChainLink) UnmarshalPayloadJSON() *jsonw.Wrapper {
 	jw, err := c.G().PayloadCache.GetOrPrime(c)
 	if err != nil {
-		// Stubbed links have no payload. Callers chain AtPath/AtKey on the
-		// result, which fail cleanly on a nil-valued wrapper but panic on nil.
-		c.G().Log.Debug("ChainLink.UnmarshalPayloadJSON(%s): %v", c.id, err)
+		// Callers chain AtPath/AtKey on the result, which fail cleanly on a
+		// nil-valued wrapper but panic on nil. A stubbed link has no payload;
+		// a full link whose payload doesn't parse means a corrupt record.
+		if c.IsStubbed() {
+			c.G().Log.Debug("ChainLink.UnmarshalPayloadJSON(%s): stubbed link: %v", c.id, err)
+		} else {
+			c.G().Log.Warning("ChainLink.UnmarshalPayloadJSON(%s): unreadable payload: %v", c.id, err)
+		}
 		return jsonw.NewNil()
 	}
 	return jw
@@ -1515,40 +1520,32 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// A stubbed load of a chain returns stubs for links that may already be
 	// stored in full (e.g. our own track links, stored when we loaded our own
 	// chain). Overwriting those loses the payload that track lookups read.
-	var full []byte
+	// The read and the write below don't race another load: links belong to
+	// one user's chain, and every store of it runs under LoadUser's
+	// per-user lock (loadUserLockTab).
+	keepFull := false
 	if c.IsStubbed() {
 		existing, found, err := m.G().LocalDb.GetRaw(key)
 		if err != nil {
 			return false, err
 		}
-		if found && isFullLinkRecord(existing) {
-			full = existing
-		}
+		keepFull = found && isFullLinkRecord(existing)
 	}
 
-	var record *jsonw.Wrapper
-	if full != nil {
+	if keepFull {
 		// The load cached this stub before storing it; drop it so readers
-		// fall through to the full link on disk.
+		// fall through to the full link on disk. The stub's key state isn't
+		// kept: it was computed over stubs, so the next load of this
+		// now stub-free chain recomputes it anyway (see stubDerivedFor).
 		m.G().LinkCache().Remove(c.id)
 		m.VLogf(VLog1, "| Kept full link %s instead of stub", c.id)
-		// Key state at a link doesn't depend on stubbing; keep what this load
-		// computed so the next load can start from it.
-		if c.cki != nil {
-			if record, err = jsonw.Unmarshal(full); err != nil {
-				return false, err
-			}
-			if err = record.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki)); err != nil {
-				return false, err
-			}
+	} else {
+		packed, err := c.Pack()
+		if err != nil {
+			return false, err
 		}
-	} else if record, err = c.Pack(); err != nil {
-		return false, err
-	}
-
-	if record != nil {
 		// Don't write with any aliases
-		if err = m.G().LocalDb.Put(key, nil, record); err != nil {
+		if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
 			return false, err
 		}
 		m.VLogf(VLog1, "| Store Link %s", c.id)

@@ -4,36 +4,61 @@
 package libkb
 
 import (
-	"encoding/base64"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/stretchr/testify/require"
 )
 
-// makeStubbedTrackLink returns a stubbed track link the way a stubbed sigchain
-// load hands it to Store: outer link only, verified, no payload.
-func makeStubbedTrackLink(t *testing.T, g *GlobalContext) *ChainLink {
-	prev, err := RandBytes(LinkIDLen)
+// realTrackLinks imports the real v2 track link in linkVer2 as the server
+// sends it in full and as it sends it stubbed: two links with the same ID.
+// Each is verified and marked chain-verified, as a load does before it stores
+// its links.
+func realTrackLinks(t *testing.T, tc TestContext) (full, stub *ChainLink) {
+	m := NewMetaContextForTest(tc)
+	full, err := ImportLinkFromServer(m, nil, []byte(linkVer2), linkUID)
 	require.NoError(t, err)
-	curr, err := RandBytes(LinkIDLen)
-	require.NoError(t, err)
-	raw, err := OuterLinkV2{
-		Version:  KeybaseSignatureV2,
-		Seqno:    7,
-		Prev:     LinkID(prev),
-		Curr:     LinkID(curr),
-		LinkType: SigchainV2TypeTrack,
-		SeqType:  keybase1.SeqType_PUBLIC,
-	}.Encode()
-	require.NoError(t, err)
+	require.False(t, full.IsStubbed())
 
-	link := NewChainLink(g, nil, nil)
-	require.NoError(t, link.unpackStubbed(base64.StdEncoding.EncodeToString(raw)))
-	require.True(t, link.IsStubbed())
-	link.chainVerified = true
-	return link
+	stubJSON := `{"s2":"` + full.unpacked.outerLinkV2.EncodeStubbed() + `"}`
+	stub, err = ImportLinkFromServer(m, nil, []byte(stubJSON), linkUID)
+	require.NoError(t, err)
+	require.True(t, stub.IsStubbed())
+	require.Equal(t, full.id, stub.id)
+
+	for _, l := range []*ChainLink{full, stub} {
+		require.NoError(t, l.VerifyLink())
+		l.markChainVerified()
+	}
+	return full, stub
+}
+
+// realChainSegment returns the real device link in linkVer1 (seqno 5), the
+// track link that follows it (seqno 6) in full and stubbed, all parented to one
+// chain, and the key family that signed them.
+func realChainSegment(t *testing.T, tc TestContext) (device, full, stub *ChainLink, kf *KeyFamily) {
+	m := NewMetaContextForTest(tc)
+	full, stub = realTrackLinks(t, tc)
+	device, err := ImportLinkFromServer(m, nil, []byte(linkVer1), linkUID)
+	require.NoError(t, err)
+	require.NoError(t, device.VerifyLink())
+	require.Equal(t, device.id, full.GetPrev())
+
+	sc := &SigChain{Contextified: NewContextified(tc.G), uid: linkUID, username: "testuser1874"}
+	for _, l := range []*ChainLink{device, full, stub} {
+		l.SetParent(sc)
+	}
+
+	jw, err := jsonw.Unmarshal([]byte(`{"all_bundles":[
+		"012057bd86a5c2a8e5e0ba228021b49216e38158ce04abba069fe9b3c2298d283a600a",
+		"0120e5b206afdd8ad09f527e79721e21024237d31db98e6cb4038d5bcc785b68b6130a",
+		"0121441e6d9bfa1ec7f2c9e245b3c23f6fd9544a9050b86a54cfb82c5cd2c4b099300a"]}`))
+	require.NoError(t, err)
+	kf, err = ParseKeyFamily(tc.G, jw)
+	require.NoError(t, err)
+	return device, full, stub, kf
 }
 
 func storedLinkRecord(t *testing.T, g *GlobalContext, id LinkID) []byte {
@@ -48,16 +73,16 @@ func TestTrackChainLinkFromUPK2AIStubbedLink(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 
-	link := makeStubbedTrackLink(t, tc.G)
-	_, err := link.Store(m)
+	_, stub := realTrackLinks(t, tc)
+	_, err := stub.Store(m)
 	require.NoError(t, err)
 
-	followee := keybase1.UID("295a7eea607af32040647123732bc819")
+	followee := keybase1.UID("6c01fd886268fd6df8185cac265ca819")
 	follower := &keybase1.UserPlusKeysV2AllIncarnations{
 		Current: keybase1.UserPlusKeysV2{
-			Uid: keybase1.UID("2ff3e34ad9c4e1bd9f2a0e5f43f10719"),
+			Uid: linkUID,
 			RemoteTracks: map[keybase1.UID]keybase1.RemoteTrack{
-				followee: {Username: "testuser", Uid: followee, LinkID: keybase1.LinkID(link.id.String())},
+				followee: {Username: "testuser", Uid: followee, LinkID: keybase1.LinkID(stub.id.String())},
 			},
 		},
 	}
@@ -75,37 +100,24 @@ func TestStoreKeepsFullLinkOverStub(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 
-	link := makeStubbedTrackLink(t, tc.G)
-	full := []byte(`{"sig":"full-link-sig","payload_json":"{}"}`)
-	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, full))
-	// A load caches each link from the server before storing it.
-	putLinkToCache(m, link)
+	full, stub := realTrackLinks(t, tc)
+	_, err := full.Store(m)
+	require.NoError(t, err)
+	fullRecord := storedLinkRecord(t, tc.G, full.id)
 
-	didStore, err := link.Store(m)
+	// A load caches each link from the server before storing it.
+	putLinkToCache(m, stub)
+	didStore, err := stub.Store(m)
 	require.NoError(t, err)
 	// Reported as stored so SigChain.Store keeps walking to older links.
 	require.True(t, didStore)
-	require.Equal(t, string(full), string(storedLinkRecord(t, tc.G, link.id)))
-	_, cached := tc.G.LinkCache().Get(link.id)
+	require.Equal(t, string(fullRecord), string(storedLinkRecord(t, tc.G, stub.id)))
+	_, cached := tc.G.LinkCache().Get(stub.id)
 	require.False(t, cached, "the cached stub would hide the full link on disk")
-}
 
-func TestStoreKeepsFullLinkWithStubKeyState(t *testing.T) {
-	tc := SetupTest(t, "stubbed_store_cki", 1)
-	defer tc.Cleanup()
-	m := NewMetaContextForTest(tc)
-
-	link := makeStubbedTrackLink(t, tc.G)
-	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, []byte(`{"sig":"full-link-sig","payload_json":"{}"}`)))
-	// The tail of a load carries the chain's computed key state.
-	link.PutSigCheckCache(NewComputedKeyInfos(tc.G))
-
-	_, err := link.Store(m)
+	got, err := ImportLinkFromStorage(m, stub.id, linkUID)
 	require.NoError(t, err)
-	stored := string(storedLinkRecord(t, tc.G, link.id))
-	require.Contains(t, stored, `"sig":"full-link-sig"`)
-	require.Contains(t, stored, `"computed_key_infos"`)
-	require.NotContains(t, stored, `"s2"`)
+	require.False(t, got.IsStubbed())
 }
 
 func TestStoreReplacesUnreadableRecordWithStub(t *testing.T) {
@@ -113,12 +125,12 @@ func TestStoreReplacesUnreadableRecordWithStub(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 
-	link := makeStubbedTrackLink(t, tc.G)
-	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: link.id.String()}, []byte(`{"junk":1}`)))
+	_, stub := realTrackLinks(t, tc)
+	require.NoError(t, tc.G.LocalDb.PutRaw(DbKey{Typ: DBLink, Key: stub.id.String()}, []byte(`{"junk":1}`)))
 
-	_, err := link.Store(m)
+	_, err := stub.Store(m)
 	require.NoError(t, err)
-	require.Contains(t, string(storedLinkRecord(t, tc.G, link.id)), `"s2"`)
+	require.Contains(t, string(storedLinkRecord(t, tc.G, stub.id)), `"s2"`)
 }
 
 func TestParseTrackChainLinkStubbedLink(t *testing.T) {
@@ -127,8 +139,11 @@ func TestParseTrackChainLinkStubbedLink(t *testing.T) {
 
 	// Payload readers chain jsonw lookups on UnmarshalPayloadJSON; a stub
 	// must make them fail, not crash.
-	_, err := ParseTrackChainLink(GenericChainLink{makeStubbedTrackLink(t, tc.G)})
+	full, stub := realTrackLinks(t, tc)
+	_, err := ParseTrackChainLink(GenericChainLink{stub})
 	require.Error(t, err)
+	_, err = ParseTrackChainLink(GenericChainLink{full})
+	require.NoError(t, err)
 }
 
 func TestLinkCacheKeepsFullLinkOverStub(t *testing.T) {
@@ -138,21 +153,86 @@ func TestLinkCacheKeepsFullLinkOverStub(t *testing.T) {
 	c := NewLinkCache(10, time.Hour)
 	defer c.Shutdown()
 
-	stub := *makeStubbedTrackLink(t, tc.G)
-	full := stub.Copy()
-	full.unpacked = &ChainLinkUnpacked{}
+	full, stub := realTrackLinks(t, tc)
 
-	c.Put(m, full.id, full)
-	c.Put(m, stub.id, stub)
+	c.Put(m, full.id, *full)
+	c.Put(m, stub.id, *stub)
 	got, ok := c.Get(stub.id)
 	require.True(t, ok)
 	require.False(t, got.IsStubbed())
 
 	// The other direction is how a forced unstubbed reload heals the cache.
 	c.Remove(stub.id)
-	c.Put(m, stub.id, stub)
-	c.Put(m, full.id, full)
+	c.Put(m, stub.id, *stub)
+	c.Put(m, full.id, *full)
 	got, ok = c.Get(stub.id)
 	require.True(t, ok)
 	require.False(t, got.IsStubbed())
+}
+
+// Key state computed over stubs is stored with the link and survives a reload
+// from disk; records written before the flag existed read as not stub-derived.
+func TestSkippedStubsKeyStateRoundTrip(t *testing.T) {
+	tc := SetupTest(t, "stubbed_cki_roundtrip", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	full, _ := realTrackLinks(t, tc)
+	cki := NewComputedKeyInfos(tc.G)
+	cki.SkippedStubs = true
+	full.PutSigCheckCache(cki)
+	_, err := full.Store(m)
+	require.NoError(t, err)
+	require.Contains(t, string(storedLinkRecord(t, tc.G, full.id)), `"SkippedStubs":true`)
+
+	tc.G.LinkCache().Remove(full.id)
+	got, err := ImportLinkFromStorage(m, full.id, linkUID)
+	require.NoError(t, err)
+	require.NotNil(t, got.GetSigCheckCache())
+	require.True(t, got.GetSigCheckCache().SkippedStubs)
+	require.True(t, got.GetSigCheckCache().ShallowCopy().SkippedStubs)
+
+	old := NewChainLink(tc.G, nil, nil)
+	require.NoError(t, old.UnpackComputedKeyInfos([]byte(`{"Version":4,"Infos":{}}`)))
+	require.False(t, old.cki.SkippedStubs)
+}
+
+// Key state computed over a chain with stubs is flagged, and a load whose
+// chain has no stubs left recomputes rather than reusing it: the full links
+// may carry state (e.g. a revocation) that the stubs hid.
+func TestStubDerivedKeyStateNotReusedWithoutStubs(t *testing.T) {
+	tc := SetupTest(t, "stubbed_cki_reuse", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+	device, full, stub, kf := realChainSegment(t, tc)
+
+	cached, cki, err := verifySubchain(m, "testuser1874", *kf, ChainLinks{device, stub})
+	require.NoError(t, err)
+	require.False(t, cached)
+	require.True(t, cki.SkippedStubs)
+	cached, _, err = verifySubchain(m, "testuser1874", *kf, ChainLinks{device, stub})
+	require.NoError(t, err)
+	require.True(t, cached, "a chain that still has the stubs reuses the result")
+
+	stubbed := SigChain{Contextified: NewContextified(tc.G), chainLinks: ChainLinks{device, stub}}
+	require.Equal(t, cki, stubbed.GetComputedKeyInfosWithVersionBust())
+
+	// The same state on the full link's record, as a stubbed load whose
+	// chain later lost its stubs would leave it.
+	full.PutSigCheckCache(cki)
+	unstubbed := SigChain{Contextified: NewContextified(tc.G), chainLinks: ChainLinks{device, full}}
+	require.Nil(t, unstubbed.GetComputedKeyInfosWithVersionBust())
+
+	// Recomputing verifies the tip's signature, which this segment can't
+	// satisfy (its eldest key was delegated before seqno 5); reuse wouldn't
+	// check it. So the error shows verifySubchain recomputed.
+	cached, _, err = verifySubchain(m, "testuser1874", *kf, ChainLinks{device, full})
+	require.False(t, cached)
+	require.Error(t, err)
+
+	cki.SkippedStubs = false
+	require.Equal(t, cki, unstubbed.GetComputedKeyInfosWithVersionBust())
+	cached, _, err = verifySubchain(m, "testuser1874", *kf, ChainLinks{device, full})
+	require.NoError(t, err)
+	require.True(t, cached)
 }

@@ -138,6 +138,17 @@ func (sc *SigChain) EldestSeqno() keybase1.Seqno {
 	return sc.currentSubchainStart
 }
 
+func (c ChainLinks) hasStubs() bool {
+	return slices.ContainsFunc(c, (*ChainLink).IsStubbed)
+}
+
+// stubDerivedFor reports whether cki was computed over stubs that links no
+// longer has. An unstubbed load drops every stub, and the full links may carry
+// state the stubs hid, so it must recompute rather than reuse cki.
+func (cki *ComputedKeyInfos) stubDerivedFor(links ChainLinks) bool {
+	return cki.SkippedStubs && !links.hasStubs()
+}
+
 func (c ChainLinks) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	ll := last(c)
 	if ll == nil {
@@ -166,6 +177,9 @@ func (sc SigChain) GetComputedKeyInfosWithVersionBust() (cki *ComputedKeyInfos) 
 	}
 	if ret.IsStaleVersion() {
 		sc.G().Log.Debug("Threw out CKI due to stale version (%d)", ret.Version)
+		ret = nil
+	} else if ret.stubDerivedFor(sc.chainLinks) {
+		sc.G().Log.Debug("Threw out CKI computed over stubs this chain no longer has")
 		ret = nil
 	}
 	return ret
@@ -755,6 +769,8 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 	if cki = last.GetSigCheckCache(); cki != nil {
 		if cki.IsStaleVersion() {
 			m.Debug("Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+		} else if cki.stubDerivedFor(links) {
+			m.Debug("Ignoring cached CKI, since it was computed over stubs that are now full links")
 		} else {
 			cached = true
 			m.Debug("Skipped verification (cached): %s", last.id)
@@ -795,6 +811,7 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
 			m.VLogf(VLog1, "| Skipping over stubbed-out link: %s", link.id)
+			cki.SkippedStubs = true
 			continue
 		}
 
