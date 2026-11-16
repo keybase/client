@@ -9,8 +9,6 @@
 #import "MPRPCProtocol.h"
 #import "MPDefines.h"
 
-NSString *const MPErrorInfoKey = @"MPErrorInfoKey";
-
 BOOL MPVerifyMessage(id message, NSError **error) {
   if (![message isKindOfClass:NSArray.class]) {
     if (error) *error = MPMakeError(MPRPCErrorRequestInvalid, @"Invalid request; Not NSArray type");
@@ -102,5 +100,5 @@ NSError *MPErrorFromErrorDict(NSString *domain, NSDictionary *dict) {
   if (dict[@"code"]) code = [dict[@"code"] integerValue];
   NSString *desc = @"Oops, something wen't wrong";
   if (dict[@"desc"]) desc = [dict[@"desc"] description];
-  return [NSError errorWithDomain:domain code:code userInfo:@{NSLocalizedDescriptionKey: desc, MPErrorInfoKey: dict}];
+  return [NSError errorWithDomain:domain code:code userInfo:@{NSLocalizedDescriptionKey: desc}];
 }

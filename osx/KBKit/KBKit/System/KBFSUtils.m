@@ -63,4 +63,12 @@
     return YES;
 }
 
++(NSString *)resolveLinkPath:(NSString *)linkPath {
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (![attributes[NSFileType] isEqual:NSFileTypeSymbolicLink]) {
+    return nil;
+  }
+  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
+}
+
 @end

@@ -19,15 +19,11 @@ NSDictionary *dict =
     @"body": [NSData data],
   };
 
-NSData *data = [dict mp_messagePack];
-```
-
-Or via ```MPMessagePackWriter```.
-
-```objc
 NSError *error = nil;
 NSData *data = [MPMessagePackWriter writeObject:dict error:&error];
 ```
+
+Arrays also have `-[NSArray mp_messagePack]`.
 
 ## Reading
 
@@ -37,8 +33,8 @@ id obj = [MPMessagePackReader readData:data error:&error];
 
 ```objc
 MPMessagePackReader *reader = [[MPMessagePackReader alloc] initWithData:data];
-id obj1 = [reader read:&error]; // Read an object
-id obj2 = [reader read:&error]; // Read another object
+id obj1 = [reader readObject:&error]; // Read an object
+id obj2 = [reader readObject:&error]; // Read another object
 ```
 
 # XPC

@@ -2,7 +2,7 @@
 
 ### Pre-requisites
 
-* cocoapods (`sudo gem install cocoapods -v 1.8.4`)
+* cocoapods (`sudo gem install cocoapods`)
 * xcpretty (`gem install xcpretty`)
 * Xcode command line tools
 

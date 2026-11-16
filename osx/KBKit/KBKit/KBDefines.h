@@ -15,7 +15,6 @@
 static const int ddLogLevel = DDLogLevelDebug;
 
 typedef void (^KBCompletion)(NSError *error);
-typedef void (^KBOnCompletion)(NSError *error, id value);
 
 typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeWarning = 0,
@@ -32,7 +31,7 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeFuseCriticalUpdate = -303,
 };
 
-#define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
+#define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__]}]
 
 #define KBMakeWarning(MSG, ...) KBMakeError(KBErrorCodeWarning, MSG, ##__VA_ARGS__)
 #define KBIsWarning(ERR) ((ERR.code == KBErrorCodeWarning))

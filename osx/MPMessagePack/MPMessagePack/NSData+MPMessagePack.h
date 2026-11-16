@@ -1,5 +1,5 @@
 //
-//  NSString+MPMessagePack.h
+//  NSData+MPMessagePack.h
 //  MPMessagePack
 //
 //  Created by Gabriel on 1/5/15.

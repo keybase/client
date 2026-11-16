@@ -9,17 +9,23 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
-#import "KBEnvironment.h"
 #import "KBPath.h"
 
 @interface KBEnvConfig ()
 @property NSString *mountDir;
 @property KBRunMode runMode;
 @property KBInstallOptions installOptions;
-@property NSTimeInterval installTimeout;
 @property NSString *appPath;
 @property NSString *sourcePath;
 @end
+
+static NSString *NSStringFromKBRunMode(KBRunMode runMode) {
+  switch (runMode) {
+    case KBRunModeDevel: return @"Devel";
+    case KBRunModeStaging: return @"Staging";
+    case KBRunModeProd: return @"Prod";
+  }
+}
 
 @implementation KBEnvConfig
 
@@ -50,7 +56,7 @@
   return self;
 }
 
-+ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath {
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath {
   KBEnvConfig *envConfig;
   if ([runModeString isEqualToString:@"prod"]) {
     envConfig = [KBEnvConfig envConfigWithRunMode:KBRunModeProd];
@@ -62,7 +68,6 @@
     return nil;
   }
   envConfig.installOptions = installOptions;
-  envConfig.installTimeout = installTimeout;
   envConfig.appPath = appPath;
   envConfig.sourcePath = sourcePath;
   return envConfig;
@@ -70,12 +75,12 @@
 
 - (NSString *)appName {
   if (_runMode == KBRunModeProd) return @"Keybase";
-  else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
+  else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode));
 }
 
 - (NSString *)appNameWithDot {
   if (_runMode == KBRunModeProd) return @"Keybase";
-  else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode, NO));
+  else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode));
 }
 
 - (NSString *)defaultMountDir {
@@ -162,11 +167,3 @@
 }
 
 @end
-
-NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue) {
-  switch (runMode) {
-    case KBRunModeDevel: return isValue ? @"devel" : @"Devel";
-    case KBRunModeStaging: return isValue ? @"staging" : @"Staging";
-    case KBRunModeProd: return isValue ? @"prod" : @"Prod";
-  }
-}

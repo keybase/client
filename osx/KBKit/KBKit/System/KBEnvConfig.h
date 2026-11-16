@@ -29,16 +29,11 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @interface KBEnvConfig : NSObject
 
 @property (readonly) NSString *mountDir;
-@property (readonly) KBRunMode runMode;
 @property (readonly) KBInstallOptions installOptions;
-@property (readonly) NSTimeInterval installTimeout;
 @property (readonly) NSString *appPath;
 @property (readonly) NSString *sourcePath;
 
-- (instancetype)initWithRunMode:(KBRunMode)runMode;
-
-+ (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
-+ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
 
 - (NSString *)dataPath:(NSString *)filename;
 
@@ -55,5 +50,3 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (BOOL)isInApplications:(NSString *)path;
 
 @end
-
-NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue);

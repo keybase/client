@@ -22,10 +22,6 @@
     [installables addObject:mountDir];
   }
   if (options.uninstallOptions & UninstallOptionFuse) {
-    if (!environment.fuse) {
-      completion(KBMakeError(-1, @"No fuse to uninstall"));
-      return;
-    }
     [installables addObject:environment.fuse];
   }
   if (options.uninstallOptions & UninstallOptionCLI) {

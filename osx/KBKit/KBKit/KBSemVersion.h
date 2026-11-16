@@ -27,9 +27,7 @@
 @property (readonly) NSString *build;
 
 + (instancetype)version:(NSString *)version;
-+ (instancetype)version:(NSString *)version build:(NSString *)build;
 
-- (BOOL)isOrderedSame:(KBSemVersion *)v;
 - (BOOL)isGreaterThan:(KBSemVersion *)v;
 - (BOOL)isLessThan:(KBSemVersion *)v;
 

@@ -39,9 +39,9 @@ To build the installer, view instructions at [Scripts/README.md](Scripts/README.
 ## macOS Installer Overview
 
 ```
-┌────────────────────────────────┐
-│desktop/app/installer.desktop.js│
-└────────────────────────────────┘
+┌─────────────────────────────────┐
+│desktop/app/installer.desktop.tsx│
+└─────────────────────────────────┘
              │
              │
              ▼
@@ -91,7 +91,7 @@ the native KeybaseInstaller.app (see below).
 
 ### keybase install-auto
 
-When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.desktop.js](https://github.com/keybase/client/blob/master/shared/desktop/app/installer.desktop.js).
+When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.desktop.tsx](../shared/desktop/app/installer.desktop.tsx).
 
 By default this runs install with the components:
 - `cli`: Command line (to /usr/local/bin)
@@ -122,6 +122,7 @@ Other arguments include:
 - `install-mountdir`: Creates the `/keybase` folder.
 - `install-helper`: Installs helper tool, which runs privileged tasks. See [Privileged Helper Tool](https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html#//apple_ref/doc/uid/TP40002589-SW2).
 - `install-cli`: Installs command line into `/usr/local/bin` or `/etc/paths.d/Keybase`
+- `install-redirector`: Installs and starts the `/keybase` redirector (as privileged task).
 - `install-app-bundle`: Installs app by verifying app bundle and then moving it into `/Applications/Keybase.app` (as privileged task).
 
 It also has corresponding uninstall options:
@@ -130,6 +131,7 @@ It also has corresponding uninstall options:
 - `uninstall-mountdir`
 - `uninstall-helper`
 - `uninstall-cli`
+- `uninstall-redirector`
 - `uninstall-app`
 
 ### Styleguide

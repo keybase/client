@@ -1,5 +1,5 @@
 //
-//  MPMessagePackXPC.h
+//  MPXPCService.h
 //  MPMessagePack
 //
 //  Created by Gabriel on 5/5/15.

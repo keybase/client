@@ -1,5 +1,5 @@
 //
-//  KBInstallerView.h
+//  KBInstaller.h
 //  Keybase
 //
 //  Created by Gabriel on 2/23/15.

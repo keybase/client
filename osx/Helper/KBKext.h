@@ -10,7 +10,6 @@
 
 #import "KBHelperDefines.h"
 
-
 @interface KBKext : NSObject
 
 /*!
@@ -32,9 +31,6 @@
  Always loads the kext (no-op if it is already loaded).
  */
 + (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion;
-
-+ (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion;
-
 
 + (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error;
 

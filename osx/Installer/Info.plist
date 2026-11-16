@@ -20,12 +20,8 @@
 	<string>KEYB</string>
 	<key>CFBundleVersion</key>
 	<string>1.1.94</string>
-	<key>KBFuseBuild</key>
-	<string>5.0.6</string>
 	<key>KBFuseVersion</key>
 	<string>5.0.6</string>
-	<key>KBHelperBuild</key>
-	<string>1.0.48</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.48</string>
 	<key>LSMinimumSystemVersion</key>
@@ -41,7 +37,7 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>keybase.Helper</key>
-		<string>anchor apple generic and identifier "keybase.Helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "99229SGT5K")</string>
+		<string>anchor apple generic and identifier "keybase.Helper" and certificate leaf[subject.OU] = "99229SGT5K" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */)</string>
 	</dict>
 </dict>
 </plist>

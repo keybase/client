@@ -119,28 +119,13 @@
   }];
 }
 
-- (BOOL)linkExists:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
-}
-
-- (NSString *)resolveLinkPath:(NSString *)linkPath {
-  if (![self linkExists:linkPath]) {
-    return nil;
-  }
-  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
-}
-
 // Check if we're linked properly at /usr/local/bin
 - (BOOL)linkedToServicePath {
   NSString *linkDir = @"/usr/local/bin";
   NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
   NSString *shouldResolveToPath = [NSString stringWithFormat:@"%@/%@", self.servicePath, self.config.serviceBinName];
   if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
-    NSString *resolved = [self resolveLinkPath:linkPath];
+    NSString *resolved = [KBFSUtils resolveLinkPath:linkPath];
     DDLogInfo(@"Link resolved to path: %@ <=> %@", resolved, shouldResolveToPath);
     if ([resolved isEqualToString:shouldResolveToPath]) {
       return YES;

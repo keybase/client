@@ -57,15 +57,6 @@
   }
 }
 
-- (NSString *)checkKextID:(NSString *)kextID {
-  NSString * const kbfuseKextID = @"com.github.kbfuse.filesystems.kbfuse";
-  NSString * const fuse3KextID = @"com.github.osxfuse.filesystems.osxfuse";
-  
-  if ([kextID isEqualToString:kbfuseKextID]) return kbfuseKextID;
-  if ([kextID isEqualToString:fuse3KextID]) return fuse3KextID;
-  return nil;
-}
-
 - (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId remote:(xpc_connection_t)remote completion:(void (^)(NSError *error, id value))completion {
   NSDictionary *args = [params count] == 1 ? params[0] : @{};
 
@@ -86,15 +77,6 @@
     [self version:completion];
   } else if ([method isEqualToString:@"kextLoad"]) {
     [KBKext loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kextUnload"]) {
-    // For some reason passing through args[@"kextID"] causes the helper to crash on kextUnload only.
-    // TODO: Figure out why. (Maybe string has to be const?)
-    NSString *kextID = [self checkKextID:args[@"kextID"]];
-    if (kextID) {
-      [KBKext unloadKextID:kextID completion:completion];
-    } else {
-      completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
-    }
   } else if ([method isEqualToString:@"kextInstall"]) {
     [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kextUninstall"]) {

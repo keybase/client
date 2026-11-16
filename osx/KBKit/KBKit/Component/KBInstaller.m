@@ -1,5 +1,5 @@
 //
-//  KBInstallerView.m
+//  KBInstaller.m
 //  Keybase
 //
 //  Created by Gabriel on 2/23/15.
@@ -14,7 +14,6 @@
 #import "KBDefines.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
-#import <GHKit/GHKit.h>
 
 @implementation KBInstaller
 

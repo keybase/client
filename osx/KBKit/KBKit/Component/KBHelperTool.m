@@ -9,7 +9,6 @@
 #import "KBHelperTool.h"
 
 #import <ServiceManagement/ServiceManagement.h>
-#import <ObjectiveSugar/ObjectiveSugar.h>
 
 #import "KBSemVersion.h"
 
@@ -29,7 +28,7 @@
 }
 
 - (KBSemVersion *)bundleVersion {
-  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:nil];
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"]];
 }
 
 + (MPXPCClient *)helper {
@@ -62,27 +61,8 @@
     return;
   }
 
-  NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
-  NSString *infoText = @"";
-
-  BOOL multiUser = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]];
-  BOOL activeDirectory = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]];
-  BOOL bigSurFuse = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.47"]];
-
-  if (multiUser) {
-    alertText = @"New Keybase feature: multiple users in macOS";
-    // Use a division slash instead of a regular / to avoid weird line breaks.
-    infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
-  } else if (activeDirectory) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
-  } else if (bigSurFuse) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains a new version of macFuse which adds KBFS support for Big Sur and M1 devices.\n\nYou may need to enter your password for this update. A system reboot may also be needed.";
-  } else {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
-  }
+  NSString *alertText = @"Keybase helper update";
+  NSString *infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
   [alert setInformativeText:infoText];
@@ -115,12 +95,12 @@
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionReinstall info:info error:nil];
       // If we couldn't run this, just act like it is a very old version running that we don't know how to
       // talk to so we can still run checks on the bundle version
-      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0" build:nil];
+      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0"];
       [self doInstallAlert:bundleVersion runningVersion:runningVersion];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
-      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
+      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"")];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       DDLogInfo(@"Running Version: %@", runningVersion);
       if ([bundleVersion isGreaterThan:runningVersion]) {
@@ -181,7 +161,7 @@
   OSStatus authResult = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
   if (authResult != errAuthorizationSuccess) {
     if (error) {
-      *error = [NSError errorWithDomain:@"keybase.Helper" code:authResult userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Error copying rights: %@", @(authResult)], NSLocalizedRecoveryOptionsErrorKey: @[@"Quit"]}];
+      *error = [NSError errorWithDomain:@"keybase.Helper" code:authResult userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Error copying rights: %@", @(authResult)]}];
     }
     return nil;
   }

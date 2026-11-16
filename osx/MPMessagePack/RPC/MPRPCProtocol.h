@@ -11,8 +11,6 @@
 #import "MPMessagePackWriter.h"
 #import "MPMessagePackReader.h"
 
-extern NSString *const MPErrorInfoKey;
-
 typedef NS_ENUM (NSInteger, MPRPCError) {
   MPRPCErrorRequestInvalid = -20,
 };

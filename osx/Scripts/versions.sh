@@ -28,7 +28,5 @@ echo ""
 
 echo "Updating plist..."
 /usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${kb_helper_version}'" $plist
-/usr/libexec/PlistBuddy -c "Set :KBHelperBuild '${kb_helper_build}'" $plist
 /usr/libexec/PlistBuddy -c "Set :KBFuseVersion '${fuse_version}'" $plist
-/usr/libexec/PlistBuddy -c "Set :KBFuseBuild '${fuse_build}'" $plist
 echo "  "

@@ -13,16 +13,12 @@
 
 @interface MPXPCClient : NSObject
 
-@property (readonly) NSString *serviceName;
-@property (readonly) BOOL privileged;
 @property NSTimeInterval timeout;
 @property BOOL retryMaxAttempts;
 @property NSTimeInterval retryDelay;
 @property (weak) id<MPLog> logDelegate;
 
 - (instancetype)initWithServiceName:(NSString *)serviceName privileged:(BOOL)privileged;
-
-- (BOOL)connect:(NSError **)error;
 
 - (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, id value))completion;
 

@@ -1,5 +1,5 @@
 //
-//  KBFuseInstall.m
+//  KBFuseComponent.m
 //  Keybase
 //
 //  Created by Gabriel on 5/11/15.

@@ -6,7 +6,6 @@
 //
 
 #import "KBRedirector.h"
-#import "KBInstaller.h"
 
 @interface KBRedirector ()
 @property KBHelperTool *helperTool;

@@ -113,7 +113,7 @@
 
 - (KBEnvironment *)environment {
   NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout appPath:self.appPath sourcePath:self.sourcePath];
+  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions appPath:self.appPath sourcePath:self.sourcePath];
   KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
   return environment;
 }
