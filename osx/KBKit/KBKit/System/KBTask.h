@@ -14,7 +14,4 @@ typedef void (^KBTaskCompletion)(NSError *error, NSData *outData, NSData *errDat
 
 + (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(KBTaskCompletion)completion;
 
-// Execute and parse JSON from stdout (otherwise error)
-+ (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion;
-
 @end

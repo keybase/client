@@ -8,9 +8,7 @@
 
 #import "KBUninstaller.h"
 #import "KBRunOver.h"
-#import "KBPath.h"
 #import "KBInstallable.h"
-#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBUninstaller
 
@@ -23,7 +21,7 @@
       runCompletion(installable, NO);
     }];
   };
-  rover.completion = ^(NSArray *installables, BOOL stopped) {
+  rover.completion = ^(NSArray *installables) {
     completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
   };
   [rover run];

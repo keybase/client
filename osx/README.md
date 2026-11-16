@@ -30,7 +30,7 @@ pod install
 open Keybase.xcworkspace
 ```
 
-The `Installer` target builds KeybaseInstaller.app (it also builds and embeds `keybase.Helper`). Don't run it from Xcode on your own machine without reading what it does: it installs privileged components.
+The `Installer` target builds the installer app (`Scripts/build_installer.sh` names it KeybaseInstaller.app); it also builds and embeds `keybase.Helper`. Don't run it from Xcode on your own machine without reading what it does: it installs privileged components.
 
 ## Building
 
@@ -118,7 +118,7 @@ For example, to install (or update) Fuse, you can run:
 
 Other arguments include:
 
-- `install-fuse`: Installs KBFuse, our custom osxfuse build, see [Fuse/kbfuse](osx/Fuse/kbfuse) for more details.
+- `install-fuse`: Installs KBFuse, our custom osxfuse build, see [Fuse](Fuse/README.md) for more details.
 - `install-mountdir`: Creates the `/keybase` folder.
 - `install-helper`: Installs helper tool, which runs privileged tasks. See [Privileged Helper Tool](https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html#//apple_ref/doc/uid/TP40002589-SW2).
 - `install-cli`: Installs command line into `/usr/local/bin` or `/etc/paths.d/Keybase`

@@ -9,20 +9,24 @@
 #import <Foundation/Foundation.h>
 
 #import <KBKit/KBEnvConfig.h>
-#import <KBKit/KBComponent.h>
+#import <KBKit/KBDefines.h>
 #import <KBKit/KBComponentStatus.h>
 
 // Default timeout for running (external) install (or status) commands
 extern const NSTimeInterval KBDefaultTaskTimeout;
 
-@interface KBInstallable : KBComponent
+typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus);
+
+@interface KBInstallable : NSObject
+
+@property (readonly) NSString *name;
 
 @property (readonly) KBEnvConfig *config;
 
 @property (nonatomic) KBComponentStatus *componentStatus;
 @property NSError *error;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info;
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name;
 
 - (void)install:(KBCompletion)completion;
 - (void)uninstall:(KBCompletion)completion;
@@ -30,8 +34,6 @@ extern const NSTimeInterval KBDefaultTaskTimeout;
 
 - (NSArray *)installDescription:(NSString *)delimeter;
 - (NSArray *)statusDescription:(NSString *)delimeter;
-
-+ (NSError *)checkForStatusErrorFromResponse:(id)response;
 
 + (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings;
 

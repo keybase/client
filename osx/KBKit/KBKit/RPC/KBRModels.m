@@ -8,9 +8,6 @@
 @implementation KBRStatus
 @end
 
-@implementation KBRServiceStatus
-@end
-
 @implementation KBRFuseMountInfo
 @end
 

@@ -13,7 +13,6 @@
 #import "KBRunOver.h"
 #import "KBDefines.h"
 #import "KBCommandLine.h"
-#import "KBUpdaterService.h"
 #import "KBMountDir.h"
 #import "KBRedirector.h"
 #import "KBAppBundle.h"
@@ -48,16 +47,6 @@
       [_installables addObject:[[KBAppBundle alloc] initWithConfig:config helperTool:_helperTool]];
     }
 
-    KBUpdaterService *updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
-    if (config.installOptions&KBInstallOptionUpdater) {
-      [_installables addObject:updater];
-    }
-
-    KBService *service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
-    if (config.installOptions&KBInstallOptionService) {
-      [_installables addObject:service];
-    }
-
     _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
     if (config.installOptions&KBInstallOptionFuse) {
       helperRequired = YES;
@@ -74,11 +63,6 @@
       helperRequired = YES;
       KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:redirector];
-    }
-
-    KBFSService *kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
-    if (config.installOptions&KBInstallOptionKBFS) {
-      [_installables addObject:kbfs];
     }
 
     _cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];

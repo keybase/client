@@ -12,8 +12,6 @@
 
 @interface MPXPCService : NSObject
 
-- (void)listen:(xpc_connection_t)service;
-
 - (void)listen:(xpc_connection_t)service codeRequirement:(NSString *)codeRequirement;
 
 // Subclasses should implement this

@@ -1,5 +1,5 @@
 //
-//  KBComponent.h
+//  KBComponentStatus.h
 //  Keybase
 //
 //  Created by Gabriel on 5/13/15.
@@ -21,11 +21,7 @@ NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);
 @property (readonly) KBRInstallAction installAction;
 @property (readonly) GHODictionary *info;
 
-@property (readonly) NSString *label;
-
 + (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error;
-
-+ (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus;
 
 + (instancetype)componentStatusWithError:(NSError *)error;
 

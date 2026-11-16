@@ -7,10 +7,7 @@
 //
 
 #import "KBMountDir.h"
-#import "KBInstaller.h"
-#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
-#import "KBTask.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
@@ -18,17 +15,11 @@
 
 @implementation KBMountDir
 
-@synthesize error;
-
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [self initWithConfig:config name:@"Mount Directory" info:@"Location for mount directory"])) {
+  if ((self = [self initWithConfig:config name:@"Mount directory"])) {
     _helperTool = helperTool;
   }
   return self;
-}
-
-- (NSString *)name {
-  return @"Mount directory";
 }
 
 - (BOOL)checkMountDirExists {
@@ -42,7 +33,7 @@
   NSError *err = nil;
   NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:directory error:&err];
   if (!attributes) {
-    DDLogDebug(@"Mount directory error: %@", error);
+    DDLogDebug(@"Mount directory error: %@", err);
     return NO;
   }
 
@@ -158,7 +149,7 @@
 
 - (void)addFinderFavorite {
   // Don't add if disabled
-  NSString *finderDisabledPath = [self.config dataPath:@"finder_disabled.config" options:0];
+  NSString *finderDisabledPath = [self.config dataPath:@"finder_disabled.config"];
   if ([[NSFileManager defaultManager] fileExistsAtPath:finderDisabledPath]) return;
 
   // Don't add for 10.10 or below because of Finder bugs
@@ -178,17 +169,17 @@
 }
 
 - (NSInteger)finderConfigPosition {
-  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config" options:0];
+  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config"];
   NSString *positionStr = [NSString stringWithContentsOfFile:finderConfigPath encoding:NSUTF8StringEncoding error:nil];
   if (!positionStr) return 0;
   return [positionStr integerValue];
 }
 
 - (void)saveFinderConfig {
-  NSString *symPath = [self.config dataPath:@"Keybase" options:0];
+  NSString *symPath = [self.config dataPath:@"Keybase"];
   NSURL *URL = [NSURL fileURLWithPath:symPath];
   NSInteger position = [KBSharedFileList firstPositionForURL:URL type:kLSSharedFileListFavoriteItems];
-  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config" options:0];
+  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config"];
   DDLogDebug(@"Saving finder favorite position %@ to %@", @(position), finderConfigPath);
   if (![[NSFileManager defaultManager] createFileAtPath:finderConfigPath contents:[NSStringWithFormat(@"%@", @(position)) dataUsingEncoding:NSUTF8StringEncoding] attributes:nil]) {
     DDLogError(@"Unable to save %@", finderConfigPath);
@@ -220,7 +211,6 @@
   return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
 }
 
-
 + (BOOL)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled position:(NSInteger)position config:(KBEnvConfig *)config error:(NSError **)error {
   if (!config.mountDir) {
     if (error) *error = KBMakeError(0, @"No mount dir");
@@ -231,7 +221,7 @@
   // and there is some funkiness there (like the URL property not resolving, or the display name being ignored).
   // If we create a symlink though, all these problems are avoided. So we'll create a symlink to /keybase and add this
   // as the file list favorite item.
-  NSString *symPath = [config dataPath:@"Keybase" options:0];
+  NSString *symPath = [config dataPath:@"Keybase"];
   NSString *currPath = [self resolveLinkPath:symPath];
   if (currPath && ![config.mountDir isEqualToString:currPath]) {
     DDLogDebug(@"Removing old favorite: %@", currPath);

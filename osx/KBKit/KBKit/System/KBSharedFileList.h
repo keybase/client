@@ -14,6 +14,4 @@
 
 + (NSInteger)firstPositionForURL:(NSURL *)URL type:(CFStringRef)type;
 
-+ (void)findItemAtPosition:(NSInteger)position type:(CFStringRef)type completion:(void (^)(LSSharedFileListItemRef itemRef))completion;
-
 @end

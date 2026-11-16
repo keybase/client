@@ -85,7 +85,10 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)install {
-  [self install:^(KBExit exitCode) {
+  KBEnvironment *environment = [self.options environment];
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer installWithEnvironment:environment completion:^(NSError *error) {
+    KBExit exitCode = [self exitCodeForError:error];
     dispatch_async(dispatch_get_main_queue(), ^{
       DDLogInfo(@"Exit(%@)", @(exitCode));
       [self exit:exitCode];
@@ -109,48 +112,16 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [NSApplication.sharedApplication terminate:sender];
 }
 
-- (void)install:(void (^)(KBExit exit))completion {
-  KBEnvironment *environment = [self.options environment];
-
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:environment force:NO stopOnError:YES completion:^(NSError *error, NSArray *installables) {
-    [self checkError:error completion:^(KBExit exit) {
-      completion(exit);
-    }];
-  }];
-}
-
-- (void)checkError:(NSError *)error completion:(void (^)(KBExit exit))completion {
-  if (!error) {
-    completion(KBExitOK);
-    return;
+- (KBExit)exitCodeForError:(NSError *)error {
+  if (!error) return KBExitOK;
+  switch (error.code) {
+    case KBErrorCodeFuseKextPermission: return KBExitFuseKextPermissionError;
+    case KBErrorCodeFuseKext: return KBExitFuseKextError;
+    case errAuthorizationCanceled: return KBExitAuthCanceledError;
+    case KBErrorCodeFuseKextMountsPresent: return KBExitFuseKextMountsPresentError;
+    case KBErrorCodeFuseCriticalUpdate: return KBExitFuseCriticalUpdate;
+    default: return KBExitError;
   }
-
-  if (error.code == KBErrorCodeFuseKextPermission) {
-    completion(KBExitFuseKextPermissionError);
-    return;
-  }
-
-  if (error.code == KBErrorCodeFuseKext) {
-    completion(KBExitFuseKextError);
-    return;
-  }
-
-  if (error.code == errAuthorizationCanceled) {
-    completion(KBExitAuthCanceledError);
-    return;
-  }
-
-  if (error.code == KBErrorCodeFuseKextMountsPresent) {
-    completion(KBExitFuseKextMountsPresentError);
-    return;
-  }
-    
-  if (error.code == KBErrorCodeFuseCriticalUpdate) {
-    completion(KBExitFuseCriticalUpdate);
-  }
-
-  completion(KBExitError);
 }
 
 @end

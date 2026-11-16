@@ -9,9 +9,6 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM (NSInteger, MPLogLevel) {
-  MPLogLevelDefault = 0,
-  MPLogLevelVerbose = 20,
-  MPLogLevelDebug = 20,
   MPLogLevelInfo = 30,
   MPLogLevelWarn = 40,
   MPLogLevelError = 50,

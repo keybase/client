@@ -1,5 +1,5 @@
 //
-//  KBComponent.m
+//  KBComponentStatus.m
 //  Keybase
 //
 //  Created by Gabriel on 5/13/15.
@@ -15,7 +15,6 @@
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
 @property GHODictionary *info;
-@property NSString *label;
 @end
 
 @implementation KBComponentStatus
@@ -34,30 +33,6 @@
   componentStatus.installStatus = KBRInstallStatusError;
   componentStatus.installAction = KBRInstallActionNone;
   componentStatus.error = error;
-  return componentStatus;
-}
-
-+ (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus {
-  KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
-  componentStatus.installStatus = serviceStatus.installStatus;
-  componentStatus.installAction = serviceStatus.installAction;
-  if (serviceStatus.status.code > 0) {
-    componentStatus.error = KBMakeError(serviceStatus.status.code, @"%@", serviceStatus.status.desc);
-  }
-  componentStatus.label = serviceStatus.label;
-
-  GHODictionary *info = [GHODictionary dictionary];
-  info[@"Version"] = KBIfBlank(serviceStatus.version, nil);
-
-  if (![serviceStatus.version isEqualToString:serviceStatus.bundleVersion]) {
-    info[@"Bundle Version"] = KBIfBlank(serviceStatus.bundleVersion, nil);
-  }
-
-  info[@"PID"] = KBIfBlank(serviceStatus.pid, nil);
-  info[@"Exit Status"] = KBIfBlank(serviceStatus.lastExitStatus, nil);
-
-  componentStatus.info = info;
-  
   return componentStatus;
 }
 

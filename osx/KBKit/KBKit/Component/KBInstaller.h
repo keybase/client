@@ -12,6 +12,6 @@
 
 @interface KBInstaller : NSObject
 
-- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force stopOnError:(BOOL)stopOnError completion:(void (^)(NSError *error, NSArray *installables))completion;
+- (void)installWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion;
 
 @end

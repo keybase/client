@@ -21,7 +21,7 @@ the old developer cert, located in `keybase-dev-cert.p12`.  This won't
 be used to sign the final product, but it might be need for some of
 the interim steps, if your xcode setup pre-dates the new certificate.
 
-Open Xcode 8, go to "Xcode -> Preferences...", go to the "Accounts"
+Open Xcode, go to "Xcode -> Preferences...", go to the "Accounts"
 tab, and click the + to "Add Apple ID...". Enter the gmail address
 and Apple password found in the `apple.txt` file in
 the above-mentioned `apple-dev` repo. After adding the account, you might need to
@@ -48,9 +48,6 @@ If it complains and asks to run `pod install`, do it.
 
 Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the s3://prerelease.keybase.io/darwin-package folder.
 
-Update the scripts that reference the older version such to include this version:
-
-* [packaging/desktop/package_darwin.sh](/packaging/desktop/package_darwin.sh)
-* [packaging/desktop/kbfuse.sh](/packaging/desktop/kbfuse.sh)
+Update `KB_INSTALLER_VERSION` and `KB_INSTALLER_SHA256` (`shasum -a 256` of the tgz) in [packaging/lib.sh](/packaging/lib.sh).
 
 The installer is bundled into the Keybase.app, in `Keybase.app/Contents/Resources/KeybaseInstaller.app`.

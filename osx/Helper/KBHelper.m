@@ -34,7 +34,7 @@
     return EXIT_FAILURE;
   }
 
-  NSString *codeRequirement = @"anchor apple generic and identifier \"keybase.Installer2\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")";
+  NSString *codeRequirement = @"anchor apple generic and identifier \"keybase.Installer2\" and certificate leaf[subject.OU] = \"99229SGT5K\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */)";
 
   @try {
     KBHelper *helper = [[KBHelper alloc] init];
@@ -344,10 +344,6 @@
     return NO;
   }
   return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
-}
-
-- (BOOL)isDirectory:(NSString *)linkPath {
-  return [KBFSUtils checkFile:linkPath isType:NSFileTypeDirectory];
 }
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {

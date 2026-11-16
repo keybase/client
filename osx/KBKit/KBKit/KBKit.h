@@ -26,16 +26,11 @@ FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 #import <KBKit/KBSharedFileList.h>
 
 // Component
-#import <KBKit/KBComponent.h>
 #import <KBKit/KBComponentStatus.h>
-#import <KBKit/KBFSService.h>
 #import <KBKit/KBFuseComponent.h>
 #import <KBKit/KBHelperTool.h>
 #import <KBKit/KBInstallable.h>
 #import <KBKit/KBInstaller.h>
-#import <KBKit/KBKeybaseLaunchd.h>
-#import <KBKit/KBService.h>
-#import <KBKit/KBUpdaterService.h>
 #import <KBKit/KBCommandLine.h>
 #import <KBKit/KBUninstaller.h>
 #import <KBKit/KBAppBundle.h>

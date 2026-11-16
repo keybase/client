@@ -18,9 +18,7 @@
 
 @implementation KBInstaller
 
-- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force stopOnError:(BOOL)stopOnError completion:(void (^)(NSError *error, NSArray *installables))completion {
-  // TODO force
-
+- (void)installWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion {
   DDLogDebug(@"Installables: %@", [environment.installables valueForKey:@"name"]);
 
   KBRunOver *rover = [[KBRunOver alloc] init];
@@ -29,7 +27,7 @@
     DDLogDebug(@"Install: %@", installable.name);
     [installable install:^(NSError *error) {
       installable.error = error;
-      if (stopOnError && error) {
+      if (error) {
         runCompletion(installable, YES);
         return;
       }
@@ -38,14 +36,14 @@
       }];
     }];
   };
-  rover.completion = ^(NSArray *installables, BOOL stopped) {
+  rover.completion = ^(NSArray *installables) {
     DDLogInfo(@"Install complete");
     for (KBInstallable *installable in installables) {
       NSString *name = installable.name;
       NSString *desc = [[installable installDescription:@"\n"] join:@"\n"];
       DDLogInfo(@"%@: %@", name, desc);
     }
-    completion([KBInstallable combineErrors:installables ignoreWarnings:YES], installables);
+    completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
   };
   [rover run];
 }

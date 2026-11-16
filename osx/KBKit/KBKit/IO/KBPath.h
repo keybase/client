@@ -8,20 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_OPTIONS (NSInteger, KBPathOptions) {
-  KBPathOptionsEscape = 1 << 0,
-  KBPathOptionsTilde = 1 << 1,
-};
-
 @interface KBPath : NSObject
 
-+ (instancetype)path:(NSString *)path;
+// Expands ~ and un-escapes "\ ". Returns nil for nil.
++ (NSString *)path:(NSString *)path;
 
-- (NSString *)pathWithOptions:(KBPathOptions)options;
-- (NSString *)pathInDir:(NSString *)dir options:(KBPathOptions)options;
-
-+ (NSString *)path:(NSString *)path options:(KBPathOptions)options;
-+ (NSString *)pathInDir:(NSString *)dir path:(NSString *)path options:(KBPathOptions)options;
+// The expanded path, joined onto the expanded dir when dir is non-nil.
++ (NSString *)pathInDir:(NSString *)dir path:(NSString *)path;
 
 @end
-

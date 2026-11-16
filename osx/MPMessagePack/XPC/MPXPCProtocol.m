@@ -17,7 +17,7 @@
 
 + (xpc_object_t)XPCObjectFromRequestWithMethod:(NSString *)method messageId:(NSInteger)messageId params:(NSArray *)params error:(NSError **)error {
   NSArray *request = @[@(0), @(messageId), method, (params ? params : NSNull.null)];
-  NSData *dataRequest = [request mp_messagePack:0 error:error];
+  NSData *dataRequest = [MPMessagePackWriter writeObject:request error:error];
   if (!dataRequest) {
     return nil;
   }

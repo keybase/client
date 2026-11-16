@@ -22,7 +22,7 @@
 @implementation KBHelperTool
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
-  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks"])) {
+  if ((self = [self initWithConfig:config name:@"Privileged Helper"])) {
 
   }
   return self;
@@ -33,7 +33,7 @@
 }
 
 + (MPXPCClient *)helper {
-  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   client.retryMaxAttempts = 4;
   client.retryDelay = 0.5;
   client.timeout = 60.0;

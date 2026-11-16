@@ -15,18 +15,12 @@
 
 @implementation KBRedirector
 
-@synthesize error;
-
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Redirector" info:@"Helper tool for redirector"])) {
+  if ((self = [self initWithConfig:config name:@"Redirector"])) {
     _helperTool = helperTool;
     _servicePath = servicePath;
   }
   return self;
-}
-
-- (NSString *)name {
-  return @"Redirector";
 }
 
 - (void)install:(KBCompletion)completion {
@@ -41,7 +35,7 @@
   NSNumber *permissions = [NSNumber numberWithShort:0600];
   NSString *volDir = [self.config volumesRedirectorMount];
   NSString *rootDir = [self.config redirectorMount];
-  NSString *binPath = [self.config redirectorBinPathWithPathOptions:0 servicePath:_servicePath];
+  NSString *binPath = [self.config redirectorBinPath:_servicePath];
   NSDictionary *params = @{@"directory": rootDir, @"link": volDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES), @"redirectorBin": binPath};
   DDLogDebug(@"Starting redirector: %@", params);
   [self.helperTool.helper sendRequest:@"startRedirector" params:@[params] completion:^(NSError *err, id value) {

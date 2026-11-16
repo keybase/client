@@ -15,14 +15,12 @@
 
 @property (readonly) NSString *serviceName;
 @property (readonly) BOOL privileged;
-@property (readonly) MPMessagePackReaderOptions readOptions;
 @property NSTimeInterval timeout;
 @property BOOL retryMaxAttempts;
 @property NSTimeInterval retryDelay;
 @property (weak) id<MPLog> logDelegate;
 
 - (instancetype)initWithServiceName:(NSString *)serviceName privileged:(BOOL)privileged;
-- (instancetype)initWithServiceName:(NSString *)serviceName privileged:(BOOL)privileged readOptions:(MPMessagePackReaderOptions)readOptions ;
 
 - (BOOL)connect:(NSError **)error;
 

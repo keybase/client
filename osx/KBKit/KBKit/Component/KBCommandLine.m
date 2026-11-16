@@ -8,6 +8,8 @@
 
 #import "KBCommandLine.h"
 
+#import "KBFSUtils.h"
+
 @interface KBCommandLine ()
 @property KBHelperTool *helperTool;
 @property NSString *servicePath;
@@ -16,7 +18,7 @@
 @implementation KBCommandLine
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line"])) {
+  if ((self = [self initWithConfig:config name:@"CLI"])) {
     _helperTool = helperTool;
     _servicePath = servicePath;
   }

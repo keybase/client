@@ -15,27 +15,17 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 
 @interface KBInstallable ()
 @property KBEnvConfig *config;
+@property NSString *name;
 @end
 
 @implementation KBInstallable
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info {
-  if ((self = [super initWithName:name info:info])) {
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name {
+  if ((self = [super init])) {
     _config = config;
+    _name = name;
   }
   return self;
-}
-
-+ (NSError *)checkForStatusErrorFromResponse:(id)response {
-  if ([response isKindOfClass:NSDictionary.class]) {
-    NSDictionary *dict = (NSDictionary *)response;
-    NSDictionary *status = dict[@"status"];
-    NSInteger code = [status[@"code"] integerValue];
-    if (code != 0) {
-      return KBMakeError(code, @"%@", status[@"desc"]);
-    }
-  }
-  return nil;
 }
 
 - (NSArray *)installDescription:(NSString *)delimeter {

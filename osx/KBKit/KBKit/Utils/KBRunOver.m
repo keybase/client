@@ -18,7 +18,7 @@
 
 - (void)next:(id)input {
   if (!input) {
-    self.completion(self.outputs, NO);
+    self.completion(self.outputs);
     return;
   }
 
@@ -27,7 +27,7 @@
     NSAssert(output, @"You need an output");
     [gself.outputs addObject:output];
     if (stop) {
-      self.completion(self.outputs, YES);
+      self.completion(self.outputs);
       return;
     }
     [self next:[gself.enumerator nextObject]];

@@ -15,7 +15,7 @@
 @implementation KBAppBundle
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [self initWithConfig:config name:@"App" info:@"App bundle"])) {
+  if ((self = [self initWithConfig:config name:@"App"])) {
     _helperTool = helperTool;
   }
   return self;
@@ -46,13 +46,11 @@
     The app must satisfy the following codesigning requirements:
 
     1. The root certificate must be an "apple generic" certificate
-    2. The leaf of the Mac App Store certificate must have the field "field.1.2.840.113635.100.6.1.9", or
-    3. Certificate 1 corresponds to the "Developer ID Certification Authority" certificate and must have the field "1.2.840.113635.100.6.2.6"
-    4. The leaf of "Developer ID Application: Keybase, Inc. (99229SGT5K)" certificate must have the field "field.1.2.840.113635.100.6.1.13"
-    5. The leaf must have subject OU of "99229SGT5K"
-    6. The identifier be "keybase.Electron"
-
-    This requirement is the standard one issued by Xcode when signing with developer ID certificate.
+    2. The identifier must be "keybase.Electron"
+    3. The leaf must have subject OU of "99229SGT5K" (Keybase's team ID)
+    4. Either the leaf is a Mac App Store certificate (field "1.2.840.113635.100.6.1.9"), or
+       certificate 1 is the "Developer ID Certification Authority" (field "1.2.840.113635.100.6.2.6")
+       and the leaf is a "Developer ID Application" certificate (field "1.2.840.113635.100.6.1.13")
 
     You can view designated requirements for an app by running: codesign -d -r- /Applications/Keybase.app
 
@@ -60,7 +58,7 @@
       https://red-sweater.com/blog/2390/developer-id-gotcha
       https://opensource.apple.com/source/libsecurity_codesigning/libsecurity_codesigning-55032/lib/syspolicy.sql
    */
-  NSString *requirementText = @"anchor apple generic and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\") and identifier \"keybase.Electron\"";
+  NSString *requirementText = @"anchor apple generic and identifier \"keybase.Electron\" and certificate leaf[subject.OU] = \"99229SGT5K\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */)";
 
   SecRequirementRef requirementRef = NULL;
   if (SecRequirementCreateWithString((__bridge CFStringRef)requirementText, kSecCSDefaultFlags, &requirementRef) != errSecSuccess) {

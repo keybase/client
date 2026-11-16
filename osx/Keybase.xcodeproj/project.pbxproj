@@ -373,7 +373,7 @@
 				"${BUILT_PRODUCTS_DIR}/CocoaLumberjack/CocoaLumberjack.framework",
 				"${BUILT_PRODUCTS_DIR}/GBCli/GBCli.framework",
 				"${BUILT_PRODUCTS_DIR}/GHKit/GHKit.framework",
-				"${BUILT_PRODUCTS_DIR}/GHODictionary-framework/GHODictionary.framework",
+				"${BUILT_PRODUCTS_DIR}/GHODictionary/GHODictionary.framework",
 				"${BUILT_PRODUCTS_DIR}/KBKit/KBKit.framework",
 				"${BUILT_PRODUCTS_DIR}/MPMessagePack-framework/MPMessagePack.framework",
 				"${BUILT_PRODUCTS_DIR}/Mantle/Mantle.framework",
@@ -454,7 +454,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",
@@ -479,7 +479,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-sectcreate",

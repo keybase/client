@@ -33,7 +33,7 @@
 
     // Read the mount point from the config file if possible.
     NSString *mountDir = [self defaultMountDir];
-    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
+    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json"]];
     if (data) {
       NSError *err = nil;
       NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
@@ -84,19 +84,19 @@
   NSString *appName = [self appName];
   NSString *userName = NSUserName();
   NSString *mount = NSStringWithFormat(@"%@ (%@)", appName, userName);
-  return [KBPath pathInDir:@"/Volumes" path:mount options:0];
+  return [KBPath pathInDir:@"/Volumes" path:mount];
 }
 
-- (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
+- (NSString *)dataPath:(NSString *)filename {
   NSString *homeDir = self.homeDir;
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
-  return [KBPath pathInDir:homeDir path:appPath options:options];
+  return [KBPath pathInDir:homeDir path:appPath];
 }
 
-- (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+- (NSString *)serviceBinPath:(NSString *)servicePath {
   if (!servicePath) return [self serviceBinName];
-  return [KBPath pathInDir:servicePath path:[self serviceBinName] options:pathOptions];
+  return [KBPath pathInDir:servicePath path:[self serviceBinName]];
 }
 
 - (NSString *)serviceBinName {
@@ -107,9 +107,9 @@
   }
 }
 
-- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+- (NSString *)redirectorBinPath:(NSString *)servicePath {
   if (!servicePath) return [self redirectorBinName];
-  return [KBPath pathInDir:servicePath path:[self redirectorBinName] options:pathOptions];
+  return [KBPath pathInDir:servicePath path:[self redirectorBinName]];
 }
 
 - (NSString *)gitRemoteHelperName {
@@ -154,31 +154,7 @@
 }
 
 - (NSString *)homeDir {
-  return [KBPath path:@"~" options:0];
-}
-
-- (NSString *)launchdServiceLabel {
-  switch (_runMode) {
-    case KBRunModeDevel: return @"keybase.service.devel";
-    case KBRunModeStaging: return @"keybase.service.staging";
-    case KBRunModeProd: return @"keybase.service";
-  }
-}
-
-- (NSString *)launchdKBFSLabel {
-  switch (_runMode) {
-    case KBRunModeDevel: return @"keybase.kbfs.devel";
-    case KBRunModeStaging: return @"keybase.kbfs.staging";
-    case KBRunModeProd: return @"keybase.kbfs";
-  }
-}
-
-- (NSString *)launchdUpdaterLabel {
-  switch (_runMode) {
-    case KBRunModeDevel: return @"keybase.updater.devel";
-    case KBRunModeStaging: return @"keybase.updater.staging";
-    case KBRunModeProd: return @"keybase.updater";
-  }
+  return [KBPath path:@"~"];
 }
 
 - (BOOL)isInApplications:(NSString *)path {

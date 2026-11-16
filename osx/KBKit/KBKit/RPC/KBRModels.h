@@ -2,8 +2,8 @@
 //  KBRModels.h
 //  KBKit
 //
-//  Models for the JSON that `keybase launchd status` and `keybase fuse status`
-//  print (keybase1.ServiceStatus and keybase1.FuseStatus in protocol/avdl).
+//  Models for the JSON that `keybase fuse status` prints (keybase1.FuseStatus
+//  in protocol/avdl).
 //
 
 #import "KBRObject.h"
@@ -25,25 +25,11 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 
 @interface KBRStatus : KBRObject
 @property NSInteger code;
-@property NSString *name;
 @property NSString *desc;
 @end
 
-@interface KBRServiceStatus : KBRObject
-@property NSString *version;
-@property NSString *label;
-@property NSString *pid;
-@property NSString *lastExitStatus;
-@property NSString *bundleVersion;
-@property KBRInstallStatus installStatus;
-@property KBRInstallAction installAction;
-@property KBRStatus *status;
-@end
-
 @interface KBRFuseMountInfo : KBRObject
-@property NSString *path;
 @property NSString *fstype;
-@property NSString *output;
 @end
 
 @interface KBRFuseStatus : KBRObject

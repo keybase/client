@@ -13,10 +13,6 @@
 #import "MPXPCProtocol.h"
 #import "MPDefines.h"
 
-@interface MPXPCService () <NSXPCListenerDelegate>
-@property xpc_connection_t connection;
-@end
-
 // This is a private macOS API.
 void xpc_connection_get_audit_token(xpc_connection_t, audit_token_t*);
 OSStatus SecTaskValidateForRequirement(SecTaskRef task, CFStringRef requirement);
@@ -36,10 +32,6 @@ void MPSysLog(NSString *msg, ...) {
 }
 
 @implementation MPXPCService
-
-- (void)listen:(xpc_connection_t)service {
-  [self listen:service codeRequirement:nil];
-}
 
 - (void)listen:(xpc_connection_t)service codeRequirement:(NSString *)codeRequirement {
   xpc_connection_set_event_handler(service, ^(xpc_object_t connection) {

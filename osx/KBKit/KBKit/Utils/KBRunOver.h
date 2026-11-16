@@ -8,12 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-
-
 typedef void (^KBRunCompletion)(id output, BOOL stop);
 typedef void (^KBRunBlock)(id obj, KBRunCompletion completion);
 
-typedef void (^KBRunOverCompletion)(NSArray *outputs, BOOL stopped);
+typedef void (^KBRunOverCompletion)(NSArray *outputs);
 
 @interface KBRunOver : NSObject
 

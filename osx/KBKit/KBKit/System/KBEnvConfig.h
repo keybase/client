@@ -18,11 +18,8 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 
 typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionNone = 0,
-  KBInstallOptionService = 1 << 1,
   KBInstallOptionHelper = 1 << 2,
   KBInstallOptionFuse = 1 << 3,
-  KBInstallOptionKBFS = 1 << 4,
-  KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
   KBInstallOptionRedirector = 1 << 7,
   KBInstallOptionCLI = 1 << 10,
@@ -43,21 +40,17 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
 
-- (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
+- (NSString *)dataPath:(NSString *)filename;
 
 - (NSString *)appName;
 - (NSString *)serviceBinName;
-- (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
-- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
+- (NSString *)serviceBinPath:(NSString *)servicePath;
+- (NSString *)redirectorBinPath:(NSString *)servicePath;
 - (NSString *)gitRemoteHelperName;
 - (NSString *)redirectorBinName;
 - (NSString *)redirectorMount;
 - (NSString *)volumesRedirectorMount;
 - (BOOL)redirectorDisabled;
-
-- (NSString *)launchdServiceLabel;
-- (NSString *)launchdKBFSLabel;
-- (NSString *)launchdUpdaterLabel;
 
 - (BOOL)isInApplications:(NSString *)path;
 

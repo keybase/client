@@ -18,15 +18,13 @@ PODS:
   - Mantle (2.1.0):
     - Mantle/extobjc (= 2.1.0)
   - Mantle/extobjc (2.1.0)
-  - MPMessagePack (1.5.1):
-    - GHODictionary
+  - MPMessagePack (1.5.1)
   - ObjectiveSugar (1.1.0)
 
 DEPENDENCIES:
   - GBCli
   - KBKit (from `KBKit`)
   - MPMessagePack (from `MPMessagePack`)
-  - ObjectiveSugar
 
 SPEC REPOS:
   trunk:
@@ -48,11 +46,11 @@ SPEC CHECKSUMS:
   GBCli: 3af947f1793263cda07c220aed0b4af46034d94d
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
   GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
-  KBKit: 9571ce847f431e904698238e3502d2ceab0fa2fc
+  KBKit: dc36071e37e8bb4efd52eefbb089f649087621ea
   Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
-  MPMessagePack: 57afe406f6c86b0eb4e74b622bfe04a62f12c772
+  MPMessagePack: ee19ac91af5bd970b152156bad4d3aaa9e53a5bd
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
 
-PODFILE CHECKSUM: d74d34bec3ac087cd5cee30a50fa6752b0b2ce2f
+PODFILE CHECKSUM: 978c6ee2f66c2e98f5909d11a8b0ea1b185d1f49
 
 COCOAPODS: 1.17.0

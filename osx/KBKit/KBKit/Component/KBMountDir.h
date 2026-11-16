@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBComponent.h"
 #import "KBInstallable.h"
 #import "KBEnvConfig.h"
 #import "KBHelperTool.h"

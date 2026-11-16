@@ -8,15 +8,9 @@
 
 #import "NSData+MPMessagePack.h"
 
-#import <GHODictionary/GHODictionary.h>
-
 @implementation NSData (MPMessagePack)
 
 - (NSArray *)mp_array:(NSError **)error {
-  return [self mp_array:0 error:error];
-}
-
-- (NSArray *)mp_array:(MPMessagePackReaderOptions)options error:(NSError **)error {
   id obj = [MPMessagePackReader readData:self error:error];
   if (!obj) return nil;
   if (![obj isKindOfClass:NSArray.class]) {

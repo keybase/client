@@ -14,7 +14,6 @@
 #import "KBDefines.h"
 
 @interface KBFuseComponent ()
-@property KBSemVersion *version;
 @property KBHelperTool *helperTool;
 @property KBRFuseStatus *fuseStatus;
 @property NSString *servicePath;
@@ -25,7 +24,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 @implementation KBFuseComponent
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Fuse" info:@"Extensions for KBFS"])) {
+  if ((self = [self initWithConfig:config name:@"Fuse"])) {
     _servicePath = servicePath;
     _helperTool = helperTool;
   }
@@ -68,7 +67,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)refreshFuseComponent:(void (^)(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
+  [KBFuseComponent status:[self.config serviceBinPath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
     self.fuseStatus = fuseStatus;
     if (error) {

@@ -9,9 +9,7 @@
 #import "KBWorkspace.h"
 
 #import "KBLogFormatter.h"
-#import "KBDefines.h"
 
-#import <ObjectiveSugar/ObjectiveSugar.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBWorkspace
@@ -25,5 +23,4 @@
 }
 
 @end
-
 

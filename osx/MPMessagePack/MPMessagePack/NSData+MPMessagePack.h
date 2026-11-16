@@ -13,6 +13,5 @@
 @interface NSData (MPMessagePack)
 
 - (NSArray *)mp_array:(NSError **)error;
-- (NSArray *)mp_array:(MPMessagePackReaderOptions)options error:(NSError **)error;
 
 @end

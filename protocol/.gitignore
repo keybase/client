@@ -1,7 +1,6 @@
 .config
 build-stamp
 node_modules/
-swift-build-stamp
 go-build-stamp
 js/
 .tsOuts

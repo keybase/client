@@ -17,8 +17,6 @@ typedef NS_ENUM (NSInteger, MPRPCError) {
   MPRPCErrorRequestInvalid = -20,
 };
 
-// Callback after we send request
-
 // Verify the object is a valid msgpack rpc message
 BOOL MPVerifyMessage(id request, NSError **error);
 
