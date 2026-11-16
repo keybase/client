@@ -197,7 +197,7 @@ export type PrefetchComplete = Readonly<{
   state: PrefetchState.Complete
 }>
 
-type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
+export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
 
 type _PathItemMetadata = {
   name: string

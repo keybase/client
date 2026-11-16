@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import PathStatusIcon from './path-status-icon'
-import {useFsPathItem, useFsTlfs} from './hooks'
+import {useFsPathItem, useFsTlfs, useFsTlfsSettled} from './hooks'
 import {useFsUploadStatus, useKbfsDaemonStatus} from './status'
 import * as FS from '@/constants/fs'
 
@@ -9,28 +9,29 @@ type OwnPropsPathItem = {
   showTooltipOnPressMobile?: boolean
 }
 
-// An unknown TLF reads as not synced; before the favorites load that is only a guess, so draw nothing
-// rather than "online only" for a folder that may be synced
+// An unknown TLF reads as not synced; until the favorites load comes back that is only a guess, so
+// draw nothing rather than "online only" for a folder that may be synced. A failed load settles it
+// too: "online only" is then the best there is.
 export const shownPathStatusIcon = (
-  tlfs: T.Immutable<T.FS.Tlfs>,
+  tlfsSettled: boolean,
   tlf: T.Immutable<T.FS.Tlf>,
   statusIcon: T.FS.PathStatusIcon
 ): T.FS.PathStatusIcon | undefined =>
-  !tlfs.loaded && tlf === FS.unknownTlf && statusIcon === T.FS.NonUploadStaticSyncStatus.OnlineOnly
+  !tlfsSettled && tlf === FS.unknownTlf && statusIcon === T.FS.NonUploadStaticSyncStatus.OnlineOnly
     ? undefined
     : statusIcon
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _pathItem = useFsPathItem(ownProps.path)
-  const tlfs = useFsTlfs()
-  const _tlf = FS.getTlfFromPath(tlfs, ownProps.path)
+  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
+  const tlfsSettled = useFsTlfsSettled()
   const _uploads = useFsUploadStatus().syncingPaths
   const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
     statusIcon: shownPathStatusIcon(
-      tlfs,
+      tlfsSettled,
       _tlf,
       FS.getPathStatusIconInMergeProps(_kbfsDaemonStatus, _tlf, _pathItem, _uploads, ownProps.path)
     ),

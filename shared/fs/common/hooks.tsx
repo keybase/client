@@ -91,6 +91,7 @@ type FsDataContextType = {
   recordDownloadStarted: (downloadID: string, path: T.FS.Path, type: DownloadStartType) => void
   subscriptionManager: FsSubscriptionManager
   tlfs: T.FS.Tlfs
+  tlfsSettled: boolean
 }
 
 const FsDataContext = React.createContext<FsDataContextType | null>(null)
@@ -123,6 +124,8 @@ type FsSharedData = {
   downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   pathItems: T.FS.PathItems
   tlfs: T.FS.Tlfs
+  // a favorites load has come back, successfully or not
+  tlfsSettled: boolean
 }
 
 const makeEmptyDownloads = (): T.FS.Downloads => ({
@@ -137,6 +140,7 @@ const makeEmptyFsSharedData = (): FsSharedData => ({
   downloadInfos: new Map(),
   pathItems: new Map(),
   tlfs: makeEmptyTlfs(),
+  tlfsSettled: false,
 })
 
 type SetFsSharedData = React.Dispatch<React.SetStateAction<FsSharedData>>
@@ -381,6 +385,7 @@ const loadTlfsAsync = async (
     errorToActionOrThrow(error)
   } finally {
     loadTlfsInProgressRef.current = false
+    setFsSharedData(prevData => (prevData.tlfsSettled ? prevData : {...prevData, tlfsSettled: true}))
   }
 }
 
@@ -442,20 +447,19 @@ export type FsDataSeed = {
   initialLastModifiedTimestamp?: number
   initialPath?: T.FS.Path
   initialPathType?: T.FS.PathType
-  // only a finished prefetch is seeded: one in progress needs its byte counts, which the stat brings
-  initialPrefetchState?: T.FS.PrefetchState
+  initialPrefetchStatus?: T.FS.PrefetchStatus
   // KBFS write permission is per TLF, so a folder's is the same as its parent's and its entries'
   initialWritable?: boolean
 }
 
 export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
-  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialPrefetchState, initialWritable} = seed
+  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialPrefetchStatus, initialWritable} = seed
   if (!initialPath) {
     return undefined
   }
   const name = T.FS.getPathName(initialPath)
-  const prefetchStatus =
-    initialPrefetchState === T.FS.PrefetchState.Complete ? FS.prefetchComplete : FS.prefetchNotStarted
+  // without one (a breadcrumb, a link) it reads as not started until the stat lands
+  const prefetchStatus = initialPrefetchStatus ?? FS.prefetchNotStarted
   if (initialPathType === T.FS.PathType.File) {
     return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name, prefetchStatus}
   }
@@ -466,10 +470,14 @@ export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
   return undefined
 }
 
+const noSeed: FsDataSeed = {}
+
 export const FsDataProvider = ({children, ...seed}: FsDataSeed & {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
+  // the seed describes the path as the account that opened it saw it
+  const [seedUsername] = React.useState(username)
   return (
-    <FsDataProviderForUsername key={username} username={username} seed={seed}>
+    <FsDataProviderForUsername key={username} username={username} seed={username === seedUsername ? seed : noSeed}>
       {children}
     </FsDataProviderForUsername>
   )
@@ -503,7 +511,7 @@ const FsDataProviderForUsername = ({
   const reloadPathMetadataRef = React.useRef(new Set<T.FS.Path>())
   const loadingAdditionalTlfsRef = React.useRef(new Set<T.FS.Path>())
   const loadTlfsInProgressRef = React.useRef(false)
-  const {downloads, downloadInfos, pathItems, tlfs} = fsSharedData
+  const {downloads, downloadInfos, pathItems, tlfs, tlfsSettled} = fsSharedData
 
   React.useEffect(() => {
     return () => {
@@ -666,6 +674,7 @@ const FsDataProviderForUsername = ({
         recordDownloadStarted,
         subscriptionManager,
         tlfs,
+        tlfsSettled,
       }}
     >
       {children}
@@ -968,13 +977,16 @@ export const useFsFolderChildItems = (
 
 export const useFsTlfs = () => useLoadedTlfs()
 
-export const useFsScreenCoordinator = (path: T.FS.Path) => {
+export const useFsTlfsSettled = () => React.useContext(FsDataContext)?.tlfsSettled ?? false
+
+// `children: false` is for data that draws nothing from the folder's listing (a header)
+export const useFsScreenCoordinator = (path: T.FS.Path, options?: {children?: boolean}) => {
   const routeData = React.useContext(FsDataContext)
   const focused = useSafeIsFocused()
   const pathIsItem = isPathItem(path)
   const pathItem = useFsPathItem(path)
   const isFile = pathItem.type === T.FS.PathType.File
-  const isMaybeFolder = !isFile
+  const loadsChildren = !isFile && options?.children !== false
 
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem, () =>
     routeData?.loadPathMetadata(path)
@@ -982,7 +994,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   useFsPathSubscriptionEffect(
     path,
     T.RPCGen.PathSubscriptionTopic.children,
-    focused && pathIsItem && isMaybeFolder,
+    focused && pathIsItem && loadsChildren,
     () => routeData?.loadFolderChildren(path, true)
   )
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
@@ -994,7 +1006,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
       if (clientID !== fsClientID || updatedPath !== T.FS.pathToString(path)) {
         return
       }
-      if (isMaybeFolder && topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
+      if (loadsChildren && topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
         routeData?.loadFolderChildren(path, true)
       }
       if (topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
@@ -1021,7 +1033,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   })
 
   useFsLoadOnMountAndFocus({
-    enabled: pathIsItem && !!routeData && isMaybeFolder,
+    enabled: pathIsItem && !!routeData && loadsChildren,
     load: () => routeData?.loadFolderChildren(path, true),
     reloadKey: path,
   })

@@ -15,7 +15,7 @@ export const useOpen = (props: Props) => {
     const knownType = pathItem.type !== T.FS.PathType.Unknown ? pathItem.type : undefined
     const knownTimestamp = pathItem.type === T.FS.PathType.File ? pathItem.lastModifiedTimestamp : undefined
     const knownWritable = knownType ? pathItem.writable : undefined
-    const knownPrefetchState = knownType ? pathItem.prefetchStatus.state : undefined
+    const knownPrefetchStatus = knownType ? pathItem.prefetchStatus : undefined
     return () => {
       if (isMobile && knownType === T.FS.PathType.File) {
         nav.safeNavigateAppend({
@@ -28,7 +28,7 @@ export const useOpen = (props: Props) => {
           params: {
             initialLastModifiedTimestamp: knownTimestamp,
             initialPathType: knownType,
-            initialPrefetchState: knownPrefetchState,
+            initialPrefetchStatus: knownPrefetchStatus,
             initialWritable: knownWritable,
             path: props.path,
           },

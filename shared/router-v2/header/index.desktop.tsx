@@ -325,11 +325,13 @@ const useStyles = Kb.Styles.createStyleHook(
 type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'windowControls'> & {
   back?: NativeStackHeaderProps['back']
   options: RawOptions
-  params?: unknown
+  // native-stack hands the header its route; a component headerTitle gets the route's params
+  route?: {params?: unknown}
 }
 
 function DesktopHeaderWrapper(p: HeaderProps) {
-  const {options: _options, back, style, params, navigation} = p
+  const {options: _options, back, style, route, navigation} = p
+  const params = route?.params
   const windowControls = useWindowControlsInsets()
   const loggedIn = useLoggedInScreens()
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options

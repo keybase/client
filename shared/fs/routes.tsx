@@ -7,6 +7,7 @@ import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {IosHeaderTitle} from './nav-header/ios-header'
 import FsHeaderData from './nav-header/header-data'
 import {Filename, ItemIcon, type FsDataSeed} from './common'
+import type {FsScreenParams} from '.'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
@@ -64,57 +65,70 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 )
 const noShrinkStyle = {flexShrink: 0} as const
 
-// The title and the actions share one copy of the header's data, so they draw in one header slot
-// rather than the separate title and right-actions slots
-const DesktopFolderHeader = ({path, seed}: {path: T.FS.Path; seed: FsDataSeed}) => (
-  <FsHeaderData path={path} seed={seed}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} alignItems="center">
-      <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" fullHeight={true}>
-        <Title path={path} seed={seed} />
+// The header has its own data, separate from the screen's: it starts from what the screen starts from
+const folderSeed = (params?: FsScreenParams): FsDataSeed => ({...params, initialPath: params?.path ?? FS.defaultPath})
+
+// Desktop draws `headerTitle` as a component, so it has to be one stable component (not a new arrow
+// per options call) or every navigator render would remount it and drop its data. The title and the
+// actions share one copy of the header's data, so they draw in this one slot rather than in the
+// separate title and right-actions slots.
+// the desktop header passes the route params (router-v2/header/index.desktop.tsx)
+type DesktopHeaderTitleProps = {children: string; params?: unknown}
+
+const DesktopFolderHeader = ({params}: DesktopHeaderTitleProps) => {
+  const seed = folderSeed(params as FsScreenParams | undefined)
+  const path = seed.initialPath ?? FS.defaultPath
+  return (
+    <FsHeaderData path={path} seed={seed}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} alignItems="center">
+        <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" fullHeight={true}>
+          <Title path={path} />
+        </Kb.Box2>
+        <Actions path={path} onTriggerFilterMobile={() => {}} />
       </Kb.Box2>
-      <Actions path={path} onTriggerFilterMobile={() => {}} />
-    </Kb.Box2>
-  </FsHeaderData>
-)
+    </FsHeaderData>
+  )
+}
+
+type FilePreviewParams = {initialLastModifiedTimestamp?: number; path: T.FS.Path}
+const filePreviewSeed = (params?: FilePreviewParams): FsDataSeed => ({
+  initialLastModifiedTimestamp: params?.initialLastModifiedTimestamp,
+  initialPath: params?.path ?? FS.defaultPath,
+  initialPathType: T.FS.PathType.File,
+})
+
+const DesktopFilePreviewHeader = ({params}: DesktopHeaderTitleProps) => {
+  const seed = filePreviewSeed(params as FilePreviewParams | undefined)
+  const path = seed.initialPath ?? FS.defaultPath
+  return (
+    <FsHeaderData path={path} seed={seed}>
+      <Title path={path} />
+    </FsHeaderData>
+  )
+}
 
 // Options shared by fsRoot (the Files tab root) and fsBrowse (a folder pushed on
 // top). They render the same screen; the only difference is where each lives in
 // the navigator tree (see fsBrowse below).
-const fsFolderGetOptions = (ownProps?: {
-  route: {
-    params?: {
-      path?: T.FS.Path
-      initialPathType?: T.FS.PathType
-      initialPrefetchState?: T.FS.PrefetchState
-      initialWritable?: boolean
-    }
-  }
-}) => {
+const fsFolderGetOptions = (ownProps?: {route: {params?: FsScreenParams}}) => {
   // strange edge case where the root can actually have no params
   const params = ownProps?.route.params
   const path = params?.path ?? FS.defaultPath
-  // the header has its own data, separate from the screen's: start it from what the screen starts from
-  const seed: FsDataSeed = {
-    initialPath: path,
-    initialPathType: params?.initialPathType,
-    initialPrefetchState: params?.initialPrefetchState,
-    initialWritable: params?.initialWritable,
-  }
   if (isIOS) {
     // Native header so the back button and right items get liquid glass on iOS 26.
     // The banner, the folder-view filter, and the overflow menu (Search/Upload/
     // More) are all attached from the screen body; see fs/index.tsx.
     return {
       headerBackVisible: true,
-      headerTitle: () => <IosHeaderTitle path={path} seed={seed} />,
+      headerTitle: () => <IosHeaderTitle path={path} seed={folderSeed(params)} />,
     }
   }
   return isMobile
     ? {
-        header: () => <MobileHeader path={path} seed={seed} />,
+        header: () => <MobileHeader path={path} seed={folderSeed(params)} />,
       }
     : {
-        headerTitle: () => <DesktopFolderHeader path={path} seed={seed} />,
+        headerTitle: DesktopFolderHeader,
         subHeader: MainBanner,
         title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
       }
@@ -123,34 +137,24 @@ const fsFolderGetOptions = (ownProps?: {
 export const newRoutes = defineRouteMap({
   fsFilePreview: C.makeScreen(FsFilePreview, {
     getOptions: (ownProps?) => {
-      const path = ownProps?.route.params.path ?? FS.defaultPath
+      const params = ownProps?.route.params
+      const path = params?.path ?? FS.defaultPath
       if (isIOS) {
         return {
           headerBackVisible: true,
-          headerTitle: () => <IosHeaderTitle path={path} />,
+          headerTitle: () => <IosHeaderTitle path={path} seed={filePreviewSeed(params)} />,
           // Full-screen attachment preview is allowed to rotate.
           orientation: 'all' as const,
         }
       }
       return isMobile
         ? {
-            header: () => <MobileHeader path={path} />,
+            header: () => <MobileHeader path={path} seed={filePreviewSeed(params)} />,
             // Full-screen attachment preview is allowed to rotate.
             orientation: 'all' as const,
           }
         : {
-            headerTitle: () => (
-              <FsHeaderData
-                path={path}
-                seed={{
-                  initialLastModifiedTimestamp: ownProps?.route.params.initialLastModifiedTimestamp,
-                  initialPath: path,
-                  initialPathType: T.FS.PathType.File,
-                }}
-              >
-                <Title path={path} />
-              </FsHeaderData>
-            ),
+            headerTitle: DesktopFilePreviewHeader,
             title: T.FS.getPathName(path),
           }
     },

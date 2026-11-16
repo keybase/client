@@ -362,6 +362,11 @@ describe('makePathItemsFromDirents', () => {
     expect(listing(false)).toMatchObject({type: T.FS.PathType.Folder, writable: false})
   })
 
+  test('an empty listing that lands before the stat has no entries to go by: not writable', () => {
+    const items = makePathItemsFromDirents({entries: [], isRecursive: false, rootPath, rootPathItem: FS.unknownPathItem})
+    expect(items.get(rootPath)).toMatchObject({type: T.FS.PathType.Folder, writable: false})
+  })
+
   test('a listing keeps the write permission the folder already has', () => {
     const items = makePathItemsFromDirents({
       entries: [dirent({name: 'a.txt', writable: true})],

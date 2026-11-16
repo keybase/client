@@ -9,7 +9,6 @@ type Props = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
   inDestinationPicker?: boolean
-  seed?: Kbfs.FsDataSeed
 }
 
 const Breadcrumb = (props: Props) => {
@@ -23,11 +22,22 @@ const Breadcrumb = (props: Props) => {
           .slice(1, -1)
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
   const {inDestinationPicker} = props
-  const openedWritable = props.seed?.initialWritable
-  // KBFS write permission is per TLF, so an ancestor folder inside it has the one this folder was
-  // opened with; the levels above a TLF take no writes at all
-  const ancestorWritable = (path: T.FS.Path) =>
-    T.FS.getPathLevel(path) > 2 ? openedWritable : undefined
+  const pathItem = Kbfs.useFsPathItem(apath)
+  // KBFS grants write permission per TLF (bar read-only views such as an archived revision), so an
+  // ancestor inside the TLF most likely has this folder's. Above a TLF there is none to borrow, and
+  // an ancestor opened without one starts unknown.
+  // Likewise a fully synced folder's ancestors in the TLF are most likely synced too, which keeps them
+  // from reading "waiting to sync" until their stat lands.
+  const knownWritable = pathItem.type === T.FS.PathType.Folder ? pathItem.writable : undefined
+  const synced = pathItem.prefetchStatus.state === T.FS.PrefetchState.Complete
+  const ancestorSeed = (path: T.FS.Path) =>
+    FS.isInTlf(path) && knownWritable !== undefined
+      ? {
+          initialPathType: T.FS.PathType.Folder,
+          initialPrefetchStatus: synced ? FS.prefetchComplete : undefined,
+          initialWritable: knownWritable,
+        }
+      : {}
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {
     if (inDestinationPicker) {
@@ -40,7 +50,7 @@ const Breadcrumb = (props: Props) => {
     } else {
       nav.safeNavigateAppend({
         name: 'fsRoot',
-        params: {initialPathType: T.FS.PathType.Folder, initialWritable: ancestorWritable(path), path},
+        params: {...ancestorSeed(path), path},
       })
     }
   }

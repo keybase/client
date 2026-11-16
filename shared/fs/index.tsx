@@ -41,14 +41,16 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = {
+export type FsScreenParams = {
   initialLastModifiedTimestamp?: number
   initialPathType?: T.FS.PathType
-  initialPrefetchState?: T.FS.PrefetchState
+  initialPrefetchStatus?: T.FS.PrefetchStatus
   initialWritable?: boolean
   lastClosedPublicBannerTlf?: string
   path?: T.FS.Path
 }
+
+type OwnProps = FsScreenParams
 
 const ConnectedInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
@@ -79,7 +81,7 @@ const Connected = (ownProps: OwnProps) => (
       initialLastModifiedTimestamp={ownProps.initialLastModifiedTimestamp}
       initialPath={ownProps.path}
       initialPathType={ownProps.initialPathType}
-      initialPrefetchState={ownProps.initialPrefetchState}
+      initialPrefetchStatus={ownProps.initialPrefetchStatus}
       initialWritable={ownProps.initialWritable}
     >
       <ConnectedInner {...ownProps} />
