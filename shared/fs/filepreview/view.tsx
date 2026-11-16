@@ -129,7 +129,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
 // keyed by url so a reload or a fresh url retries an image that failed to draw
 const ImagePreview = ({path, url, onUrlError}: Props & {url: string}) => {
   const styles = useStyles()
-  // the image's format can be one the platform can't decode (HEIC on desktop)
+  // the image's format can be one the platform can't decode (HEIC on desktop and Android)
   const [failed, setFailed] = React.useState(false)
   if (failed) {
     return <DefaultView path={path} note="Can't preview image" />
