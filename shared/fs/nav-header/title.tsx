@@ -24,19 +24,13 @@ const Breadcrumb = (props: Props) => {
   const {inDestinationPicker} = props
   const pathItem = Kbfs.useFsPathItem(apath)
   // KBFS grants write permission per TLF (bar read-only views such as an archived revision), so an
-  // ancestor inside the TLF most likely has this folder's. Above a TLF there is none to borrow, and
-  // an ancestor opened without one starts unknown.
-  // Likewise a fully synced folder's ancestors in the TLF are most likely synced too, which keeps them
-  // from reading "waiting to sync" until their stat lands.
-  const knownWritable = pathItem.type === T.FS.PathType.Folder ? pathItem.writable : undefined
-  const synced = pathItem.prefetchStatus.state === T.FS.PrefetchState.Complete
+  // ancestor inside the TLF most likely has this path's, once that is known. Above a TLF there is none
+  // to borrow, so those ancestors start unknown, as does every ancestor while this path's is unknown.
+  // Its sync progress says nothing about an ancestor's, so that is left for the ancestor's stat.
+  const knownWritable = pathItem.type !== T.FS.PathType.Unknown ? pathItem.writable : undefined
   const ancestorSeed = (path: T.FS.Path) =>
     FS.isInTlf(path) && knownWritable !== undefined
-      ? {
-          initialPathType: T.FS.PathType.Folder,
-          initialPrefetchStatus: synced ? FS.prefetchComplete : undefined,
-          initialWritable: knownWritable,
-        }
+      ? {initialPathType: T.FS.PathType.Folder, initialWritable: knownWritable}
       : {}
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {

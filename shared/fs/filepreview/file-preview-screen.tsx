@@ -1,20 +1,17 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
 import * as Kbfs from '../common'
 import * as SimpleScreens from '../simple-screens'
 import NormalPreview from './normal-preview'
 import {MainBanner} from '../nav-header'
 import {IosHeaderMenu} from '../nav-header/ios-header'
+import {filePreviewSeed, type FilePreviewParams} from '../route-seeds'
 
-type OwnProps = {
-  initialLastModifiedTimestamp?: number
-  path: T.FS.Path
-}
-
-const FilePreviewScreen = ({path, initialLastModifiedTimestamp}: OwnProps) => {
+const FilePreviewScreen = (params: FilePreviewParams) => {
+  const {path} = params
   return (
     <Kbfs.FsErrorProvider>
-      <Kbfs.FsDataProvider initialPath={path} initialPathType={T.FS.PathType.File} initialLastModifiedTimestamp={initialLastModifiedTimestamp}>
+      <Kbfs.FsDataProvider {...filePreviewSeed(path, params)}>
         <FilePreviewScreenInner path={path} />
       </Kbfs.FsDataProvider>
     </Kbfs.FsErrorProvider>

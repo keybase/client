@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import {seedPathItem} from './hooks'
+import {isPrefetchStatusSeedOnly, seedPathItem} from './hooks'
 
 const path = T.FS.stringToPath('/keybase/private/testuser/dir')
 
@@ -27,6 +27,14 @@ describe('seedPathItem', () => {
     expect(seeded(FS.prefetchComplete)).toMatchObject({prefetchStatus: FS.prefetchComplete})
     expect(seeded(inProgress)).toMatchObject({prefetchStatus: inProgress})
     expect(seeded()).toMatchObject({prefetchStatus: FS.prefetchNotStarted})
+  })
+
+  test('only a seed with no prefetch status is marked as not knowing it', () => {
+    const seeded = (initialPrefetchStatus?: T.FS.PrefetchStatus) =>
+      seedPathItem({initialPath: path, initialPathType: T.FS.PathType.Folder, initialPrefetchStatus, initialWritable: true})!
+    expect(isPrefetchStatusSeedOnly(seeded())).toBe(true)
+    expect(isPrefetchStatusSeedOnly(seeded(FS.prefetchNotStarted))).toBe(false)
+    expect(isPrefetchStatusSeedOnly({...seeded()})).toBe(false)
   })
 
   test('a folder whose write permission is not known stays unknown', () => {

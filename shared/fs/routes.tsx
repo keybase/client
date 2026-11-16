@@ -6,8 +6,8 @@ import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {IosHeaderTitle} from './nav-header/ios-header'
 import FsHeaderData from './nav-header/header-data'
-import {Filename, ItemIcon, type FsDataSeed} from './common'
-import type {FsScreenParams} from '.'
+import {Filename, ItemIcon} from './common'
+import {browseSeed, filePreviewSeed, type FilePreviewParams, type FsScreenParams} from './route-seeds'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
@@ -65,21 +65,19 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 )
 const noShrinkStyle = {flexShrink: 0} as const
 
-// The header has its own data, separate from the screen's: it starts from what the screen starts from
-const folderSeed = (params?: FsScreenParams): FsDataSeed => ({...params, initialPath: params?.path ?? FS.defaultPath})
+// The desktop header passes a component `headerTitle` the route's params
+// (router-v2/header/index.desktop.tsx); `children` is the plain title, unused here
+type DesktopHeaderTitleProps = {children: string; params?: unknown}
 
-// Desktop draws `headerTitle` as a component, so it has to be one stable component (not a new arrow
+// Desktop draws `headerTitle` as a component, so this has to be one stable component (not a new arrow
 // per options call) or every navigator render would remount it and drop its data. The title and the
 // actions share one copy of the header's data, so they draw in this one slot rather than in the
 // separate title and right-actions slots.
-// the desktop header passes the route params (router-v2/header/index.desktop.tsx)
-type DesktopHeaderTitleProps = {children: string; params?: unknown}
-
 const DesktopFolderHeader = ({params}: DesktopHeaderTitleProps) => {
-  const seed = folderSeed(params as FsScreenParams | undefined)
-  const path = seed.initialPath ?? FS.defaultPath
+  const p = params as FsScreenParams | undefined
+  const path = p?.path ?? FS.defaultPath
   return (
-    <FsHeaderData path={path} seed={seed}>
+    <FsHeaderData path={path} seed={browseSeed(path, p)}>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} alignItems="center">
         <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" fullHeight={true}>
           <Title path={path} />
@@ -90,18 +88,11 @@ const DesktopFolderHeader = ({params}: DesktopHeaderTitleProps) => {
   )
 }
 
-type FilePreviewParams = {initialLastModifiedTimestamp?: number; path: T.FS.Path}
-const filePreviewSeed = (params?: FilePreviewParams): FsDataSeed => ({
-  initialLastModifiedTimestamp: params?.initialLastModifiedTimestamp,
-  initialPath: params?.path ?? FS.defaultPath,
-  initialPathType: T.FS.PathType.File,
-})
-
 const DesktopFilePreviewHeader = ({params}: DesktopHeaderTitleProps) => {
-  const seed = filePreviewSeed(params as FilePreviewParams | undefined)
-  const path = seed.initialPath ?? FS.defaultPath
+  const p = params as FilePreviewParams | undefined
+  const path = p?.path ?? FS.defaultPath
   return (
-    <FsHeaderData path={path} seed={seed}>
+    <FsHeaderData path={path} seed={filePreviewSeed(path, p)}>
       <Title path={path} />
     </FsHeaderData>
   )
@@ -120,12 +111,12 @@ const fsFolderGetOptions = (ownProps?: {route: {params?: FsScreenParams}}) => {
     // More) are all attached from the screen body; see fs/index.tsx.
     return {
       headerBackVisible: true,
-      headerTitle: () => <IosHeaderTitle path={path} seed={folderSeed(params)} />,
+      headerTitle: () => <IosHeaderTitle path={path} seed={browseSeed(path, params)} />,
     }
   }
   return isMobile
     ? {
-        header: () => <MobileHeader path={path} seed={folderSeed(params)} />,
+        header: () => <MobileHeader path={path} seed={browseSeed(path, params)} />,
       }
     : {
         headerTitle: DesktopFolderHeader,
@@ -142,14 +133,14 @@ export const newRoutes = defineRouteMap({
       if (isIOS) {
         return {
           headerBackVisible: true,
-          headerTitle: () => <IosHeaderTitle path={path} seed={filePreviewSeed(params)} />,
+          headerTitle: () => <IosHeaderTitle path={path} seed={filePreviewSeed(path, params)} />,
           // Full-screen attachment preview is allowed to rotate.
           orientation: 'all' as const,
         }
       }
       return isMobile
         ? {
-            header: () => <MobileHeader path={path} seed={filePreviewSeed(params)} />,
+            header: () => <MobileHeader path={path} seed={filePreviewSeed(path, params)} />,
             // Full-screen attachment preview is allowed to rotate.
             orientation: 'all' as const,
           }

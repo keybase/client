@@ -452,13 +452,19 @@ export type FsDataSeed = {
   initialWritable?: boolean
 }
 
-export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
+// Seeded items whose prefetch status nobody passed: theirs reads "not started" only because a path
+// item has to hold one. Loading the path replaces the item, which drops it from here.
+const seededWithoutPrefetch = new WeakSet<object>()
+
+export const isPrefetchStatusSeedOnly = (pathItem: T.Immutable<T.FS.PathItem>) =>
+  seededWithoutPrefetch.has(pathItem)
+
+const makeSeedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
   const {initialLastModifiedTimestamp, initialPath, initialPathType, initialPrefetchStatus, initialWritable} = seed
   if (!initialPath) {
     return undefined
   }
   const name = T.FS.getPathName(initialPath)
-  // without one (a breadcrumb, a link) it reads as not started until the stat lands
   const prefetchStatus = initialPrefetchStatus ?? FS.prefetchNotStarted
   if (initialPathType === T.FS.PathType.File) {
     return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name, prefetchStatus}
@@ -470,11 +476,19 @@ export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
   return undefined
 }
 
+export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
+  const item = makeSeedPathItem(seed)
+  if (item && !seed.initialPrefetchStatus) {
+    seededWithoutPrefetch.add(item)
+  }
+  return item
+}
+
 const noSeed: FsDataSeed = {}
 
 export const FsDataProvider = ({children, ...seed}: FsDataSeed & {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
-  // the seed describes the path as the account that opened it saw it
+  // the seed only holds for the account signed in when this screen opened, not one switched to later
   const [seedUsername] = React.useState(username)
   return (
     <FsDataProviderForUsername key={username} username={username} seed={username === seedUsername ? seed : noSeed}>
@@ -979,14 +993,14 @@ export const useFsTlfs = () => useLoadedTlfs()
 
 export const useFsTlfsSettled = () => React.useContext(FsDataContext)?.tlfsSettled ?? false
 
-// `children: false` is for data that draws nothing from the folder's listing (a header)
-export const useFsScreenCoordinator = (path: T.FS.Path, options?: {children?: boolean}) => {
+// `loadChildren = false` is for data that draws nothing from the folder's listing (a header)
+export const useFsScreenCoordinator = (path: T.FS.Path, loadChildren = true) => {
   const routeData = React.useContext(FsDataContext)
   const focused = useSafeIsFocused()
   const pathIsItem = isPathItem(path)
   const pathItem = useFsPathItem(path)
   const isFile = pathItem.type === T.FS.PathType.File
-  const loadsChildren = !isFile && options?.children !== false
+  const loadsChildren = !isFile && loadChildren
 
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem, () =>
     routeData?.loadPathMetadata(path)
