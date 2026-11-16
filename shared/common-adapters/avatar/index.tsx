@@ -126,6 +126,8 @@ const iconTypeToImgSet: (imgMap: {[key: string]: IconType}, targetSize: number) 
   isMobile ? iconTypeToImgSetNative : iconTypeToImgSetDesktop
 ) as any
 
+const blockedImageStyle = {opacity: 0.1} as const
+
 // ── Native-only ──────────────────────────────────────────────────────────────
 
 const sizeToTeamBorderRadius: Record<number, number> = {
@@ -145,6 +147,8 @@ for (const size of allSizes) {
   }
 }
 
+const poopUnderlay = {position: 'absolute'} as const
+
 const useNativeBgStyles = Styles.createThemedHook(theme => ({
   blankBg: {backgroundColor: theme.greyLight} as const,
   errorUnderlay: {backgroundColor: theme.greyLight, position: 'absolute'} as const,
@@ -152,16 +156,13 @@ const useNativeBgStyles = Styles.createThemedHook(theme => ({
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
 
-const sizeToPoopIconType = (size: Props['size']): IconType | undefined =>
-  size === 128
-    ? 'icon-poop-96'
-    : size === 96
-      ? 'icon-poop-64'
-      : size === 64
-        ? 'icon-poop-48'
-        : size === 48 || size === 32
-          ? 'icon-poop-32'
-          : undefined
+const sizeToPoopIconType: Partial<Record<Props['size'], IconType>> = {
+  128: 'icon-poop-96',
+  32: 'icon-poop-32',
+  48: 'icon-poop-32',
+  64: 'icon-poop-48',
+  96: 'icon-poop-64',
+}
 
 const poopContainerStyle = {
   alignItems: 'center',
@@ -169,8 +170,6 @@ const poopContainerStyle = {
   justifyContent: 'center',
   zIndex: 1,
 } as const
-const blockedImageStyle = {opacity: 0.1} as const
-const poopUnderlay = {position: 'absolute'} as const
 
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
@@ -232,7 +231,7 @@ function Avatar(p: Props) {
     const scaledAvatarRatio = size / AVATAR_SIZE
     const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
     const showBg = bgImage || placeholderBg
-    const poopIcon = blocked ? sizeToPoopIconType(size) : undefined
+    const poopIcon = blocked ? sizeToPoopIconType[size] : undefined
 
     return (
       <div
@@ -305,7 +304,12 @@ function Avatar(p: Props) {
       {blocked && <ImageIcon type="icon-poop-96" style={Styles.collapseStyles([cached.image, poopUnderlay])} />}
       {source ? (
         <>
-          {imgError && <Image source={placeholderSource} style={[cached.image, errorUnderlay]} />}
+          {imgError && (
+            <Image
+              source={placeholderSource}
+              style={[cached.image, errorUnderlay, blocked && blockedImageStyle]}
+            />
+          )}
           {/* recyclingKey must be the identity (name), not the uri: changing it blanks the view,
               and the uri churns when the local http srv hands out a new address/token on foreground.
               Keep this mounted on error: onError can fire for a stale load after the uri changes,
@@ -323,7 +327,7 @@ function Avatar(p: Props) {
       ) : name || !isTeam || showPlaceholder ? (
         // with a name the placeholder type is known correct; with no name at all, team
         // callsites pass isTeam so anything else is a user (e.g. signup's empty avatar)
-        <Image source={placeholderSource} style={cached.image} />
+        <Image source={placeholderSource} style={blocked ? [cached.image, blockedImageStyle] : cached.image} />
       ) : (
         // team with meta still loading: a user placeholder would be the wrong type, so
         // hold the shape with a blank background until the teamname arrives
