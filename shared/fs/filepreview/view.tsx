@@ -9,6 +9,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {useFsFileContext} from '../common'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {isAndroidPreP} from '@/constants/platform'
 
 type Props = {
   path: T.FS.Path
@@ -96,11 +97,15 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
       if (fileContext.contentType === 'image/webp') {
         return <DefaultView path={path} />
       }
+      // Chromium has no HEIC decoder, nor does Android before 9
+      if (heifTypes.has(fileContext.contentType) && (!isMobile || isAndroidPreP)) {
+        return <DefaultView path={path} note={cantPreviewImage} />
+      }
 
       return (
         <>
           {reloadBanner}
-          <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsimg" testID={TestIDs.FILES_IMAGE_PREVIEW} />
+          <ImagePreview key={url} path={path} url={url} onUrlError={onUrlError} />
         </>
       )
     }
@@ -124,6 +129,32 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     default:
       return <Kb.Text type="BodySmallError">{"This shouldn't happen"}</Kb.Text>
   }
+}
+
+const heifTypes = new Set(['image/heic', 'image/heif'])
+const cantPreviewImage = "Can't preview image"
+
+// keyed by url so a reload or a fresh url retries an image that failed to draw
+const ImagePreview = ({path, url, onUrlError}: Props & {url: string}) => {
+  const styles = useStyles()
+  // desktop only: mobile images retry on their own and don't report errors
+  const [failed, setFailed] = React.useState(false)
+  if (failed) {
+    return <DefaultView path={path} note={cantPreviewImage} />
+  }
+  return (
+    <Kb.ZoomableImage
+      src={url}
+      style={styles.zoomableBox}
+      boxCacheKey="fsimg"
+      testID={TestIDs.FILES_IMAGE_PREVIEW}
+      onError={() => {
+        // the url can be stale (service restarted); refetching it is a no-op for a repeated error
+        onUrlError('image failed to load')
+        setFailed(true)
+      }}
+    />
+  )
 }
 
 export default FilePreviewView

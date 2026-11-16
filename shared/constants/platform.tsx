@@ -67,6 +67,8 @@ const _mobileOsVersionNumber: number = isMobile
 
 export const isAndroidNewerThanM: boolean = isAndroid && _mobileOsVersionNumber > 22
 export const isAndroidNewerThanN: boolean = isAndroid && _mobileOsVersionNumber >= 26
+// Android decodes HEIC/HEIF from 9 (P) on
+export const isAndroidPreP: boolean = isAndroid && _mobileOsVersionNumber < 28
 export const isAndroidPreQ: boolean = isAndroid && _mobileOsVersionNumber < 29
 export const isAndroidQ: boolean = isAndroid && _mobileOsVersionNumber === 29
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
