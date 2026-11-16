@@ -442,22 +442,26 @@ export type FsDataSeed = {
   initialLastModifiedTimestamp?: number
   initialPath?: T.FS.Path
   initialPathType?: T.FS.PathType
+  // only a finished prefetch is seeded: one in progress needs its byte counts, which the stat brings
+  initialPrefetchState?: T.FS.PrefetchState
   // KBFS write permission is per TLF, so a folder's is the same as its parent's and its entries'
   initialWritable?: boolean
 }
 
 export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
-  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialWritable} = seed
+  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialPrefetchState, initialWritable} = seed
   if (!initialPath) {
     return undefined
   }
   const name = T.FS.getPathName(initialPath)
+  const prefetchStatus =
+    initialPrefetchState === T.FS.PrefetchState.Complete ? FS.prefetchComplete : FS.prefetchNotStarted
   if (initialPathType === T.FS.PathType.File) {
-    return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name}
+    return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name, prefetchStatus}
   }
   // an unknown writable stays an unknown path: a folder item claims a writable value
   if (initialPathType === T.FS.PathType.Folder && initialWritable !== undefined) {
-    return {...FS.emptyFolder, name, writable: initialWritable}
+    return {...FS.emptyFolder, name, prefetchStatus, writable: initialWritable}
   }
   return undefined
 }

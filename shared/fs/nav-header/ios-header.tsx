@@ -8,6 +8,7 @@ import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import {useNavigation} from '@react-navigation/native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {FsBrowserEditProvider} from '../browser/edit-state'
+import FsHeaderData from './header-data'
 
 // iOS renders fs screens with the native header so the back button and right
 // items get the system liquid glass treatment. Android keeps the fully custom
@@ -52,11 +53,9 @@ const TitleInner = ({path}: {path: T.FS.Path}) => {
 }
 
 export const IosHeaderTitle = ({path, seed}: {path: T.FS.Path; seed?: Kbfs.FsDataSeed}) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider {...seed}>
-      <TitleInner path={path} />
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
+  <FsHeaderData path={path} seed={seed}>
+    <TitleInner path={path} />
+  </FsHeaderData>
 )
 
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})

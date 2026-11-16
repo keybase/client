@@ -123,7 +123,9 @@ const MainTitle = (props: Props) => {
   )
 }
 
-const FsNavHeaderTitleInner = (props: Props) => {
+// Reads the data of whatever it is drawn in: the header's own (header-data.tsx) or the destination
+// picker's screen
+const FsNavHeaderTitle = (props: Props) => {
   const styles = useStyles()
   return props.path === FS.defaultPath ? (
       <Kb.Text type="Header" style={styles.rootTitle}>
@@ -136,14 +138,6 @@ const FsNavHeaderTitleInner = (props: Props) => {
       </Kb.Box2>
     )
 }
-
-const FsNavHeaderTitle = (props: Props) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider {...props.seed}>
-      <FsNavHeaderTitleInner {...props} />
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
-)
 
 export default FsNavHeaderTitle
 

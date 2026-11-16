@@ -9,20 +9,30 @@ type OwnPropsPathItem = {
   showTooltipOnPressMobile?: boolean
 }
 
+// An unknown TLF reads as not synced; before the favorites load that is only a guess, so draw nothing
+// rather than "online only" for a folder that may be synced
+export const shownPathStatusIcon = (
+  tlfs: T.Immutable<T.FS.Tlfs>,
+  tlf: T.Immutable<T.FS.Tlf>,
+  statusIcon: T.FS.PathStatusIcon
+): T.FS.PathStatusIcon | undefined =>
+  !tlfs.loaded && tlf === FS.unknownTlf && statusIcon === T.FS.NonUploadStaticSyncStatus.OnlineOnly
+    ? undefined
+    : statusIcon
+
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _pathItem = useFsPathItem(ownProps.path)
-  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
+  const tlfs = useFsTlfs()
+  const _tlf = FS.getTlfFromPath(tlfs, ownProps.path)
   const _uploads = useFsUploadStatus().syncingPaths
   const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
-    statusIcon: FS.getPathStatusIconInMergeProps(
-      _kbfsDaemonStatus,
+    statusIcon: shownPathStatusIcon(
+      tlfs,
       _tlf,
-      _pathItem,
-      _uploads,
-      ownProps.path
+      FS.getPathStatusIconInMergeProps(_kbfsDaemonStatus, _tlf, _pathItem, _uploads, ownProps.path)
     ),
   }
   return <PathStatusIcon {...props} />

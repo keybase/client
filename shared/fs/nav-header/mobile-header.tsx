@@ -5,6 +5,7 @@ import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import {useFolderViewFilterState} from '@/fs/common/folder-view-filter-state'
 import Actions from './actions'
+import FsHeaderData from './header-data'
 import * as FS from '@/constants/fs'
 import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
@@ -136,11 +137,9 @@ const useStyles = Kb.Styles.createStyleHook(
 )
 
 const NavMobileHeader = (props: Props) => (
-  <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider {...props.seed}>
-      <NavMobileHeaderInner {...props} />
-    </Kbfs.FsDataProvider>
-  </Kbfs.FsErrorProvider>
+  <FsHeaderData path={props.path} seed={props.seed}>
+    <NavMobileHeaderInner {...props} />
+  </FsHeaderData>
 )
 
 export default NavMobileHeader

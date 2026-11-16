@@ -44,6 +44,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 type OwnProps = {
   initialLastModifiedTimestamp?: number
   initialPathType?: T.FS.PathType
+  initialPrefetchState?: T.FS.PrefetchState
   initialWritable?: boolean
   lastClosedPublicBannerTlf?: string
   path?: T.FS.Path
@@ -78,6 +79,7 @@ const Connected = (ownProps: OwnProps) => (
       initialLastModifiedTimestamp={ownProps.initialLastModifiedTimestamp}
       initialPath={ownProps.path}
       initialPathType={ownProps.initialPathType}
+      initialPrefetchState={ownProps.initialPrefetchState}
       initialWritable={ownProps.initialWritable}
     >
       <ConnectedInner {...ownProps} />

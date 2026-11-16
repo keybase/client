@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {IosHeaderTitle} from './nav-header/ios-header'
+import FsHeaderData from './nav-header/header-data'
 import {Filename, ItemIcon, type FsDataSeed} from './common'
 import {defineRouteMap} from '@/constants/types/router'
 
@@ -63,11 +64,31 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 )
 const noShrinkStyle = {flexShrink: 0} as const
 
+// The title and the actions share one copy of the header's data, so they draw in one header slot
+// rather than the separate title and right-actions slots
+const DesktopFolderHeader = ({path, seed}: {path: T.FS.Path; seed: FsDataSeed}) => (
+  <FsHeaderData path={path} seed={seed}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} alignItems="center">
+      <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" fullHeight={true}>
+        <Title path={path} seed={seed} />
+      </Kb.Box2>
+      <Actions path={path} onTriggerFilterMobile={() => {}} />
+    </Kb.Box2>
+  </FsHeaderData>
+)
+
 // Options shared by fsRoot (the Files tab root) and fsBrowse (a folder pushed on
 // top). They render the same screen; the only difference is where each lives in
 // the navigator tree (see fsBrowse below).
 const fsFolderGetOptions = (ownProps?: {
-  route: {params?: {path?: T.FS.Path; initialPathType?: T.FS.PathType; initialWritable?: boolean}}
+  route: {
+    params?: {
+      path?: T.FS.Path
+      initialPathType?: T.FS.PathType
+      initialPrefetchState?: T.FS.PrefetchState
+      initialWritable?: boolean
+    }
+  }
 }) => {
   // strange edge case where the root can actually have no params
   const params = ownProps?.route.params
@@ -76,6 +97,7 @@ const fsFolderGetOptions = (ownProps?: {
   const seed: FsDataSeed = {
     initialPath: path,
     initialPathType: params?.initialPathType,
+    initialPrefetchState: params?.initialPrefetchState,
     initialWritable: params?.initialWritable,
   }
   if (isIOS) {
@@ -92,8 +114,7 @@ const fsFolderGetOptions = (ownProps?: {
         header: () => <MobileHeader path={path} seed={seed} />,
       }
     : {
-        headerRightActions: () => <Actions path={path} seed={seed} onTriggerFilterMobile={() => {}} />,
-        headerTitle: () => <Title path={path} seed={seed} />,
+        headerTitle: () => <DesktopFolderHeader path={path} seed={seed} />,
         subHeader: MainBanner,
         title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
       }
@@ -118,7 +139,18 @@ export const newRoutes = defineRouteMap({
             orientation: 'all' as const,
           }
         : {
-            headerTitle: () => <Title path={path} />,
+            headerTitle: () => (
+              <FsHeaderData
+                path={path}
+                seed={{
+                  initialLastModifiedTimestamp: ownProps?.route.params.initialLastModifiedTimestamp,
+                  initialPath: path,
+                  initialPathType: T.FS.PathType.File,
+                }}
+              >
+                <Title path={path} />
+              </FsHeaderData>
+            ),
             title: T.FS.getPathName(path),
           }
     },

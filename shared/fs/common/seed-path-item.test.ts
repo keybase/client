@@ -14,6 +14,13 @@ describe('seedPathItem', () => {
     })
   })
 
+  test('a finished prefetch is seeded; any other state starts as not started', () => {
+    const seeded = (initialPrefetchState: T.FS.PrefetchState) =>
+      seedPathItem({initialPath: path, initialPathType: T.FS.PathType.Folder, initialPrefetchState, initialWritable: true})
+    expect(seeded(T.FS.PrefetchState.Complete)).toMatchObject({prefetchStatus: FS.prefetchComplete})
+    expect(seeded(T.FS.PrefetchState.InProgress)).toMatchObject({prefetchStatus: FS.prefetchNotStarted})
+  })
+
   test('a folder whose write permission is not known stays unknown', () => {
     expect(seedPathItem({initialPath: path, initialPathType: T.FS.PathType.Folder})).toBeUndefined()
   })
