@@ -10,7 +10,6 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
-
 @interface KBComponentStatus ()
 @property NSError *error;
 @property KBRInstallStatus installStatus;
@@ -20,21 +19,6 @@
 @end
 
 @implementation KBComponentStatus
-
-+ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion info:(GHODictionary *)info {
-  if (version && bundleVersion) {
-    if ([bundleVersion isGreaterThan:version]) {
-      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-    } else {
-      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
-    }
-  } else if (version && !bundleVersion) {
-    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
-  } else if (!version && bundleVersion) {
-    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
-  }
-  return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown installAction:KBRInstallActionNone info:info error:nil];
-}
 
 + (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error {
   KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
@@ -81,20 +65,6 @@
   return _installAction == KBRInstallActionInstall
     || _installAction == KBRInstallActionUpgrade
     || _installAction == KBRInstallActionReinstall;
-}
-
-- (GHODictionary *)statusInfo {
-  GHODictionary *info = [GHODictionary dictionary];
-
-  if (self.error) {
-    info[@"Error"] = [self.error localizedDescription];
-  }
-
-  if (_info) [info addEntriesFromOrderedDictionary:_info];
-  info[@"Label"] = self.label;
-  info[@"Install Status"] = NSStringFromKBRInstallStatus(self.installStatus);
-  info[@"Install Action"] = NSStringFromKBRInstallAction(self.installAction);
-  return info;
 }
 
 - (NSString *)statusDescription:(NSString *)delimeter {

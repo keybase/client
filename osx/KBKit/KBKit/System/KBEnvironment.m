@@ -104,10 +104,6 @@
   return self;
 }
 
-- (NSArray *)componentsForControlPanel {
-  return _components;
-}
-
 - (NSString *)debugInstallables {
   NSMutableString *info = [NSMutableString string];
   NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
@@ -142,18 +138,6 @@
     _appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
   }
   return _appConfig;
-}
-
-- (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error {
-  NSDictionary *appConfig = [self appConfig:error];
-  if (!appConfig) {
-    return defaultValue;
-  }
-  id obj = [appConfig valueForKeyPath:keyPath];
-  if (!obj) {
-    obj = defaultValue;
-  }
-  return obj;
 }
 
 @end

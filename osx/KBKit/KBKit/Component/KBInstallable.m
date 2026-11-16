@@ -42,13 +42,6 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
   return nil;
 }
 
-- (BOOL)isInstalled {
-  if (self.error) return NO;
-  if (self.componentStatus.error) return NO;
-  if (self.componentStatus.installStatus != KBRInstallStatusInstalled) return NO;
-  return YES;
-}
-
 - (NSArray *)installDescription:(NSString *)delimeter {
   NSMutableArray *desc = [NSMutableArray array];
   if (self.error) {
@@ -85,7 +78,6 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 - (void)install:(KBCompletion)completion {
   completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
-
 
 - (void)uninstall:(KBCompletion)completion {
   completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));

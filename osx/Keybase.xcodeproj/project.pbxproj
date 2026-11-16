@@ -8,12 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
-		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		003634081C6039770089465B /* Uninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003634071C6039770089465B /* Uninstaller.m */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
 		003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
-		003F6C941BEC287600638A74 /* KBHelperTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 003F6C931BEC287600638A74 /* KBHelperTest.m */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0097BA671DD2589C0047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
@@ -70,17 +68,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
-		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
-		001392731B06B18A0082DEA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		003634061C6039770089465B /* Uninstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uninstaller.h; sourceTree = "<group>"; };
 		003634071C6039770089465B /* Uninstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Uninstaller.m; sourceTree = "<group>"; };
 		003C454B1AE6CECD00431829 /* KBKext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKext.h; sourceTree = "<group>"; };
 		003C454C1AE6CECD00431829 /* KBKext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKext.m; sourceTree = "<group>"; };
 		003C454E1AE6D1CA00431829 /* KBHelperDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperDefines.h; sourceTree = "<group>"; };
 		003C454F1AE6D1CA00431829 /* KBHelperDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperDefines.m; sourceTree = "<group>"; };
-		003F6C921BEC287600638A74 /* KBHelperTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperTest.h; sourceTree = "<group>"; };
-		003F6C931BEC287600638A74 /* KBHelperTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperTest.m; sourceTree = "<group>"; };
 		004D14961A3BCF1F0083888D /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		0057B0B41AE57A4900BFB0E7 /* keybase.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = keybase.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
 		0057B0BE1AE57A7A00BFB0E7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -139,9 +132,6 @@
 			isa = PBXGroup;
 			children = (
 				00E1CEEE1C44313B00ED3A35 /* Media.xcassets */,
-				001392701B06B18A0082DEA8 /* DmgBackground.pxm */,
-				001392711B06B18A0082DEA8 /* Fuse.icns */,
-				001392731B06B18A0082DEA8 /* README.md */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -160,8 +150,6 @@
 				003C454C1AE6CECD00431829 /* KBKext.m */,
 				003C454E1AE6D1CA00431829 /* KBHelperDefines.h */,
 				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
-				003F6C921BEC287600638A74 /* KBHelperTest.h */,
-				003F6C931BEC287600638A74 /* KBHelperTest.m */,
 				00A8E4AD1D42A4CD00B77F08 /* KBLogger.h */,
 				00A8E4AE1D42A4CD00B77F08 /* KBLogger.m */,
 			);
@@ -405,7 +393,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
@@ -509,7 +496,6 @@
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,
-				003F6C941BEC287600638A74 /* KBHelperTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

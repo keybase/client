@@ -248,7 +248,6 @@
 
   NSURL *URL = [NSURL fileURLWithPath:symPath];
   NSString *name = [config appName];
-  //DDLogDebug(@"File list favorite items: %@", [KBSharedFileList debugItemsForType:kLSSharedFileListFavoriteItems]);
   DDLogDebug(@"File list favorite %@ (%@)", (fileListFavoriteEnabled ? @"enabled" : @"disabled"), URL);
   BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems position:position error:error];
   DDLogDebug(@"File list favorites changed: %@", changed ? @"Yes" : @"No");

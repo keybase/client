@@ -23,16 +23,10 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 	KBRInstallActionInstall = 4,
 };
 
-@interface KBRStringKVPair : KBRObject
-@property NSString *key;
-@property NSString *value;
-@end
-
 @interface KBRStatus : KBRObject
 @property NSInteger code;
 @property NSString *name;
 @property NSString *desc;
-@property NSArray *fields; /*of KBRStringKVPair*/
 @end
 
 @interface KBRServiceStatus : KBRObject

@@ -36,12 +36,6 @@
   });
 }
 
-- (void)clear {
-  dispatch_group_async(_group, _bufferQueue, ^{
-    [_buffer removeAllObjects];
-  });
-}
-
 - (NSString *)messages {
   __block NSString *joined = nil;
   dispatch_group_async(_group, _bufferQueue, ^{

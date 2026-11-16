@@ -9,10 +9,9 @@
 #import "KBFuseComponent.h"
 
 #import "KBSemVersion.h"
-#import "KBFormatter.h"
 #import "KBTask.h"
-#import "KBDefines.h"
 
+#import "KBDefines.h"
 @interface KBFuseComponent ()
 @property KBSemVersion *version;
 @property KBHelperTool *helperTool;

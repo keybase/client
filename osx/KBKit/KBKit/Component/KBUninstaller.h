@@ -12,8 +12,6 @@
 
 @interface KBUninstaller : NSObject
 
-+ (void)uninstallServicesWithPrefix:(NSString *)prefix completion:(KBCompletion)completion;
-
 + (void)uninstall:(NSArray *)installables completion:(KBCompletion)completion;
 
 @end

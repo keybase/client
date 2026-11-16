@@ -8,13 +8,11 @@
 
 #import "KBHelperTool.h"
 
-#import "KBPrivilegedTask.h"
 
-#import <ObjectiveSugar/ObjectiveSugar.h>
 #import <ServiceManagement/ServiceManagement.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 #import "KBSemVersion.h"
-#import "KBFormatter.h"
 
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 

@@ -10,15 +10,12 @@
 
 #import "KBLogFormatter.h"
 #import "KBDefines.h"
-#import "KBFormatter.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBWorkspace
 
-// The workspace user defaults uses the shared App Group container, so
-// extensions and the app can share preferences.
 + (void)setupLogging:(BOOL)debug {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{

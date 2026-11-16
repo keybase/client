@@ -27,8 +27,6 @@ NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 
 + (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error;
 
-+ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion info:(GHODictionary *)info;
-
 + (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus;
 
 + (instancetype)componentStatusWithError:(NSError *)error;
@@ -36,7 +34,5 @@ NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 - (BOOL)needsInstallOrUpgrade;
 
 - (NSString *)statusDescription:(NSString *)delimeter;
-
-- (GHODictionary *)statusInfo;
 
 @end

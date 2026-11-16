@@ -26,10 +26,6 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;
 
-- (NSArray *)componentsForControlPanel;
-
 - (NSString *)debugInstallables;
-
-- (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error;
 
 @end

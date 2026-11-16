@@ -45,16 +45,11 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 - (instancetype)initWithRunMode:(KBRunMode)runMode;
 
-+ (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
-- (BOOL)isHomeDirSet;
 
 - (NSString *)sockFile;
 
-- (NSString *)logFile:(NSString *)label;
-
-- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
@@ -62,7 +57,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)appName;
 - (NSString *)serviceBinName;
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
-- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)gitRemoteHelperName;
 - (NSString *)redirectorBinName;
@@ -77,7 +71,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)launchdUpdaterLabel;
 
 - (BOOL)isInApplications:(NSString *)path;
-- (BOOL)isInUserApplications:(NSString *)path;
 
 @end
 

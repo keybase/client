@@ -95,11 +95,6 @@
   return envConfig;
 }
 
-+ (NSString *)groupContainer:(NSString *)path {
-  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupId].path;
-  return [KBPath pathInDir:dir path:path options:0];
-}
-
 - (NSString *)appName {
   if (_runMode == KBRunModeProd) return @"Keybase";
   else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
@@ -117,11 +112,6 @@
   NSString *userName = NSUserName();
   NSString *mount = NSStringWithFormat(@"%@ (%@)", appName, userName);
   return [KBPath pathInDir:@"/Volumes" path:mount options:0];
-}
-
-- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options {
-  NSString *homeDir = self.homeDir;
-  return [KBPath pathInDir:homeDir path:filename options:options];
 }
 
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
@@ -153,11 +143,6 @@
     case KBRunModeStaging: return @"kbstage";
     case KBRunModeProd: return @"keybase";
   }
-}
-
-- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
-  if (!servicePath) return [self serviceBinName];
-  return [KBPath pathInDir:servicePath path:[self kbfsBinName] options:pathOptions];
 }
 
 - (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
@@ -206,14 +191,6 @@
   return NO;
 }
 
-- (NSString *)kbfsBinName {
-  switch(_runMode) {
-    case KBRunModeDevel: return @"kbfsdev";
-    case KBRunModeStaging: return @"kbfsstage";
-    case KBRunModeProd: return @"kbfs";
-  }
-}
-
 - (NSString *)homeDir {
   NSString *homeDir = _homeDir ? _homeDir : @"~";
   return [KBPath path:homeDir options:0];
@@ -225,26 +202,6 @@
     [NSException raise:NSInvalidArgumentException format:@"Sock path too long. It should be < 104 characters. %@", sockFile];
   }
   return sockFile;
-}
-
-- (BOOL)isHomeDirSet { return !!_homeDir; }
-
-+ (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode {
-  KBEnvConfig *envConfig = [[KBEnvConfig alloc] init];
-  envConfig.runMode = runMode;
-  envConfig.title = @"Custom";
-  envConfig.homeDir = [KBPath path:homeDir options:0];
-  envConfig.mountDir = [KBPath path:mountDir options:0];
-  envConfig.info = @"For development";
-  envConfig.debugEnabled = YES;
-  envConfig.installDisabled = YES;
-  return envConfig;
-}
-
-- (NSString *)logFile:(NSString *)label {
-  NSString *logDir = [KBPath path:@"~/Library/Logs" options:0];
-  // Be careful of logging. I've seen launchd create these as root, and cause the service to fail.
-  return NSStringWithFormat(@"%@/%@.log", logDir, label);
 }
 
 - (BOOL)validate:(NSError **)error {
@@ -295,10 +252,6 @@
 
 - (BOOL)isInApplications:(NSString *)path {
   return [path gh_startsWith:@"/Applications/"];
-}
-
-- (BOOL)isInUserApplications:(NSString *)path {
-  return [path gh_startsWith:NSStringWithFormat(@"%@/Applications/", NSHomeDirectory())];
 }
 
 @end

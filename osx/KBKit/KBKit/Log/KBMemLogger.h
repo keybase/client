@@ -14,6 +14,5 @@
 @property (nonatomic, strong) id <DDLogFormatter> logFormatter;
 
 - (NSString *)messages;
-- (void)clear;
 
 @end
