@@ -84,7 +84,7 @@ const IosHeaderMenuInner = ({path, mayUpload}: MenuProps) => {
   const moreRef = React.useRef<Kbfs.PathItemActionHandle>(null)
 
   const canFilter = FS.isFolder(path, pathItem) && T.FS.getPathLevel(path) > 1
-  const canUpload = mayUpload && pathItem.type === T.FS.PathType.Folder && pathItem.writable
+  const canUpload = mayUpload && T.FS.getPathLevel(path) > 2 && pathItem.type === T.FS.PathType.Folder && pathItem.writable
 
   React.useEffect(() => {
     // Filter and Upload only apply to some screens; on a file preview neither

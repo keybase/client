@@ -187,12 +187,14 @@ const Container = React.forwardRef<UploadButtonHandle, OwnProps>((ownProps, ref)
   const pickAndUploadFileMobile = isMobile ? _pickAndUploadFileMobile : undefined
 
   const props = {
-    // Optimistically show the upload button while the path item is still
-    // loading (Unknown), then hide it if we learn the path isn't an uploadable
-    // folder. Avoids the button popping in late on desktop.
+    // Only folders inside a TLF (/keybase/<type>/<name>/...) take uploads; the
+    // levels above are synthetic listings. Inside a TLF, optimistically show the
+    // button while the path item is still loading (Unknown), then hide it if we
+    // learn the path isn't an uploadable folder. Avoids it popping in late on desktop.
     canUpload:
-      _pathItem.type === T.FS.PathType.Unknown ||
-      (_pathItem.type === T.FS.PathType.Folder && _pathItem.writable),
+      T.FS.getPathLevel(ownProps.path) > 2 &&
+      (_pathItem.type === T.FS.PathType.Unknown ||
+        (_pathItem.type === T.FS.PathType.Folder && _pathItem.writable)),
     hideTrigger: ownProps.hideTrigger,
     openAndUploadBoth,
     openAndUploadDirectory,
