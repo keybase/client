@@ -1539,9 +1539,11 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// A stubbed load of a chain returns stubs for links that may already be
 	// stored in full (e.g. our own track links, stored when we loaded our own
 	// chain). Overwriting those loses the payload that track lookups read.
-	// The read and the write below don't race another load: links belong to
-	// one user's chain, and every store of it runs under LoadUser's
-	// per-user lock (loadUserLockTab).
+	// Links belong to one user's chain, and LoadUser's per-user lock
+	// (loadUserLockTab) keeps other stores of it out of the read and the
+	// write below. The lock table is replaced on logout, so a load from
+	// before it can still interleave with one after and write its stub over
+	// a full link; readers treat a stored stub as a cache miss.
 	keepFull := false
 	if c.IsStubbed() {
 		// Keep the record only if a load can use it: it must unpack and
@@ -1552,7 +1554,7 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 		if err != nil {
 			m.Debug("| ChainLink.Store: replacing unusable record of %s: %v", c.id, err)
 		}
-		keepFull = err == nil && existing != nil && !existing.IsStubbed() && existing.namesOwnerOf(c)
+		keepFull = existing != nil && !existing.IsStubbed() && existing.namesOwnerOf(c)
 	}
 
 	if keepFull {

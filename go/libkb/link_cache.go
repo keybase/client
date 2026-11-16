@@ -111,15 +111,12 @@ func (c *LinkCache) RemoveStub(id LinkID) {
 	defer c.Unlock()
 	var linkID linkIDFixed
 	copy(linkID[:], id)
-	elt, ok := c.cache[linkID]
-	if !ok {
-		return
+	if elt, ok := c.cache[linkID]; ok {
+		if link := elt.Value.(ChainLink); link.IsStubbed() {
+			c.accessOrder.Remove(elt)
+			delete(c.cache, linkID)
+		}
 	}
-	if link := elt.Value.(ChainLink); !link.IsStubbed() {
-		return
-	}
-	c.accessOrder.Remove(elt)
-	delete(c.cache, linkID)
 }
 
 // Len returns the number of ChainLinks cached.
