@@ -1387,7 +1387,9 @@ func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*Cha
 		// links of a chain that stays cached here get evicted from disk, and
 		// only some of them, since a link missing from this cache is read
 		// from the DB and so kept.
-		m.G().LocalDb.MarkRecentlyUsed(linkDbKey(id))
+		if db := m.G().LocalDb; db != nil {
+			db.MarkRecentlyUsed(linkDbKey(id))
+		}
 		link.Contextified = NewContextified(m.G())
 		return &link, nil
 	}
@@ -1546,10 +1548,12 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// a full link; readers treat a stored stub as a cache miss.
 	keepFull := false
 	if c.IsStubbed() {
-		// Keep the record only if a load can use it: it must unpack and
-		// verify, exactly as ImportLinkFromStorage requires. A record that
-		// can't be read or unpacked fails every load that reaches it, so the
-		// stub replaces it and a failed read never fails the chain store.
+		// Keep the record only if a load can use it: it must unpack, as
+		// ImportLinkFromStorage requires, and name this chain's owner. A
+		// record that can't be read or unpacked fails every load that
+		// reaches it, so the stub replaces it and a failed read never fails
+		// the chain store. No selfUID: it only gates unpacking
+		// proof_text_full, and existing is read here and then dropped.
 		existing, err := importLinkFromDisk(m, c.id, "")
 		if err != nil {
 			m.Debug("| ChainLink.Store: replacing unusable record of %s: %v", c.id, err)

@@ -341,8 +341,14 @@ func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 }
 
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
-	c.getCache().Add(c.cacheKey(key), true)
+	c.noteRecentlyUsed(key)
 	c.attemptClean(ctx)
+}
+
+// noteRecentlyUsed marks key without starting a clean, for hot paths that
+// don't touch the db. Reads and writes that do touch it start the cleans.
+func (c *levelDbCleaner) noteRecentlyUsed(key []byte) {
+	c.getCache().Add(c.cacheKey(key), true)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {

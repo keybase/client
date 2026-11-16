@@ -341,7 +341,7 @@ func (l *LevelDb) Clean(force bool) (err error) {
 }
 
 func (l *LevelDb) MarkRecentlyUsed(id DbKey) {
-	l.cleaner.markRecentlyUsed(context.Background(), id.ToBytes())
+	l.cleaner.noteRecentlyUsed(id.ToBytes())
 }
 
 func (l *LevelDb) Nuke() (fn string, err error) {
