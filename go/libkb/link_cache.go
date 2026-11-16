@@ -71,8 +71,8 @@ func (c *LinkCache) Put(m MetaContext, id LinkID, link ChainLink) {
 	if ok {
 		// A stubbed load of a chain returns stubs for links we may already hold
 		// in full; keep the full link so payload readers don't get a stub.
-		// ChainLink.Store instead removes the entry when it keeps a full link
-		// on disk, because there the cached link is the stub itself.
+		// ChainLink.Store instead removes the entry whenever it keeps a full
+		// link on disk, so readers fall through to that link.
 		if existing := elt.Value.(ChainLink); link.IsStubbed() && !existing.IsStubbed() {
 			c.accessOrder.MoveToBack(elt)
 			return

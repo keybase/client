@@ -1525,11 +1525,13 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 	// per-user lock (loadUserLockTab).
 	keepFull := false
 	if c.IsStubbed() {
+		// On a read error, store the stub as before rather than failing the
+		// whole chain store.
 		existing, found, err := m.G().LocalDb.GetRaw(key)
 		if err != nil {
-			return false, err
+			m.Debug("| ChainLink.Store: reading %s: %v", c.id, err)
 		}
-		keepFull = found && isFullLinkRecord(existing)
+		keepFull = err == nil && found && isFullLinkRecord(existing)
 	}
 
 	if keepFull {
