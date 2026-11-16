@@ -3,6 +3,7 @@ import LoadingScreen from './loading'
 
 const meta: Meta<typeof LoadingScreen> = {
   component: LoadingScreen,
+  args: {delayMs: 0},
   title: 'FS/LoadingScreen',
 }
 export default meta
