@@ -197,9 +197,10 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 		// NOTE(max) 2016-12-31
 		//
 		// There's a corner case here -- the track chain link does exist, but
-		// it wasn't found on disk. This is probably because the db cache was nuked.
-		// Thus, in this case we force a full user reload, and we're sure to get
-		// the tracking information then.
+		// it wasn't found on disk, or was only stored as a stub. The db cache
+		// was probably nuked or cleaned, or a stubbed load of our own chain
+		// stored the stub. Thus, in this case we force a full user reload,
+		// and we're sure to get the tracking information then.
 		//
 		// See Jira ticket CORE-4310
 		//

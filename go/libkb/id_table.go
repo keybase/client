@@ -79,7 +79,7 @@ func (g *GenericChainLink) ToDebugString() string {
 	if p := g.Parent(); p != nil {
 		uid = p.uid
 	}
-	return fmt.Sprintf("uid=%s, seq=%d, link=%s", uid, g.GetSeqno(), g.id)
+	return fmt.Sprintf("uid=%s, seq=%d, link=%s", uid, g.unpacked.seqno, g.id)
 }
 
 func (g *GenericChainLink) GetDelegatedKid() (kid keybase1.KID)          { return }

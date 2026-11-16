@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -124,6 +125,39 @@ func TestStoreKeepsFullLinkOverStub(t *testing.T) {
 	require.False(t, got.IsStubbed())
 }
 
+// failingReadDb fails reads of one key, as a disk error would.
+type failingReadDb struct {
+	LocalDb
+	key DbKey
+}
+
+func (d failingReadDb) Get(id DbKey) ([]byte, bool, error) {
+	if id == d.key {
+		return nil, false, errors.New("read failed")
+	}
+	return d.LocalDb.Get(id)
+}
+
+// A failed read says nothing about the stored record, which may be the full
+// link, so storing the stub must fail rather than overwrite it.
+func TestStoreKeepsRecordOnReadError(t *testing.T) {
+	tc := SetupTest(t, "stubbed_store_read_error", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	full, stub := realTrackLinks(t, tc)
+	_, err := full.Store(m)
+	require.NoError(t, err)
+	fullRecord := storedLinkRecord(t, tc.G, full.id)
+
+	db := tc.G.LocalDb
+	tc.G.LocalDb = NewJSONLocalDb(failingReadDb{db.GetEngine(), linkDbKey(stub.id)})
+	_, err = stub.Store(m)
+	tc.G.LocalDb = db
+	require.Error(t, err)
+	require.Equal(t, string(fullRecord), string(storedLinkRecord(t, tc.G, stub.id)))
+}
+
 func TestParseTrackChainLinkStubbedLink(t *testing.T) {
 	tc := SetupTest(t, "stubbed_parse", 1)
 	defer tc.Cleanup()
@@ -135,6 +169,26 @@ func TestParseTrackChainLinkStubbedLink(t *testing.T) {
 	require.Error(t, err)
 	_, err = ParseTrackChainLink(GenericChainLink{full})
 	require.NoError(t, err)
+}
+
+// A full link whose payload doesn't parse (a corrupt record) can't have its
+// type read, so it becomes a generic link with a warning, as an unknown type
+// does; parsing it as a track fails. Neither crashes, and no type parser
+// reads its missing fields as absent.
+func TestUnreadablePayloadFallsBackToGenericLink(t *testing.T) {
+	tc := SetupTest(t, "stubbed_unreadable_payload", 1)
+	defer tc.Cleanup()
+
+	full, _ := realTrackLinks(t, tc)
+	full.unpacked.payloadV2 = []byte("{")
+	full.unpacked.payloadHash = []byte("unreadable payload")
+	full.typed = nil
+
+	typed, w := NewTypedChainLink(full)
+	require.NotNil(t, w)
+	require.IsType(t, &GenericChainLink{}, typed)
+	_, err := ParseTrackChainLink(GenericChainLink{full})
+	require.Error(t, err)
 }
 
 // Key state computed over stubs is stored with the link and survives a reload
@@ -185,9 +239,9 @@ func TestStubDerivedKeyStateNotReusedWithoutStubs(t *testing.T) {
 	// chain later lost its stubs would leave it.
 	full.PutSigCheckCache(cki)
 
-	// Recomputing verifies the tip's signature, which this segment can't
-	// satisfy (its eldest key was delegated before seqno 5); reuse wouldn't
-	// check it. So the error shows verifySubchain recomputed.
+	// The stubs are gone, so verifySubchain must not reuse the state. It
+	// recomputes, which verifies the tip's signature, and this segment can't
+	// satisfy that (its eldest key was delegated before seqno 5).
 	cached, _, err = verifySubchain(m, "testuser1874", *kf, ChainLinks{device, full})
 	require.False(t, cached)
 	require.Error(t, err)
@@ -366,7 +420,6 @@ func resetChain(t *testing.T, tc TestContext) (chain *SigChain, newLoader func()
 func storeChain(t *testing.T, tc TestContext, chain *SigChain, loader *SigChainLoader) {
 	loader.chain = chain
 	loader.dirtyTail = chain.GetCurrentTailTriple()
-	require.NoError(t, chain.Store(NewMetaContextForTest(tc)))
 	require.NoError(t, loader.Store())
 }
 

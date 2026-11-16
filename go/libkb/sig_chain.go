@@ -1453,19 +1453,24 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 // links verifySubchain does, the current subchain: a load that takes the
 // fully-cached path never stores what it recomputes, so judging by the whole
 // chain would recompute on every load for a chain whose only stubs are in
-// older subchains.
+// older subchains. It reports false when VerifySigsAndComputeKeys won't run
+// verifySubchain (no key family) or can't (no current subchain; it then
+// returns that error itself), so the reverify path couldn't do better.
 func (l *SigChainLoader) tipKeyStateIsStubDerived() bool {
-	links, err := l.chain.GetCurrentSubchain(l.M(), l.leaf.eldest)
-	if err != nil {
-		l.M().Debug("| tipKeyStateIsStubDerived: %v", err)
-		return true
-	}
-	tip := last(links)
-	if tip == nil {
+	tip := l.chain.GetLastLink()
+	if tip == nil || l.ckf.kf == nil {
 		return false
 	}
 	cki := tip.GetSigCheckCache()
-	return cki != nil && cki.stubDerivedFor(links)
+	if cki == nil || !cki.SkippedStubs {
+		return false
+	}
+	links, err := l.chain.GetCurrentSubchain(l.M(), l.leaf.eldest)
+	if err != nil {
+		l.M().Debug("| tipKeyStateIsStubDerived: %v", err)
+		return false
+	}
+	return cki.stubDerivedFor(links)
 }
 
 // Load is the main entry point into the SigChain loader.  It runs through
