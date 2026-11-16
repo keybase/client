@@ -5,7 +5,7 @@ PODS:
     - ReactNativeDependencies
   - EXConstants (58.0.16):
     - ExpoModulesCore
-  - Expo (58.0.24):
+  - Expo (58.0.25):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -44,7 +44,7 @@ PODS:
     - ZXingObjC/PDF417
   - ExpoClipboard (58.0.4):
     - ExpoModulesCore
-  - ExpoContacts (58.0.10):
+  - ExpoContacts (58.0.11):
     - ExpoModulesCore
   - ExpoDocumentPicker (58.0.5):
     - ExpoModulesCore
@@ -71,7 +71,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLocalization (58.0.5):
     - ExpoModulesCore
-  - ExpoLocation (58.0.21):
+  - ExpoLocation (58.0.22):
     - ExpoModulesCore
   - ExpoLogBox (58.0.15):
     - React-Core
@@ -160,7 +160,7 @@ PODS:
   - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
-  - lottie-react-native (7.5.0):
+  - lottie-react-native (7.5.1):
     - hermes-engine
     - lottie-ios (= 4.6.0)
     - RCTRequired
@@ -1543,7 +1543,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.23.0):
+  - react-native-keyboard-controller (1.23.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1557,7 +1557,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.23.0)
+    - react-native-keyboard-controller/common (= 1.23.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1567,7 +1567,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.23.0):
+  - react-native-keyboard-controller/common (1.23.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2811,13 +2811,13 @@ SPEC CHECKSUMS:
   boost: 8502bfdc46e2804408af2e163049ece181009af4
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
   EXConstants: aeda76f4be923fc719522ae162dd0b8c6483f9cc
-  Expo: 6202c03626ff16e7ef2da145f8124415712ff008
+  Expo: 0f5943dd94c874be78ad7c5a3fa1ecfb5573ab73
   ExpoAsset: eda9e4844b55b78d4e71a0e2de767a038f3a0806
   ExpoAudio: 04b22b00783fe443c15121138f827b808fdf8c71
   ExpoCamera: 5d9ae8e9c52e102d9a21b2a903478dcd79ce3ddc
   ExpoCameraBarcodeScanning: 31cb394606255ac478b9c33929e6b0a8f6c0925d
   ExpoClipboard: 244adf0a38b60ec7105e217042dd266a722f5a5e
-  ExpoContacts: 110ae8546fd2c34a102416ce402e9cac290d8cb3
+  ExpoContacts: 9299febf273485e1dea7ad86f2b5393163305e3a
   ExpoDocumentPicker: 3e8fdb323db3ad2f7c8bbd21fdad3b982f1cf178
   ExpoDomWebView: b2a6d681b9d34c23b1f584321386ca8da1d36afb
   ExpoFileSystem: b619d80b490c53117a9a9c976021a4ce5a9da440
@@ -2828,7 +2828,7 @@ SPEC CHECKSUMS:
   ExpoImagePicker: a466134ec92fed0b38bbf9062c7eb5f3c8c49d94
   ExpoKeepAwake: 3dc7cce59bdc13796f772ac54d3af1ca6b6954cd
   ExpoLocalization: ed930f5d68e7b3c2073a04787358839e1a8e1680
-  ExpoLocation: 7922c89279ae805871b08a39f35b328f28d417d4
+  ExpoLocation: c218990b798e212f2f2184e11e675637da8ca1ae
   ExpoLogBox: 9bfba7bb99c806b678703e6c62323f3c4785e706
   ExpoMediaLibrary: 2576d9af48cc4c71f71089b4e6c5aeb6b9ade0d1
   ExpoMediaLibraryImageLoader: 0a39917c5154e9c1fcc7330e7e2452ab125a9fe5
@@ -2852,7 +2852,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
-  lottie-react-native: 8c5abb70e92e1651693384e4bdf2f525ff96e6e0
+  lottie-react-native: f4648abcf4590871eea8f7be70a2a62b7e7c899b
   RCT-Folly: 82921e585c0400eda46fac1068297aa9dfb035e4
   RCTDeprecation: c62b9b3fbf0d26b76755f3ebd1c913a4fb469dde
   RCTRequired: d0563e2484633b657976195f0543e180133afd3a
@@ -2894,7 +2894,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: c5df4b7fe2553c25d419b99c586179ab77594b5b
   React-mutationobservernativemodule: b85faf3c54644c0ef2c758cd8c4e6ce16fb1f8ae
   react-native-kb: 4f05411ae1f4a96b38b0f48ed35c39fa9c048323
-  react-native-keyboard-controller: 21cf7c9e4dfcdd77e73cc3c604b05eb50117212c
+  react-native-keyboard-controller: 15175159bd24e0da325bcbf559de79d2cf149dea
   react-native-safe-area-context: f54c903d3a8c8ddd602e85d4e5bcfe9944de85bc
   react-native-webview: 8f00424aca54fdfbe9d1a14e8b7126ea1c12dbcf
   React-NativeModulesApple: 8cfb2f308f48c48068c96b932e7f0e4297c23342
