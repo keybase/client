@@ -7,12 +7,12 @@ const loadingShowDelayMs = 1000
 export const useDelayedShow = (want: boolean, delayMs: number = loadingShowDelayMs) => {
   const [shown, setShown] = React.useState(false)
   React.useEffect(() => {
-    if (!want) return
+    if (!want || delayMs <= 0) return
     const id = setTimeout(() => setShown(true), delayMs)
     return () => {
       clearTimeout(id)
       setShown(false)
     }
   }, [want, delayMs])
-  return want && shown
+  return want && (delayMs <= 0 || shown)
 }

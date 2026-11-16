@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import {useDelayedShow} from '../common'
 
-const LoadingScreen = (p: {why?: string}) => {
+const LoadingScreen = (p: {delayMs?: number; why?: string}) => {
   const styles = useStyles()
-  const show = useDelayedShow(true)
+  const show = useDelayedShow(true, p.delayMs)
 
   if (!show) {
     return <Kb.Box2 direction="vertical" style={styles.empty} fullHeight={true} fullWidth={true} />

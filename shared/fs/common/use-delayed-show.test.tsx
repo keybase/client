@@ -52,3 +52,8 @@ test('hides at once when the wait ends, and waits the full delay on the next one
   })
   expect(result.current).toBe(true)
 })
+
+test('a zero delay shows on the first render', () => {
+  const {result} = renderHook(() => useDelayedShow(true, 0))
+  expect(result.current).toBe(true)
+})
