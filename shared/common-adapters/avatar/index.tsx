@@ -2,12 +2,14 @@ import './avatar.css'
 import {useState} from 'react'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
+import {useUsersState} from '@/stores/users'
 import * as AvatarZus from './store'
 import {Pressable, View, useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
 import {normalizeFilePathURL} from '@/util/file-url'
 import {Image} from 'expo-image'
 import {iconMeta, type IconType} from '../icon.constants-gen'
+import ImageIcon from '../image-icon'
 import {getAssetPath} from '@/constants/platform'
 import {asSyntheticEvent} from '../press-event'
 import type * as React from 'react'
@@ -124,6 +126,8 @@ const iconTypeToImgSet: (imgMap: {[key: string]: IconType}, targetSize: number) 
   isMobile ? iconTypeToImgSetNative : iconTypeToImgSetDesktop
 ) as any
 
+const blockedImageStyle = {opacity: 0.1} as const
+
 // ── Native-only ──────────────────────────────────────────────────────────────
 
 const sizeToTeamBorderRadius: Record<number, number> = {
@@ -143,12 +147,29 @@ for (const size of allSizes) {
   }
 }
 
+const poopUnderlay = {position: 'absolute'} as const
+
 const useNativeBgStyles = Styles.createThemedHook(theme => ({
   blankBg: {backgroundColor: theme.greyLight} as const,
   errorUnderlay: {backgroundColor: theme.greyLight, position: 'absolute'} as const,
 }))
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
+
+const sizeToPoopIconType: Partial<Record<Props['size'], IconType>> = {
+  128: 'icon-poop-96',
+  32: 'icon-poop-32',
+  48: 'icon-poop-32',
+  64: 'icon-poop-48',
+  96: 'icon-poop-64',
+}
+
+const poopContainerStyle = {
+  alignItems: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  zIndex: 1,
+} as const
 
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
@@ -180,6 +201,9 @@ function Avatar(p: Props) {
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
+  const blocked = useUsersState(s =>
+    !isTeam && username ? !!s.blockMap.get(username)?.chatBlocked : false
+  )
   const httpSrv = useConfigState(s => s.httpSrv)
   const mode = useColorScheme() === 'dark' ? 'dark' : 'light'
   const {blankBg, errorUnderlay} = useNativeBgStyles()
@@ -207,6 +231,7 @@ function Avatar(p: Props) {
     const scaledAvatarRatio = size / AVATAR_SIZE
     const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
     const showBg = bgImage || placeholderBg
+    const poopIcon = blocked ? sizeToPoopIconType[size] : undefined
 
     return (
       <div
@@ -217,7 +242,17 @@ function Avatar(p: Props) {
       >
         <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
           <div className="avatar-background" />
-          {!!showBg && <div className="avatar-user-image" style={{backgroundImage: showBg}} />}
+          {!!poopIcon && (
+            <div className="avatar-user-image" style={poopContainerStyle}>
+              <ImageIcon type={poopIcon} allowLazy={false} />
+            </div>
+          )}
+          {!!showBg && (
+            <div
+              className="avatar-user-image"
+              style={{backgroundImage: showBg, ...(blocked ? blockedImageStyle : undefined)}}
+            />
+          )}
           {!!bgImage && hasCrop && (
             <div
               className="avatar-user-image"
@@ -226,6 +261,7 @@ function Avatar(p: Props) {
                 backgroundPositionX: (crop.offsetLeft ?? 0) * scaledAvatarRatio,
                 backgroundPositionY: (crop.offsetTop ?? 0) * scaledAvatarRatio,
                 backgroundSize: `${avatarScaledWidth}px auto`,
+                ...(blocked ? blockedImageStyle : undefined),
               }}
             />
           )}
@@ -265,9 +301,15 @@ function Avatar(p: Props) {
 
   const content = (
     <>
+      {blocked && <ImageIcon type="icon-poop-96" style={Styles.collapseStyles([cached.image, poopUnderlay])} />}
       {source ? (
         <>
-          {imgError && <Image source={placeholderSource} style={[cached.image, errorUnderlay]} />}
+          {imgError && (
+            <Image
+              source={placeholderSource}
+              style={[cached.image, errorUnderlay, blocked && blockedImageStyle]}
+            />
+          )}
           {/* recyclingKey must be the identity (name), not the uri: changing it blanks the view,
               and the uri churns when the local http srv hands out a new address/token on foreground.
               Keep this mounted on error: onError can fire for a stale load after the uri changes,
@@ -275,7 +317,7 @@ function Avatar(p: Props) {
               failures and onLoad clears the error. */}
           <Image
             source={source}
-            style={cached.image}
+            style={blocked ? [cached.image, blockedImageStyle] : cached.image}
             recyclingKey={name}
             cachePolicy="memory-disk"
             onError={() => setErrorUri(source.uri)}
@@ -285,7 +327,7 @@ function Avatar(p: Props) {
       ) : name || !isTeam || showPlaceholder ? (
         // with a name the placeholder type is known correct; with no name at all, team
         // callsites pass isTeam so anything else is a user (e.g. signup's empty avatar)
-        <Image source={placeholderSource} style={cached.image} />
+        <Image source={placeholderSource} style={blocked ? [cached.image, blockedImageStyle] : cached.image} />
       ) : (
         // team with meta still loading: a user placeholder would be the wrong type, so
         // hold the shape with a blank background until the teamname arrives
