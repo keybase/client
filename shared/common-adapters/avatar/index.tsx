@@ -2,12 +2,14 @@ import './avatar.css'
 import {useState} from 'react'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
+import {useUsersState} from '@/stores/users'
 import * as AvatarZus from './store'
 import {Pressable, View, useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
 import {normalizeFilePathURL} from '@/util/file-url'
 import {Image} from 'expo-image'
 import {iconMeta, type IconType} from '../icon.constants-gen'
+import ImageIcon from '../image-icon'
 import {getAssetPath} from '@/constants/platform'
 import {asSyntheticEvent} from '../press-event'
 import type * as React from 'react'
@@ -150,6 +152,26 @@ const useNativeBgStyles = Styles.createThemedHook(theme => ({
 
 // ── Desktop-only ─────────────────────────────────────────────────────────────
 
+const sizeToPoopIconType = (size: Props['size']): IconType | undefined =>
+  size === 128
+    ? 'icon-poop-96'
+    : size === 96
+      ? 'icon-poop-64'
+      : size === 64
+        ? 'icon-poop-48'
+        : size === 48 || size === 32
+          ? 'icon-poop-32'
+          : undefined
+
+const poopContainerStyle = {
+  alignItems: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  zIndex: 1,
+} as const
+const blockedImageStyle = {opacity: 0.1} as const
+const poopUnderlay = {position: 'absolute'} as const
+
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
@@ -180,6 +202,9 @@ function Avatar(p: Props) {
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
+  const blocked = useUsersState(s =>
+    !isTeam && username ? !!s.blockMap.get(username)?.chatBlocked : false
+  )
   const httpSrv = useConfigState(s => s.httpSrv)
   const mode = useColorScheme() === 'dark' ? 'dark' : 'light'
   const {blankBg, errorUnderlay} = useNativeBgStyles()
@@ -207,6 +232,7 @@ function Avatar(p: Props) {
     const scaledAvatarRatio = size / AVATAR_SIZE
     const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
     const showBg = bgImage || placeholderBg
+    const poopIcon = blocked ? sizeToPoopIconType(size) : undefined
 
     return (
       <div
@@ -217,7 +243,17 @@ function Avatar(p: Props) {
       >
         <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
           <div className="avatar-background" />
-          {!!showBg && <div className="avatar-user-image" style={{backgroundImage: showBg}} />}
+          {!!poopIcon && (
+            <div className="avatar-user-image" style={poopContainerStyle}>
+              <ImageIcon type={poopIcon} allowLazy={false} />
+            </div>
+          )}
+          {!!showBg && (
+            <div
+              className="avatar-user-image"
+              style={{backgroundImage: showBg, ...(blocked ? blockedImageStyle : undefined)}}
+            />
+          )}
           {!!bgImage && hasCrop && (
             <div
               className="avatar-user-image"
@@ -226,6 +262,7 @@ function Avatar(p: Props) {
                 backgroundPositionX: (crop.offsetLeft ?? 0) * scaledAvatarRatio,
                 backgroundPositionY: (crop.offsetTop ?? 0) * scaledAvatarRatio,
                 backgroundSize: `${avatarScaledWidth}px auto`,
+                ...(blocked ? blockedImageStyle : undefined),
               }}
             />
           )}
@@ -265,6 +302,7 @@ function Avatar(p: Props) {
 
   const content = (
     <>
+      {blocked && <ImageIcon type="icon-poop-96" style={Styles.collapseStyles([cached.image, poopUnderlay])} />}
       {source ? (
         <>
           {imgError && <Image source={placeholderSource} style={[cached.image, errorUnderlay]} />}
@@ -275,7 +313,7 @@ function Avatar(p: Props) {
               failures and onLoad clears the error. */}
           <Image
             source={source}
-            style={cached.image}
+            style={blocked ? [cached.image, blockedImageStyle] : cached.image}
             recyclingKey={name}
             cachePolicy="memory-disk"
             onError={() => setErrorUri(source.uri)}

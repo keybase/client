@@ -45,6 +45,7 @@
     "./common-adapters/modal-footer.test.tsx",
     "./common-adapters/modal-header-title.test.tsx",
     "./common-adapters/modal-screen.test.tsx",
+    "./common-adapters/avatar/index.test.tsx",
     "./common-adapters/banner.test.tsx",
     "./common-adapters/floating-menu/index.test.tsx",
     "./common-adapters/hot-key.test.tsx",
