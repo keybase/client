@@ -36,7 +36,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @property (readonly) NSString *mountDir;
 @property (readonly) NSString *title;
 @property (readonly) NSString *info;
-@property (readonly) NSImage *image;
 @property (readonly) KBRunMode runMode;
 @property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 @property (readonly) KBInstallOptions installOptions;
@@ -49,10 +48,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 + (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
-+ (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
-
-- (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
-
 - (BOOL)isHomeDirSet;
 
 - (NSString *)sockFile;

@@ -18,7 +18,7 @@
 @synthesize error;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Redirector" info:@"Helper tool for redirector" image:nil])) {
+  if ((self = [self initWithConfig:config name:@"Redirector" info:@"Helper tool for redirector"])) {
     _helperTool = helperTool;
     _servicePath = servicePath;
   }

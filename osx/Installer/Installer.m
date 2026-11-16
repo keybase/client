@@ -52,8 +52,6 @@ typedef NS_ENUM (NSInteger, KBExit) {
   _memLogger = [[KBMemLogger alloc] init];
   [DDLog addLogger:_memLogger withLevel:DDLogLevelDebug];
 
-  [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
-
   DDLogDebug(@"Version: %@", NSBundle.mainBundle.infoDictionary[(NSString *)kCFBundleVersionKey]);
 
   GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
@@ -205,20 +203,27 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [alert setInformativeText:error.localizedDescription];
   [alert addButtonWithTitle:@"OK"];
 
-  KBTextView *textView = [[KBTextView alloc] init];
-  textView.editable = NO;
-  textView.view.textContainerInset = CGSizeMake(5, 5);
-
   NSMutableString *info = [NSMutableString stringWithString:[environment debugInstallables]];
   if (_memLogger) {
     [info appendString:@"Log:\n"];
     [info appendString:[_memLogger messages]];
   }
-  [textView setText:info style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
 
-  textView.frame = CGRectMake(0, 0, 500, 200);
-  textView.borderType = NSBezelBorder;
-  alert.accessoryView = textView;
+  NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:CGRectMake(0, 0, 500, 200)];
+  scrollView.hasVerticalScroller = YES;
+  scrollView.autohidesScrollers = YES;
+  scrollView.borderType = NSBezelBorder;
+
+  NSTextView *textView = [[NSTextView alloc] initWithFrame:CGRectMake(0, 0, scrollView.contentSize.width, scrollView.contentSize.height)];
+  textView.autoresizingMask = NSViewWidthSizable;
+  textView.editable = NO;
+  textView.textContainerInset = CGSizeMake(5, 5);
+  textView.textContainer.lineBreakMode = NSLineBreakByCharWrapping;
+  textView.font = [NSFont fontWithName:@"Monaco" size:11] ?: [NSFont userFixedPitchFontOfSize:11];
+  textView.string = info;
+
+  scrollView.documentView = textView;
+  alert.accessoryView = scrollView;
   [alert runModal];
 
   completion(error, KBExitIgnoreError);

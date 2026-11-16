@@ -1,22 +1,4 @@
 PODS:
-  - AFNetworking (2.6.3):
-    - AFNetworking/NSURLConnection (= 2.6.3)
-    - AFNetworking/NSURLSession (= 2.6.3)
-    - AFNetworking/Reachability (= 2.6.3)
-    - AFNetworking/Security (= 2.6.3)
-    - AFNetworking/Serialization (= 2.6.3)
-    - AFNetworking/UIKit (= 2.6.3)
-  - AFNetworking/NSURLConnection (2.6.3):
-    - AFNetworking/Reachability
-    - AFNetworking/Security
-    - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.6.3):
-    - AFNetworking/Reachability
-    - AFNetworking/Security
-    - AFNetworking/Serialization
-  - AFNetworking/Reachability (2.6.3)
-  - AFNetworking/Security (2.6.3)
-  - AFNetworking/Serialization (2.6.3)
   - CocoaLumberjack (3.1.0):
     - CocoaLumberjack/Default (= 3.1.0)
     - CocoaLumberjack/Extensions (= 3.1.0)
@@ -24,59 +6,36 @@ PODS:
   - CocoaLumberjack/Extensions (3.1.0):
     - CocoaLumberjack/Default
   - GBCli (1.2.1)
-  - GHKeychain (1.2.8)
   - GHKit (2.0.3)
   - GHODictionary (1.1.0)
   - KBKit (0.1.6):
-    - AFNetworking (~> 2.0)
     - CocoaLumberjack
-    - GHKeychain
     - GHKit
     - GHODictionary
     - Mantle
-    - MDPSplitView
     - MPMessagePack
     - ObjectiveSugar
-    - Tikppa
-    - YOLayout
   - Mantle (2.1.0):
     - Mantle/extobjc (= 2.1.0)
   - Mantle/extobjc (2.1.0)
-  - MDPSplitView (1.0.2)
   - MPMessagePack (1.5.1):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
-  - Slash (0.1.4)
-  - Tikppa (0.2.4):
-    - AFNetworking
-    - CocoaLumberjack
-    - GHKit
-    - ObjectiveSugar
-    - Slash
-    - YOLayout
-  - YOLayout (0.2.13)
 
 DEPENDENCIES:
   - GBCli
   - KBKit (from `KBKit`)
   - MPMessagePack (from `MPMessagePack`)
   - ObjectiveSugar
-  - Slash
 
 SPEC REPOS:
   trunk:
-    - AFNetworking
     - CocoaLumberjack
     - GBCli
-    - GHKeychain
     - GHKit
     - GHODictionary
     - Mantle
-    - MDPSplitView
     - ObjectiveSugar
-    - Slash
-    - Tikppa
-    - YOLayout
 
 EXTERNAL SOURCES:
   KBKit:
@@ -85,21 +44,15 @@ EXTERNAL SOURCES:
     :path: MPMessagePack
 
 SPEC CHECKSUMS:
-  AFNetworking: a926f9357e3bc39d2c49c547e8e8dc90b36259b6
   CocoaLumberjack: 8311463ddf9ee86a06ef92a071dd656c89244500
   GBCli: 3af947f1793263cda07c220aed0b4af46034d94d
-  GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
   GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
-  KBKit: 237fc492a47ca019de3a529ebbbea11c6e5fc209
+  KBKit: 9571ce847f431e904698238e3502d2ceab0fa2fc
   Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
-  MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: 78a240329238b769191b17e6db3d21b021a7a02e
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
-  Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
-  Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
-  YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
-PODFILE CHECKSUM: 0a352bd6bb0abcee49e226998b0dccbffc289622
+PODFILE CHECKSUM: d74d34bec3ac087cd5cee30a50fa6752b0b2ce2f
 
 COCOAPODS: 1.17.0

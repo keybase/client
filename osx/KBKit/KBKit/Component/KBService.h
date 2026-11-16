@@ -11,12 +11,10 @@
 #import "KBComponent.h"
 #import "KBInstallable.h"
 #import "KBEnvConfig.h"
-#import "KBRPC.h"
-#import "KBRPClient.h"
+#import "KBRModels.h"
 
 @interface KBService : KBInstallable
 
-@property (readonly, nonatomic) KBRPClient *client;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath;
 

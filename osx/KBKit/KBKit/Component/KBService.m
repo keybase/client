@@ -8,64 +8,29 @@
 
 #import "KBService.h"
 
-#import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
-#import "KBRPC.h"
+#import "KBRModels.h"
 #import "KBSemVersion.h"
 #import "KBTask.h"
 #import "KBKeybaseLaunchd.h"
 
 @interface KBService ()
-@property KBRPClient *client;
 
 @property NSString *label;
 @property NSString *servicePath;
 
 @property KBRServiceStatus *serviceStatus;
 
-@property YOView *infoView;
 @end
 
 @implementation KBService
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Service" info:@"The Keybase service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
+  if ((self = [self initWithConfig:config name:@"Service" info:@"The Keybase service"])) {
     _label = label;
     _servicePath = servicePath;
   }
   return self;
-}
-
-- (KBRPClient *)client {
-  if (!_client) {
-    _client = [[KBRPClient alloc] initWithConfig:self.config options:KBRClientOptionsAutoRetry];
-  }
-  return _client;
-}
-
-- (NSView *)componentView {
-  [self componentDidUpdate];
-  return _infoView;
-}
-
-- (void)componentDidUpdate {
-  GHODictionary *info = [GHODictionary dictionary];
-
-  info[@"Home"] =  [KBPath path:self.config.homeDir options:KBPathOptionsTilde];
-  info[@"Socket"] =  [KBPath path:self.config.sockFile options:KBPathOptionsTilde];
-
-  GHODictionary *statusInfo = [self.componentStatus statusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  YOView *view = [[YOView alloc] init];
-  KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
-  [propertiesView setProperties:info];
-  NSView *scrollView = [KBScrollView scrollViewWithDocumentView:propertiesView];
-  [view addSubview:scrollView];
-
-  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:nil insets:UIEdgeInsetsZero spacing:10];
-
-  _infoView = view;
 }
 
 - (KBInstallRuntimeStatus)runtimeStatus {
@@ -81,15 +46,7 @@
     } else {
       self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     }
-    [self componentDidUpdate];
     completion(self.componentStatus);
-  }];
-}
-
-- (void)panic:(KBCompletion)completion {
-  KBRTestRequest *request = [[KBRTestRequest alloc] initWithClient:self.client];
-  [request panicWithMessage:@"Testing panic" completion:^(NSError *error) {
-    completion(error);
   }];
 }
 

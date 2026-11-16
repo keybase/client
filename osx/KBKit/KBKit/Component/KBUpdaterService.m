@@ -9,7 +9,6 @@
 #import "KBUpdaterService.h"
 #import "KBTask.h"
 #import "KBKeybaseLaunchd.h"
-#import "KBIcons.h"
 
 @interface KBUpdaterService ()
 @property NSString *label;
@@ -20,15 +19,11 @@
 @implementation KBUpdaterService
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Updater" info:@"The updater service" image:[KBIcons imageForIcon:KBIconExtension]])) {
+  if ((self = [self initWithConfig:config name:@"Updater" info:@"The updater service"])) {
     _label = label;
     _servicePath = servicePath;
   }
   return self;
-}
-
-- (NSView *)componentView {
-  return nil;
 }
 
 - (KBInstallRuntimeStatus)runtimeStatus {
@@ -67,7 +62,6 @@
     } else {
       self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     }
-    [self componentDidUpdate];
     completion(self.componentStatus);
   }];
 }

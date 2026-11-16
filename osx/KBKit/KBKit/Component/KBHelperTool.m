@@ -8,7 +8,6 @@
 
 #import "KBHelperTool.h"
 
-#import "KBDebugPropertiesView.h"
 #import "KBPrivilegedTask.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
@@ -20,22 +19,16 @@
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
 @interface KBHelperTool () <MPLog>
-@property KBDebugPropertiesView *infoView;
 @property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBHelperTool
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
-  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
+  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks"])) {
 
   }
   return self;
-}
-
-- (NSView *)componentView {
-  [self componentDidUpdate];
-  return _infoView;
 }
 
 - (KBSemVersion *)bundleVersion {
@@ -56,15 +49,6 @@
     _helper.logDelegate = self;
   }
   return _helper;
-}
-
-- (void)componentDidUpdate {
-  GHODictionary *info = [GHODictionary dictionary];
-  GHODictionary *statusInfo = [self.componentStatus statusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
-  [_infoView setProperties:info];
 }
 
 - (void)log:(MPLogLevel)level format:(NSString *)format, ... {

@@ -32,11 +32,9 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @property (getter=isInstallDisabled) BOOL installDisabled;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info image:(NSImage *)image;
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info;
 
 // Called when component updated
-- (void)componentDidUpdate;
-
 - (BOOL)isInstallDisabled;
 
 - (void)install:(KBCompletion)completion;

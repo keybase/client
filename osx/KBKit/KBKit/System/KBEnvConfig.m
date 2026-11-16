@@ -11,7 +11,6 @@
 #import "KBDefines.h"
 #import "KBEnvironment.h"
 #import "KBPath.h"
-#import <Tikppa/Tikppa.h>
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;
@@ -19,7 +18,6 @@
 @property NSString *mountDir;
 @property NSString *title;
 @property NSString *info;
-@property NSImage *image;
 @property KBRunMode runMode;
 @property BOOL installDisabled;
 @property KBInstallOptions installOptions;
@@ -58,7 +56,6 @@
         self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
-        self.image = [NSImage imageNamed:NSImageNameNetwork];
         break;
       }
       case KBRunModeStaging: {
@@ -66,7 +63,6 @@
         self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
-        self.image = [NSImage imageNamed:NSImageNameNetwork];
         break;
       }
       case KBRunModeDevel: {
@@ -74,7 +70,6 @@
         self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
-        self.image = [NSImage imageNamed:NSImageNameComputer];
         break;
       }
     }
@@ -103,21 +98,6 @@
 + (NSString *)groupContainer:(NSString *)path {
   NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupId].path;
   return [KBPath pathInDir:dir path:path options:0];
-}
-
-+ (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults {
-  NSString *homeDir = [userDefaults stringForKey:@"HomeDir"];
-  NSString *mountDir = [userDefaults stringForKey:@"MountDir"];
-
-  if (!mountDir) mountDir = [KBPath path:@"~/Keybase.dev" options:0];
-
-  return [KBEnvConfig envConfigWithHomeDir:homeDir mountDir:mountDir runMode:KBRunModeDevel];
-}
-
-- (void)saveToUserDefaults:(NSUserDefaults *)userDefaults {
-  [userDefaults setObject:[KBPath path:self.homeDir options:0] forKey:@"HomeDir"];
-  [userDefaults setObject:[KBPath path:self.mountDir options:0] forKey:@"MountDir"];
-  [userDefaults synchronize];
 }
 
 - (NSString *)appName {
@@ -256,7 +236,6 @@
   envConfig.homeDir = [KBPath path:homeDir options:0];
   envConfig.mountDir = [KBPath path:mountDir options:0];
   envConfig.info = @"For development";
-  envConfig.image = [NSImage imageNamed:NSImageNameAdvanced];
   envConfig.debugEnabled = YES;
   envConfig.installDisabled = YES;
   return envConfig;

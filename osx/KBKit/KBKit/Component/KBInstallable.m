@@ -19,19 +19,12 @@ const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 
 @implementation KBInstallable
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info image:(NSImage *)image {
-  if ((self = [super initWithName:name info:info image:image])) {
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info {
+  if ((self = [super initWithName:name info:info])) {
     _config = config;
   }
   return self;
 }
-
-- (void)setComponentStatus:(KBComponentStatus *)componentStatus {
-  _componentStatus = componentStatus;
-  [self componentDidUpdate];
-}
-
-- (void)componentDidUpdate { }
 
 - (KBInstallRuntimeStatus)runtimeStatus {
   return KBInstallRuntimeStatusNone;

@@ -7,7 +7,6 @@
 //
 
 #import "KBFSService.h"
-#import "KBDebugPropertiesView.h"
 #import "KBKeybaseLaunchd.h"
 #import "KBSemVersion.h"
 #import "KBTask.h"
@@ -17,44 +16,16 @@
 @property NSString *label;
 @property NSString *servicePath;
 @property KBRServiceStatus *serviceStatus;
-@property YOView *infoView;
 @end
 
 @implementation KBFSService
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
+  if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service"])) {
     _label = label;
     _servicePath = servicePath;
   }
   return self;
-}
-
-- (NSView *)componentView {
-  [self componentDidUpdate];
-  return _infoView;
-}
-
-- (void)componentDidUpdate {
-  GHODictionary *info = [GHODictionary dictionary];
-
-  info[@"Mount"] = [self.config mountDir];
-
-  GHODictionary *statusInfo = [self.componentStatus statusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  YOView *view = [[YOView alloc] init];
-  KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
-  [propertiesView setProperties:info];
-  NSView *scrollView = [KBScrollView scrollViewWithDocumentView:propertiesView];
-  [view addSubview:scrollView];
-
-  YOHBox *buttons = [YOHBox box:@{@"spacing": @(10)}];
-  [view addSubview:buttons];
-
-  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
-
-  _infoView = view;
 }
 
 - (KBInstallRuntimeStatus)runtimeStatus {
@@ -93,7 +64,6 @@
     } else {
       self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     }
-    [self componentDidUpdate];
     completion(self.componentStatus);
   }];
 }

@@ -21,7 +21,7 @@
 @synthesize error;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [self initWithConfig:config name:@"Mount Directory" info:@"Location for mount directory" image:nil])) {
+  if ((self = [self initWithConfig:config name:@"Mount Directory" info:@"Location for mount directory"])) {
     _helperTool = helperTool;
   }
   return self;

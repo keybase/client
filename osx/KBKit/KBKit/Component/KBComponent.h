@@ -18,9 +18,6 @@ typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus)
 
 - (NSString *)name;
 - (NSString *)info;
-- (NSImage *)image;
-
-- (NSView *)componentView;
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion;
 
@@ -28,7 +25,7 @@ typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus)
 
 @interface KBComponent : NSObject <KBComponent>
 
-- (instancetype)initWithName:(NSString *)name info:(NSString *)info image:(NSImage *)image;
+- (instancetype)initWithName:(NSString *)name info:(NSString *)info;
 
 @end
 

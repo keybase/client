@@ -16,7 +16,7 @@
 @implementation KBCommandLine
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line" image:nil])) {
+  if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line"])) {
     _helperTool = helperTool;
     _servicePath = servicePath;
   }

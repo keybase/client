@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import <GHODictionary/GHODictionary.h>
-#import "KBRPC.h"
+#import "KBDefines.h"
+#import "KBRModels.h"
 #import "KBSemVersion.h"
 
 NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);

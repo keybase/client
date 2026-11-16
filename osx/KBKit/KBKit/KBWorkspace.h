@@ -11,16 +11,6 @@
 
 @interface KBWorkspace : NSObject
 
-+ (NSString *)applicationSupport:(NSArray *)subdirs create:(BOOL)create error:(NSError **)error;
-
-+ (void)openURLString:(NSString *)URLString prompt:(BOOL)prompt sender:(id)sender;
-
-+ (NSUserDefaults *)userDefaults;
-
 + (void)setupLogging:(BOOL)debug;
-
-+ (NSWindow *)windowWithContentView:(NSView<NSWindowDelegate> *)contentView;
-
-+ (NSWindow *)createMainWindow:(NSView<NSWindowDelegate> *)view;
 
 @end

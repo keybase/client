@@ -15,7 +15,7 @@
 @implementation KBAppBundle
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [self initWithConfig:config name:@"App" info:@"App bundle" image:nil])) {
+  if ((self = [self initWithConfig:config name:@"App" info:@"App bundle"])) {
     _helperTool = helperTool;
   }
   return self;

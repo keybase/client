@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import "KBSemVersion.h"
-#import "KBRPC.h"
+#import "KBDefines.h"
+#import "KBRModels.h"
 #import <GHODictionary/GHODictionary.h>
 
 typedef void (^KBOnServiceStatus)(NSError *error, KBRServiceStatus *serviceStatus);
