@@ -42,6 +42,8 @@ func (m *MemDb) Clean(force bool) error {
 	return nil
 }
 
+func (m *MemDb) MarkRecentlyUsed(id DbKey) {}
+
 func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
 	return res, errors.New("not implemented")
 }

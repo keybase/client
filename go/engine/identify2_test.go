@@ -434,6 +434,89 @@ func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 	runID2(false)
 }
 
+// A stub can land on disk in place of one of our own track links: the cleaner
+// evicts the full link, then a stubbed load of our chain stores the stub.
+// Identify must not crash on it, must still see the follow, and must rewrite
+// the full link through its forced unstubbed reload.
+func TestIdentify2WithUIDWithStubbedTrackLink(t *testing.T) {
+	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithStubbedTrackLink")
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
+	fu := CreateAndSignupFakeUser(tc, "track")
+	// Only v2 links can be stubbed, and the server never stubs a chain's
+	// last link, so follow bob after alice.
+	trackAlice(tc, fu, libkb.KeybaseSignatureV2)
+	defer untrackAlice(tc, fu, libkb.KeybaseSignatureV2)
+	trackBob(tc, fu, libkb.KeybaseSignatureV2)
+	defer untrackBob(tc, fu, libkb.KeybaseSignatureV2)
+
+	// Identify loads the logged-in user with these options. Loading that way
+	// here fills the UPAK cache slot identify reads, so identify gets the
+	// UPAK alone and has to look the track link up in storage.
+	meArg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(fu.UID()).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(meArg)
+	require.NoError(t, err)
+	remote, ok := upak.Current.RemoteTracks[aliceUID]
+	require.True(t, ok, "the UPAK should list the follow of t_alice")
+	lid, err := libkb.LinkIDFromHex(string(remote.LinkID))
+	require.NoError(t, err)
+	key := libkb.DbKey{Typ: libkb.DBLink, Key: lid.String()}
+
+	readSig := func() string {
+		raw, found, err := tc.G.LocalDb.GetRaw(key)
+		require.NoError(t, err)
+		require.True(t, found)
+		record, err := jsonw.Unmarshal(raw)
+		require.NoError(t, err)
+		sig, _ := record.AtKey("sig").GetString()
+		return sig
+	}
+
+	// Replace the stored link with what ChainLink.Pack writes for its stub.
+	sig := readSig()
+	require.NotEmpty(t, sig)
+	outer, err := libkb.DecodeOuterLinkV2(sig)
+	require.NoError(t, err)
+	require.True(t, outer.LinkID().Eq(lid))
+	stubRecord := jsonw.NewDictionary()
+	require.NoError(t, stubRecord.SetKey("s2", jsonw.NewString(outer.EncodeStubbed())))
+	stubBytes, err := stubRecord.Marshal()
+	require.NoError(t, err)
+	require.NoError(t, tc.G.LocalDb.PutRaw(key, stubBytes))
+	tc.G.LinkCache().Remove(lid)
+
+	link, err := libkb.ImportLinkFromStorage(m, lid, fu.UID())
+	require.NoError(t, err)
+	require.True(t, link.IsStubbed())
+	tc.G.LinkCache().Remove(lid)
+
+	// With a full user object identify would read the track from it and
+	// never touch the stored link.
+	cachedUPAK, fullUser, err := tc.G.GetUPAKLoader().LoadV2(meArg)
+	require.NoError(t, err)
+	require.Nil(t, fullUser, "identify must get the cached UPAK, not a full user load")
+	_, err = libkb.TrackChainLinkFromUPK2AI(m, cachedUPAK, libkb.NewNormalizedUsername("t_alice"), aliceUID)
+	var inconsistent libkb.InconsistentCacheStateError
+	require.ErrorAs(t, err, &inconsistent)
+	tc.G.LinkCache().Remove(lid)
+
+	tester := newIdentify2WithUIDTester(tc.G)
+	tester.noDiskCache = true
+	eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
+	eng.testArgs = &Identify2WithUIDTestArgs{
+		cache:                  tester,
+		allowUntrackedFastPath: true,
+	}
+	require.NoError(t, eng.Run(identify2MetaContext(tc, tester)))
+	require.Zero(t, eng.testArgs.stats.untrackedFastPaths, "the follow of t_alice was lost")
+
+	require.Equal(t, sig, readSig(), "the forced reload should have rewritten the full link")
+	tcl, err := libkb.TrackChainLinkFromUPK2AI(m, upak, libkb.NewNormalizedUsername("t_alice"), aliceUID)
+	require.NoError(t, err)
+	require.NotNil(t, tcl)
+}
+
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
 	defer tc.Cleanup()

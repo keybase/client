@@ -94,14 +94,27 @@ func (c *LinkCache) Mutate(id LinkID, f func(c *ChainLink)) {
 
 // Remove deletes a ChainLink from the cache.
 func (c *LinkCache) Remove(id LinkID) {
+	c.removeIf(id, func(ChainLink) bool { return true })
+}
+
+// RemoveStub deletes a ChainLink from the cache if it is cached as a stub.
+func (c *LinkCache) RemoveStub(id LinkID) {
+	c.removeIf(id, func(link ChainLink) bool { return link.IsStubbed() })
+}
+
+func (c *LinkCache) removeIf(id LinkID, pred func(ChainLink) bool) {
 	c.Lock()
 	defer c.Unlock()
 	var linkID linkIDFixed
 	copy(linkID[:], id)
 	elt, ok := c.cache[linkID]
-	if ok {
-		c.accessOrder.Remove(elt)
+	if !ok {
+		return
 	}
+	if link, ok := elt.Value.(ChainLink); ok && !pred(link) {
+		return
+	}
+	c.accessOrder.Remove(elt)
 	delete(c.cache, linkID)
 }
 

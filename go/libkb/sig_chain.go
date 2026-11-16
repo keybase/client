@@ -138,6 +138,17 @@ func (sc *SigChain) EldestSeqno() keybase1.Seqno {
 	return sc.currentSubchainStart
 }
 
+func (c ChainLinks) hasStubs() bool {
+	return slices.ContainsFunc(c, (*ChainLink).IsStubbed)
+}
+
+// stubDerivedFor reports whether cki was computed over stubs that links no
+// longer has. An unstubbed load drops every stub, and the full links may carry
+// state the stubs hid, so it must recompute rather than reuse cki.
+func (cki *ComputedKeyInfos) stubDerivedFor(links ChainLinks) bool {
+	return cki.SkippedStubs && !links.hasStubs()
+}
+
 func (c ChainLinks) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	ll := last(c)
 	if ll == nil {
@@ -755,6 +766,8 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 	if cki = last.GetSigCheckCache(); cki != nil {
 		if cki.IsStaleVersion() {
 			m.Debug("Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+		} else if cki.stubDerivedFor(links) {
+			m.Debug("Ignoring cached CKI, since it was computed over stubs that are now full links")
 		} else {
 			cached = true
 			m.Debug("Skipped verification (cached): %s", last.id)
@@ -795,6 +808,7 @@ func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links Ch
 				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
 			m.VLogf(VLog1, "| Skipping over stubbed-out link: %s", link.id)
+			cki.SkippedStubs = true
 			continue
 		}
 
@@ -1363,23 +1377,6 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 // ========================================================================
 
-func (sc *SigChain) HasStubs() bool {
-	for _, link := range sc.chainLinks {
-		if link.IsStubbed() {
-			return true
-		}
-	}
-	return len(sc.chainLinks) != 0
-}
-
-// ========================================================================
-
-func (l *SigChainLoader) HasStubs() bool {
-	return l.chain.HasStubs()
-}
-
-// ========================================================================
-
 func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
 		return
@@ -1451,6 +1448,31 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 	return lastLink.ToEldestKID().Equal(l.leaf.eldest)
 }
 
+// tipKeyStateIsStubDerived reports whether verifySubchain will refuse the key
+// state cached on the chain tip (see stubDerivedFor). It must look at the same
+// links verifySubchain does, the current subchain: a load that takes the
+// fully-cached path never stores what it recomputes, so judging by the whole
+// chain would recompute on every load for a chain whose only stubs are in
+// older subchains. It reports false when VerifySigsAndComputeKeys won't run
+// verifySubchain (no key family) or can't (no current subchain; it then
+// returns that error itself), so the reverify path couldn't do better.
+func (l *SigChainLoader) tipKeyStateIsStubDerived() bool {
+	tip := l.chain.GetLastLink()
+	if tip == nil || l.ckf.kf == nil {
+		return false
+	}
+	cki := tip.GetSigCheckCache()
+	if cki == nil || !cki.SkippedStubs {
+		return false
+	}
+	links, err := l.chain.GetCurrentSubchain(l.M(), l.leaf.eldest)
+	if err != nil {
+		l.M().Debug("| tipKeyStateIsStubDerived: %v", err)
+		return false
+	}
+	return cki.stubDerivedFor(links)
+}
+
 // Load is the main entry point into the SigChain loader.  It runs through
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
@@ -1512,6 +1534,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		// but we might still need to proceed with the rest of the load if the
 		// eldest KID has changed.
 		l.M().Debug("| Merkle leaf doesn't match the chain tip.")
+	} else if l.tipKeyStateIsStubDerived() {
+		l.M().Debug("| Need to reverify chain since its ComputedKeyInfos were computed over stubs it no longer has")
 	} else {
 		// The chain tip has a cached cki, AND the current eldest kid matches
 		// it. Use what's cached and short circuit.

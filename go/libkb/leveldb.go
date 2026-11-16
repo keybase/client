@@ -340,6 +340,10 @@ func (l *LevelDb) Clean(force bool) (err error) {
 	return l.cleaner.clean(force)
 }
 
+func (l *LevelDb) MarkRecentlyUsed(id DbKey) {
+	l.cleaner.noteRecentlyUsed(id.ToBytes())
+}
+
 func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
 	// We need to do deferred Unlock here in Nuke rather than delegating to

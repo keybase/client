@@ -112,6 +112,12 @@ type ComputedKeyInfos struct {
 	// Now set to 1. Everything before that is thrown away on sigchain load.
 	Version ComputedKeyInfosVersion
 
+	// Set when these were computed over a chain with stubbed links, which
+	// verification skips. Such a result can miss state that only the full
+	// links carry, so a chain with no stubs left recomputes instead of
+	// reusing it. Stored with the link; records without it read as false.
+	SkippedStubs bool
+
 	dirty bool // whether it needs to be written to disk or not
 
 	// Map of KID to a computed info
@@ -245,6 +251,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Contextified:  NewContextified(cki.G()),
 		dirty:         cki.dirty,
 		Version:       cki.Version,
+		SkippedStubs:  cki.SkippedStubs,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo, len(cki.Infos)),
 		Sigs:          make(map[keybase1.SigIDMapKey]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),

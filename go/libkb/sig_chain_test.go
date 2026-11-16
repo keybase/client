@@ -298,8 +298,6 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 }
 
 func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
-	err := chain.Store(NewMetaContextForTest(tc))
-	require.NoError(t, err)
 	sgl := SigChainLoader{
 		user: &User{
 			name: chain.username.String(),
@@ -313,18 +311,11 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 		chainType:        PublicChain,
 		MetaContextified: NewMetaContextified(NewMetaContextForTest(tc)),
 	}
-	sgl.chain = chain
-	sgl.dirtyTail = chain.GetCurrentTailTriple()
-	err = sgl.Store()
-	require.NoError(t, err)
+	storeChain(t, tc, chain, &sgl)
 	sgl.chain = nil
 	sgl.dirtyTail = nil
-	var sc2 *SigChain
-	// Reset the link cache so that we're sure our loads hits storage.
-	tc.G.cacheMu.Lock()
-	tc.G.linkCache = NewLinkCache(1000, time.Hour)
-	tc.G.cacheMu.Unlock()
-	sc2, err = sgl.Load()
+	emptyLinkCache(tc)
+	sc2, err := sgl.Load()
 	require.NoError(t, err)
 
 	// Loading sigchains from cache doesn't benefit from knowing the current
