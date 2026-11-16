@@ -21,6 +21,7 @@ import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
 type Props = {
   path: T.FS.Path
+  seed?: Kbfs.FsDataSeed
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) => {
@@ -136,7 +137,7 @@ const useStyles = Kb.Styles.createStyleHook(
 
 const NavMobileHeader = (props: Props) => (
   <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
+    <Kbfs.FsDataProvider {...props.seed}>
       <NavMobileHeaderInner {...props} />
     </Kbfs.FsDataProvider>
   </Kbfs.FsErrorProvider>

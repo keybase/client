@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {IosHeaderTitle} from './nav-header/ios-header'
-import {Filename, ItemIcon} from './common'
+import {Filename, ItemIcon, type FsDataSeed} from './common'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
@@ -66,26 +66,34 @@ const noShrinkStyle = {flexShrink: 0} as const
 // Options shared by fsRoot (the Files tab root) and fsBrowse (a folder pushed on
 // top). They render the same screen; the only difference is where each lives in
 // the navigator tree (see fsBrowse below).
-const fsFolderGetOptions = (ownProps?: {route: {params?: {path?: T.FS.Path}}}) => {
+const fsFolderGetOptions = (ownProps?: {
+  route: {params?: {path?: T.FS.Path; initialPathType?: T.FS.PathType; initialWritable?: boolean}}
+}) => {
   // strange edge case where the root can actually have no params
   const params = ownProps?.route.params
   const path = params?.path ?? FS.defaultPath
+  // the header has its own data, separate from the screen's: start it from what the screen starts from
+  const seed: FsDataSeed = {
+    initialPath: path,
+    initialPathType: params?.initialPathType,
+    initialWritable: params?.initialWritable,
+  }
   if (isIOS) {
     // Native header so the back button and right items get liquid glass on iOS 26.
     // The banner, the folder-view filter, and the overflow menu (Search/Upload/
     // More) are all attached from the screen body; see fs/index.tsx.
     return {
       headerBackVisible: true,
-      headerTitle: () => <IosHeaderTitle path={path} />,
+      headerTitle: () => <IosHeaderTitle path={path} seed={seed} />,
     }
   }
   return isMobile
     ? {
-        header: () => <MobileHeader path={path} />,
+        header: () => <MobileHeader path={path} seed={seed} />,
       }
     : {
-        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
-        headerTitle: () => <Title path={path} />,
+        headerRightActions: () => <Actions path={path} seed={seed} onTriggerFilterMobile={() => {}} />,
+        headerTitle: () => <Title path={path} seed={seed} />,
         subHeader: MainBanner,
         title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),
       }

@@ -14,6 +14,7 @@ export const useOpen = (props: Props) => {
   if (!props.destinationPickerSource) {
     const knownType = pathItem.type !== T.FS.PathType.Unknown ? pathItem.type : undefined
     const knownTimestamp = pathItem.type === T.FS.PathType.File ? pathItem.lastModifiedTimestamp : undefined
+    const knownWritable = knownType ? pathItem.writable : undefined
     return () => {
       if (isMobile && knownType === T.FS.PathType.File) {
         nav.safeNavigateAppend({
@@ -23,7 +24,12 @@ export const useOpen = (props: Props) => {
       } else {
         nav.safeNavigateAppend({
           name: 'fsBrowse',
-          params: {initialLastModifiedTimestamp: knownTimestamp, initialPathType: knownType, path: props.path},
+          params: {
+            initialLastModifiedTimestamp: knownTimestamp,
+            initialPathType: knownType,
+            initialWritable: knownWritable,
+            path: props.path,
+          },
         })
       }
     }

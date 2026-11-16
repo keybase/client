@@ -51,9 +51,9 @@ const TitleInner = ({path}: {path: T.FS.Path}) => {
   )
 }
 
-export const IosHeaderTitle = ({path}: {path: T.FS.Path}) => (
+export const IosHeaderTitle = ({path, seed}: {path: T.FS.Path; seed?: Kbfs.FsDataSeed}) => (
   <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
+    <Kbfs.FsDataProvider {...seed}>
       <TitleInner path={path} />
     </Kbfs.FsDataProvider>
   </Kbfs.FsErrorProvider>

@@ -9,6 +9,7 @@ type Props = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
   inDestinationPicker?: boolean
+  seed?: Kbfs.FsDataSeed
 }
 
 const Breadcrumb = (props: Props) => {
@@ -22,6 +23,11 @@ const Breadcrumb = (props: Props) => {
           .slice(1, -1)
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
   const {inDestinationPicker} = props
+  const openedWritable = props.seed?.initialWritable
+  // KBFS write permission is per TLF, so an ancestor folder inside it has the one this folder was
+  // opened with; the levels above a TLF take no writes at all
+  const ancestorWritable = (path: T.FS.Path) =>
+    T.FS.getPathLevel(path) > 2 ? openedWritable : undefined
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {
     if (inDestinationPicker) {
@@ -32,7 +38,10 @@ const Breadcrumb = (props: Props) => {
         })
       }
     } else {
-      nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+      nav.safeNavigateAppend({
+        name: 'fsRoot',
+        params: {initialPathType: T.FS.PathType.Folder, initialWritable: ancestorWritable(path), path},
+      })
     }
   }
 
@@ -130,7 +139,7 @@ const FsNavHeaderTitleInner = (props: Props) => {
 
 const FsNavHeaderTitle = (props: Props) => (
   <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
+    <Kbfs.FsDataProvider {...props.seed}>
       <FsNavHeaderTitleInner {...props} />
     </Kbfs.FsDataProvider>
   </Kbfs.FsErrorProvider>

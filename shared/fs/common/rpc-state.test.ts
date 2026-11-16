@@ -350,6 +350,28 @@ describe('makePathItemsFromDirents', () => {
     expect(items.size).toBe(0)
   })
 
+  test('a listing that lands before the stat takes the folder\'s write permission from its entries', () => {
+    const listing = (writable: boolean) =>
+      makePathItemsFromDirents({
+        entries: [dirent({name: 'a.txt', writable}), dirent({direntType: T.RPCGen.DirentType.dir, name: 'dir', writable})],
+        isRecursive: false,
+        rootPath,
+        rootPathItem: FS.unknownPathItem,
+      }).get(rootPath)
+    expect(listing(true)).toMatchObject({type: T.FS.PathType.Folder, writable: true})
+    expect(listing(false)).toMatchObject({type: T.FS.PathType.Folder, writable: false})
+  })
+
+  test('a listing keeps the write permission the folder already has', () => {
+    const items = makePathItemsFromDirents({
+      entries: [dirent({name: 'a.txt', writable: true})],
+      isRecursive: false,
+      rootPath,
+      rootPathItem: {...FS.emptyFolder, writable: false},
+    })
+    expect(items.get(rootPath)).toMatchObject({writable: false})
+  })
+
   test('a known file root yields nothing, not impossible children', () => {
     const items = makePathItemsFromDirents({
       entries: [dirent({name: 'other.txt'})],

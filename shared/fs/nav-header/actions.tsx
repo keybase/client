@@ -9,6 +9,7 @@ import {FsBrowserEditProvider} from '../browser/edit-state'
 type Props = {
   onTriggerFilterMobile: () => void
   path: T.FS.Path
+  seed?: Kbfs.FsDataSeed
 }
 
 const FsNavHeaderRightActionsInner = (props: Props) => {
@@ -54,7 +55,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
 
 const FsNavHeaderRightActions = (props: Props) => (
   <Kbfs.FsErrorProvider>
-    <Kbfs.FsDataProvider>
+    <Kbfs.FsDataProvider {...props.seed}>
       <FsBrowserEditProvider path={props.path}>
         <FsNavHeaderRightActionsInner {...props} />
       </FsBrowserEditProvider>

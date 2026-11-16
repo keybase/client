@@ -435,26 +435,37 @@ const loadAdditionalTlfAsync = async (
   }
 }
 
-export const FsDataProvider = ({
-  children,
-  initialLastModifiedTimestamp,
-  initialPath,
-  initialPathType,
-}: {
-  children: React.ReactNode
+// What the screen that opened a path already knew about it (from its listing row, or the folder a
+// breadcrumb leads up from). Seeding it lets a fresh provider draw the path right on its first frame
+// instead of drawing an unknown path and then changing once its own loads land.
+export type FsDataSeed = {
   initialLastModifiedTimestamp?: number
   initialPath?: T.FS.Path
   initialPathType?: T.FS.PathType
-}) => {
+  // KBFS write permission is per TLF, so a folder's is the same as its parent's and its entries'
+  initialWritable?: boolean
+}
+
+export const seedPathItem = (seed: FsDataSeed): T.FS.PathItem | undefined => {
+  const {initialLastModifiedTimestamp, initialPath, initialPathType, initialWritable} = seed
+  if (!initialPath) {
+    return undefined
+  }
+  const name = T.FS.getPathName(initialPath)
+  if (initialPathType === T.FS.PathType.File) {
+    return {...FS.emptyFile, lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0, name}
+  }
+  // an unknown writable stays an unknown path: a folder item claims a writable value
+  if (initialPathType === T.FS.PathType.Folder && initialWritable !== undefined) {
+    return {...FS.emptyFolder, name, writable: initialWritable}
+  }
+  return undefined
+}
+
+export const FsDataProvider = ({children, ...seed}: FsDataSeed & {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
   return (
-    <FsDataProviderForUsername
-      key={username}
-      username={username}
-      initialLastModifiedTimestamp={initialLastModifiedTimestamp}
-      initialPath={initialPath}
-      initialPathType={initialPathType}
-    >
+    <FsDataProviderForUsername key={username} username={username} seed={seed}>
       {children}
     </FsDataProviderForUsername>
   )
@@ -462,30 +473,20 @@ export const FsDataProvider = ({
 
 const FsDataProviderForUsername = ({
   children,
-  initialLastModifiedTimestamp,
-  initialPath,
-  initialPathType,
+  seed,
   username,
 }: {
   children: React.ReactNode
-  initialLastModifiedTimestamp?: number
-  initialPath?: T.FS.Path
-  initialPathType?: T.FS.PathType
+  seed: FsDataSeed
   username: string
 }) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const [fsSharedData, setFsSharedData] = React.useState(() => {
-    if (initialPath && initialPathType === T.FS.PathType.File) {
-      const pathItems = new Map<T.FS.Path, T.FS.PathItem>()
-      pathItems.set(initialPath, {
-        ...FS.emptyFile,
-        lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0,
-        name: T.FS.getPathName(initialPath),
-      })
-      return {...makeEmptyFsSharedData(), pathItems}
-    }
-    return makeEmptyFsSharedData()
+    const seeded = seedPathItem(seed)
+    return seed.initialPath && seeded
+      ? {...makeEmptyFsSharedData(), pathItems: new Map([[seed.initialPath, seeded]])}
+      : makeEmptyFsSharedData()
   })
   const [subscriptionManager] = React.useState<FsSubscriptionManager>(() => ({subscriptions: new Map()}))
   const seenDownloadIDsRef = React.useRef(new Set<string>())

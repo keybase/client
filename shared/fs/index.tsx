@@ -44,6 +44,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 type OwnProps = {
   initialLastModifiedTimestamp?: number
   initialPathType?: T.FS.PathType
+  initialWritable?: boolean
   lastClosedPublicBannerTlf?: string
   path?: T.FS.Path
 }
@@ -77,6 +78,7 @@ const Connected = (ownProps: OwnProps) => (
       initialLastModifiedTimestamp={ownProps.initialLastModifiedTimestamp}
       initialPath={ownProps.path}
       initialPathType={ownProps.initialPathType}
+      initialWritable={ownProps.initialWritable}
     >
       <ConnectedInner {...ownProps} />
     </Kbfs.FsDataProvider>
