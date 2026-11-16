@@ -100,7 +100,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsimg" testID={TestIDs.FILES_IMAGE_PREVIEW} />
+          <ImagePreview key={url} path={path} url={url} onUrlError={onUrlError} />
         </>
       )
     }
@@ -124,6 +124,29 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     default:
       return <Kb.Text type="BodySmallError">{"This shouldn't happen"}</Kb.Text>
   }
+}
+
+// keyed by url so a reload or a fresh url retries an image that failed to draw
+const ImagePreview = ({path, url, onUrlError}: Props & {url: string}) => {
+  const styles = useStyles()
+  // the image's format can be one the platform can't decode (HEIC on desktop)
+  const [failed, setFailed] = React.useState(false)
+  if (failed) {
+    return <DefaultView path={path} note="Can't preview image" />
+  }
+  return (
+    <Kb.ZoomableImage
+      src={url}
+      style={styles.zoomableBox}
+      boxCacheKey="fsimg"
+      testID={TestIDs.FILES_IMAGE_PREVIEW}
+      onError={() => {
+        // the url can be stale (service restarted); refetching it is a no-op for a repeated error
+        onUrlError('image failed to load')
+        setFailed(true)
+      }}
+    />
+  )
 }
 
 export default FilePreviewView

@@ -12,7 +12,11 @@ import {
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/constants/fs'
 
-type OwnProps = {path: T.FS.Path}
+type OwnProps = {
+  path: T.FS.Path
+  // why the file is shown here instead of in a preview
+  note?: string
+}
 
 const Share = (p: ClickableProps) => {
   const {onClick, mref} = p
@@ -21,7 +25,7 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const styles = useStyles()
-  const {path} = ownProps
+  const {path, note} = ownProps
   const {fileContext, pathItem} = useFsFileContext(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const _download = useFsDownload()
@@ -52,6 +56,11 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
         {isMobile && <LastModifiedLine path={path} mode="default" />}
+        {note ? (
+          <Kb.Text type="BodySmall" style={styles.note}>
+            {note}
+          </Kb.Text>
+        ) : null}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (pathItem.linkTarget ? ` to: ${pathItem.linkTarget}.` : '.')}
@@ -122,6 +131,9 @@ const useStyles = Kb.Styles.createStyleHook(
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
       }),
+      note: {
+        marginTop: Kb.Styles.globalMargins.small,
+      },
       noOpenMobile: {
         marginTop: Kb.Styles.globalMargins.medium,
       },
