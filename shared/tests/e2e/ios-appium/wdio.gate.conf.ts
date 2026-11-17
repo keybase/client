@@ -30,9 +30,14 @@ import {
 } from '../shared/gate/secret-scan'
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 import {iosFlowProject} from './theme'
-import {screenshotDisplayOf} from './helpers/form-factor.mts'
+import {approveKeybaseLinks} from './helpers/sim-links.mts'
+import {formFactorMismatch, parsePosture, readFormFactor, screenshotDisplayOf, setPosture} from './helpers/form-factor.mts'
 
-const PROJECT = iosFlowProject()
+// KB_IOS_POSTURE=folded|unfolded folds or unfolds an iPhone Duo before the run. The run's form factor
+// (iphone, duo-folded, …) is read from the device in onPrepare and handed to the workers as
+// KB_IOS_FORM_FACTOR; it names the run's project, so the report keeps each form factor's cards apart.
+const posture = parsePosture(process.env['KB_IOS_POSTURE'])
+const runFormFactor = () => process.env['KB_IOS_FORM_FACTOR'] ?? 'iphone'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
@@ -66,7 +71,7 @@ const scanResults = () => {
 
 const writeResults = (exitCode: number) => {
   const attempts = readAttempts()
-  const report = buildPwReport(attempts, PROJECT)
+  const report = buildPwReport(attempts, iosFlowProject(runFormFactor()))
   report.errors.push(...readRunErrors())
   // a hook or worker failure leaves no failed attempt behind it
   if (exitCode !== 0 && !attempts.some(a => a.status === 'failed')) {
@@ -95,6 +100,10 @@ export const config: WebdriverIO.Config = {
     // a results.json never mixes runs
     fs.rmSync(iosReportDir(), {force: true, recursive: true})
     secretWatch = watchEnvSecrets()
+    approveKeybaseLinks(udid)
+    if (posture) setPosture(udid, posture)
+    // the workers start after this, with this env
+    process.env['KB_IOS_FORM_FACTOR'] = readFormFactor(udid)
     const display = screenshotDisplayOf(udid)
     // the workers start after this, with this env
     if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
@@ -127,6 +136,15 @@ export const config: WebdriverIO.Config = {
     testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
+    // only a Duo can change form factor mid-run (its hinge)
+    if (runFormFactor().startsWith('duo-')) {
+      try {
+        const moved = formFactorMismatch(runFormFactor(), readFormFactor(udid))
+        if (moved) rec.error = moved
+      } catch (e) {
+        rec.error = `reading the device's form factor: ${message(e)}`
+      }
+    }
     await escapeToTabs().catch((e: unknown) => {
       rec.error = `resetting to the tab root: ${message(e)}`
     })

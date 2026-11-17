@@ -9,13 +9,15 @@ import * as path from 'path'
 import {fileURLToPath} from 'url'
 import {promisify} from 'util'
 
-export type FormFactor = 'iphone' | 'duo-folded' | 'duo-unfolded' | (string & {})
+export type FormFactor = 'iphone' | 'duo-folded' | 'duo-unfolded' | 'duo-split-left' | 'duo-split-right' | (string & {})
 export type Posture = 'folded' | 'unfolded'
 type Display = {active: boolean; backlightState?: string; displayId: number; primary: boolean}
 export type Exec = (file: string, args: ReadonlyArray<string>) => string
 
 const LABELS: Record<string, string> = {
   'duo-folded': 'iPhone Duo Folded',
+  'duo-split-left': 'iPhone Duo Split Left',
+  'duo-split-right': 'iPhone Duo Split Right',
   'duo-unfolded': 'iPhone Duo Unfolded',
   iphone: 'iPhone',
 }
@@ -23,6 +25,14 @@ export const formFactorLabel = (f: FormFactor) => LABELS[f] ?? f
 
 // The visual store's key: iPhone keeps the plain `ios` it has always had
 export const formFactorStoreKey = (f: FormFactor): 'ios' | `ios-${string}` => (f === 'iphone' ? 'ios' : `ios-${f}`)
+
+// Why the device no longer matches the run's form factor, or undefined when it does. The device
+// reports a split run as unfolded: the split itself is the app's to show (its window width).
+export const formFactorMismatch = (run: FormFactor, device: FormFactor): string | undefined => {
+  const expected = run.startsWith('duo-split-') ? 'duo-unfolded' : run
+  if (device === expected) return undefined
+  return `the device is ${formFactorLabel(device)} but this run is ${formFactorLabel(run)}; it changed during the run (Device Hub, or a hinge that moved on its own)`
+}
 
 const isDuo = (deviceType: string) => /iPhone-Duo/i.test(deviceType)
 

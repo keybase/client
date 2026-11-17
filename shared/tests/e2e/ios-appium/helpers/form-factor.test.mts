@@ -5,6 +5,7 @@ import * as fs from 'fs'
 import {
   classifyFormFactor,
   formFactorLabel,
+  formFactorMismatch,
   formFactorStoreKey,
   parsePosture,
   parseScreenTarget,
@@ -49,6 +50,8 @@ test('labels and store keys', () => {
   assert.equal(formFactorLabel('iphone'), 'iPhone')
   assert.equal(formFactorLabel('duo-folded'), 'iPhone Duo Folded')
   assert.equal(formFactorLabel('duo-unfolded'), 'iPhone Duo Unfolded')
+  assert.equal(formFactorLabel('duo-split-left'), 'iPhone Duo Split Left')
+  assert.equal(formFactorLabel('duo-split-right'), 'iPhone Duo Split Right')
   assert.equal(formFactorLabel('ipad'), 'ipad')
   assert.equal(formFactorStoreKey('iphone'), 'ios')
   assert.equal(formFactorStoreKey('duo-folded'), 'ios-duo-folded')
@@ -149,4 +152,13 @@ test('KB_IOS_SCREEN names the udid and display a Duo run screenshots', () => {
   assert.equal(parseScreenTarget(''), undefined)
   assert.deepEqual(parseScreenTarget('4E81-AB:3'), {displayId: 3, udid: '4E81-AB'})
   assert.throws(() => parseScreenTarget('4E81-AB'), /KB_IOS_SCREEN/)
+})
+
+test('formFactorMismatch names both labels when the device moved during a run', () => {
+  assert.equal(formFactorMismatch('iphone', 'iphone'), undefined)
+  assert.equal(formFactorMismatch('duo-folded', 'duo-folded'), undefined)
+  assert.match(formFactorMismatch('duo-folded', 'duo-unfolded') ?? '', /is iPhone Duo Unfolded but this run is iPhone Duo Folded/)
+  // the device can only say unfolded; the split itself is checked through the app's window
+  assert.equal(formFactorMismatch('duo-split-left', 'duo-unfolded'), undefined)
+  assert.match(formFactorMismatch('duo-split-right', 'duo-folded') ?? '', /is iPhone Duo Folded but this run is iPhone Duo Split Right/)
 })
