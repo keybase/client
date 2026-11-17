@@ -8,8 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBKit/KBPath.h>
-
 typedef NS_ENUM (NSInteger, KBRunMode) {
   KBRunModeProd,
   KBRunModeStaging,
@@ -46,7 +44,5 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)redirectorMount;
 - (NSString *)volumesRedirectorMount;
 - (BOOL)redirectorDisabled;
-
-- (BOOL)isInApplications:(NSString *)path;
 
 @end

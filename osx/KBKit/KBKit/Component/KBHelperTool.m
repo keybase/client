@@ -54,12 +54,7 @@
   va_end(args);
 }
 
-- (void)doInstallAlertForRunningVersion:(KBSemVersion *)runningVersion {
-  // No alert when the running helper reported no version.
-  if ([runningVersion.version length] == 0) {
-    return;
-  }
-
+- (void)showHelperUpdateAlert {
   NSString *alertText = @"Keybase helper update";
   NSString *infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
   NSAlert *alert = [[NSAlert alloc] init];
@@ -83,7 +78,7 @@
   KBSemVersion *bundleVersion = [self bundleVersion];
   info[@"Bundle Version"] = [bundleVersion description];
 
-  if (![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
+  if (![self exists]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
     completion(self.componentStatus);
     return;
@@ -92,10 +87,8 @@
   [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionReinstall info:info error:nil];
-      // If we couldn't run this, just act like it is a very old version running that we don't know how to
-      // talk to so we can still run checks on the bundle version
-      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0"];
-      [self doInstallAlertForRunningVersion:runningVersion];
+      // The running helper is too old to answer (or not running), so it gets reinstalled.
+      [self showHelperUpdateAlert];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
@@ -110,7 +103,8 @@
         } else {
           if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-          [self doInstallAlertForRunningVersion:runningVersion];
+          // No alert when the running helper reported no version.
+          if ([runningVersion.version length] > 0) [self showHelperUpdateAlert];
           completion(self.componentStatus);
         }
       } else {

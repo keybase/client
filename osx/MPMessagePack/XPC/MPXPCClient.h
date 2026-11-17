@@ -14,7 +14,7 @@
 @interface MPXPCClient : NSObject
 
 @property NSTimeInterval timeout;
-@property BOOL retryMaxAttempts;
+@property NSInteger retryMaxAttempts;
 @property NSTimeInterval retryDelay;
 @property (weak) id<MPLog> logDelegate;
 

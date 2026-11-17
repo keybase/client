@@ -101,8 +101,7 @@
     self.installOptions |= KBInstallOptionCLI;
   }
 
-  // The Go caller always passes --timeout; nothing uses the value any more, but
-  // a missing or invalid one still fails the run, as it always has.
+  // The value is unused, but a missing or non-positive --timeout fails the run.
   NSInteger timeout = [[self.settings objectForKey:@"timeout"] intValue];
   if (timeout <= 0) {
     if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(timeout));

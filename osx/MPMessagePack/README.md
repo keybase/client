@@ -23,8 +23,6 @@ NSError *error = nil;
 NSData *data = [MPMessagePackWriter writeObject:dict error:&error];
 ```
 
-Arrays also have `-[NSArray mp_messagePack]`.
-
 ## Reading
 
 ```objc

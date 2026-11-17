@@ -9,7 +9,6 @@
 #import "MPXPCClient.h"
 
 #import "MPDefines.h"
-#import "NSArray+MPMessagePack.h"
 #import "NSData+MPMessagePack.h"
 #import "MPXPCProtocol.h"
 #import "MPRPCProtocol.h"

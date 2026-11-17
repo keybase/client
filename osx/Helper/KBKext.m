@@ -193,9 +193,9 @@
     // so fall back to kmutil.
     KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier, falling back to kmutil.");
     NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
-    if (error != nil) {
-      *error = KBMakeError(KBHelperErrorKext,
-                           @"KextManager failed to run kmutil: %@", *error);
+    if (!task) {
+      if (error) *error = KBMakeError(KBHelperErrorKext,
+                                      @"KextManager failed to run kmutil: %@", *error);
       return NO;
     }
     
@@ -203,8 +203,8 @@
     int status = [task terminationStatus];
     
     if (status != 0) {
-      *error = KBMakeError(KBHelperErrorKext,
-                           @"KextManager spawned kmutil exited with non-zero status: %d", status);
+      if (error) *error = KBMakeError(KBHelperErrorKext,
+                                      @"KextManager spawned kmutil exited with non-zero status: %d", status);
       return NO;
     }
     return YES;

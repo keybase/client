@@ -111,7 +111,7 @@ get_deps() { (
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
 
-	# KeybaseInstaller.app installs KBFuse, keybase.Helper, the mount dir, redirector and CLI
+	# KeybaseInstaller.app installs KBFuse, keybase.Helper, the mount dir, redirector, CLI and the app bundle
 	echo "Using installer from $KB_INSTALLER_URL"
 	kb_fetch_verified "$KB_INSTALLER_URL" "$KB_INSTALLER_SHA256" .
 

@@ -9,7 +9,7 @@
 #import "MPXPCService.h"
 
 #import "NSData+MPMessagePack.h"
-#import "NSArray+MPMessagePack.h"
+#import "MPMessagePackWriter.h"
 #import "MPXPCProtocol.h"
 #import "MPDefines.h"
 
@@ -98,11 +98,11 @@ void MPSysLog(NSString *msg, ...) {
         if (error) {
           NSDictionary *errorDict = @{@"code": @(error.code), @"desc": error.localizedDescription};
           NSArray *response = @[@(1), messageId, errorDict, NSNull.null];
-          NSData *dataResponse = [response mp_messagePack];
+          NSData *dataResponse = [MPMessagePackWriter writeObject:response error:nil];
           completion(nil, dataResponse);
         } else {
           NSArray *response = @[@(1), messageId, NSNull.null, (value ? value : NSNull.null)];
-          NSData *dataResponse = [response mp_messagePack];
+          NSData *dataResponse = [MPMessagePackWriter writeObject:response error:nil];
           completion(nil, dataResponse);
         }
       }];

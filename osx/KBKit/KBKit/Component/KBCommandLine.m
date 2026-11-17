@@ -36,11 +36,6 @@
     return;
   }
 
-  if (![self.config isInApplications:self.servicePath]) {
-    completion(KBMakeWarning(@"Command line install is not supported from this location: %@", self.servicePath));
-    return;
-  }
-
   if (![KBFSUtils checkAbsolutePath:self.servicePath hasAbsolutePrefix:@"/Applications/Keybase.app"]) {
     completion(KBMakeWarning(@"Can only link to commands in the installed Keybase app bundle (%@ didn't suffice)", self.servicePath));
     return;

@@ -112,7 +112,7 @@
   struct passwd *pwentryp;
   int tmp = getpwuid_r(uid, &pwentry, getpwuid_buf, sizeof(getpwuid_buf), &pwentryp);
   if (tmp != 0 || pwentryp == NULL) {
-    KBLog(@"Failed to get PW entry for uid %@", uid);
+    KBLog(@"Failed to get PW entry for uid %u", uid);
     return NO;
   }
   struct group wanted_group;

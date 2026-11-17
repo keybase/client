@@ -93,10 +93,9 @@ static NSString *NSStringFromKBRunMode(KBRunMode runMode) {
 }
 
 - (NSString *)dataPath:(NSString *)filename {
-  NSString *homeDir = self.homeDir;
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];
-  return [KBPath pathInDir:homeDir path:appPath];
+  return [NSHomeDirectory() stringByAppendingPathComponent:appPath];
 }
 
 - (NSString *)serviceBinPath:(NSString *)servicePath {
@@ -156,14 +155,6 @@ static NSString *NSStringFromKBRunMode(KBRunMode runMode) {
     }
   }
   return NO;
-}
-
-- (NSString *)homeDir {
-  return [KBPath path:@"~"];
-}
-
-- (BOOL)isInApplications:(NSString *)path {
-  return [path gh_startsWith:@"/Applications/"];
 }
 
 @end

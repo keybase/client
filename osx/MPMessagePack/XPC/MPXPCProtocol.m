@@ -8,7 +8,6 @@
 
 #import "MPXPCProtocol.h"
 
-#import "NSArray+MPMessagePack.h"
 #import "NSData+MPMessagePack.h"
 #import "MPRPCProtocol.h"
 #import "MPDefines.h"
