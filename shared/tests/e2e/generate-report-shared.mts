@@ -28,6 +28,8 @@ export type CardData = {
   latest?: boolean
   // Text shown under a failed card: renderer errors and the app/service log tails
   details?: Array<{name: string; text: string}>
+  // The device the test ran on (e.g. iPhone Duo Folded); a report whose cards name one gets a device filter
+  device?: string
 }
 
 export type Section = {
@@ -139,7 +141,7 @@ function buildCard(card: CardData, idx: number, relFn: (p: string) => string): s
     : ''
 
   const hasDiff = card.diff !== null && card.diff.pct >= 0.05
-  return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}${card.latest === false ? ' data-older="1"' : ''}>
+  return `<div class="card ${card.passed ? 'ok' : 'fail'}" data-idx="${idx}" data-diff-pct="${card.diff ? card.diff.pct : 0}"${hasDiff ? ' data-has-diff="1"' : ''}${card.latest === false ? ' data-older="1"' : ''}${card.device ? ` data-device="${escapeHtml(card.device)}"` : ''}>
   <div class="hdr">${badge}${latestBadge}${deltaBadge}<span class="name">${escapeHtml(card.label)}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
   ${failShot}${stepStrip}${details}
@@ -171,11 +173,15 @@ export function buildReport(title: string, sections: Section[], timestamp: strin
     .map(s => `<a class="sec-link" href="#sec-${slug(s.header!)}">${escapeHtml(s.header!)}</a>`)
     .join('')
 
-  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks, olderCount)
+  const devices = [...new Set(allCards.flatMap(c => (c.device ? [c.device] : [])))]
+  return buildPage(title, allPassed, totalPassed, totalFailed, statsCards.length, diffCount, timestamp, cardHtml, navLinks, olderCount, devices)
 }
 
-export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, diffCount: number, timestamp: string, cards: string, navLinks = '', olderCount = 0): string {
+export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, diffCount: number, timestamp: string, cards: string, navLinks = '', olderCount = 0, devices: ReadonlyArray<string> = []): string {
   const hasDiff = diffCount > 0
+  const deviceFilter = devices.length
+    ? `<select id="device-filter"><option value="">All devices</option>${devices.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('')}</select>`
+    : ''
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -189,7 +195,7 @@ ${sharedCss(allPassed)}
 <header>
   <div class="hdr-top"><h1>${title}</h1><button id="slideshow-btn" title="Slideshow">▶</button></div>
   <div class="meta"><span>${passed} passed · ${failed} failed · ${total} total</span>${hasDiff ? ` <span>· ${diffCount} with diffs vs baseline</span>` : ''}${navLinks ? `<span class="sec-links">${navLinks}</span>` : ''}<span class="ts">${timestamp}</span></div>
-  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${failed > 0 ? '' : ' disabled'}"${failed > 0 ? '' : ' title="No failing tests in this report"'}><input type="checkbox" id="fail-only"${failed > 0 ? '' : ' disabled'}> Failing only</label><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this report"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label><label class="diff-only-label${olderCount > 0 ? '' : ' disabled'}"${olderCount > 0 ? '' : ' title="Every card is from the latest run"'}><input type="checkbox" id="latest-only"${olderCount > 0 ? '' : ' disabled'}> Latest run only</label></div>
+  <div class="filter-wrap"><input id="filter-input" type="search" placeholder="Filter screenshots…" autocomplete="off" spellcheck="false"><label class="diff-only-label${failed > 0 ? '' : ' disabled'}"${failed > 0 ? '' : ' title="No failing tests in this report"'}><input type="checkbox" id="fail-only"${failed > 0 ? '' : ' disabled'}> Failing only</label><label class="diff-only-label${hasDiff ? '' : ' disabled'}"${hasDiff ? '' : ' title="No baseline diffs in this report"'}><input type="checkbox" id="diff-only"${hasDiff ? '' : ' disabled'}> Pixel diff only</label><label class="diff-only-label${olderCount > 0 ? '' : ' disabled'}"${olderCount > 0 ? '' : ' title="Every card is from the latest run"'}><input type="checkbox" id="latest-only"${olderCount > 0 ? '' : ' disabled'}> Latest run only</label>${deviceFilter}</div>
 </header>
 <div class="grid">${cards}</div>
 ${sliderScript()}
@@ -448,6 +454,7 @@ const filterInput = document.getElementById('filter-input')
 const diffOnlyCheck = document.getElementById('diff-only')
 const failOnlyCheck = document.getElementById('fail-only')
 const latestOnlyCheck = document.getElementById('latest-only')
+const deviceFilter = document.getElementById('device-filter')
 
 // Sort cards by pixel-diff desc when diff-only is on; restore authored order when off.
 // Sorts within each section group so cards stay under their own header.
@@ -477,6 +484,7 @@ function applyFilter(q) {
   const diffOnly = diffOnlyCheck?.checked ?? false
   const failOnly = failOnlyCheck?.checked ?? false
   const latestOnly = latestOnlyCheck?.checked ?? false
+  const device = deviceFilter?.value ?? ''
   reorderCards(diffOnly)
   document.querySelectorAll('.grid .card').forEach(card => {
     const name = card.querySelector('.name')?.textContent?.toLowerCase() ?? ''
@@ -484,7 +492,8 @@ function applyFilter(q) {
     const diffMatch = !diffOnly || card.dataset.hasDiff === '1'
     const failMatch = !failOnly || card.classList.contains('fail')
     const latestMatch = !latestOnly || card.dataset.older !== '1'
-    card.classList.toggle('hidden', !nameMatch || !diffMatch || !failMatch || !latestMatch)
+    const deviceMatch = !device || card.dataset.device === device
+    card.classList.toggle('hidden', !nameMatch || !diffMatch || !failMatch || !latestMatch || !deviceMatch)
   })
   document.querySelectorAll('.section-hdr').forEach(hdr => {
     let el = hdr.nextElementSibling
@@ -512,6 +521,7 @@ filterInput.addEventListener('input', () => {
 diffOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
 failOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
 latestOnlyCheck?.addEventListener('change', () => applyFilter(filterInput.value))
+deviceFilter?.addEventListener('change', () => applyFilter(filterInput.value))
 
 const initQ = new URL(location.href).searchParams.get('q') ?? ''
 if (initQ) { filterInput.value = initQ; applyFilter(initQ) }

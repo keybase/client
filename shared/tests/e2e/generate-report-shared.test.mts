@@ -86,3 +86,26 @@ test('a failed card shows its failure shot separately only when it is not the ca
   assert.ok(other.includes('c-failure.png'))
   assert.ok(other.includes('AT FAILURE'))
 })
+
+const deviceCard = (label: string, device?: string): CardData => ({
+  diff: null,
+  durationMs: 1,
+  errorMessage: null,
+  label,
+  passed: true,
+  prevScreenshotPath: null,
+  screenshotPath: null,
+  ...(device ? {device} : {}),
+})
+
+test('a report whose cards name a device gets a device filter listing each one in order', () => {
+  const html = buildReport('R', [{cards: [deviceCard('a', 'iPhone'), deviceCard('b', 'iPhone Duo Split Left'), deviceCard('c', 'iPhone')]}], 'now', '/tmp/r.html')
+  assert.match(html, /<select id="device-filter"><option value="">All devices<\/option><option value="iPhone">iPhone<\/option><option value="iPhone Duo Split Left">iPhone Duo Split Left<\/option><\/select>/)
+  assert.match(html, /data-device="iPhone Duo Split Left"/)
+})
+
+test('a report with no device on any card has no device filter', () => {
+  const html = buildReport('R', [{cards: [deviceCard('a')]}], 'now', '/tmp/r.html')
+  assert.doesNotMatch(html, /device-filter"/)
+  assert.doesNotMatch(html, /data-device=/)
+})
