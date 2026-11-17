@@ -36,7 +36,7 @@ const deps = (over = {}) => ({
   readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}),
   readSeal: async () => ({fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 1}),
   servedFrom: () => '/tree/shared',
-  storeTarget: (p: 'desktop' | 'ios') => p,
+  storeTarget: async (p: 'desktop' | 'ios') => p,
   team: () => 'testteam',
   ...over,
 })
@@ -422,7 +422,7 @@ test('aa, check and gate never capture a live entry after a fixture entry withou
 // a run directory per run: its name is the start time
 let renderClock = 1_000_000
 const renderDeps = (over = {}) => ({
-  storeTarget: (p: 'desktop' | 'ios') => p,
+  storeTarget: async (p: 'desktop' | 'ios') => p,
   capture: async (): Promise<Capture> => {
     throw new Error('should not capture')
   },
@@ -556,7 +556,8 @@ test('--posture folds or unfolds an iOS run and needs --ios', () => {
   assert.equal(parseCommand(['--ios', '--posture', 'folded']).posture, 'folded')
   assert.equal(parseCommand(['--ios']).posture, undefined)
   assert.throws(() => parseCommand(['--posture', 'folded']), /--posture needs --ios/)
-  assert.throws(() => parseCommand(['--ios', '--posture', 'half']), /folded or unfolded/)
+  assert.throws(() => parseCommand(['--ios', '--posture', 'half']), /folded, unfolded, split-left or split-right/)
+  assert.equal(parseCommand(['--ios', '--posture', 'split-right']).posture, 'split-right')
 })
 
 test('render on a Duo records its form factor as the render platform and hands it to each capture', async () => {
@@ -567,7 +568,7 @@ test('render on a Duo records its form factor as the render platform and hands i
     targets.push(o.target)
     return {coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'}
   }
-  const storeTarget = (p: string, posture?: string) => {
+  const storeTarget = async (p: string, posture?: string) => {
     asked.push(`${p} ${posture}`)
     return 'ios-duo-folded' as const
   }
@@ -582,7 +583,7 @@ test("check on a Duo reads its own form factor's base, and names it when there i
   const meta = {createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}
   const readBaseMeta = (_sha: string, t: string) => (t === 'ios' ? meta : undefined)
   await assert.rejects(
-    runCheck(deps({readBaseMeta, storeTarget: () => 'ios-duo-unfolded' as const}), ['tab/*', '--ios']),
+    runCheck(deps({readBaseMeta, storeTarget: async () => 'ios-duo-unfolded' as const}), ['tab/*', '--ios']),
     /no iPhone Duo Unfolded base for tab\/\* at abc/
   )
 })
@@ -594,13 +595,13 @@ test('guardLabel fails a Duo capture taken after the hinge moved, without captur
     return {coverage: null, masks: [], png: pngOf(false), status: 'ok'}
   }
   const o = {frozenAt: 1, platform: 'ios' as const, target: 'ios-duo-folded' as const, theme: 'light' as const}
-  const moved = await guardLabel(capture, () => 'ios-duo-unfolded' as const)(entries[0]!, o)
+  const moved = await guardLabel(capture, async () => 'ios-duo-unfolded' as const)(entries[0]!, o)
   assert.equal(moved.status, 'failed')
   assert.equal(moved.error, 'label changed: iPhone Duo Folded → iPhone Duo Unfolded')
   assert.equal(captured, 0)
-  assert.equal((await guardLabel(capture, () => 'ios-duo-folded' as const)(entries[0]!, o)).status, 'ok')
+  assert.equal((await guardLabel(capture, async () => 'ios-duo-folded' as const)(entries[0]!, o)).status, 'ok')
   let read = 0
-  await guardLabel(capture, () => {
+  await guardLabel(capture, async () => {
     read++
     return 'ios' as const
   })(entries[0]!, {...o, target: 'ios' as const})

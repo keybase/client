@@ -31,12 +31,15 @@ import {
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 import {iosFlowProject} from './theme'
 import {approveKeybaseLinks} from './helpers/sim-links.mts'
-import {formFactorMismatch, parsePosture, readFormFactor, screenshotDisplayOf, setPosture} from './helpers/form-factor.mts'
+import {formFactorMismatch, readFormFactor, screenshotDisplayOf} from './helpers/form-factor.mts'
+import {appIsSplit, applyPosture, parseAnyPosture} from './helpers/split-view.mts'
 
-// KB_IOS_POSTURE=folded|unfolded folds or unfolds an iPhone Duo before the run. The run's form factor
-// (iphone, duo-folded, …) is read from the device in onPrepare and handed to the workers as
-// KB_IOS_FORM_FACTOR; it names the run's project, so the report keeps each form factor's cards apart.
-const posture = parsePosture(process.env['KB_IOS_POSTURE'])
+// KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
+// run. The run's form factor (iphone, duo-folded, duo-split-left, …) is set in onPrepare and handed to
+// the workers as KB_IOS_FORM_FACTOR; it names the run's project, so the report keeps each form factor's
+// cards apart.
+const posture = parseAnyPosture(process.env['KB_IOS_POSTURE'])
+const device = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 const runFormFactor = () => process.env['KB_IOS_FORM_FACTOR'] ?? 'iphone'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
@@ -95,15 +98,14 @@ export const config: WebdriverIO.Config = {
   mochaOpts: {ui: 'bdd', timeout: 120000, grep: process.env['KB_E2E_RELEASE_ONLY'], retries: 1},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/'}}]],
-  onPrepare: () => {
+  onPrepare: async () => {
     assertNotLocked('iOS e2e')
     // a results.json never mixes runs
     fs.rmSync(iosReportDir(), {force: true, recursive: true})
     secretWatch = watchEnvSecrets()
     approveKeybaseLinks(udid)
-    if (posture) setPosture(udid, posture)
     // the workers start after this, with this env
-    process.env['KB_IOS_FORM_FACTOR'] = readFormFactor(udid)
+    process.env['KB_IOS_FORM_FACTOR'] = posture ? await applyPosture(udid, device, posture) : readFormFactor(udid)
     const display = screenshotDisplayOf(udid)
     // the workers start after this, with this env
     if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
@@ -136,11 +138,14 @@ export const config: WebdriverIO.Config = {
     testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
-    // only a Duo can change form factor mid-run (its hinge)
+    // only a Duo can change form factor mid-run: its hinge, or (split) an app relaunch ends Split View
     if (runFormFactor().startsWith('duo-')) {
       try {
         const moved = formFactorMismatch(runFormFactor(), readFormFactor(udid))
         if (moved) rec.error = moved
+        else if (runFormFactor().startsWith('duo-split-') && !(await appIsSplit(device))) {
+          rec.error = 'the app left Split View during the run (an app relaunch ends it); this run is ' + runFormFactor()
+        }
       } catch (e) {
         rec.error = `reading the device's form factor: ${message(e)}`
       }

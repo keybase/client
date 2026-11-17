@@ -19,7 +19,8 @@ import * as path from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {parseArgs, promisify} from 'util'
 import {udidForName} from '../ios-appium/helpers/app.ts'
-import {formFactorStoreKey, parsePosture, readFormFactor, setPosture, type Posture} from '../ios-appium/helpers/form-factor.mts'
+import {formFactorStoreKey, readFormFactor} from '../ios-appium/helpers/form-factor.mts'
+import {appIsSplit, applyPosture, parseAnyPosture, type AnyPosture} from '../ios-appium/helpers/split-view.mts'
 import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
@@ -71,7 +72,7 @@ const iosDevice = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 
 // ---------------------------------------------------------------- arguments and selection
 
-export type Command = {base: string | undefined; coverage: boolean; ios: boolean; patterns: Array<string>; posture?: Posture; themes: Array<Theme>}
+export type Command = {base: string | undefined; coverage: boolean; ios: boolean; patterns: Array<string>; posture?: AnyPosture; themes: Array<Theme>}
 
 export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   const {values, positionals} = parseArgs({
@@ -95,7 +96,7 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   const themes = (asked as Array<Theme> | undefined) ?? ['light']
   if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
   if (values.posture !== undefined && !ios) throw new Error('--posture needs --ios: it folds or unfolds an iPhone Duo')
-  const posture = parsePosture(values.posture)
+  const posture = parseAnyPosture(values.posture)
   return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, ...(posture ? {posture} : {}), themes}
 }
 
@@ -169,21 +170,31 @@ const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
 
 const isDuoTarget = (t: Store.StoreTarget) => t.startsWith('ios-duo-')
 
-// The simulator's store target, after folding or unfolding a Duo to `posture`
-const iosStoreTarget = (posture?: Posture): Store.StoreTarget => {
+// The simulator's store target, after putting a Duo in `posture`
+const iosStoreTarget = async (posture?: AnyPosture): Promise<Store.StoreTarget> => {
   const udid = udidForName(iosDevice())
-  if (posture) setPosture(udid, posture)
-  return formFactorStoreKey(readFormFactor(udid))
+  return formFactorStoreKey(posture ? await applyPosture(udid, iosDevice(), posture) : readFormFactor(udid))
+}
+
+// The store target a posture puts a Duo in, without moving it
+const postureTarget = (posture: AnyPosture): Store.StoreTarget => `ios-duo-${posture}`
+
+// What the simulator shows now, read against the target a run is kept under: a split run stays split
+// while the Duo is unfolded and the app's window is half the screen (an app relaunch ends it)
+const currentIosTarget = async (want: Store.StoreTarget): Promise<Store.StoreTarget> => {
+  const ff = readFormFactor(udidForName(iosDevice()))
+  if (want.startsWith('ios-duo-split-') && ff === 'duo-unfolded' && (await appIsSplit(iosDevice()))) return want
+  return formFactorStoreKey(ff)
 }
 
 // A Duo's capture is refused (failed, nothing captured) once the device no longer shows the form
-// factor the run is kept under (the hinge moved): it would be filed under the wrong one. Other
-// devices cannot change, so they are never read.
+// factor the run is kept under (the hinge moved, or the app left Split View): it would be filed under
+// the wrong one. Other devices cannot change, so they are never read.
 export const guardLabel =
-  (capture: (entry: TourEntry, o: CaptureOpts) => Promise<Capture>, readTarget: () => Store.StoreTarget) =>
+  (capture: (entry: TourEntry, o: CaptureOpts) => Promise<Capture>, readTarget: (want: Store.StoreTarget) => Promise<Store.StoreTarget>) =>
   async (entry: TourEntry, o: CaptureOpts): Promise<Capture> => {
     if (isDuoTarget(o.target)) {
-      const now = readTarget()
+      const now = await readTarget(o.target)
       if (now !== o.target) {
         return {coverage: null, error: `label changed: ${Store.targetLabel(o.target)} → ${Store.targetLabel(now)}`, masks: [], png: Buffer.alloc(0), status: 'failed'}
       }
@@ -206,8 +217,8 @@ export type CheckDeps = {
   team: () => string
   currentShared: string
   hasBasePng: (sha: string, target: Store.StoreTarget, theme: Theme, id: string) => boolean
-  // where the platform's captures are kept; on iOS it first folds or unfolds a Duo to `posture`
-  storeTarget: (platform: RunPlatform, posture?: Posture) => Store.StoreTarget
+  // where the platform's captures are kept; on iOS it first puts a Duo in `posture`
+  storeTarget: (platform: RunPlatform, posture?: AnyPosture) => Promise<Store.StoreTarget>
   // the definition hash of a fixture in this tree (fixtures/drive.mts)
   fixtureHash: (name: FixtureName) => string
   // prepares (with a reload) whenever the theme or frozen instant changes, then captures
@@ -274,7 +285,7 @@ const checkEntries = async (
 ): Promise<CheckRun> => {
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
-  const target = deps.storeTarget(platform, cmd.posture)
+  const target = await deps.storeTarget(platform, cmd.posture)
   const sha = await deps.baseSha(target)
   const meta = deps.readBaseMeta(sha, target)
   const named = cmd.patterns.join(' ') || '*'
@@ -376,7 +387,7 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
-  const target = deps.storeTarget(platform, cmd.posture)
+  const target = await deps.storeTarget(platform, cmd.posture)
   const before = await deps.readSeal()
   assertTouredConversationsRead(entries, before, deps.team())
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
@@ -470,7 +481,7 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
-  const target = deps.storeTarget(platform, cmd.posture)
+  const target = await deps.storeTarget(platform, cmd.posture)
   const startedAt = deps.now()
   const frozenAt = startedAt + FROZEN_AFTER_NEWEST_MS
   const dir = Store.renderDir(Store.runStamp(new Date(startedAt)))
@@ -804,7 +815,8 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(tour, cmd.patterns, platform)
-  const target = cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
+  // a posture is applied after the app's relaunch below, which would end a Split View
+  const target = !cmd.ios ? 'desktop' : cmd.posture ? postureTarget(cmd.posture) : await iosStoreTarget()
   const sha = await resolveBaseSha(cmd.base)
   checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, ios: cmd.ios})
   const baseShared = ensureBaseTree(sha, log)
@@ -832,6 +844,10 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       if (cmd.ios) {
         await serveMetro(baseShared, cmd.coverage, log)
         await relaunchIosApp(log)
+        if (cmd.posture) {
+          const got = await iosStoreTarget(cmd.posture)
+          if (got !== target) throw new Error(`--posture ${cmd.posture} left the simulator ${Store.targetLabel(got)}, not ${Store.targetLabel(target)}`)
+        }
       } else {
         launchDesktop(baseShared, cmd.coverage, log)
       }
@@ -842,7 +858,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
         for (const theme of cmd.themes) {
           await session.prepare({frozenAt, reload: true, theme})
           for (const e of entries) {
-            const cap = await guardLabel(async entry => session.capture(entry), () => iosStoreTarget())(e, {frozenAt, platform, target, theme})
+            const cap = await guardLabel(async entry => session.capture(entry), currentIosTarget)(e, {frozenAt, platform, target, theme})
             if (cap.status !== 'ok') {
               problems.push(`${e.id} ${platform} ${theme}: ${cap.status}${cap.error ? ` (${cap.error})` : ''}`)
               continue
@@ -998,7 +1014,7 @@ const sessionCapturer = () => {
     preparedFor = ''
     if (s) await closeSession(s)
   }
-  return {capture: guardLabel(capture, () => iosStoreTarget()), close}
+  return {capture: guardLabel(capture, currentIosTarget), close}
 }
 
 export const realDeps = (cmd: Command): CheckDeps => {
@@ -1022,7 +1038,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
-    storeTarget: (platform, posture) => (platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
+    storeTarget: async (platform, posture) => (platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
     team: () => e2eAccounts().team,
   }
 }
