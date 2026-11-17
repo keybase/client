@@ -131,3 +131,21 @@ export const readBaseCoverage = (sha: string): {drawn: Array<string>; masked: Ar
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')
 export const runDir = (stamp: string) => path.join(resultsDir(), 'runs', stamp)
 export const renderDir = (stamp: string) => path.join(resultsDir(), 'render', stamp)
+
+// The newest render run (by its stamp) whose render.json names `target` as its platform, or undefined
+export const newestRender = (target: StoreTarget): string | undefined => {
+  const root = path.join(resultsDir(), 'render')
+  if (!fs.existsSync(root)) return undefined
+  return fs
+    .readdirSync(root)
+    .sort()
+    .reverse()
+    .map(stamp => path.join(root, stamp))
+    .find(dir => {
+      try {
+        return (JSON.parse(fs.readFileSync(path.join(dir, 'render.json'), 'utf8')) as {platform?: string}).platform === target
+      } catch {
+        return false
+      }
+    })
+}

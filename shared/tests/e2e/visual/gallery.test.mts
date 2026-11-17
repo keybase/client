@@ -58,3 +58,31 @@ await test('each column is labeled by its device and can be hidden', () => {
     assert.match(html, new RegExp(`<figure class="${col}" data-col="${col}">.*?<figcaption>${label}</figcaption>`))
   }
 })
+
+await test('a column can show a render run instead of a base', () => {
+  png('r1', 'ios', 'tab__chat.png')
+  const render = path.join(root, 'render', '2026-11-17T00-00-00')
+  mkdirSync(render, {recursive: true})
+  writeFileSync(path.join(render, 'tab__chat.png'), '')
+  writeFileSync(path.join(render, 'tab__git.png'), '')
+  const columns = [
+    {platform: 'ios' as const, sha: 'r1'},
+    {platform: 'ios-duo-split-left' as const, render},
+  ]
+  assert.deepEqual(galleryRows(columns), [
+    {id: 'tab/chat', shots: [path.join('base', 'r1', 'ios', 'light', 'tab__chat.png'), path.join('render', '2026-11-17T00-00-00', 'tab__chat.png')]},
+    {id: 'tab/git', shots: [undefined, path.join('render', '2026-11-17T00-00-00', 'tab__git.png')]},
+  ])
+  assert.match(galleryHtml(columns, galleryRows(columns)), /iPhone Duo Split Left render 2026-11-17T00-00-00/)
+})
+
+await test('newestRender finds the newest render run of a store target', async () => {
+  const {newestRender} = await import('./store.mts')
+  for (const [stamp, platform] of [['2026-11-17T01-00-00', 'ios-duo-folded'], ['2026-11-17T02-00-00', 'ios'], ['2026-11-17T00-30-00', 'ios-duo-folded']]) {
+    const dir = path.join(root, 'render', stamp!)
+    mkdirSync(dir, {recursive: true})
+    writeFileSync(path.join(dir, 'render.json'), JSON.stringify({platform}))
+  }
+  assert.equal(newestRender('ios-duo-folded'), path.join(root, 'render', '2026-11-17T01-00-00'))
+  assert.equal(newestRender('ios-duo-unfolded'), undefined)
+})
