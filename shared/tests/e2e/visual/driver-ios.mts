@@ -10,7 +10,8 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
-import {screenshotDisplayOf, simctlScreenshot} from '../ios-appium/helpers/form-factor.mts'
+import {screenshotDisplayOf, simctlScreenshot, touchInner} from '../ios-appium/helpers/form-factor.mts'
+import type {StoreTarget} from './store.mts'
 import {evalInPage, inspectorPageFor, lostInspectorPage, retryFor, whileLost} from '../shared/metro-eval.ts'
 import {
   fixDate,
@@ -117,6 +118,18 @@ const LONG_PRESS_S = 1
 // under the status column at the right edge opened Control Center.
 export const systemUiOverApp = (appState: string | undefined): string | undefined =>
   appState && appState !== 'active' ? `system UI is over the app (its AppState is ${appState}), so the screen is not the app's` : undefined
+
+// The Duo's inner screen: XCUITest's presses land on the outer screen, and in Split View it cannot
+// see the app's window, so a long-press there goes through duo-sim.m at this screen point: the target's
+// centre in the app's window, plus where that window starts (the right half, in Split View right)
+const innerTargets: ReadonlyArray<StoreTarget> = ['ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
+export const innerPressPoint = (
+  box: {bottom: number; left: number; right: number; top: number},
+  o: {target: StoreTarget; windowWidth: number; screenWidth: number}
+) => ({
+  x: (box.left + box.right) / 2 + (o.target === 'ios-duo-split-right' ? o.screenWidth - o.windowWidth : 0),
+  y: (box.top + box.bottom) / 2,
+})
 
 export const recoveryFor = (why: string): 'reload' | 'relaunch' => (lostInspectorPage(why) ? 'relaunch' : 'reload')
 
@@ -464,8 +477,9 @@ export const STILL_VIDEOS = `${FIBERS}
 const HOP_TAB = 'tabs.settingsTab'
 const HOP_TAB_ALT = 'tabs.peopleTab'
 
-export async function openIos(opts: {device: string}): Promise<IosSession> {
-  const {device} = opts
+// `target`: the store target the session captures for (an iPhone Duo's posture)
+export async function openIos(opts: {device: string; target?: StoreTarget}): Promise<IosSession> {
+  const {device, target} = opts
   const udid = udidForName(device)
   const port = appiumPort()
   const appium = await startAppium(port)
@@ -758,6 +772,20 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         if (!(await waitForTarget(s.testID))) throw new Error(`longPress ${s.testID}: not all of it shows; scroll it into view first`)
         const box = await appEval<{bottom: number; left: number; right: number; top: number} | null>(targetBox(s.testID), `measuring ${s.testID}`)
         if (!box) throw new Error(`longPress ${s.testID}: it went before it could be pressed`)
+        if (target && innerTargets.includes(target)) {
+          const dims = await appEval<{screen: number; window: number}>(
+            `const m = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
+             const D = m.default ?? m
+             return {screen: D.get('screen').width, window: D.get('window').width}`,
+            'reading the window size'
+          )
+          const p = innerPressPoint(box, {screenWidth: dims.screen, target, windowWidth: dims.window})
+          touchInner(udid, [
+            {...p, ms: 0},
+            {...p, ms: LONG_PRESS_S * 1000},
+          ])
+          return
+        }
         const at = {x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2}
         await withDeadline(browser.execute('mobile: touchAndHold', {...at, duration: LONG_PRESS_S}), SETUP_MS, `long pressing ${s.testID}`)
         return
@@ -765,12 +793,15 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
 
-  // Appium's screenshot is always a Duo's outer screen, so a Duo is captured through simctl
-  const duoDisplay = screenshotDisplayOf(udid)
-  const screenshot = async () =>
-    duoDisplay === undefined
+  // Appium's screenshot is always a Duo's outer screen, so a Duo is captured through simctl, on the
+  // screen lit at the first capture (the run's posture is applied after the session opens)
+  let duoDisplay: number | undefined | null = null
+  const screenshot = async () => {
+    if (duoDisplay === null) duoDisplay = screenshotDisplayOf(udid)
+    return duoDisplay === undefined
       ? Buffer.from(await withDeadline(browser.takeScreenshot(), EVAL_MS, 'taking a screenshot'), 'base64')
       : withDeadline(simctlScreenshot(udid, duoDisplay), EVAL_MS, 'taking a screenshot')
+  }
 
   // Screenshot pixels per window point.
   let scale: number | undefined

@@ -31,8 +31,8 @@ import {
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 import {iosFlowProject} from './theme'
 import {approveKeybaseLinks} from './helpers/sim-links.mts'
-import {formFactorMismatch, readFormFactor, screenshotDisplayOf} from './helpers/form-factor.mts'
-import {appIsSplit, applyPosture, parseAnyPosture} from './helpers/split-view.mts'
+import {formFactorMismatch, readFormFactor, restartSimulator, screenshotDisplayOf} from './helpers/form-factor.mts'
+import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor} from './helpers/split-view.mts'
 
 // KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
 // run. The run's form factor (iphone, duo-folded, duo-split-left, …) is set in onPrepare and handed to
@@ -98,17 +98,20 @@ export const config: WebdriverIO.Config = {
   mochaOpts: {ui: 'bdd', timeout: 120000, grep: process.env['KB_E2E_RELEASE_ONLY'], retries: 1},
   reporters: ['spec'],
   services: [['appium', {args: {basePath: '/'}}]],
-  onPrepare: async () => {
+  onPrepare: () => {
     assertNotLocked('iOS e2e')
     // a results.json never mixes runs
     fs.rmSync(iosReportDir(), {force: true, recursive: true})
     secretWatch = watchEnvSecrets()
     approveKeybaseLinks(udid)
+    // the run's form factor comes from its posture: WebDriverAgent's launch (in the worker, after
+    // this) folds a Duo, so the worker applies the posture once its session is open
+    const found = readFormFactor(udid)
+    if (found.startsWith('duo-') && !posture) throw new Error('an iPhone Duo run needs KB_IOS_POSTURE (folded, unfolded, split-left or split-right)')
+    // a Split View run starts from a restarted simulator (an earlier split leaves its pair behind)
+    if (posture?.startsWith('split-')) restartSimulator(udid)
     // the workers start after this, with this env
-    process.env['KB_IOS_FORM_FACTOR'] = posture ? await applyPosture(udid, device, posture) : readFormFactor(udid)
-    const display = screenshotDisplayOf(udid)
-    // the workers start after this, with this env
-    if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
+    process.env['KB_IOS_FORM_FACTOR'] = posture ? postureFormFactor(posture) : found
     // the flows record the names of the paper keys and the invite links they make, for the scan
     process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
     process.env[SCAN_INVITE_LINKS_VAR] = '1'
@@ -117,10 +120,17 @@ export const config: WebdriverIO.Config = {
   // is kept on the attempt's recorder for afterTest to report. The account was checked before this
   // (gate/hooks.ts).
   // what the app-hang watch counts: WebDriver requests that got a successful answer
-  before: () => {
+  // the posture is applied here, once the session (and WebDriverAgent's launch, which folds a Duo) is
+  // up; a Duo is then captured on its lit screen
+  before: async () => {
     browser.on('result', (event: {command?: string; result?: unknown}) => {
       noteProtocolResult(event)
     })
+    if (!posture) return
+    const got = await applyPosture(udid, device, posture)
+    if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)
+    const display = screenshotDisplayOf(udid)
+    if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
   },
   // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
   // the same name (commands nest, and a Promise.all runs several at once)
@@ -138,16 +148,23 @@ export const config: WebdriverIO.Config = {
     testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
-    // only a Duo can change form factor mid-run: its hinge, or (split) an app relaunch ends Split View
+    // only a Duo can change form factor mid-run: its hinge (an Appium session's launch can move it), or
+    // (split) an app relaunch ends Split View. It is put back once; one still moved fails the attempt.
     if (runFormFactor().startsWith('duo-')) {
+      const moved = async () =>
+        formFactorMismatch(runFormFactor(), readFormFactor(udid)) ??
+        (runFormFactor().startsWith('duo-split-') && !(await appIsSplit(device))
+          ? `the app left Split View during the run (an app relaunch ends it); this run is ${runFormFactor()}`
+          : undefined)
       try {
-        const moved = formFactorMismatch(runFormFactor(), readFormFactor(udid))
-        if (moved) rec.error = moved
-        else if (runFormFactor().startsWith('duo-split-') && !(await appIsSplit(device))) {
-          rec.error = 'the app left Split View during the run (an app relaunch ends it); this run is ' + runFormFactor()
+        let why = await moved()
+        if (why && posture) {
+          await applyPosture(udid, device, posture)
+          why = await moved()
         }
+        if (why) rec.error = why
       } catch (e) {
-        rec.error = `reading the device's form factor: ${message(e)}`
+        rec.error = `reading or restoring the device's form factor: ${message(e)}`
       }
     }
     await escapeToTabs().catch((e: unknown) => {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, systemUiOverApp, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, innerPressPoint, recoveryFor, scrollToTarget, systemUiOverApp, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 import {pidFromLaunchctl} from '../ios-appium/helpers/app.ts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
@@ -467,4 +467,14 @@ test('systemUiOverApp names system UI over the app, and nothing while the app is
   assert.equal(systemUiOverApp('active'), undefined)
   assert.match(systemUiOverApp('inactive') ?? '', /system UI is over the app \(its AppState is inactive\)/)
   assert.match(systemUiOverApp('background') ?? '', /AppState is background/)
+})
+
+// XCUITest presses land on the Duo's outer screen, and in Split View it cannot see the app's window,
+// so on the inner screen a long-press goes through duo-sim.m at the screen point: the target's
+// centre in the app's window, plus where that window starts (the right half, in Split View right)
+test('innerPressPoint offsets the app window by its place on the inner screen', () => {
+  const box = {bottom: 120, left: 100, right: 200, top: 100}
+  assert.deepEqual(innerPressPoint(box, {screenWidth: 951, target: 'ios-duo-unfolded', windowWidth: 951}), {x: 150, y: 110})
+  assert.deepEqual(innerPressPoint(box, {screenWidth: 951, target: 'ios-duo-split-left', windowWidth: 469}), {x: 150, y: 110})
+  assert.deepEqual(innerPressPoint(box, {screenWidth: 951, target: 'ios-duo-split-right', windowWidth: 469}), {x: 632, y: 110})
 })

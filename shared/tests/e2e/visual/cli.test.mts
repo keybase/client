@@ -607,3 +607,25 @@ test('guardLabel fails a Duo capture taken after the hinge moved, without captur
   })(entries[0]!, {...o, target: 'ios' as const})
   assert.equal(read, 0)
 })
+
+test('guardLabel puts a moved Duo back once and captures, noting it; still moved, it fails', async () => {
+  let captured = 0
+  const capture = async (): Promise<Capture> => {
+    captured++
+    return Promise.resolve({coverage: null, masks: [], png: pngOf(false), status: 'ok' as const})
+  }
+  const o = {frozenAt: 1, platform: 'ios' as const, target: 'ios-duo-split-right' as const, theme: 'light' as const}
+  const reads = ['ios-duo-folded', 'ios-duo-split-right'] as const
+  let restored = 0
+  const back = await guardLabel(capture, async () => Promise.resolve(reads[Math.min(restored, 1)]!), async () => {
+    restored++
+    return Promise.resolve()
+  })(entries[0]!, o)
+  assert.equal(back.status, 'ok')
+  assert.equal(restored, 1)
+  assert.match(back.note ?? '', /put back in iPhone Duo Split Right after it moved to iPhone Duo Folded/)
+  const stuck = await guardLabel(capture, async () => Promise.resolve('ios-duo-folded' as const), async () => Promise.resolve())(entries[0]!, o)
+  assert.equal(stuck.status, 'failed')
+  assert.equal(stuck.error, 'label changed: iPhone Duo Split Right → iPhone Duo Folded')
+  assert.equal(captured, 1)
+})
