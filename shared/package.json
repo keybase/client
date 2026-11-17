@@ -185,7 +185,7 @@
     "@wdio/local-runner": "10.2.0",
     "@wdio/mocha-framework": "10.2.0",
     "@wdio/spec-reporter": "10.2.0",
-    "appium": "3.9.1",
+    "appium": "4.0.0",
     "babel-jest": "30.5.2",
     "babel-plugin-module-resolver": "5.0.3",
     "babel-plugin-react-compiler": "1.0.0",
