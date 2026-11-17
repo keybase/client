@@ -112,6 +112,12 @@ const LONG_PRESS_S = 1
 
 // How a capture that left the app broken (`why`) is first tried: a reload runs through the
 // app's inspector page, so without one only a relaunch can help.
+// Why a capture would not be the app's screen: system UI (Control Center, Notification Center, an
+// alert) is over it, which deactivates the app's scene. Seen on the folded iPhone Duo, where a press
+// under the status column at the right edge opened Control Center.
+export const systemUiOverApp = (appState: string | undefined): string | undefined =>
+  appState && appState !== 'active' ? `system UI is over the app (its AppState is ${appState}), so the screen is not the app's` : undefined
+
 export const recoveryFor = (why: string): 'reload' | 'relaunch' => (lostInspectorPage(why) ? 'relaunch' : 'reload')
 
 // A capture whose first error was a lost inspector page is taken once more only when the app lived
@@ -952,6 +958,24 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const takeRecorder = async (startedIn: string) =>
     takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
+  const appStateNow = async () =>
+    appEval<string>(
+      `const m = kbModule('node_modules/react-native/Libraries/AppState/AppState.js')
+       return (m.default ?? m).currentState`,
+      'reading the AppState'
+    )
+  // Closes system UI left over the app (an earlier entry's touch may have opened it) with an upward
+  // swipe from the bottom edge, so it covers no later entry
+  const dismissSystemUi = async () => {
+    const {height, width} = await browser.getWindowRect()
+    const x = Math.round(width / 2)
+    await withDeadline(
+      browser.action('pointer').move({x, y: height - 5}).down().move({duration: 300, x, y: Math.round(height * 0.2)}).up().perform(),
+      SETUP_MS,
+      'closing system UI over the app'
+    )
+  }
+
   const captureOnce = async (
     entry: TourEntry,
     opts: {record?: boolean} | undefined
@@ -963,6 +987,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     let result: Capture
     try {
       if (!prepared) throw new Error('capture called before prepare')
+      if (systemUiOverApp(await appStateNow())) await dismissSystemUi()
       await fixture.assertNoneActive()
       const {tab} = entry.nav
       await toTabRoot(tab)
@@ -1014,6 +1039,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         'blurring the focused input'
       )
       await appEval(STILL_VIDEOS, 'pausing videos on their first frame')
+      const covered = systemUiOverApp(await appStateNow())
+      if (covered) throw new Error(covered)
       const settled = await settle(async () => {
         png = await screenshot()
         return png
