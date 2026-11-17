@@ -10,6 +10,7 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
+import {screenshotDisplayOf, simctlScreenshot} from '../ios-appium/helpers/form-factor.mts'
 import {evalInPage, inspectorPageFor, lostInspectorPage, retryFor, whileLost} from '../shared/metro-eval.ts'
 import {
   fixDate,
@@ -758,8 +759,12 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
 
+  // Appium's screenshot is always a Duo's outer screen, so a Duo is captured through simctl
+  const duoDisplay = screenshotDisplayOf(udid)
   const screenshot = async () =>
-    Buffer.from(await withDeadline(browser.takeScreenshot(), EVAL_MS, 'taking a screenshot'), 'base64')
+    duoDisplay === undefined
+      ? Buffer.from(await withDeadline(browser.takeScreenshot(), EVAL_MS, 'taking a screenshot'), 'base64')
+      : withDeadline(simctlScreenshot(udid, duoDisplay), EVAL_MS, 'taking a screenshot')
 
   // Screenshot pixels per window point.
   let scale: number | undefined
