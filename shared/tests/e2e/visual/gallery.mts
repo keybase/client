@@ -10,8 +10,12 @@ import {parseArgs} from 'util'
 import {fileURLToPath} from 'url'
 import * as Store from './store.mts'
 
-// `platform`: the store target the column shows (desktop, ios, ios-duo-folded, …)
-export type GalleryColumn = {platform: Store.StoreTarget; sha: string}
+// `platform`: the store target the column shows (desktop, ios, ios-duo-folded, …), from a base (`sha`)
+// or from a render run (`render`, its dir)
+export type GalleryColumn = {platform: Store.StoreTarget} & ({sha: string} | {render: string})
+
+const columnDir = (c: GalleryColumn) => ('render' in c ? c.render : Store.baseThemeDir(c.sha, c.platform, 'light'))
+const columnName = (c: GalleryColumn) => `${Store.targetLabel(c.platform)} ${'render' in c ? `render ${path.basename(c.render)}` : c.sha.slice(0, 10)}`
 export type GalleryRow = {id: string; shots: Array<string | undefined>}
 
 const escape = (s: string) =>
@@ -19,24 +23,25 @@ const escape = (s: string) =>
 
 export const galleryRows = (columns: ReadonlyArray<GalleryColumn>): Array<GalleryRow> => {
   const ids = new Set<string>()
-  for (const {platform, sha} of columns) {
-    const dir = Store.baseThemeDir(sha, platform, 'light')
+  for (const c of columns) {
+    const dir = columnDir(c)
     if (!existsSync(dir)) continue
     for (const f of readdirSync(dir)) if (f.endsWith('.png')) ids.add(f.slice(0, -4).replaceAll('__', '/'))
   }
   return [...ids].sort().map(id => ({
     id,
-    shots: columns.map(({platform, sha}) => {
-      const png = Store.basePng(sha, platform, 'light', id)
+    shots: columns.map(c => {
+      const png = path.join(columnDir(c), `${Store.idFile(id)}.png`)
       return existsSync(png) ? path.relative(Store.resultsDir(), png) : undefined
     }),
   }))
 }
 
 export const galleryHtml = (columns: ReadonlyArray<GalleryColumn>, rows: ReadonlyArray<GalleryRow>) => {
-  const title = columns.map(c => `${c.platform} ${c.sha.slice(0, 10)}`).join(', ')
+  const title = columns.map(columnName).join(', ')
   // keyed by the first column's base, so notes survive regenerating the page for the same base
-  const notesKey = `notes-${columns[0]?.sha ?? ""}`
+  const first = columns[0]
+  const notesKey = `notes-${first ? ('render' in first ? path.basename(first.render) : first.sha) : ''}`
   const sections = rows
     .map(r => {
       const cells = r.shots
@@ -127,9 +132,12 @@ const main = () => {
   const {values} = parseArgs({options: {base: {type: 'string'}, ...Object.fromEntries(targets.map(t => [t, {type: 'string' as const}]))}})
   const pick = (platform: Store.StoreTarget) => (values as Record<string, string | undefined>)[platform] ?? values.base ?? Store.readLastBase(platform)
   const columns: Array<GalleryColumn> = []
+  // a target with no base shows its newest render run (an iPhone Duo's tour is rendered, not based)
   for (const platform of targets) {
     const sha = pick(platform)
+    const render = Store.newestRender(platform)
     if (sha && existsSync(Store.basePlatformDir(sha, platform))) columns.push({platform, sha})
+    else if (render && platform !== 'desktop') columns.push({platform, render})
   }
   if (!columns.length) throw new Error('no base to show: take one with yarn visual:base, or pass --base <sha>')
   const out = path.join(Store.resultsDir(), 'gallery.html')
