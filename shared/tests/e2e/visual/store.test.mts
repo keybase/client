@@ -76,3 +76,11 @@ test('a coverage file without the visible flag is refused', () => {
 test('run stamps have no characters a path dislikes', () => {
   assert.equal(store.runStamp(new Date(Date.UTC(2026, 0, 2, 3, 4, 5, 6))), '2026-01-02T03-04-05-006Z')
 })
+
+test("each iOS form factor has its own base dir and last base; iPhone keeps plain ios", () => {
+  assert.equal(store.basePng('abc', 'ios-duo-folded', 'light', 'tab/chat'), path.join(root, 'base', 'abc', 'ios-duo-folded', 'light', 'tab__chat.png'))
+  store.writeLastBase('ios', 'phone1')
+  store.writeLastBase('ios-duo-folded', 'duo1')
+  assert.equal(store.readLastBase('ios'), 'phone1')
+  assert.equal(store.readLastBase('ios-duo-folded'), 'duo1')
+})

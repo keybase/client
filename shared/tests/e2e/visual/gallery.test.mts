@@ -38,3 +38,23 @@ await test('the page escapes ids and keys notes by the bases shown', () => {
   assert.match(html, /"notes-abc"/)
   assert.match(html, /not captured/)
 })
+
+await test('each column is labeled by its device and can be hidden', () => {
+  png('s1', 'ios', 'tab__chat.png')
+  png('s1', 'ios-duo-folded', 'tab__chat.png')
+  png('s1', 'ios-duo-unfolded', 'tab__chat.png')
+  const columns = [
+    {platform: 'ios' as const, sha: 's1'},
+    {platform: 'ios-duo-folded' as const, sha: 's1'},
+    {platform: 'ios-duo-unfolded' as const, sha: 's1'},
+  ]
+  const html = galleryHtml(columns, galleryRows(columns))
+  for (const [col, label] of [
+    ['ios', 'iPhone'],
+    ['ios-duo-folded', 'iPhone Duo Folded'],
+    ['ios-duo-unfolded', 'iPhone Duo Unfolded'],
+  ]) {
+    assert.match(html, new RegExp(`<label><input type="checkbox" class="col" data-col="${col}" checked> ${label}</label>`))
+    assert.match(html, new RegExp(`<figure class="${col}" data-col="${col}">.*?<figcaption>${label}</figcaption>`))
+  }
+})
