@@ -1,9 +1,10 @@
 // Putting the app into Split View on an iPhone Duo's inner screen, left or right, the way a person
 // does: from the inner Home Screen, a long-press on an app icon and "Open in Split View", then the
 // other app picked on the other half. XCUITest reaches neither the inner Home Screen nor its touches,
-// so this reads simctl screenshots (split-view-lib.mts) and touches through duo-sim.m. Every touch
-// follows a screenshot that shows what it is meant for; when one does not, it stops and touches
-// nothing more. The app is never touched here by coordinates: the flows drive it through Appium.
+// so this reads simctl screenshots (split-view-lib.mts) and touches through duo-sim.m; the second app
+// is launched into the waiting half. Every touch follows a screenshot that shows what it is meant for;
+// when one does not, it stops and touches nothing more. The app is never touched here by coordinates:
+// the flows drive it through Appium.
 import {execFileSync} from 'child_process'
 import * as fs from 'fs'
 import {createRequire} from 'module'
@@ -44,6 +45,13 @@ const tap = (at: Point): Array<TouchPoint> => [
   {...at, ms: 80},
 ]
 
+// to the next Home Screen page: across empty wallpaper below the icons, at most twice
+const PAGE_SWIPE: ReadonlyArray<TouchPoint> = [
+  {ms: 0, x: 700, y: 480},
+  {ms: 300, x: 250, y: 480},
+]
+const MAX_PAGE_SWIPES = 2
+
 const stop = (why: string) => new Error(`Split View: ${why}; nothing more was touched`)
 
 // The Home Screen half of a split shows the app's icon on the right half of the screen
@@ -52,11 +60,29 @@ const onRight = (p: Point | undefined) => (p && p.x > INNER_WIDTH / 2 ? p : unde
 export const enterSplit = async (side: SplitSide, d: SplitDeps) => {
   d.terminate(BUNDLE_ID)
   d.terminate(SAFARI)
-  await d.sleep(1500)
-  const home = await d.screenshot()
-  const keybase = d.find.icon(home)
-  const safari = d.find.blue(home)
-  if (!keybase || !safari) throw stop(`the inner Home Screen does not show ${keybase ? 'Safari in the dock' : 'the Keybase icon'}`)
+  // the whole Home Screen, once a split an earlier run left (it outlives its apps for a moment) is gone
+  let home: Img | undefined
+  let keybase: Point | undefined
+  let safari: Point | undefined
+  let swipes = 0
+  for (let i = 0; i < 5; i++) {
+    await d.sleep(2000)
+    const shot = await d.screenshot()
+    keybase = d.find.icon(shot)
+    safari = d.find.blue(shot)
+    const whole = !d.find.divider(shot) && !!safari
+    if (whole && keybase) {
+      home = shot
+      break
+    }
+    // a whole Home Screen on a page without the Keybase icon (a restart shows the first page): on to
+    // the next page, swiped across wallpaper that holds nothing on either page
+    if (whole && swipes < MAX_PAGE_SWIPES) {
+      swipes++
+      d.touch(PAGE_SWIPE)
+    }
+  }
+  if (!home || !keybase || !safari) throw stop(`the inner Home Screen does not show ${keybase ? 'Safari in the dock' : 'the Keybase icon'}`)
   // the app opened first takes the left half: Keybase for left, Safari for right
   const first = side === 'left' ? keybase : safari
   d.touch(longPress(first))
@@ -65,16 +91,28 @@ export const enterSplit = async (side: SplitSide, d: SplitDeps) => {
   const row = d.find.row(menu, first, side === 'left' ? 'after-remove' : 'first', home)
   if (!row) throw stop(`no "Open in Split View" in the ${side === 'left' ? 'Keybase' : 'Safari'} icon menu`)
   d.touch(tap(row))
-  await d.sleep(2000)
-  const half = await d.screenshot()
-  // split, with the Home Screen on the right half: the divider, and the Keybase icon right of it
-  const homeOnRight = d.find.divider(half) && onRight(d.find.icon(half))
-  const second = homeOnRight && (side === 'left' ? d.find.blue(half) : homeOnRight)
-  if (!second) throw stop(`the ${side === 'left' ? 'Keybase' : 'Safari'} app did not take the left half`)
-  d.touch(tap(second))
-  // the app may start here, and load its bundle from Metro
-  await d.sleep(side === 'right' ? 6000 : 3000)
-  if (!(await d.appIsSplit())) throw stop('the app is not in Split View after the setup')
+  // split, with the Home Screen on the right half waiting for the other app: the divider, and the
+  // Keybase icon right of it (looked for a few times: the split animates in)
+  let waiting = false
+  for (let i = 0; i < 4 && !waiting; i++) {
+    await d.sleep(2000)
+    const half = await d.screenshot()
+    waiting = !!(d.find.divider(half) && onRight(d.find.icon(half)))
+  }
+  if (!waiting) throw stop(`the ${side === 'left' ? 'Keybase' : 'Safari'} app did not take the left half`)
+  // launched rather than tapped: a launch fills the waiting half, with no touch to miss
+  d.launch(side === 'left' ? SAFARI : BUNDLE_ID)
+  if (!(await splitWithin(d))) throw stop('the app is not in Split View after the setup')
+}
+
+// Whether the app shows Split View within a minute (asked every 2s; an app still loading its bundle
+// from Metro answers nothing)
+const splitWithin = async (d: SplitDeps) => {
+  for (let i = 0; i < 30; i++) {
+    if (await d.appIsSplit().catch(() => false)) return true
+    await d.sleep(2000)
+  }
+  return false
 }
 
 // Back to the app alone on the screen: both apps closed, the app launched again
@@ -136,6 +174,14 @@ export const parseAnyPosture = (v: string | undefined): AnyPosture | undefined =
   if (!v) return undefined
   if (v === 'folded' || v === 'unfolded' || v === 'split-left' || v === 'split-right') return v
   throw new Error(`the posture must be folded, unfolded, split-left or split-right, not ${v}`)
+}
+
+// The form factor a posture puts a Duo in, and back. WebDriverAgent's launch folds a Duo, so a run
+// applies its posture after its Appium session opens, and takes its form factor from the posture.
+export const postureFormFactor = (p: AnyPosture): FormFactor => `duo-${p}`
+export const postureOfFormFactor = (f: FormFactor): AnyPosture | undefined => {
+  const p = f.startsWith('duo-') ? f.slice(4) : ''
+  return p === 'folded' || p === 'unfolded' || p === 'split-left' || p === 'split-right' ? p : undefined
 }
 
 // Puts the Duo in `posture` and returns the run's form factor. A split run is labeled by the side it

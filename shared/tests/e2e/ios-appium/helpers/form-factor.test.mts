@@ -9,6 +9,7 @@ import {
   formFactorStoreKey,
   parseScreenTarget,
   readFormFactor,
+  restartSimulator,
   screenshotDisplayOf,
   setPosture,
   simctlScreenshot,
@@ -178,4 +179,88 @@ test("touchInner sends interface points on the inner screen to the helper, mappe
 
 test('touchInner refuses a device that is not a Duo', () => {
   assert.throws(() => touchInner('U', [{ms: 0, x: 1, y: 1}], {build: noBuild, exec: fakeDevice(PHONE, []).exec}), /only an iPhone Duo/)
+})
+
+test('restartSimulator shuts down, waits until it is down, boots, waits until devicectl answers, and shows Device Hub', () => {
+  const calls: Array<string> = []
+  const states = ['Booted', 'Shutting Down', 'Shutdown']
+  let displays = 0
+  restartSimulator(
+    'U',
+    (file, args) => {
+      calls.push([file, ...args].join(' '))
+      if (args.includes('list')) return JSON.stringify({devices: {r: [{state: states.shift() ?? 'Shutdown', udid: 'U'}]}})
+      if (args.includes('displays')) {
+        if (++displays < 2) throw new Error('not ready')
+        return JSON.stringify({result: {displays: []}})
+      }
+      return ''
+    },
+    () => {}
+  )
+  assert.deepEqual(calls, [
+    'xcrun simctl list devices -j',
+    'xcrun simctl shutdown U',
+    'xcrun simctl list devices -j',
+    'xcrun simctl list devices -j',
+    'xcrun simctl boot U',
+    'xcrun simctl bootstatus U -b',
+    'xcrun devicectl device info displays -d U -q -j -',
+    'xcrun devicectl device info displays -d U -q -j -',
+    'open -a /Applications/Xcode.app/Contents/Applications/DeviceHub.app',
+  ])
+})
+
+// Device Hub boots a device it shows once it has shut down, which can beat our own boot to it
+test('restartSimulator carries on when something else booted the simulator first', () => {
+  const states = ['Booted', 'Shutdown', 'Booted']
+  const calls: Array<string> = []
+  restartSimulator(
+    'U',
+    (file, args) => {
+      calls.push([file, ...args].join(' '))
+      if (args.includes('list')) return JSON.stringify({devices: {r: [{state: states.shift() ?? 'Booted', udid: 'U'}]}})
+      if (args[1] === 'boot') throw new Error('Unable to boot device in current state: Booted')
+      if (args.includes('displays')) return JSON.stringify({result: {displays: []}})
+      return ''
+    },
+    () => {}
+  )
+  assert.ok(calls.includes('xcrun simctl bootstatus U -b'))
+})
+
+test('touchInner tries a touch once more when the helper does not answer', () => {
+  let touches = 0
+  const exec: Exec = (_file, args) => {
+    if (args.includes('list')) return JSON.stringify({devices: {r: [{deviceTypeIdentifier: DUO, udid: 'U'}]}})
+    if (args.includes('displays')) {
+      return JSON.stringify({result: {displays: [{...inner(true), bounds: [[0, 0], [2007, 2853]], currentOrientation: 'rot90', name: 'LCD-1', pointScale: 3, uniqueId: 'INNER'}]}})
+    }
+    if (args.includes('touch') && ++touches === 1) throw new Error('killed')
+    return ''
+  }
+  touchInner('U', [{ms: 0, x: 1, y: 1}], {build: noBuild, exec})
+  assert.equal(touches, 2)
+})
+
+test('restartSimulator boots a simulator that is already down without shutting it down', () => {
+  const calls: Array<string> = []
+  restartSimulator(
+    'U',
+    (file, args) => {
+      calls.push([file, ...args].join(' '))
+      return args.includes('list') ? JSON.stringify({devices: {r: [{state: 'Shutdown', udid: 'U'}]}}) : ''
+    },
+    () => {}
+  )
+  assert.ok(!calls.includes('xcrun simctl shutdown U'))
+  assert.ok(calls.includes('xcrun simctl boot U'))
+})
+
+// Seen just after a restart: both screens lit, hinge 0
+test('setPosture waits out a just-booted Duo that lights both screens', () => {
+  const booting = [outer(true, false), inner(true, false)]
+  const {calls, exec} = fakeDevice(DUO, [booting, booting, [outer(false), inner(true)]], '0.0')
+  setPosture('U', 'unfolded', {build: noBuild, exec, ...clock()})
+  assert.ok(calls.some(c => c.join(' ').endsWith('set 0 180')))
 })

@@ -19,8 +19,8 @@ import * as path from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {parseArgs, promisify} from 'util'
 import {udidForName} from '../ios-appium/helpers/app.ts'
-import {formFactorStoreKey, readFormFactor} from '../ios-appium/helpers/form-factor.mts'
-import {appIsSplit, applyPosture, parseAnyPosture, type AnyPosture} from '../ios-appium/helpers/split-view.mts'
+import {formFactorStoreKey, readFormFactor, restartSimulator} from '../ios-appium/helpers/form-factor.mts'
+import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor, postureOfFormFactor, type AnyPosture} from '../ios-appium/helpers/split-view.mts'
 import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
@@ -170,36 +170,64 @@ const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
 
 const isDuoTarget = (t: Store.StoreTarget) => t.startsWith('ios-duo-')
 
-// The simulator's store target, after putting a Duo in `posture`
-const iosStoreTarget = async (posture?: AnyPosture): Promise<Store.StoreTarget> => {
-  const udid = udidForName(iosDevice())
-  return formFactorStoreKey(posture ? await applyPosture(udid, iosDevice(), posture) : readFormFactor(udid))
+// The store target of a run: the posture's for a Duo (which needs one: WebDriverAgent's launch folds
+// it, so the posture is applied once the session is open, by applyTargetPosture), else the simulator's
+const iosStoreTarget = (posture?: AnyPosture): Store.StoreTarget => {
+  if (posture) {
+    // a Split View run starts from a restarted simulator (an earlier split leaves its pair behind),
+    // before any Appium session, which a restart would end
+    if (posture.startsWith('split-')) restartSimulator(udidForName(iosDevice()))
+    return formFactorStoreKey(postureFormFactor(posture))
+  }
+  const found = readFormFactor(udidForName(iosDevice()))
+  if (found.startsWith('duo-')) throw new Error('an iPhone Duo run needs --posture (folded, unfolded, split-left or split-right)')
+  return formFactorStoreKey(found)
 }
 
-// The store target a posture puts a Duo in, without moving it
-const postureTarget = (posture: AnyPosture): Store.StoreTarget => `ios-duo-${posture}`
+// Puts a Duo in the posture its target names, after the Appium session that folds it has opened
+const applyTargetPosture = async (target: Store.StoreTarget) => {
+  const posture = isDuoTarget(target) ? postureOfFormFactor(target.slice(4)) : undefined
+  if (!posture) return
+  const got = formFactorStoreKey(await applyPosture(udidForName(iosDevice()), iosDevice(), posture))
+  if (got !== target) throw new Error(`--posture ${posture} left the simulator ${Store.targetLabel(got)}, not ${Store.targetLabel(target)}`)
+}
 
 // What the simulator shows now, read against the target a run is kept under: a split run stays split
 // while the Duo is unfolded and the app's window is half the screen (an app relaunch ends it)
 const currentIosTarget = async (want: Store.StoreTarget): Promise<Store.StoreTarget> => {
-  const ff = readFormFactor(udidForName(iosDevice()))
+  let ff: string
+  try {
+    ff = readFormFactor(udidForName(iosDevice()))
+  } catch {
+    // a Duo just restarted lights both screens with neither active: no form factor yet
+    return 'ios-unknown'
+  }
   if (want.startsWith('ios-duo-split-') && ff === 'duo-unfolded' && (await appIsSplit(iosDevice()))) return want
   return formFactorStoreKey(ff)
 }
 
-// A Duo's capture is refused (failed, nothing captured) once the device no longer shows the form
-// factor the run is kept under (the hinge moved, or the app left Split View): it would be filed under
-// the wrong one. Other devices cannot change, so they are never read.
+// A Duo that no longer shows the form factor the run is kept under (its hinge moved, which an Appium
+// session's launch can do, or the app left Split View) is put back in it once (`restore`), and the
+// capture notes that; one still not back is refused (failed, nothing captured), since it would be
+// filed under the wrong form factor. Other devices cannot change, so they are never read.
 export const guardLabel =
-  (capture: (entry: TourEntry, o: CaptureOpts) => Promise<Capture>, readTarget: (want: Store.StoreTarget) => Promise<Store.StoreTarget>) =>
+  (
+    capture: (entry: TourEntry, o: CaptureOpts) => Promise<Capture>,
+    readTarget: (want: Store.StoreTarget) => Promise<Store.StoreTarget>,
+    restore: (want: Store.StoreTarget) => Promise<void> = async () => Promise.resolve()
+  ) =>
   async (entry: TourEntry, o: CaptureOpts): Promise<Capture> => {
-    if (isDuoTarget(o.target)) {
-      const now = await readTarget(o.target)
-      if (now !== o.target) {
-        return {coverage: null, error: `label changed: ${Store.targetLabel(o.target)} → ${Store.targetLabel(now)}`, masks: [], png: Buffer.alloc(0), status: 'failed'}
-      }
+    if (!isDuoTarget(o.target)) return capture(entry, o)
+    const was = await readTarget(o.target)
+    if (was === o.target) return capture(entry, o)
+    await restore(o.target)
+    const now = await readTarget(o.target)
+    if (now !== o.target) {
+      return {coverage: null, error: `label changed: ${Store.targetLabel(o.target)} → ${Store.targetLabel(now)}`, masks: [], png: Buffer.alloc(0), status: 'failed'}
     }
-    return capture(entry, o)
+    const cap = await capture(entry, o)
+    const note = `put back in ${Store.targetLabel(o.target)} after it moved to ${Store.targetLabel(was)}`
+    return {...cap, note: cap.note ? `${cap.note}; ${note}` : note}
   }
 
 // ---------------------------------------------------------------- check / gate / aa
@@ -815,8 +843,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(tour, cmd.patterns, platform)
-  // a posture is applied after the app's relaunch below, which would end a Split View
-  const target = !cmd.ios ? 'desktop' : cmd.posture ? postureTarget(cmd.posture) : await iosStoreTarget()
+  const target = cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
   const sha = await resolveBaseSha(cmd.base)
   checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, ios: cmd.ios})
   const baseShared = ensureBaseTree(sha, log)
@@ -844,21 +871,19 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       if (cmd.ios) {
         await serveMetro(baseShared, cmd.coverage, log)
         await relaunchIosApp(log)
-        if (cmd.posture) {
-          const got = await iosStoreTarget(cmd.posture)
-          if (got !== target) throw new Error(`--posture ${cmd.posture} left the simulator ${Store.targetLabel(got)}, not ${Store.targetLabel(target)}`)
-        }
       } else {
         launchDesktop(baseShared, cmd.coverage, log)
       }
-      const session: DesktopSession | IosSession = cmd.ios ? await openIos({device: iosDevice()}) : await openDesktop()
+      const session: DesktopSession | IosSession = cmd.ios ? await openIos({device: iosDevice(), target}) : await openDesktop()
       openSession = session
+      // after the app's relaunch above (which ends a Split View) and the session's open (which folds)
+      await applyTargetPosture(target)
       const problems: Array<string> = []
       try {
         for (const theme of cmd.themes) {
           await session.prepare({frozenAt, reload: true, theme})
           for (const e of entries) {
-            const cap = await guardLabel(async entry => session.capture(entry), currentIosTarget)(e, {frozenAt, platform, target, theme})
+            const cap = await guardLabel(async entry => session.capture(entry), currentIosTarget, applyTargetPosture)(e, {frozenAt, platform, target, theme})
             if (cap.status !== 'ok') {
               problems.push(`${e.id} ${platform} ${theme}: ${cap.status}${cap.error ? ` (${cap.error})` : ''}`)
               continue
@@ -998,8 +1023,9 @@ const sessionCapturer = () => {
   let preparedFor = ''
   const capture = async (entry: TourEntry, o: CaptureOpts) => {
     if (!session) {
-      session = o.platform === 'ios' ? await openIos({device: iosDevice()}) : await openDesktop()
+      session = o.platform === 'ios' ? await openIos({device: iosDevice(), target: o.target}) : await openDesktop()
       openSession = session
+      if (o.platform === 'ios') await applyTargetPosture(o.target)
     }
     const key = `${o.theme}:${o.frozenAt}`
     if (preparedFor !== key) {
@@ -1014,7 +1040,7 @@ const sessionCapturer = () => {
     preparedFor = ''
     if (s) await closeSession(s)
   }
-  return {capture: guardLabel(capture, currentIosTarget), close}
+  return {capture: guardLabel(capture, currentIosTarget, applyTargetPosture), close}
 }
 
 export const realDeps = (cmd: Command): CheckDeps => {
@@ -1038,7 +1064,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
-    storeTarget: async (platform, posture) => (platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
+    storeTarget: async (platform, posture) => Promise.resolve(platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
     team: () => e2eAccounts().team,
   }
 }

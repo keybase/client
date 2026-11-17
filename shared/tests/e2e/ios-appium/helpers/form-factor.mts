@@ -60,8 +60,13 @@ export const classifyFormFactor = (deviceType: string, displays: ReadonlyArray<D
 }
 
 // simctl and devicectl can wait forever on an Xcode first-launch install, so each call has a deadline
-const realExec: Exec = (file, args) =>
-  execFileSync(file, args, {encoding: 'utf8', killSignal: 'SIGKILL', stdio: ['pipe', 'pipe', 'pipe'], timeout: 60_000})
+const execWithin =
+  (timeout: number): Exec =>
+  (file, args) =>
+    execFileSync(file, args, {encoding: 'utf8', killSignal: 'SIGKILL', stdio: ['pipe', 'pipe', 'pipe'], timeout})
+const realExec = execWithin(60_000)
+// a touch takes a second or two; one that stalls is retried, so it is not left a minute
+const touchExec = execWithin(20_000)
 
 const deviceTypeOf = (udid: string, exec: Exec) => {
   const devices = (JSON.parse(exec('xcrun', ['simctl', 'list', 'devices', '-j'])) as {
@@ -157,12 +162,20 @@ export const setPosture = (
   const bin = build()
   const from = Math.round(Number(exec('xcrun', ['simctl', 'spawn', udid, bin, 'get']).trim()))
   const to = posture === 'folded' ? 0 : 180
-  if (from === to && classifyFormFactor(type, displaysOf(udid, exec)) === want) return
+  // a Duo just booted lights both screens with neither active: not yet any form factor
+  const settled = () => {
+    try {
+      return classifyFormFactor(type, displaysOf(udid, exec)) === want
+    } catch {
+      return false
+    }
+  }
+  if (from === to && settled()) return
   exec('xcrun', ['simctl', 'spawn', udid, bin, 'set', String(from), String(to)])
   const deadline = now() + SWITCH_TIMEOUT_MS
   while (now() < deadline) {
     sleep(POLL_MS)
-    if (classifyFormFactor(type, displaysOf(udid, exec)) === want) return
+    if (settled()) return
   }
   throw new Error(
     `the iPhone Duo's hinge is at ${to}° but it did not switch screens within ${SWITCH_TIMEOUT_MS / 1000}s: ` +
@@ -192,5 +205,44 @@ export const touchInner = (
     const n = nativePoint(p, ui)
     return `${n.u.toFixed(4)},${n.v.toFixed(4)},${p.ms}`
   })
-  exec('xcrun', ['simctl', 'spawn', udid, build(), 'touch', inner.uniqueId, ...args])
+  const display = inner.uniqueId
+  const touch = () => (deps.exec ?? touchExec)('xcrun', ['simctl', 'spawn', udid, build(), 'touch', display, ...args])
+  try {
+    touch()
+  } catch {
+    // just after a restart the helper's touchscreen can stall before it opens: once more
+    touch()
+  }
+}
+
+// Restarts the simulator and shows it in Device Hub (the window a person watches the run in). A Split
+// View run starts from one: after a split the Duo keeps the pair (an app relaunches into its half),
+// which no touch-free step clears, and Appium's session would not survive a restart later.
+export const restartSimulator = (udid: string, exec: Exec = realExec, sleep: (ms: number) => void = sleepSync) => {
+  const stateOf = () =>
+    Object.values((JSON.parse(exec('xcrun', ['simctl', 'list', 'devices', '-j'])) as {devices: Record<string, Array<{state: string; udid: string}>>}).devices)
+      .flat()
+      .find(d => d.udid === udid)?.state
+  if (stateOf() !== 'Shutdown') {
+    exec('xcrun', ['simctl', 'shutdown', udid])
+    // shutdown can return while the device is still shutting down, and a boot then refuses it
+    for (let i = 0; i < 60 && stateOf() !== 'Shutdown'; i++) sleep(1000)
+  }
+  try {
+    exec('xcrun', ['simctl', 'boot', udid])
+  } catch (e) {
+    // Device Hub boots a device it shows once it is down, and may beat this boot to it
+    if (stateOf() !== 'Booted') throw e
+  }
+  exec('xcrun', ['simctl', 'bootstatus', udid, '-b'])
+  // devicectl, which reads the Duo's screens, answers some seconds after the boot is done
+  for (let i = 0; i < 60; i++) {
+    try {
+      displaysOf(udid, exec)
+      break
+    } catch {
+      sleep(1000)
+    }
+  }
+  exec('open', ['-a', '/Applications/Xcode.app/Contents/Applications/DeviceHub.app'])
 }
