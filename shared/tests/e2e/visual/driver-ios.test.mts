@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, systemUiOverApp, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
 import {pidFromLaunchctl} from '../ios-appium/helpers/app.ts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
@@ -459,4 +459,12 @@ test('a relaunch that fails stops the run with one error', async () => {
   const {deps} = recoverWith({drop: true, token: [false]})
   deps.relaunch = async () => Promise.reject(new Error('activating the app: no answer in 30s'))
   await assert.rejects(recoverApp(deps), /a relaunch did not bring it back: activating the app: no answer in 30s/)
+})
+
+// Seen on the folded iPhone Duo: a long-press under its status column opened Control Center, which
+// was captured as the screen, and stayed over the entries after it
+test('systemUiOverApp names system UI over the app, and nothing while the app is active', () => {
+  assert.equal(systemUiOverApp('active'), undefined)
+  assert.match(systemUiOverApp('inactive') ?? '', /system UI is over the app \(its AppState is inactive\)/)
+  assert.match(systemUiOverApp('background') ?? '', /AppState is background/)
 })
