@@ -1,17 +1,27 @@
 // Which iOS form factor a simulator is (iPhone, iPhone Duo folded or unfolded), and folding or unfolding
 // the Duo. The label comes from the device itself: the device type from simctl and, for a Duo, which
-// of its two screens devicectl reports active (the primary display is the outer one). The hinge moves
-// through duo-hinge.m, run inside the simulator.
+// of its two screens devicectl reports lit (the primary display is the outer one). The hinge moves,
+// and the inner screen is touched, through duo-sim.m, run inside the simulator.
 import {execFile, execFileSync} from 'child_process'
 import * as os from 'os'
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
+import {nativePoint, type Rotation} from './split-view-lib.mts'
 import {promisify} from 'util'
 
 export type FormFactor = 'iphone' | 'duo-folded' | 'duo-unfolded' | 'duo-split-left' | 'duo-split-right' | (string & {})
 export type Posture = 'folded' | 'unfolded'
-type Display = {active: boolean; backlightState?: string; displayId: number; primary: boolean}
+type Display = {
+  active: boolean
+  backlightState?: string
+  bounds?: [[number, number], [number, number]]
+  currentOrientation?: Rotation
+  displayId: number
+  primary: boolean
+  pointScale?: number
+  uniqueId?: string
+}
 export type Exec = (file: string, args: ReadonlyArray<string>) => string
 
 const LABELS: Record<string, string> = {
@@ -47,12 +57,6 @@ export const classifyFormFactor = (deviceType: string, displays: ReadonlyArray<D
   }
   if (/\.iPad/i.test(deviceType)) return 'ipad'
   return 'iphone'
-}
-
-export const parsePosture = (v: string | undefined): Posture | undefined => {
-  if (!v) return undefined
-  if (v === 'folded' || v === 'unfolded') return v
-  throw new Error(`the posture must be folded or unfolded, not ${v}`)
 }
 
 // simctl and devicectl can wait forever on an Xcode first-launch install, so each call has a deadline
@@ -118,8 +122,8 @@ export const simctlScreenshot = async (udid: string, displayId: number, run: Asy
 // newer than the binary
 const buildHelper = () => {
   const dir = path.dirname(fileURLToPath(import.meta.url))
-  const HELPER_SOURCE = path.join(dir, 'duo-hinge.m')
-  const HELPER_BIN = path.resolve(dir, '../../../results/duo-hinge/duo-hinge')
+  const HELPER_SOURCE = path.join(dir, 'duo-sim.m')
+  const HELPER_BIN = path.resolve(dir, '../../../results/duo-sim/duo-sim')
   const built = fs.existsSync(HELPER_BIN) && fs.statSync(HELPER_BIN).mtimeMs >= fs.statSync(HELPER_SOURCE).mtimeMs
   if (built) return HELPER_BIN
   fs.mkdirSync(path.dirname(HELPER_BIN), {recursive: true})
@@ -164,4 +168,29 @@ export const setPosture = (
     `the iPhone Duo's hinge is at ${to}° but it did not switch screens within ${SWITCH_TIMEOUT_MS / 1000}s: ` +
       'nudge the hinge slider in Device Hub (hold Option) or restart the simulator, then rerun'
   )
+}
+
+export type TouchPoint = {x: number; y: number; ms: number}
+
+// One finger on the Duo's inner screen along `points` (interface points; each ms is the time to move
+// to it, the first is where it goes down, the last where it lifts). The inner display's id, size and
+// rotation are read each time: the id changes when the simulator restarts.
+export const touchInner = (
+  udid: string,
+  points: ReadonlyArray<TouchPoint>,
+  deps: {build?: () => string; exec?: Exec} = {}
+) => {
+  const {build = buildHelper, exec = realExec} = deps
+  if (!isDuo(deviceTypeOf(udid, exec))) throw new Error(`only an iPhone Duo has an inner screen; ${udid} is not one`)
+  const inner = displaysOf(udid, exec).find(d => !d.primary)
+  const [, [pw, ph] = [0, 0]] = inner?.bounds ?? []
+  if (!inner?.uniqueId || !pw || !ph || !inner.currentOrientation) throw new Error("devicectl gave no id, size or rotation for the Duo's inner display")
+  const scale = inner.pointScale ?? 3
+  const sideways = inner.currentOrientation === 'rot90' || inner.currentOrientation === 'rot270'
+  const ui = {height: (sideways ? pw : ph) / scale, rotation: inner.currentOrientation, width: (sideways ? ph : pw) / scale}
+  const args = points.map(p => {
+    const n = nativePoint(p, ui)
+    return `${n.u.toFixed(4)},${n.v.toFixed(4)},${p.ms}`
+  })
+  exec('xcrun', ['simctl', 'spawn', udid, build(), 'touch', inner.uniqueId, ...args])
 }

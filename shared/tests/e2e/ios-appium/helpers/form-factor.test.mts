@@ -7,12 +7,12 @@ import {
   formFactorLabel,
   formFactorMismatch,
   formFactorStoreKey,
-  parsePosture,
   parseScreenTarget,
   readFormFactor,
   screenshotDisplayOf,
   setPosture,
   simctlScreenshot,
+  touchInner,
   type Exec,
 } from './form-factor.mts'
 
@@ -56,14 +56,6 @@ test('labels and store keys', () => {
   assert.equal(formFactorStoreKey('iphone'), 'ios')
   assert.equal(formFactorStoreKey('duo-folded'), 'ios-duo-folded')
   assert.equal(formFactorStoreKey('duo-unfolded'), 'ios-duo-unfolded')
-})
-
-test('parsePosture takes folded, unfolded or nothing', () => {
-  assert.equal(parsePosture(undefined), undefined)
-  assert.equal(parsePosture(''), undefined)
-  assert.equal(parsePosture('folded'), 'folded')
-  assert.equal(parsePosture('unfolded'), 'unfolded')
-  assert.throws(() => parsePosture('half'), /folded or unfolded/)
 })
 
 // A fake simctl/devicectl: the device type, the hinge angle the helper reports, and the displays
@@ -161,4 +153,29 @@ test('formFactorMismatch names both labels when the device moved during a run', 
   // the device can only say unfolded; the split itself is checked through the app's window
   assert.equal(formFactorMismatch('duo-split-left', 'duo-unfolded'), undefined)
   assert.match(formFactorMismatch('duo-split-right', 'duo-folded') ?? '', /is iPhone Duo Folded but this run is iPhone Duo Split Right/)
+})
+
+test("touchInner sends interface points on the inner screen to the helper, mapped to the panel's axes", () => {
+  const calls: Array<Array<string>> = []
+  const exec: Exec = (file, args) => {
+    calls.push([file, ...args])
+    if (args.includes('list')) return JSON.stringify({devices: {r: [{deviceTypeIdentifier: DUO, udid: 'U'}]}})
+    if (args.includes('displays')) {
+      return JSON.stringify({
+        result: {
+          displays: [
+            {...outer(false), bounds: [[0, 0], [1398, 2034]], currentOrientation: 'rot0', name: 'LCD', pointScale: 3, uniqueId: 'OUTER'},
+            {...inner(true), bounds: [[0, 0], [2007, 2853]], currentOrientation: 'rot90', name: 'LCD-1', pointScale: 3, uniqueId: 'INNER'},
+          ],
+        },
+      })
+    }
+    return ''
+  }
+  touchInner('U', [{ms: 0, x: 764, y: 182}, {ms: 1000, x: 764, y: 182}], {build: noBuild, exec})
+  assert.deepEqual(calls.at(-1), ['xcrun', 'simctl', 'spawn', 'U', '/fake/duo-hinge', 'touch', 'INNER', '0.2720,0.1966,0', '0.2720,0.1966,1000'])
+})
+
+test('touchInner refuses a device that is not a Duo', () => {
+  assert.throws(() => touchInner('U', [{ms: 0, x: 1, y: 1}], {build: noBuild, exec: fakeDevice(PHONE, []).exec}), /only an iPhone Duo/)
 })
