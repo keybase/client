@@ -3,6 +3,7 @@ import {currentAttempt, requireCurrentAttempt} from './attempt'
 import {isAttemptOver} from './attempt-binding-lib'
 import {requireNoSecretOnScreen} from './secret-screen.ts'
 import {stepAttachmentName} from '../../shared/step-name.ts'
+import {screenPng} from './screen.ts'
 
 const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
@@ -10,10 +11,10 @@ const sleep = async (ms: number) => new Promise<void>(resolve => setTimeout(reso
 // when it doesn't within settleMs (a spinner).
 const settleMs = 1_000
 const settledScreenshot = async (): Promise<string> => {
-  let last = await browser.takeScreenshot()
+  let last = await screenPng()
   for (const until = Date.now() + settleMs; Date.now() < until; ) {
     await sleep(100)
-    const next = await browser.takeScreenshot()
+    const next = await screenPng()
     if (next === last) return next
     last = next
   }
@@ -35,7 +36,7 @@ export async function step(name: string, opts?: {card?: boolean; settle?: boolea
     attempt.annotate('step', attName)
     return
   }
-  const png = opts?.settle === false ? await browser.takeScreenshot() : await settledScreenshot()
+  const png = opts?.settle === false ? await screenPng() : await settledScreenshot()
   attempt.addAttachment(attName, 'image/png', Buffer.from(png, 'base64'))
   if (opts?.card) attempt.annotate('card-step', attName)
 }

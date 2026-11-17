@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/no-floating-promises -- node:test registers top-level tests; they are not awaited */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
+import * as fs from 'fs'
 import {
   classifyFormFactor,
   formFactorLabel,
   formFactorStoreKey,
   parsePosture,
+  parseScreenTarget,
   readFormFactor,
+  screenshotDisplayOf,
   setPosture,
+  simctlScreenshot,
   type Exec,
 } from './form-factor.mts'
 
@@ -117,4 +121,32 @@ test('setPosture throws when the screens never switch, naming the fix', () => {
   const c = clock()
   assert.throws(() => setPosture('U', 'folded', {build: noBuild, exec, ...c}), /did not switch screens.*Device Hub.*restart/s)
   assert.ok(c.now() <= 9000)
+})
+
+// Appium's screenshot is always the Duo's outer screen (probed 2026-11-17: black when unfolded), so a
+// Duo is captured through simctl, naming the lit screen.
+test('screenshotDisplayOf is the lit Duo screen, and nothing for a plain iPhone', () => {
+  assert.equal(screenshotDisplayOf('U', fakeDevice(DUO, [[outer(true), inner(false)]]).exec), 1)
+  assert.equal(screenshotDisplayOf('U', fakeDevice(DUO, [[outer(false), inner(true)]]).exec), 3)
+  const phone = fakeDevice(PHONE, [])
+  assert.equal(screenshotDisplayOf('U', phone.exec), undefined)
+  assert.ok(!phone.calls.some(c => c.includes('displays')))
+})
+
+test('simctlScreenshot captures the named display and leaves no file behind', async () => {
+  let args: ReadonlyArray<string> = []
+  const png = await simctlScreenshot('U', 3, async (_file, a) => {
+    args = a
+    await fs.promises.writeFile(a.at(-1)!, 'PNGBYTES')
+  })
+  assert.equal(png.toString(), 'PNGBYTES')
+  assert.deepEqual(args.slice(0, 5), ['simctl', 'io', 'U', 'screenshot', '--display=3'])
+  assert.ok(!fs.existsSync(args.at(-1)!))
+})
+
+test('KB_IOS_SCREEN names the udid and display a Duo run screenshots', () => {
+  assert.equal(parseScreenTarget(undefined), undefined)
+  assert.equal(parseScreenTarget(''), undefined)
+  assert.deepEqual(parseScreenTarget('4E81-AB:3'), {displayId: 3, udid: '4E81-AB'})
+  assert.throws(() => parseScreenTarget('4E81-AB'), /KB_IOS_SCREEN/)
 })

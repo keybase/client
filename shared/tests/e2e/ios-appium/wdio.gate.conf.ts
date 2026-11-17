@@ -30,6 +30,7 @@ import {
 } from '../shared/gate/secret-scan'
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 import {iosFlowProject} from './theme'
+import {screenshotDisplayOf} from './helpers/form-factor.mts'
 
 const PROJECT = iosFlowProject()
 
@@ -94,6 +95,9 @@ export const config: WebdriverIO.Config = {
     // a results.json never mixes runs
     fs.rmSync(iosReportDir(), {force: true, recursive: true})
     secretWatch = watchEnvSecrets()
+    const display = screenshotDisplayOf(udid)
+    // the workers start after this, with this env
+    if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
     // the flows record the names of the paper keys and the invite links they make, for the scan
     process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
     process.env[SCAN_INVITE_LINKS_VAR] = '1'

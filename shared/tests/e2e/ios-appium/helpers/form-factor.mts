@@ -2,10 +2,12 @@
 // the Duo. The label comes from the device itself: the device type from simctl and, for a Duo, which
 // of its two screens devicectl reports active (the primary display is the outer one). The hinge moves
 // through duo-hinge.m, run inside the simulator.
-import {execFileSync} from 'child_process'
+import {execFile, execFileSync} from 'child_process'
+import * as os from 'os'
 import * as fs from 'fs'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
+import {promisify} from 'util'
 
 export type FormFactor = 'iphone' | 'duo-folded' | 'duo-unfolded' | (string & {})
 export type Posture = 'folded' | 'unfolded'
@@ -66,6 +68,40 @@ const displaysOf = (udid: string, exec: Exec) =>
 export const readFormFactor = (udid: string, exec: Exec = realExec): FormFactor => {
   const type = deviceTypeOf(udid, exec)
   return classifyFormFactor(type, isDuo(type) ? displaysOf(udid, exec) : undefined)
+}
+
+// The lit screen's display id for a Duo, else undefined. Appium's screenshot is always the Duo's outer
+// screen (black when unfolded), so a Duo is captured with simctlScreenshot on this display instead.
+export const screenshotDisplayOf = (udid: string, exec: Exec = realExec): number | undefined => {
+  const type = deviceTypeOf(udid, exec)
+  if (!isDuo(type)) return undefined
+  const f = classifyFormFactor(type, displaysOf(udid, exec))
+  return displaysOf(udid, exec).find(d => d.primary === (f === 'duo-folded'))?.displayId
+}
+
+// KB_IOS_SCREEN=<udid>:<displayId>: set by a Duo flow run for its workers, whose screenshots then go
+// through simctlScreenshot
+export const parseScreenTarget = (v: string | undefined): {displayId: number; udid: string} | undefined => {
+  if (!v) return undefined
+  const m = /^(.+):(\d+)$/.exec(v)
+  if (!m) throw new Error(`KB_IOS_SCREEN must be <udid>:<displayId>, not ${v}`)
+  return {displayId: Number(m[2]), udid: m[1]!}
+}
+
+type AsyncRun = (file: string, args: ReadonlyArray<string>) => Promise<unknown>
+const execFileAsync = promisify(execFile)
+const realRun: AsyncRun = async (file, args) => execFileAsync(file, [...args], {timeout: 30_000})
+
+// A PNG of one simulator display. simctl writes nothing to stdout for `-`, so it goes through a file.
+export const simctlScreenshot = async (udid: string, displayId: number, run: AsyncRun = realRun): Promise<Buffer> => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-duo-shot-'))
+  const file = path.join(dir, 'shot.png')
+  try {
+    await run('xcrun', ['simctl', 'io', udid, 'screenshot', `--display=${displayId}`, file])
+    return fs.readFileSync(file)
+  } finally {
+    fs.rmSync(dir, {force: true, recursive: true})
+  }
 }
 
 // Builds the in-simulator helper with Xcode's own clang into shared/tests/results when its source is
