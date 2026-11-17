@@ -10,7 +10,7 @@ import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runAa, runCheck, runGate, runRender, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
+const {parseCommand, guardLabel, runAa, runCheck, runGate, runRender, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
   await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
@@ -36,6 +36,7 @@ const deps = (over = {}) => ({
   readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}),
   readSeal: async () => ({fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 1}),
   servedFrom: () => '/tree/shared',
+  storeTarget: (p: 'desktop' | 'ios') => p,
   team: () => 'testteam',
   ...over,
 })
@@ -131,7 +132,7 @@ test('parseCommand: flags, themes and refusals', () => {
 
 test('check and gate resolve the --base the command was given, in either spelling', async () => {
   for (const argv of [['tab/*', '--base=no-such-ref-for-visual-test'], ['tab/*', '--base', 'no-such-ref-for-visual-test']]) {
-    await assert.rejects(realDeps(parseCommand(argv)).baseSha(), /cannot resolve the base no-such-ref-for-visual-test/)
+    await assert.rejects(realDeps(parseCommand(argv)).baseSha('desktop'), /cannot resolve the base no-such-ref-for-visual-test/)
   }
 })
 
@@ -421,6 +422,7 @@ test('aa, check and gate never capture a live entry after a fixture entry withou
 // a run directory per run: its name is the start time
 let renderClock = 1_000_000
 const renderDeps = (over = {}) => ({
+  storeTarget: (p: 'desktop' | 'ios') => p,
   capture: async (): Promise<Capture> => {
     throw new Error('should not capture')
   },
@@ -546,4 +548,61 @@ test('render: a fixture entry that tried to mark its thread read is not noted: t
   const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(['chat.1.local.markAsReadLocal']), status: 'ok'})
   assert.equal(await runRender(renderDeps({capture, entries: [fx], log: (l: string) => lines.push(l)}), []), 0)
   assert.doesNotMatch(lines.join('\n'), /opened an unread conversation/)
+})
+
+// ---------------------------------------------------------------- form factors
+
+test('--posture folds or unfolds an iOS run and needs --ios', () => {
+  assert.equal(parseCommand(['--ios', '--posture', 'folded']).posture, 'folded')
+  assert.equal(parseCommand(['--ios']).posture, undefined)
+  assert.throws(() => parseCommand(['--posture', 'folded']), /--posture needs --ios/)
+  assert.throws(() => parseCommand(['--ios', '--posture', 'half']), /folded or unfolded/)
+})
+
+test('render on a Duo records its form factor as the render platform and hands it to each capture', async () => {
+  const lines: Array<string> = []
+  const asked: Array<string> = []
+  const targets: Array<string> = []
+  const capture = async (_e: TourEntry, o: {target: string}): Promise<Capture> => {
+    targets.push(o.target)
+    return {coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'}
+  }
+  const storeTarget = (p: string, posture?: string) => {
+    asked.push(`${p} ${posture}`)
+    return 'ios-duo-folded' as const
+  }
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l), storeTarget}), ['--ios', '--posture', 'folded']), 0)
+  assert.deepEqual(asked, ['ios folded'])
+  assert.deepEqual(targets, ['ios-duo-folded'])
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  assert.equal((JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {platform: string}).platform, 'ios-duo-folded')
+})
+
+test("check on a Duo reads its own form factor's base, and names it when there is none", async () => {
+  const meta = {createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}
+  const readBaseMeta = (_sha: string, t: string) => (t === 'ios' ? meta : undefined)
+  await assert.rejects(
+    runCheck(deps({readBaseMeta, storeTarget: () => 'ios-duo-unfolded' as const}), ['tab/*', '--ios']),
+    /no iPhone Duo Unfolded base for tab\/\* at abc/
+  )
+})
+
+test('guardLabel fails a Duo capture taken after the hinge moved, without capturing', async () => {
+  let captured = 0
+  const capture = async (): Promise<Capture> => {
+    captured++
+    return {coverage: null, masks: [], png: pngOf(false), status: 'ok'}
+  }
+  const o = {frozenAt: 1, platform: 'ios' as const, target: 'ios-duo-folded' as const, theme: 'light' as const}
+  const moved = await guardLabel(capture, () => 'ios-duo-unfolded' as const)(entries[0]!, o)
+  assert.equal(moved.status, 'failed')
+  assert.equal(moved.error, 'label changed: iPhone Duo Folded → iPhone Duo Unfolded')
+  assert.equal(captured, 0)
+  assert.equal((await guardLabel(capture, () => 'ios-duo-folded' as const)(entries[0]!, o)).status, 'ok')
+  let read = 0
+  await guardLabel(capture, () => {
+    read++
+    return 'ios' as const
+  })(entries[0]!, {...o, target: 'ios' as const})
+  assert.equal(read, 0)
 })

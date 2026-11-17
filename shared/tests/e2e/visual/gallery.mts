@@ -1,7 +1,7 @@
-// Writes a review page of a base's captures: every tour id with its desktop and iOS shot side by
-// side, a notes box per id (kept in the browser's localStorage, keyed by the desktop base) and a "Copy notes"
+// Writes a review page of a base's captures: every tour id with its desktop, iPhone and iPhone Duo
+// (per form factor) shots side by side, a checkbox per column to hide it, a notes box per id (kept in the browser's localStorage, keyed by the desktop base) and a "Copy notes"
 // button that puts the noted ids on the clipboard as a list.
-//   yarn visual:gallery [--base <sha>] [--desktop <sha>] [--ios <sha>]
+//   yarn visual:gallery [--base <sha>] [--desktop <sha>] [--ios <sha>] [--ios-duo-folded <sha>] …(one per Store.IOS_TARGETS)
 // Without a sha it shows each platform's last base. KB_VISUAL_NO_OPEN=1 only prints the path.
 import {existsSync, readdirSync, writeFileSync} from 'fs'
 import path from 'path'
@@ -10,7 +10,8 @@ import {parseArgs} from 'util'
 import {fileURLToPath} from 'url'
 import * as Store from './store.mts'
 
-export type GalleryColumn = {platform: Store.RunPlatform; sha: string}
+// `platform`: the store target the column shows (desktop, ios, ios-duo-folded, …)
+export type GalleryColumn = {platform: Store.StoreTarget; sha: string}
 export type GalleryRow = {id: string; shots: Array<string | undefined>}
 
 const escape = (s: string) =>
@@ -44,7 +45,7 @@ export const galleryHtml = (columns: ReadonlyArray<GalleryColumn>, rows: Readonl
           const img = src
             ? `<a href="${escape(src)}" target="_blank"><img loading="lazy" src="${escape(src)}"></a>`
             : '<div class="none">not captured</div>'
-          return `<figure class="${platform}">${img}<figcaption>${platform}</figcaption></figure>`
+          return `<figure class="${platform}" data-col="${platform}">${img}<figcaption>${escape(Store.targetLabel(platform))}</figcaption></figure>`
         })
         .join('')
       const id = escape(r.id)
@@ -64,7 +65,9 @@ h2{font-size:15px;margin:0 0 8px}
 .shots{display:flex;gap:12px;align-items:flex-start;overflow-x:auto}
 figure{margin:0}
 figure.desktop img{width:480px}
-figure.ios img{width:200px}
+figure.ios img,figure.ios-duo-folded img{width:200px}
+figure.ios-duo-unfolded img{width:400px}
+figure.ios-duo-split-left img,figure.ios-duo-split-right img{width:400px}
 img{display:block;border:1px solid var(--line)}
 figcaption{font-size:12px;opacity:.7;margin-top:4px}
 .none{width:200px;height:120px;display:grid;place-items:center;opacity:.5;border:1px dashed var(--line)}
@@ -72,6 +75,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:8px;min-height:40px;font:in
 </style>
 <header><strong>Visual gate captures</strong><span>${escape(title)} · ${rows.length} screens</span>
 <input type="search" id="q" placeholder="filter by id (e.g. modal, chat/)"><label><input type="checkbox" id="only"> only noted</label>
+${columns.map(c => `<label><input type="checkbox" class="col" data-col="${c.platform}" checked> ${escape(Store.targetLabel(c.platform))}</label>`).join('')}
 <button id="copy">Copy notes</button><span id="msg"></span></header>
 ${sections}
 <script>
@@ -100,6 +104,11 @@ for (const s of secs) {
 }
 document.getElementById('q').addEventListener('input', apply)
 document.getElementById('only').addEventListener('change', apply)
+for (const c of document.querySelectorAll('input.col')) {
+  c.addEventListener('change', () => {
+    for (const f of document.querySelectorAll('figure[data-col="' + c.dataset.col + '"]')) f.style.display = c.checked ? '' : 'none'
+  })
+}
 document.getElementById('copy').addEventListener('click', async () => {
   const text = Object.entries(notes).map(([id, n]) => '- ' + id + ': ' + n.replace(/\\n/g, ' ')).join('\\n')
   try {
@@ -114,10 +123,11 @@ apply()
 }
 
 const main = () => {
-  const {values} = parseArgs({options: {base: {type: 'string'}, desktop: {type: 'string'}, ios: {type: 'string'}}})
-  const pick = (platform: Store.RunPlatform) => values[platform] ?? values.base ?? Store.readLastBase(platform)
+  const targets: ReadonlyArray<Store.StoreTarget> = ['desktop', ...Store.IOS_TARGETS]
+  const {values} = parseArgs({options: {base: {type: 'string'}, ...Object.fromEntries(targets.map(t => [t, {type: 'string' as const}]))}})
+  const pick = (platform: Store.StoreTarget) => (values as Record<string, string | undefined>)[platform] ?? values.base ?? Store.readLastBase(platform)
   const columns: Array<GalleryColumn> = []
-  for (const platform of ['desktop', 'ios'] as const) {
+  for (const platform of targets) {
     const sha = pick(platform)
     if (sha && existsSync(Store.basePlatformDir(sha, platform))) columns.push({platform, sha})
   }

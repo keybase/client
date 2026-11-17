@@ -19,6 +19,7 @@ import * as path from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {parseArgs, promisify} from 'util'
 import {udidForName} from '../ios-appium/helpers/app.ts'
+import {formFactorStoreKey, parsePosture, readFormFactor, setPosture, type Posture} from '../ios-appium/helpers/form-factor.mts'
 import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
@@ -70,7 +71,7 @@ const iosDevice = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 
 // ---------------------------------------------------------------- arguments and selection
 
-export type Command = {base: string | undefined; coverage: boolean; ios: boolean; patterns: Array<string>; themes: Array<Theme>}
+export type Command = {base: string | undefined; coverage: boolean; ios: boolean; patterns: Array<string>; posture?: Posture; themes: Array<Theme>}
 
 export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   const {values, positionals} = parseArgs({
@@ -80,6 +81,7 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
       base: {type: 'string'},
       coverage: {type: 'boolean'},
       ios: {type: 'boolean'},
+      posture: {type: 'string'},
       theme: {type: 'string'},
       themes: {type: 'string'},
     },
@@ -92,7 +94,9 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   }
   const themes = (asked as Array<Theme> | undefined) ?? ['light']
   if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
-  return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, themes}
+  if (values.posture !== undefined && !ios) throw new Error('--posture needs --ios: it folds or unfolds an iPhone Duo')
+  const posture = parsePosture(values.posture)
+  return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, ...(posture ? {posture} : {}), themes}
 }
 
 const tourPlatform = (p: RunPlatform): Platform => (p === 'ios' ? 'phone' : 'desktop')
@@ -161,20 +165,49 @@ const isUnder = (p: string, dir: string) => p === dir || p.startsWith(dir + path
 
 const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
 
+// ---------------------------------------------------------------- iOS form factors
+
+const isDuoTarget = (t: Store.StoreTarget) => t.startsWith('ios-duo-')
+
+// The simulator's store target, after folding or unfolding a Duo to `posture`
+const iosStoreTarget = (posture?: Posture): Store.StoreTarget => {
+  const udid = udidForName(iosDevice())
+  if (posture) setPosture(udid, posture)
+  return formFactorStoreKey(readFormFactor(udid))
+}
+
+// A Duo's capture is refused (failed, nothing captured) once the device no longer shows the form
+// factor the run is kept under (the hinge moved): it would be filed under the wrong one. Other
+// devices cannot change, so they are never read.
+export const guardLabel =
+  (capture: (entry: TourEntry, o: CaptureOpts) => Promise<Capture>, readTarget: () => Store.StoreTarget) =>
+  async (entry: TourEntry, o: CaptureOpts): Promise<Capture> => {
+    if (isDuoTarget(o.target)) {
+      const now = readTarget()
+      if (now !== o.target) {
+        return {coverage: null, error: `label changed: ${Store.targetLabel(o.target)} → ${Store.targetLabel(now)}`, masks: [], png: Buffer.alloc(0), status: 'failed'}
+      }
+    }
+    return capture(entry, o)
+  }
+
 // ---------------------------------------------------------------- check / gate / aa
 
 // `record`: the capture carries what the app's recorder saw for the entry
-export type CaptureOpts = {platform: RunPlatform; theme: Theme; frozenAt: number; record?: boolean}
+// `target`: where the run's captures are kept (Store.StoreTarget), which on an iPhone Duo names its form factor
+export type CaptureOpts = {platform: RunPlatform; target: Store.StoreTarget; theme: Theme; frozenAt: number; record?: boolean}
 export type CheckDeps = {
-  baseSha: () => Promise<string>
-  readBaseMeta: (sha: string, platform: RunPlatform) => Store.BaseMeta | undefined
+  baseSha: (target: Store.StoreTarget) => Promise<string>
+  readBaseMeta: (sha: string, target: Store.StoreTarget) => Store.BaseMeta | undefined
   readSeal: (fields?: ReadonlyArray<SealField>) => Promise<Seal>
   // the realpath'd cwd of whatever listens on the port
   servedFrom: (port: number) => string | undefined
   // the e2e team, whose channels the tour opens
   team: () => string
   currentShared: string
-  hasBasePng: (sha: string, platform: RunPlatform, theme: Theme, id: string) => boolean
+  hasBasePng: (sha: string, target: Store.StoreTarget, theme: Theme, id: string) => boolean
+  // where the platform's captures are kept; on iOS it first folds or unfolds a Duo to `posture`
+  storeTarget: (platform: RunPlatform, posture?: Posture) => Store.StoreTarget
   // the definition hash of a fixture in this tree (fixtures/drive.mts)
   fixtureHash: (name: FixtureName) => string
   // prepares (with a reload) whenever the theme or frozen instant changes, then captures
@@ -241,14 +274,16 @@ const checkEntries = async (
 ): Promise<CheckRun> => {
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
-  const sha = await deps.baseSha()
-  const meta = deps.readBaseMeta(sha, platform)
+  const target = deps.storeTarget(platform, cmd.posture)
+  const sha = await deps.baseSha(target)
+  const meta = deps.readBaseMeta(sha, target)
   const named = cmd.patterns.join(' ') || '*'
-  const iosFlag = cmd.ios ? ' --ios' : ''
-  if (!meta) throw new Error(`no base for ${named} at ${sha}; run yarn visual:base ${named}${iosFlag}`)
+  const iosFlag = cmd.ios ? ` --ios${cmd.posture ? ` --posture ${cmd.posture}` : ''}` : ''
+  const which = target === platform ? '' : `${Store.targetLabel(target)} `
+  if (!meta) throw new Error(`no ${which}base for ${named} at ${sha}; run yarn visual:base ${named}${iosFlag}`)
   for (const e of entries) {
     for (const theme of cmd.themes) {
-      if (!deps.hasBasePng(sha, platform, theme, e.id)) {
+      if (!deps.hasBasePng(sha, target, theme, e.id)) {
         throw new Error(`no base for ${e.id} at ${sha}; run yarn visual:base ${e.id}${iosFlag} (no ${platform} ${theme} capture)`)
       }
     }
@@ -276,8 +311,8 @@ const checkEntries = async (
   try {
     for (const theme of cmd.themes) {
       for (const e of entries) {
-        const cap = await deps.capture(e, {frozenAt: meta.frozenAt, platform, theme})
-        const refPng = Store.basePng(sha, platform, theme, e.id)
+        const cap = await deps.capture(e, {frozenAt: meta.frozenAt, platform, target, theme})
+        const refPng = Store.basePng(sha, target, theme, e.id)
         const row: ReportRow = {
           basePng: refPng,
           id: e.id,
@@ -287,7 +322,7 @@ const checkEntries = async (
             cap,
             dir: path.join(dir, platform, theme),
             name: Store.idFile(e.id),
-            refMasks: Store.readBaseMasks(sha, platform, theme, e.id),
+            refMasks: Store.readBaseMasks(sha, target, theme, e.id),
             refPng,
           }),
         }
@@ -341,6 +376,7 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
+  const target = deps.storeTarget(platform, cmd.posture)
   const before = await deps.readSeal()
   assertTouredConversationsRead(entries, before, deps.team())
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
@@ -352,10 +388,10 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
       for (const theme of cmd.themes) {
         for (const group of groups) {
           const first = new Map<string, Capture>()
-          for (const e of group) first.set(e.id, await deps.capture(e, {frozenAt, platform, theme}))
+          for (const e of group) first.set(e.id, await deps.capture(e, {frozenAt, platform, target, theme}))
           for (const e of group) {
             const a = first.get(e.id)!
-            const b = await deps.capture(e, {frozenAt, platform, theme})
+            const b = await deps.capture(e, {frozenAt, platform, target, theme})
             const sub = path.join(dir, `round${round}`, platform, theme)
             fs.mkdirSync(sub, {recursive: true})
             const name = Store.idFile(e.id)
@@ -400,7 +436,7 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
 
 // ---------------------------------------------------------------- render
 
-export type RenderDeps = Pick<CheckDeps, 'capture' | 'closeCapture' | 'currentShared' | 'entries' | 'log' | 'servedFrom'> & {
+export type RenderDeps = Pick<CheckDeps, 'capture' | 'closeCapture' | 'currentShared' | 'entries' | 'log' | 'servedFrom' | 'storeTarget'> & {
   now: () => number
 }
 
@@ -434,6 +470,7 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
+  const target = deps.storeTarget(platform, cmd.posture)
   const startedAt = deps.now()
   const frozenAt = startedAt + FROZEN_AFTER_NEWEST_MS
   const dir = Store.renderDir(Store.runStamp(new Date(startedAt)))
@@ -443,7 +480,7 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
       const sub = cmd.themes.length > 1 ? path.join(dir, theme) : dir
       fs.mkdirSync(sub, {recursive: true})
       for (const e of entries) {
-        const cap = await deps.capture(e, {frozenAt, platform, record: true, theme})
+        const cap = await deps.capture(e, {frozenAt, platform, record: true, target, theme})
         const name = Store.idFile(e.id)
         const png = cap.png.length ? path.join(sub, `${name}.png`) : null
         if (png) fs.writeFileSync(png, cap.png)
@@ -475,7 +512,8 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   fs.mkdirSync(dir, {recursive: true})
   fs.writeFileSync(
     path.join(dir, 'render.json'),
-    JSON.stringify({entries: rows, finishedAt: deps.now(), frozenAt, platform, startedAt}, null, 2)
+    // the census reads a platform's newest render by this: a Duo's (ios-duo-…) is never the iPhone's
+    JSON.stringify({entries: rows, finishedAt: deps.now(), frozenAt, platform: target, startedAt}, null, 2)
   )
   deps.log(`render: ${dir}`)
   const unread = rows.filter(r => r.openedUnread)
@@ -516,8 +554,8 @@ export const resolveBaseSha = async (ref?: string): Promise<string> => {
 }
 
 // The base check, gate and coverage compare against.
-const usedBaseSha = async (platform: RunPlatform, ref?: string) =>
-  ref ? resolveBaseSha(ref) : (Store.readLastBase(platform) ?? resolveBaseSha())
+const usedBaseSha = async (target: Store.StoreTarget, ref?: string) =>
+  ref ? resolveBaseSha(ref) : (Store.readLastBase(target) ?? resolveBaseSha())
 
 const LAUNCH_APP = 'shared/tests/e2e/electron/launch-app.mts'
 const DESKTOP_DRIVER = 'shared/tests/e2e/visual/driver-desktop.mts'
@@ -766,6 +804,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(tour, cmd.patterns, platform)
+  const target = cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
   const sha = await resolveBaseSha(cmd.base)
   checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, ios: cmd.ios})
   const baseShared = ensureBaseTree(sha, log)
@@ -777,7 +816,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
   log(`base ${sha.slice(0, 10)}: frozen at ${new Date(frozenAt).toISOString()}`)
 
-  const platformDir = Store.basePlatformDir(sha, platform)
+  const platformDir = Store.basePlatformDir(sha, target)
   const stage = path.join(Store.resultsDir(), 'base', `.stage-${process.pid}`)
   const staged = (p: string) => path.join(stage, path.relative(platformDir, p))
   const writeStaged = (p: string, data: string | Buffer) => {
@@ -803,16 +842,16 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
         for (const theme of cmd.themes) {
           await session.prepare({frozenAt, reload: true, theme})
           for (const e of entries) {
-            const cap = await session.capture(e)
+            const cap = await guardLabel(async entry => session.capture(entry), () => iosStoreTarget())(e, {frozenAt, platform, target, theme})
             if (cap.status !== 'ok') {
               problems.push(`${e.id} ${platform} ${theme}: ${cap.status}${cap.error ? ` (${cap.error})` : ''}`)
               continue
             }
-            writeStaged(Store.basePng(sha, platform, theme, e.id), cap.png)
-            writeStaged(Store.baseMasksPath(sha, platform, theme, e.id), JSON.stringify(cap.masks))
+            writeStaged(Store.basePng(sha, target, theme, e.id), cap.png)
+            writeStaged(Store.baseMasksPath(sha, target, theme, e.id), JSON.stringify(cap.masks))
             if (cmd.coverage) {
               if (!cap.coverage) throw new Error(`${e.id}: no coverage from a --coverage launch`)
-              writeStaged(Store.baseCoveragePath(sha, platform, theme, e.id), Store.writeCoverageJson(cap.coverage, !!e.masks?.length))
+              writeStaged(Store.baseCoveragePath(sha, target, theme, e.id), Store.writeCoverageJson(cap.coverage, !!e.masks?.length))
             }
             log(`✓ base ${e.id} ${platform} ${theme}`)
           }
@@ -841,10 +880,10 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
     const diffs = diffSeals(before, after)
     if (diffs.length) throw new Error(`base not written; the account changed during the run: ${diffs.join('; ')}`)
 
-    const old = Store.readBaseMeta(sha, platform)
+    const old = Store.readBaseMeta(sha, target)
     const replaced = !!old && (old.frozenAt !== frozenAt || old.seal.hash !== before.hash)
     if (replaced) {
-      log(`replacing the earlier ${platform} base set at ${sha.slice(0, 10)}: its seal or frozen instant differs`)
+      log(`replacing the earlier ${Store.targetLabel(target)} base set at ${sha.slice(0, 10)}: its seal or frozen instant differs`)
       fs.rmSync(platformDir, {force: true, recursive: true})
     }
     fs.mkdirSync(platformDir, {recursive: true})
@@ -854,8 +893,8 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       ...(replaced ? {} : old?.fixtures),
       ...Object.fromEntries(fixturesOf(entries).map(name => [name, fixtureHash(baseShared, name)])),
     }
-    Store.writeBaseMeta(sha, platform, {createdAt: Date.now(), fixtures, frozenAt, seal: before})
-    Store.writeLastBase(platform, sha)
+    Store.writeBaseMeta(sha, target, {createdAt: Date.now(), fixtures, frozenAt, seal: before})
+    Store.writeLastBase(target, sha)
     log(`base written to ${platformDir}`)
     return 0
   } finally {
@@ -959,13 +998,13 @@ const sessionCapturer = () => {
     preparedFor = ''
     if (s) await closeSession(s)
   }
-  return {capture, close}
+  return {capture: guardLabel(capture, () => iosStoreTarget()), close}
 }
 
 export const realDeps = (cmd: Command): CheckDeps => {
   const capturer = sessionCapturer()
   return {
-    baseSha: async () => usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base),
+    baseSha: async target => usedBaseSha(target, cmd.base),
     capture: capturer.capture,
     closeCapture: capturer.close,
     currentShared: fs.realpathSync(SHARED_DIR),
@@ -983,6 +1022,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
+    storeTarget: (platform, posture) => (platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
     team: () => e2eAccounts().team,
   }
 }

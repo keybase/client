@@ -97,6 +97,13 @@ test("the census reads its own platform's newest render, past a newer one from t
   assert.equal(quiet(() => runCensusCli(platform, [])), 1)
 })
 
+test("the iOS census reads the iPhone's render, past a newer Duo one", () => {
+  const {dir, platform} = fixture(false)
+  writeRender(dir, '2026-01-01T00-00-00', 'ios', ['routeA'])
+  writeRender(dir, '2026-01-02T00-00-00', 'ios-duo-folded', [])
+  assert.equal(quiet(() => runCensusCli({...platform, platform: 'iOS'}, [])), 0)
+})
+
 test('a render.json without a platform is a desktop render', () => {
   const {dir, platform} = fixture(false)
   writeRender(dir, '2026-01-01T00-00-00', undefined, ['routeA'])
