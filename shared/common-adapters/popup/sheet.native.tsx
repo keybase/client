@@ -36,6 +36,10 @@ const useSheetInsets = () => {
 // landscape), so past this width the sheet is centered. Every iPhone in portrait is narrower.
 // iPad keeps full-width sheets.
 const maxPhoneSheetWidth = 500
+// Sheets are modal, so they cover the side strips (an iPhone Duo's floating tab bar, an
+// iPhone's landscape notch: a centered sheet already clears that). Only the top of the Duo's
+// status column holds something a tall sheet must not cover: its clock and signal.
+const statusColumnHeight = 100
 
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
@@ -51,11 +55,10 @@ export function Sheet(props: SheetProps) {
   const {bottom: safeBottom, left: safeLeft, right: safeRight, top: safeTop} = useSheetInsets()
   const {width: windowWidth} = useWindowDimensions()
   // the library pins the sheet to both window edges (left/right 0), so margins place it
-  const sideMargin = isTablet ? 0 : Math.max(0, (windowWidth - safeLeft - safeRight - maxPhoneSheetWidth) / 2)
-  const sheetStyle = Styles.collapseStyles([
-    styles.modalStyle,
-    {marginLeft: safeLeft + sideMargin, marginRight: safeRight + sideMargin},
-  ])
+  const sideMargin = isTablet ? 0 : Math.max(0, (windowWidth - maxPhoneSheetWidth) / 2)
+  const sheetStyle = Styles.collapseStyles([styles.modalStyle, {marginLeft: sideMargin, marginRight: sideMargin}])
+  const reachesStrip = sideMargin < Math.max(safeLeft, safeRight)
+  const topInset = reachesStrip ? Math.max(safeTop, statusColumnHeight) : safeTop
   const bottomRef = React.useRef<React.ComponentRef<typeof BottomSheetModal> | null>(null)
   // the sheet's content clears the home indicator plus a margin, so the last row
   // never sits flush with the screen edge
@@ -101,7 +104,7 @@ export function Sheet(props: SheetProps) {
       onDismiss={onHidden}
       // dynamic sizing clamps to the container (full window via FullWindowOverlay),
       // so without this tall sheets cover the status bar
-      topInset={safeTop}
+      topInset={topInset}
       footerComponent={footer ? renderFooter : undefined}
     >
       {/* a scrollable must be the sheet's direct child: nesting one inside
