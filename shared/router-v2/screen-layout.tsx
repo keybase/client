@@ -135,6 +135,8 @@ export const desktopMakeLayout = (
   }
 }
 
+const allEdges = ['top', 'right', 'bottom', 'left'] as const
+
 // Modal screens: their own SafeAreaProvider plus keyboard avoidance. Kept as a component
 // (not inlined into Layout below) because Layout runs inside the navigator's render and may
 // not call hooks.
@@ -148,6 +150,16 @@ const ModalScreenWrapper = ({
   const styles = useStyles()
   const modalSize = navigationOptions?.modalSize ?? 'small'
   const modalBox = {size: modalSize}
+  // Sides come from the window's insets, not the sheet's own safe area: in an iPhone Duo's Split
+  // View the sheet's safe area also holds the column iOS keeps for header buttons, which a sheet
+  // leaves empty. The window insets still clear the Duo's status column.
+  const windowInsets = useSafeAreaInsets()
+  const edges = navigationOptions?.safeAreaEdges ?? allEdges
+  const verticalEdges = edges.filter(e => e === 'top' || e === 'bottom')
+  const sidePadding = {
+    paddingLeft: edges.includes('left') ? windowInsets.left : 0,
+    paddingRight: edges.includes('right') ? windowInsets.right : 0,
+  }
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
       {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
@@ -161,8 +173,8 @@ const ModalScreenWrapper = ({
         compensateNotBeingOnBottom={isTablet}
       >
         <Kb.SafeAreaView
-          edges={navigationOptions?.safeAreaEdges}
-          style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+          edges={verticalEdges}
+          style={Kb.Styles.collapseStyles([styles.keyboard, sidePadding, navigationOptions?.safeAreaStyle])}
         >
           <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
         </Kb.SafeAreaView>
