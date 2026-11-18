@@ -13,6 +13,7 @@ import {DEBUG_NAV} from './nav-debug'
 import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isChatSplit, threadRouteName} from './chat/layout'
+import type {ConversationInfoPanelTab} from '@/chat/conversation/thread-navigation'
 import {ignorePromise} from './utils'
 import {makeUUID} from '@/util/uuid'
 import * as Meta from './chat/meta'
@@ -536,6 +537,7 @@ type NavigateToThreadReason =
 
 type OpenThreadParams = {
   conversationIDKey?: T.Chat.ConversationIDKey
+  infoPanel?: {tab?: ConversationInfoPanelTab}
   threadSearch?: {query?: string}
 }
 
@@ -555,27 +557,49 @@ const selectInChatRootOnceMounted = (params: OpenThreadParams) => {
 }
 
 // The chat layout of a phone that splits by width just changed (see constants/chat/layout): the
-// thread the user has open moves to the route that shows it in the new layout. Split, it is chatRoot's
-// param; narrow, it is chatConversation pushed above the tabs. Only a thread on top moves: under a
-// modal, or under a screen pushed over it, the user is looking at something else, which stays put.
+// thread the user has open, and its info panel, move to the routes that show them in the new layout.
+// Split, both are chatRoot params; narrow, the thread is chatConversation pushed above the tabs and
+// the panel is chatInfoPanel over it. Only a thread on top (or under its own panel) moves: under
+// another modal, or a screen pushed over it, the user is looking at something else, which stays put.
 export const moveOpenThreadToLayout = (split: boolean) => {
   const rs = getRootState()
   if (split) {
-    const top = rs?.routes?.at(-1)
-    if (top?.name !== 'chatConversation') return
-    const {conversationIDKey, threadSearch} = top.params as OpenThreadParams
+    const routes = rs?.routes ?? []
+    const top = routes.at(-1)
+    const panel = top?.name === 'chatInfoPanel' ? top : undefined
+    const thread = panel ? routes.at(-2) : top
+    if (thread?.name !== 'chatConversation' || (panel && routes.length !== 3)) return
+    const {conversationIDKey, threadSearch} = thread.params as OpenThreadParams
     if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
+    const panelParams = panel?.params as {conversationIDKey?: string; tab?: ConversationInfoPanelTab} | undefined
+    if (panelParams && panelParams.conversationIDKey !== conversationIDKey) return
     logger.info(`chat layout: split, thread ${conversationIDKey} moves to chatRoot`)
-    getNavigator().navigateUp()
-    selectInChatRootOnceMounted({conversationIDKey, threadSearch})
+    if (panel) {
+      getNavigator().popStack()
+    } else {
+      getNavigator().navigateUp()
+    }
+    selectInChatRootOnceMounted({
+      conversationIDKey,
+      infoPanel: panelParams ? {tab: panelParams.tab} : undefined,
+      threadSearch,
+    })
     return
   }
   const visible = NavTree.visibleScreen(rs, {includeModals: true})
   if (visible?.name !== 'chatRoot') return
-  const {conversationIDKey, threadSearch} = visible.params as OpenThreadParams
+  const {conversationIDKey, infoPanel, threadSearch} = visible.params as OpenThreadParams
   if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
   logger.info(`chat layout: narrow, thread ${conversationIDKey} moves to chatConversation`)
-  getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey, threadSearch}})
+  const nav = getNavigator()
+  if (infoPanel) {
+    // chatRoot would show the panel again the next time it splits
+    nav.setChatRootParams({infoPanel: undefined})
+  }
+  nav.showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey, threadSearch}})
+  if (infoPanel) {
+    nav.navigateAppend({name: 'chatInfoPanel', params: {conversationIDKey, tab: infoPanel.tab}})
+  }
 }
 
 const navToThread = (
