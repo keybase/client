@@ -1,0 +1,54 @@
+go/kbfs/simplefs/simplefs_test.go
+  s_f089fda757ef18::t_913cdeec6265ef 25
+  s_f089fda757ef18::t_dcaff978b79268 206-246
+go/kbfs/simplefs/simplefs.go
+  s_f089fda757ef18::t_15e5ef502200f0 112-115
+go/kbfs/libkbfs/tlf_journal.go
+  s_f089fda757ef18::t_1793919dfe4988 2351,2379,2383,2400-2401
+  s_f089fda757ef18::t_b08bcc30b5ac1b 2343-2345,2352-2370
+  s_f089fda757ef18::t_601ef7b7f35e39 2346-2347
+  s_f089fda757ef18::t_b55104f61d733c 2394-2395
+  s_f089fda757ef18::t_3542ef00e7674d 892-898
+  s_f089fda757ef18::t_1624c849e213c4 2388-2393,2396-2399,2402-2406
+  s_f089fda757ef18::t_5b197e16305813 290-291,297-299
+  s_f089fda757ef18::t_e03031be84c0c6 2348-2350
+  s_f089fda757ef18::t_7891532babc5d3 2371-2373,2376-2378
+  s_f089fda757ef18::t_8256297e71f565 2380-2382
+  s_f089fda757ef18::t_b08d15f3a0a9c8 2384-2387
+  s_f089fda757ef18::t_bb8a1e1f7b8bf7 2407-2408
+  s_f089fda757ef18::t_63b3d77400af9e 2374-2375
+go/kbfs/libkbfs/tlf_journal_test.go
+  s_f089fda757ef18::t_f7eddb7000ecbd 520-530,565-568,574-578,585-587,589-592,595,600,602-604
+  s_f089fda757ef18::t_90c39906d35df2 599
+  s_f089fda757ef18::t_eb3e63546461d6 573
+  s_f089fda757ef18::t_752a573d121fcb 588
+  s_f089fda757ef18::t_b36825c1a18b4d 27
+  s_f089fda757ef18::t_b3c56fd7c8a9af 531-541,553-564,569-572,579-584,593-594,596-598,601
+  s_f089fda757ef18::t_cb6fb0afe1a648 2119
+  s_f089fda757ef18::t_0f4555bcf6d5cd 542-552
+go/kbfs/libfuse/errors.go
+  s_f089fda757ef18::t_8ca74cd684b5f9 39-40
+go/kbfs/libkbfs/reporter_kbpki.go
+  s_f089fda757ef18::t_7ba638e3583887 120-126
+  s_f089fda757ef18::t_b6044be810cbd2 16
+go/kbfs/libkbfs/reporter_kbpki_test.go
+  s_f089fda757ef18::t_e4e43070400b71 1-44
+go/kbfs/libkbfs/journal_manager.go
+  s_f089fda757ef18::t_db164d07cd60f3 359,1156,1179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "03e2eb6d1af02977ee35b8a3dfbdf6f952616fa1",
+  "prompts": {},
+  "sessions": {
+    "s_f089fda757ef18": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d0e9dd7-d2a4-40a8-ae13-da469017345b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
