@@ -173,7 +173,7 @@ const Header = () => {
   }
 
   const leftSide = (
-    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.left}>
+    <Kb.Box2 alignSelf="center" alignItems="center" direction="horizontal" style={styles.left}>
       {isMobile ? (
         <>
           <AccountSwitchHeaderAvatar />
