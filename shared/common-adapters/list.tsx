@@ -5,6 +5,7 @@ import type {Props} from './list.shared'
 import {LegendList as LegendListWeb} from '@legendapp/list/react'
 import {LegendList as LegendListNative} from '@legendapp/list/react-native'
 import {smallHeight, largeHeight} from './list-item'
+import {useScreenSideInsets, withSideInsets} from './screen-side-insets'
 export type {LegendListRef, Props} from './list.shared'
 
 function useListProps<T>(p: Props<T>) {
@@ -108,6 +109,7 @@ const DesktopList = function List<T>({ref, ...p}: Props<T>) {
 
 const NativeList = function List<T>({ref, ...p}: Props<T>) {
   const styles = useStyles()
+  const sideInsets = useScreenSideInsets()
   const {empty, listProps} = useListProps(p as Props<T>)
   if (empty) return null
 
@@ -121,7 +123,7 @@ const NativeList = function List<T>({ref, ...p}: Props<T>) {
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}
-        contentContainerStyle={p.style}
+        contentContainerStyle={withSideInsets(p.style as never, sideInsets)}
       />
     </View>
   )

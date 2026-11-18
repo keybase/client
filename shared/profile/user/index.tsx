@@ -396,9 +396,16 @@ const User = (props: {username: string}) => {
     return () => observer.disconnect()
   }, [])
 
+  // on mobile the screen can be narrower than the window (iPhone Duo Split View), and the list's
+  // content is narrower still by the screen's side insets
+  const sideInsets = Kb.useScreenSideInsets()
+  const onWrapperLayout = isMobile
+    ? (e: {nativeEvent: {layout: {width: number}}}) => setWidth(e.nativeEvent.layout.width)
+    : undefined
+
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
-  const {itemsInARow, itemWidth} = widthToDimensions(width)
+  const {itemsInARow, itemWidth} = widthToDimensions(width - sideInsets.left - sideInsets.right)
   const chunks: Array<Item> = React.useMemo(() => {
     const friends = selectedTab === 'following' ? p.following : p.followers
     const result: Array<Item> = width
@@ -568,7 +575,13 @@ const User = (props: {username: string}) => {
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType, styles)])}
         testID={TestIDs.PROFILE_PAGE}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={wrapperRef}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          ref={wrapperRef}
+          onLayout={onWrapperLayout}
+        >
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}

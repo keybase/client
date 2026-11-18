@@ -10,7 +10,6 @@ import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experi
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {previousRouteIsModal} from '@/constants/nav-tree'
 
-
 type LayoutProps = {
   children: React.ReactNode
   // the live options React Navigation resolved for this route: getOptions, the navigator's
@@ -25,18 +24,44 @@ type LayoutProps = {
 // Wraps both tab-root and pushed stack screens. Android targets SDK 35+ which enforces
 // edge-to-edge, so content draws under the system nav bar unless we apply the bottom
 // inset ourselves.
+// iOS reserves side strips on the iPhone Duo (its status column, and in Split View the column of
+// header buttons). Screens still lay out on the full window, so centered content stays centered;
+// scrolling content clears the strips through ScreenSideInsetsContext. Only the screen's own safe
+// area includes the header column (the root provider's window insets report 0 for it), so an
+// invisible RNScreens SafeAreaView is measured for them.
+const androidEdges = {bottom: true} as const
+const probeEdges = {left: true, right: true} as const
+const noSideInsets = {left: 0, right: 0}
+type LayoutEvent = {nativeEvent: {layout: {width: number; x: number}}}
 const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
   const styles = useStyles()
+  const [screenWidth, setScreenWidth] = React.useState(0)
+  const [probe, setProbe] = React.useState({width: 0, x: 0})
   if (isAndroid) {
     return (
-      <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
+      <RNScreensSafeAreaView edges={androidEdges} style={styles.tabScreen}>
         {children}
       </RNScreensSafeAreaView>
     )
   }
+  const onScreenLayout = (e: LayoutEvent) => setScreenWidth(e.nativeEvent.layout.width)
+  const onProbeLayout = (e: LayoutEvent) => {
+    const {width, x} = e.nativeEvent.layout
+    setProbe(p => (p.width === width && p.x === x ? p : {width, x}))
+  }
+  const measured = screenWidth > 0 && probe.width > 0
+  const left = measured ? probe.x : 0
+  const right = measured ? Math.max(0, screenWidth - probe.x - probe.width) : 0
+  const sideInsets = left || right ? {left, right} : noSideInsets
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
-      {children}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen} onLayout={onScreenLayout}>
+      <RNScreensSafeAreaView
+        edges={probeEdges}
+        pointerEvents="none"
+        style={styles.insetProbe}
+        onLayout={onProbeLayout}
+      />
+      <Kb.ScreenSideInsetsContext value={sideInsets}>{children}</Kb.ScreenSideInsetsContext>
     </Kb.Box2>
   )
 }
@@ -68,7 +93,12 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
         style={Kb.Styles.collapseStyles([
           styles.tabScreen,
           styles.loggedOutBackground,
-          {paddingBottom: keyboardVisible ? 0 : insets.bottom, paddingTop: headerHeight > 0 ? 0 : insets.top},
+          {
+            paddingBottom: keyboardVisible ? 0 : insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+            paddingTop: headerHeight > 0 ? 0 : insets.top,
+          },
         ])}
       >
         {children}
@@ -178,6 +208,13 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   },
   loggedOutBackground: {
     backgroundColor: theme.blueGrey,
+  },
+  insetProbe: {
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   tabScreen: {
     flex: 1,

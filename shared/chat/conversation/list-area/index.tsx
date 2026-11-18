@@ -603,12 +603,17 @@ const NativeConversationList = function NativeConversationList() {
     [bottomInset]
   )
 
+  const sideInsets = Kb.useScreenSideInsets()
   const nativeContentContainerStyle = React.useMemo(
-    () => ({
-      paddingBottom: 0,
-      paddingTop: mobileTypingContainerHeight + bottomInset,
-    }),
-    [bottomInset]
+    () =>
+      Kb.withSideInsets(
+        {
+          paddingBottom: 0,
+          paddingTop: mobileTypingContainerHeight + bottomInset,
+        },
+        sideInsets
+      ),
+    [bottomInset, sideInsets]
   )
 
   return (
