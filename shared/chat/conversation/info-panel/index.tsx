@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
+import {useRoute} from '@react-navigation/native'
 import type * as T from '@/constants/types'
 import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'
@@ -23,9 +24,9 @@ type Props = {
 
 const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props) => {
   const styles = useStyles()
-  // a mobile split chat shows the panel beside the thread
-  const split = Chat.useIsChatSplit()
-  const paneled = isMobile && split
+  // a mobile split chat shows the panel beside the thread; a narrow phone pushes it as its own route
+  const asRoute = useRoute().name === 'chatInfoPanel'
+  const paneled = isMobile && !asRoute
   const conversationIDKey = _conversationIDKey ?? Chat.noConversationIDKey
   const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -39,12 +40,14 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
   const insets = Kb.useSafeAreaInsets()
 
   const hideInfoPanel = React.useEffectEvent(() => {
+    // An iPhone Duo folding or unfolding moved the panel to the other layout's place for it
+    // (moveOpenThreadToLayout); hiding here would close the moved panel.
+    if (asRoute === Chat.isChatSplit()) return
     showConversationInfoPanel(conversationIDKey, false, undefined)
   })
   React.useEffect(() => {
     return () => {
-      // Only call showInfoPanel(false) on mobile where the panel is a separate route.
-      // On desktop the panel is inline and this cleanup fires during StrictMode
+      // Only on mobile: on desktop the panel is inline and this cleanup fires during StrictMode
       // double-effect, which immediately hides the panel.
       if (isMobile) {
         hideInfoPanel()

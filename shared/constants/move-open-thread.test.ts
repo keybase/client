@@ -83,3 +83,56 @@ test('splitting on the inbox changes nothing', () => {
   expect(nav.types()).toEqual([])
   expect(visible()?.name).toBe('chatRoot')
 })
+
+test('narrowing with the info panel beside the thread pushes the thread and its panel', () => {
+  showing({tabStack: [{name: 'chatRoot', params: {conversationIDKey: convID, infoPanel: {tab: 'bots'}}}]})
+
+  moveOpenThreadToLayout(false)
+
+  expect(rootNames()).toEqual(['loggedIn', 'chatConversation', 'chatInfoPanel'])
+  expect(visible()).toMatchObject({name: 'chatInfoPanel', params: {conversationIDKey: convID, tab: 'bots'}})
+})
+
+test('splitting with the info panel over the thread puts both in the chat root', async () => {
+  showing({
+    above: [
+      {name: 'chatConversation', params: {conversationIDKey: convID}},
+      {name: 'chatInfoPanel', params: {conversationIDKey: convID, tab: 'attachments'}},
+    ],
+  })
+
+  moveOpenThreadToLayout(true)
+  await rendersUntil(() => visible()?.name === 'chatRoot')
+
+  expect(rootNames()).toEqual(['loggedIn'])
+  expect(visible()).toMatchObject({
+    name: 'chatRoot',
+    params: {conversationIDKey: convID, infoPanel: {tab: 'attachments'}},
+  })
+})
+
+test('a fold and unfold round trip keeps the thread and its panel', async () => {
+  showing({tabStack: [{name: 'chatRoot', params: {conversationIDKey: convID, infoPanel: {tab: 'members'}}}]})
+
+  moveOpenThreadToLayout(false)
+  moveOpenThreadToLayout(true)
+  await rendersUntil(() => visible()?.name === 'chatRoot')
+
+  expect(rootNames()).toEqual(['loggedIn'])
+  expect(visible()).toMatchObject({
+    name: 'chatRoot',
+    params: {conversationIDKey: convID, infoPanel: {tab: 'members'}},
+  })
+})
+
+test('splitting after the panel was closed leaves it closed', async () => {
+  showing({
+    above: [{name: 'chatConversation', params: {conversationIDKey: convID}}],
+    tabStack: [{name: 'chatRoot', params: {conversationIDKey: convID, infoPanel: {tab: 'members'}}}],
+  })
+
+  moveOpenThreadToLayout(true)
+  await rendersUntil(() => visible()?.name === 'chatRoot')
+
+  expect((visible()?.params as {infoPanel?: unknown}).infoPanel).toBeUndefined()
+})
