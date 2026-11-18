@@ -8,7 +8,7 @@ import {
   type BottomSheetBackdropProps,
   type BottomSheetFooterProps,
 } from '@gorhom/bottom-sheet'
-import {useSafeAreaInsets} from '../safe-area-view'
+import {useSafeAreaInsets, useWindowInsets} from '../safe-area-view'
 import {initialWindowMetrics} from 'react-native-safe-area-context'
 import {FullWindowOverlay} from 'react-native-screens'
 import {Keyboard, useWindowDimensions} from 'react-native'
@@ -18,14 +18,16 @@ export type {SheetProps} from './index.shared'
 
 // The sheet lives in a FullWindowOverlay, so it needs the window's insets. The
 // nearest SafeAreaProvider can't supply them: a provider nested inside a
-// react-native-screens scene (every modal route) re-measures to ~0.
-const useWindowInsets = () => {
+// react-native-screens scene (every modal route) re-measures to ~0. The window's live insets
+// come from the root provider; launch-time metrics stand in only outside the app root.
+const useSheetInsets = () => {
   const local = useSafeAreaInsets()
-  const window = initialWindowMetrics?.insets
+  const live = useWindowInsets()
+  const window = live ?? initialWindowMetrics?.insets
   return {
     bottom: Math.max(window?.bottom ?? 0, local.bottom),
-    left: Math.max(window?.left ?? 0, local.left),
-    right: Math.max(window?.right ?? 0, local.right),
+    left: live ? live.left : Math.max(window?.left ?? 0, local.left),
+    right: live ? live.right : Math.max(window?.right ?? 0, local.right),
     top: Math.max(window?.top ?? 0, local.top),
   }
 }
@@ -46,7 +48,7 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 export function Sheet(props: SheetProps) {
   const styles = useStyles()
   const {children, footer, onHidden, snapPoints, style} = props
-  const {bottom: safeBottom, left: safeLeft, right: safeRight, top: safeTop} = useWindowInsets()
+  const {bottom: safeBottom, left: safeLeft, right: safeRight, top: safeTop} = useSheetInsets()
   const {width: windowWidth} = useWindowDimensions()
   // the library pins the sheet to both window edges (left/right 0), so margins place it
   const sideMargin = isTablet ? 0 : Math.max(0, (windowWidth - safeLeft - safeRight - maxPhoneSheetWidth) / 2)
