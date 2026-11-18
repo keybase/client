@@ -21,10 +21,10 @@ export const toggleConversationThreadSearch = (conversationIDKey: T.Chat.Convers
     return
   }
   const threadSearch = {}
-  if (Common.isSplit) {
+  if (Common.isChatSplit()) {
     setChatRootParams({conversationIDKey, threadSearch})
   } else {
-    navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
+    navigateAppend({name: Common.threadRouteName(), params: {conversationIDKey, threadSearch}}, true)
   }
 }
 

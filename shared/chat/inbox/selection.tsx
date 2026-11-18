@@ -40,7 +40,7 @@ const moveSelectionOff = (from: T.Chat.ConversationIDKey, why: string) => {
 }
 
 export const conversationGone = (id: T.Chat.ConversationIDKey, why: string) => {
-  if (!Common.isSplit || !T.Chat.isValidConversationIDKey(id) || Common.getSelectedConversation() !== id) {
+  if (!Common.isChatSplit() || !T.Chat.isValidConversationIDKey(id) || Common.getSelectedConversation() !== id) {
     return
   }
   moveSelectionOff(id, why)
@@ -103,13 +103,13 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
     return
   }
 
-  if (!Common.isSplit) {
+  if (!Common.isChatSplit()) {
     // A phone's thread screen with no conversation on it goes back to the inbox, but only while that
     // thread screen is what the user sees. Whatever else is up (the inbox, a modal such as the share
     // picker, another screen pushed above the tabs) belongs to someone else, and navigateToInbox
     // focuses the chat stack, which pops every screen stacked above the tabs.
     if (
-      getVisibleScreen(true)?.name === Common.threadRouteName &&
+      getVisibleScreen(true)?.name === Common.threadRouteName() &&
       !T.Chat.isValidConversationIDKey(selected)
     ) {
       logger.info('maybeChangeSelectedConversation: no conversation selected, so go to inbox')

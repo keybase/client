@@ -1,7 +1,14 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 // Phone layout: the thread is a root-level screen pushed above the tab navigator.
-jest.mock('@/constants/chat/layout', () => ({isSplit: false, threadRouteName: 'chatConversation'}))
+jest.mock('@/constants/chat/layout', () => ({
+  ...jest.requireActual<object>('@/constants/chat/layout'),
+  chatAlwaysSplit: false,
+  isChatSplit: () => false,
+  tabStacksHoldEveryRoute: false,
+  threadRouteName: () => 'chatConversation',
+  useIsChatSplit: () => false,
+}))
 
 import * as T from '@/constants/types'
 import {navigateToPendingThread, navigateToThread} from '@/constants/router'

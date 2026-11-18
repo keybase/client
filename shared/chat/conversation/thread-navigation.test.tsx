@@ -18,12 +18,9 @@ import {microtasks} from '@/test/flush'
 
 let mockSplit = true
 jest.mock('@/constants/chat/layout', () => ({
-  get isSplit() {
-    return mockSplit
-  },
-  get threadRouteName() {
-    return mockSplit ? 'chatRoot' : 'chatConversation'
-  },
+  ...jest.requireActual<object>('@/constants/chat/layout'),
+  isChatSplit: () => mockSplit,
+  threadRouteName: () => (mockSplit ? 'chatRoot' : 'chatConversation'),
 }))
 // isPhone is a plain property set per test: modules the tree imports read it while this file is still
 // loading, before any test-scope variable is initialized.

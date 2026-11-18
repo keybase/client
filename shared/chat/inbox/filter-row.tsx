@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -17,6 +18,9 @@ type OwnProps = {
 
 function ConversationFilterInput(ownProps: OwnProps) {
   const styles = useStyles()
+  // split, this row is in the header beside the account switcher, so it is compact
+  const split = Chat.useIsChatSplit()
+  const mobileSplit = isMobile && split
   const theme = Kb.Styles.useTheme()
   const {isSearching, onCancelSearch, onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
@@ -70,7 +74,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     <Kb.SearchFilter
       ref={inputRef}
       size="full-width"
-      style={styles.searchBox}
+      style={Kb.Styles.collapseStyles([styles.searchBox, mobileSplit && styles.searchBoxSplit])}
       icon="iconfont-search"
       placeholderText="Search"
       showXOverride={true}
@@ -83,7 +87,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
       onEnterKeyDown={onEnterKeyDown}
     />
   ) : (
-    <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
+    <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.searchPlaceholderOuter, mobileSplit && styles.searchPlaceholderOuterSplit])} alignItems="center">
       <Kb.ClickableBox direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder} testID={TestIDs.CHAT_INBOX_SEARCH}>
         <Kb.Icon
           type="iconfont-search"
@@ -100,7 +104,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
   return (
     <Kb.Box2
       direction="horizontal"
-      centerChildren={!Kb.Styles.isTablet}
+      centerChildren={!mobileSplit}
       gap={isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
       fullWidth={true}
       relative={true}
@@ -135,9 +139,9 @@ const useStyles = Kb.Styles.createStyleHook(
       searchBox: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-        // hacky, redo the layout of this component later
-        isTablet: {maxWidth: 270 - 16 * 2},
       }),
+      // hacky, redo the layout of this component later
+      searchBoxSplit: {maxWidth: 270 - 16 * 2},
       searchPlaceholder: {
         backgroundColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,
@@ -155,8 +159,8 @@ const useStyles = Kb.Styles.createStyleHook(
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
-        isTablet: {...Kb.Styles.paddingH(0)},
       }),
+      searchPlaceholderOuterSplit: Kb.Styles.paddingH(0),
       searchPlaceholderText: {color: theme.black_50},
       whiteBg: {backgroundColor: theme.white},
     }) as const

@@ -1236,6 +1236,8 @@ const NativeAnimatedInput = (() => {
 
 const NativePlatformInput = (p: Props) => {
   const nativeStyles = useNativeStyles()
+  // clear of the screen's side strips: in a phone's split chat the tab bar floats over the right one
+  const sideInsets = Kb.useScreenSideInsets()
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [showAudioSend, setShowAudioSend] = React.useState(false)
@@ -1400,6 +1402,7 @@ const NativePlatformInput = (p: Props) => {
           style={Kb.Styles.collapseStyles([
             nativeStyles.container,
             isExploding && nativeStyles.explodingContainer,
+            Kb.withSideInsets(null, sideInsets),
           ])}
           fullWidth={true}
         >

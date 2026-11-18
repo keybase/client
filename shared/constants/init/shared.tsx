@@ -46,6 +46,7 @@ import {
 } from "@/chat/notification-router";
 import { onChatRouteChanged } from "@/chat/inbox/metadata";
 import { watchChatSelection } from "@/chat/inbox/selection";
+import { watchChatLayout } from "@/chat/layout-watch";
 import { syncInboxBadgeState } from "@/chat/inbox/badge-state";
 import { clearSignupEmail } from "@/people/signup-email";
 import { clearSignupDeviceNameDraft } from "@/signup/device-name-draft";
@@ -594,6 +595,7 @@ export const initSharedSubscriptions = (
     ),
   );
   _sharedUnsubs.push(watchChatSelection());
+  _sharedUnsubs.push(watchChatLayout());
   _sharedUnsubs.push(
     subscribeValue(
       useShellState,

@@ -31,6 +31,7 @@ const Conversation = function Conversation(props: Props) {
 
 const ConversationInner = function ConversationInner() {
   const conversationIDKey = useConversationThreadID()
+  const split = Chat.useIsChatSplit()
   // Single owner of the meta/participants reload listeners for this screen; the
   // header/banner/input consumers read via the reload-free selector hooks.
   useConversationMetadataReload(conversationIDKey)
@@ -71,7 +72,7 @@ const ConversationInner = function ConversationInner() {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return C.isPhone ? <></> : <NoConversation />
+      return split ? <NoConversation /> : <></>
     case 'normal':
       return <Normal />
     case 'youAreReset':

@@ -72,7 +72,8 @@ const SmallTeam = (p: Props) => {
   const participantOne = teamDisplayName ? '' : participants[0] ?? ''
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
   const className = Kb.Styles.classNames('small-row', {selected: isSelected})
-  const containerStyle = Kb.Styles.isTablet
+  // only a split inbox selects a row
+  const containerStyle = Kb.Styles.isTablet || isSelected
     ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
     : styles.container
   const rowContents = (
