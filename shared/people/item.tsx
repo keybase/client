@@ -26,8 +26,18 @@ export type Props = {
 
 const PeopleItem = (props: Props) => {
   const styles = useStyles()
+  // the row's background runs under the screen's side strips; its content stays clear of them
+  const {left, right} = Kb.useScreenSideInsets()
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        props.badged && styles.containerBadged,
+        {paddingLeft: left, paddingRight: right},
+      ])}
+    >
       {!!props.icon && (
         <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
           {props.icon}

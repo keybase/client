@@ -50,7 +50,11 @@ type Props = {
   onTouchStart?: (e: GestureResponderEvent) => void
   onTouchEnd?: (e: GestureResponderEvent) => void
   testID?: string
+  // the content runs under the screen's side strips: its rows clear them themselves
+  noSideInsets?: boolean
 }
+
+const zeroSideInsets = {left: 0, right: 0}
 
 type DivScrollable = {
   scrollTo: (opts: {left?: number; top?: number}) => void
@@ -59,8 +63,9 @@ type DivScrollable = {
 
 function ScrollView(props: Props) {
   const styles = useStyles()
-  const {ref: outerRef, onRefresh, refreshing, ...rest} = props
-  const sideInsets = useScreenSideInsets()
+  const {ref: outerRef, onRefresh, refreshing, noSideInsets, ...rest} = props
+  const screenSideInsets = useScreenSideInsets()
+  const sideInsets = noSideInsets ? zeroSideInsets : screenSideInsets
 
   const divRef = React.useRef<DivScrollable | null>(null)
   const innerRef = React.useRef<ScrollViewInstance | null>(null)
