@@ -23,6 +23,9 @@ type Props = InboxAndConversationProps & {
   leftPane: React.ReactNode
 }
 
+const infoPanelWidth = isMobile ? 350 : 320
+const noSideInsets = {left: 0, right: 0}
+
 export function InboxAndConversationShell(props: Props) {
   const styles = useStyles()
   // each pane clears only the screen edge it touches
@@ -67,8 +70,15 @@ export function InboxAndConversationShell(props: Props) {
           </Kb.ScreenSideInsetsContext>
         </Kb.Box2>
         {infoPanel ? (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+          // the panel clears the right strip itself, so its lists keep their full width
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
+            style={Kb.Styles.collapseStyles([styles.infoPanel, {paddingRight: right, width: infoPanelWidth + right}])}
+          >
+            <Kb.ScreenSideInsetsContext value={noSideInsets}>
+              <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+            </Kb.ScreenSideInsetsContext>
           </Kb.Box2>
         ) : null}
       </Kb.Box2>
@@ -88,7 +98,6 @@ const useStyles = Kb.Styles.createStyleHook(
         position: 'absolute',
         right: 0,
         top: 0,
-        width: isMobile ? 350 : 320,
       },
     }) as const
 )
