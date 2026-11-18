@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import {RefreshControl, ScrollView as NativeScrollView} from 'react-native'
 import type {ScrollViewProps, ScrollViewInstance, RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
+import {useScreenSideInsets, withSideInsets} from './screen-side-insets'
 
 export type ScrollViewRef = {
   scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
@@ -59,6 +60,7 @@ type DivScrollable = {
 function ScrollView(props: Props) {
   const styles = useStyles()
   const {ref: outerRef, onRefresh, refreshing, ...rest} = props
+  const sideInsets = useScreenSideInsets()
 
   const divRef = React.useRef<DivScrollable | null>(null)
   const innerRef = React.useRef<ScrollViewInstance | null>(null)
@@ -110,6 +112,7 @@ function ScrollView(props: Props) {
       ref={innerRef}
       {...nativeProps}
       refreshControl={refreshControl}
+      contentContainerStyle={withSideInsets(nativeProps.contentContainerStyle, sideInsets)}
       contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overScrollMode="never"
