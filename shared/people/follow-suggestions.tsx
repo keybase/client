@@ -22,6 +22,8 @@ const FollowSuggestions = (props: Props) => {
       <Kb.ScrollView
         {...horizontalScrollProps}
         contentContainerStyle={styles.scrollViewContainer}
+        // the content already pads clear of the side strips; iOS would inset it by them again
+        contentInsetAdjustmentBehavior="never"
         testID={TestIDs.PEOPLE_FOLLOW_SUGGESTIONS}
       >
         {props.suggestions.map(suggestion => (
