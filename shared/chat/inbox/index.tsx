@@ -21,7 +21,7 @@ import ConnectedTeamsDivider from './row/teams-divider-container'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
 import type {LegendListRef} from '@/common-adapters'
-import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
+import {inboxWidth, smallRowHeight, splitInboxWidth, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
 import type {InboxSearchController} from './use-inbox-search'
 import {useInboxSearch} from './use-inbox-search'
@@ -483,14 +483,16 @@ function NativeInboxBody(p: ControlledInboxProps) {
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
-  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={isMobile} />
+  // split, the search row is in the header (see use-header-portal)
+  const split = Chat.useIsChatSplit()
+  const headComponent = split ? null : <SearchRow search={search} showSearch={isMobile} />
   const chosenChannelsTeamnames = useChosenChannelsTeamnames()
   const listExtraData = React.useMemo(
     () => ({
       chosenChannelsTeamnames,
-      selectedConversationIDKey: C.isTablet ? selectedConversationIDKey : undefined,
+      selectedConversationIDKey: split ? selectedConversationIDKey : undefined,
     }),
-    [chosenChannelsTeamnames, selectedConversationIDKey]
+    [chosenChannelsTeamnames, selectedConversationIDKey, split]
   )
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -532,7 +534,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
+      const isSelected = split && 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
       element = makeRow(row, isSelected, chosenChannelsTeamnames)
     }
 
@@ -586,7 +588,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
       <PerfProfiler id="Inbox">
         {/* collapsable={false}: the backgroundColor on this wrapper makes RN view-flatten the
             list's scroll view into a sibling, which breaks iOS 26 tabBarMinimizeBehavior detection. */}
-        <Kb.Box2 direction="vertical" fullWidth={true} relative={true} collapsable={false} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
+        <Kb.Box2 direction="vertical" fullWidth={true} relative={true} collapsable={false} style={split ? nativeStyles.splitContainer : nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
           <NativeLoadingLine />
           {isSearching ? (
             <InboxSearch header={headComponent} search={search} />
@@ -783,15 +785,14 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
 const useNativeStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
-      container: Kb.Styles.platformStyles({
-        common: {
-          flexGrow: 1,
-        },
-        isTablet: {
-          backgroundColor: theme.blueGrey,
-          maxWidth: Kb.Styles.globalStyles.mediumSubNavWidth,
-        },
-      }),
+      container: {
+        flexGrow: 1,
+      },
+      splitContainer: {
+        backgroundColor: theme.blueGrey,
+        flexGrow: 1,
+        maxWidth: splitInboxWidth,
+      },
       loadingContainer: {
         left: 0,
         position: 'absolute',

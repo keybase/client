@@ -25,6 +25,10 @@ type Props = InboxAndConversationProps & {
 
 export function InboxAndConversationShell(props: Props) {
   const styles = useStyles()
+  // each pane clears only the screen edge it touches
+  const {left, right} = Kb.useScreenSideInsets()
+  const leftPaneInsets = {left, right: 0}
+  const conversationInsets = {left: 0, right}
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
@@ -56,9 +60,11 @@ export function InboxAndConversationShell(props: Props) {
   return (
     <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-        {props.leftPane}
+        <Kb.ScreenSideInsetsContext value={leftPaneInsets}>{props.leftPane}</Kb.ScreenSideInsetsContext>
         <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.conversation}>
-          <Conversation {...props} conversationIDKey={conversationIDKey} />
+          <Kb.ScreenSideInsetsContext value={conversationInsets}>
+            <Conversation {...props} conversationIDKey={conversationIDKey} />
+          </Kb.ScreenSideInsetsContext>
         </Kb.Box2>
         {infoPanel ? (
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>

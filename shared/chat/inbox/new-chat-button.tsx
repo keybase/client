@@ -18,7 +18,8 @@ const colorBarCommon = {
   width: '100%',
 } as const
 
-const HeaderNewChatButton = () => {
+// compact: a short label and no glass, for a mobile split header where it shares the inbox's width
+const HeaderNewChatButton = ({compact = false}: {compact?: boolean}) => {
   const styles = useStyles()
   // mobile's empty inbox draws its own big 'Start a new chat' button, so the header one is
   // redundant there; desktop has no such affordance and must keep it
@@ -44,7 +45,7 @@ const HeaderNewChatButton = () => {
       <Kb.Box2 direction="vertical" style={styles.gradientYellow} />
       <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
       <Kb.Button
-        label="New chat"
+        label={compact ? 'New' : 'New chat'}
         mode="Primary"
         onClick={onNewChat}
         small={true}
@@ -55,7 +56,7 @@ const HeaderNewChatButton = () => {
     </Kb.Box2>
   )
 
-  if (C.isLiquidGlassSupported) {
+  if (C.isLiquidGlassSupported && !compact) {
     return (
       <GlassView isInteractive={true} glassEffectStyle="regular" style={styles.glass}>
         {rainbowButton}

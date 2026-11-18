@@ -1,8 +1,15 @@
 /// <reference types="jest" />
-// Phone shapes. isSplit is computed at module load and this suite loads as desktop, so only
+// Phone shapes. chatAlwaysSplit is computed at module load and this suite loads as desktop, so only
 // mocking the module gets the phone layout, where an open conversation is pushed onto the root
 // stack above the tabs.
-jest.mock('@/constants/chat/layout', () => ({isSplit: false, threadRouteName: 'chatConversation'}))
+jest.mock('@/constants/chat/layout', () => ({
+  ...jest.requireActual<object>('@/constants/chat/layout'),
+  chatAlwaysSplit: false,
+  isChatSplit: () => false,
+  tabStacksHoldEveryRoute: false,
+  threadRouteName: () => 'chatConversation',
+  useIsChatSplit: () => false,
+}))
 import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'

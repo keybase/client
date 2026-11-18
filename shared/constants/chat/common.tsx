@@ -1,31 +1,31 @@
 import * as T from '../types'
 import {getVisibleScreen} from '@/constants/router'
 import {useShellState} from '@/stores/shell'
-import {isSplit, threadRouteName} from './layout'
+import {isChatSplit, threadRouteName} from './layout'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
 export const getSelectedConversation = (): T.Chat.ConversationIDKey => {
   const maybeVisibleScreen = getVisibleScreen(false)
-  if (maybeVisibleScreen?.name === threadRouteName) {
+  if (maybeVisibleScreen?.name === threadRouteName()) {
     const mParams = maybeVisibleScreen.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
     return mParams?.conversationIDKey ?? T.Chat.noConversationIDKey
   }
   return T.Chat.noConversationIDKey
 }
 
-export {isSplit, threadRouteName} from './layout'
+export {isChatSplit, threadRouteName, useIsChatSplit} from './layout'
 
 export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const selectedConversationIDKey = getSelectedConversation()
 
   let chatThreadSelected: boolean
-  if (!isSplit) {
+  if (!isChatSplit()) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
     const maybeVisibleScreen = getVisibleScreen()
     chatThreadSelected =
-      (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
+      (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName()
   }
 
   const {appFocused, active: userActive} = useShellState.getState()

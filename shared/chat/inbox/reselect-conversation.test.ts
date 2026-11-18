@@ -8,8 +8,12 @@ import {useConfigState} from '@/stores/config'
 // a phone: no split layout, so threads open on their own screen. The layout is read from the
 // platform when the module loads, before a test can say it is a phone.
 jest.mock('@/constants/chat/layout', () => ({
-  isSplit: false,
-  threadRouteName: 'chatConversation',
+  ...jest.requireActual<object>('@/constants/chat/layout'),
+  chatAlwaysSplit: false,
+  isChatSplit: () => false,
+  tabStacksHoldEveryRoute: false,
+  threadRouteName: () => 'chatConversation',
+  useIsChatSplit: () => false,
 }))
 
 import * as Common from '@/constants/chat/common'
@@ -87,7 +91,7 @@ test('a reselect while a conversation creation is pending does not pop to the in
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })
 
 test('a reselect while the create error screen is up does not pop to the inbox', () => {
@@ -97,7 +101,7 @@ test('a reselect while the create error screen is up does not pop to the inbox',
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })
 
 // the real "we are on a dead conversation" case still has to bounce
@@ -119,7 +123,7 @@ test('a reselect on a thread screen above another tab leaves that tab alone', ()
   maybeChangeSelectedConversation(layout({newConvID}))
 
   runDeferredNavigation()
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })
 
 // The inbox is already where the bounce would go, and navigateToInbox focusing the chat stack
@@ -145,7 +149,7 @@ test('a reselect while the share picker is over the inbox leaves the picker up',
 })
 
 test('a reselect while a modal is over an empty thread screen leaves the modal up', () => {
-  nav = phoneTree(makeRootState({above: [{name: Common.threadRouteName}, {name: 'incomingShareNew'}]}))
+  nav = phoneTree(makeRootState({above: [{name: Common.threadRouteName()}, {name: 'incomingShareNew'}]}))
 
   maybeChangeSelectedConversation(layout({newConvID}))
 
@@ -163,7 +167,7 @@ test('a reselect naming the open thread on a phone leaves it open', () => {
   maybeChangeSelectedConversation(layout({newConvID, oldConvID: open}))
 
   runDeferredNavigation()
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })
 
 test('the open thread being gone on a phone leaves it open', () => {
@@ -174,7 +178,7 @@ test('the open thread being gone on a phone leaves it open', () => {
   conversationGone(open, 'left')
 
   runDeferredNavigation()
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })
 
 // Kicked from the team, removed from the conversation, or never in it: a phone's open thread stays
@@ -208,5 +212,5 @@ test.each([
 
   expect(paramsOf(fake, getThreadNonblock)).toHaveLength(1)
   expect(paramsOf(fake, 'keybase.1.config.guiSetValue').map(p => p.path)).toEqual(['ui.routeState2'])
-  expectLeftAlone(Common.threadRouteName)
+  expectLeftAlone(Common.threadRouteName())
 })

@@ -12,7 +12,7 @@ import * as NavTree from './nav-tree'
 import {DEBUG_NAV} from './nav-debug'
 import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
-import {isSplit, threadRouteName} from './chat/layout'
+import {isChatSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
 import {makeUUID} from '@/util/uuid'
 import * as Meta from './chat/meta'
@@ -534,6 +534,50 @@ type NavigateToThreadReason =
   | 'misc'
   | 'teamMention'
 
+type OpenThreadParams = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  threadSearch?: {query?: string}
+}
+
+// The tab navigator under a pushed screen may not have reported its state yet, so the selection
+// waits for it (a few seconds at most)
+const selectInChatRootOnceMounted = (params: OpenThreadParams) => {
+  if (setChatRootParams(params)) return
+  const timer = setTimeout(() => {
+    unsub()
+    logger.warn('chat layout: the chat tab never mounted, the thread stays unselected')
+  }, 5000)
+  const unsub = getNavigator().addListener('state', () => {
+    if (!setChatRootParams(params)) return
+    clearTimeout(timer)
+    unsub()
+  })
+}
+
+// The chat layout of a phone that splits by width just changed (see constants/chat/layout): the
+// thread the user has open moves to the route that shows it in the new layout. Split, it is chatRoot's
+// param; narrow, it is chatConversation pushed above the tabs. Only a thread on top moves: under a
+// modal, or under a screen pushed over it, the user is looking at something else, which stays put.
+export const moveOpenThreadToLayout = (split: boolean) => {
+  const rs = getRootState()
+  if (split) {
+    const top = rs?.routes?.at(-1)
+    if (top?.name !== 'chatConversation') return
+    const {conversationIDKey, threadSearch} = top.params as OpenThreadParams
+    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
+    logger.info(`chat layout: split, thread ${conversationIDKey} moves to chatRoot`)
+    getNavigator().navigateUp()
+    selectInChatRootOnceMounted({conversationIDKey, threadSearch})
+    return
+  }
+  const visible = NavTree.visibleScreen(rs, {includeModals: true})
+  if (visible?.name !== 'chatRoot') return
+  const {conversationIDKey, threadSearch} = visible.params as OpenThreadParams
+  if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
+  logger.info(`chat layout: narrow, thread ${conversationIDKey} moves to chatConversation`)
+  getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey, threadSearch}})
+}
+
 const navToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   navParams?: ThreadNavParams
@@ -547,8 +591,8 @@ const navToThread = (
     threadSearch: navParams?.threadSearch,
   }
 
-  if (isSplit) {
-    // Desktop/tablet: reset the tab navigator state to switch to chatTab with chatRoot params.
+  if (isChatSplit()) {
+    // Split: reset the tab navigator state to switch to chatTab with chatRoot params.
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
@@ -581,7 +625,7 @@ export const navigateToThread = (
   const visibleConvo = params?.conversationIDKey
   const visibleRouteName = visible?.name
 
-  if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
+  if (visibleRouteName !== threadRouteName() && reason === 'findNewestConversation') {
     return
   }
 
@@ -601,7 +645,7 @@ export const navigateToThread = (
     threadSearch,
   }
   let navigated: boolean
-  if (isSplit) {
+  if (isChatSplit()) {
     navigated = navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
     navigated = navToThread(conversationIDKey, navParams)
@@ -613,7 +657,7 @@ export const navigateToThread = (
     // {conversationIDKey} from router-v2/linking.tsx's makeChatConversationState, would defeat
     // that check and let a same-conversation call push a second thread screen.
     const replace =
-      visibleRouteName === threadRouteName &&
+      visibleRouteName === threadRouteName() &&
       (!T.Chat.isValidConversationIDKey(visibleConvo ?? '') || visibleConvo === conversationIDKey)
     const modalPath = getModalStack()
     if (modalPath.length > 0) {
@@ -636,7 +680,7 @@ export const navigateToThread = (
       // merge.
       navigated = getNavigator().setRouteParams(visible?.key, params)
     } else {
-      navigated = navigateAppend({name: threadRouteName, params})
+      navigated = navigateAppend({name: threadRouteName(), params})
     }
   }
 

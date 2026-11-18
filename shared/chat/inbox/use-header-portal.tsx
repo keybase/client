@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
@@ -14,12 +13,12 @@ export default function useInboxHeaderPortal(search: InboxSearchController) {
   )
 
   React.useEffect(() => {
-    if (!isMobile || !C.isTablet) return
+    if (!isMobile) return
     setInboxHeaderPortalContent(content)
   }, [content])
 
   React.useEffect(() => {
-    if (!isMobile || !C.isTablet) return
+    if (!isMobile) return
     return () => {
       setInboxHeaderPortalContent(null)
     }

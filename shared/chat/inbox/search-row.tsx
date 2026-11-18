@@ -53,7 +53,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} fullHeight={true} style={styles.row}>
         <Kb.BoxGrow2>{filter}</Kb.BoxGrow2>
-        <NewChatButton />
+        <NewChatButton compact={isMobile} />
       </Kb.Box2>
     )
   }

@@ -151,8 +151,8 @@ export const onChatRouteChanged = (
   }
   const p = NavTree.visibleScreen(prev)
   const n = NavTree.visibleScreen(next)
-  const wasChat = p?.name === Common.threadRouteName
-  const isChat = n?.name === Common.threadRouteName
+  const wasChat = p?.name === Common.threadRouteName()
+  const isChat = n?.name === Common.threadRouteName()
   if (!wasChat && !isChat) {
     return
   }
