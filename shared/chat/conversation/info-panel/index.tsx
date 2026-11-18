@@ -23,6 +23,9 @@ type Props = {
 
 const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props) => {
   const styles = useStyles()
+  // a mobile split chat shows the panel beside the thread
+  const split = Chat.useIsChatSplit()
+  const paneled = isMobile && split
   const conversationIDKey = _conversationIDKey ?? Chat.noConversationIDKey
   const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -148,12 +151,12 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     default:
       sectionList = null
   }
-  if (Kb.Styles.isTablet) {
+  if (paneled) {
     // Use a View to make the left border.
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.containerOuterTablet}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.containerBorder}></Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.containerPaneled}>
           {sectionList}
         </Kb.Box2>
       </Kb.Box2>
@@ -190,16 +193,18 @@ const useStyles = Kb.Styles.createStyleHook(
           borderLeft: `1px solid ${theme.black_10}`,
           width: infoPanelWidthElectron,
         },
-        isTablet: {
-          paddingTop: Kb.Styles.globalMargins.small,
-          width: infoPanelWidthTablet,
-        },
       }),
       containerBorder: {
         backgroundColor: theme.black_10,
         width: tabletContainerBorderSize,
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
+      containerPaneled: {
+        alignItems: 'stretch',
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.small,
+        width: infoPanelWidthTablet,
+      },
       tab: {
         justifyContent: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,

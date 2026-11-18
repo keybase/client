@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
+import {useIsChatSplit} from '@/constants/chat/layout'
 import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -707,6 +708,7 @@ export const useAttachmentSections = (
 ): {sections: Array<Section>} => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
+  const split = useIsChatSplit()
   const linkStyleOverride = React.useMemo(
     () => ({
       link: Kb.Styles.collapseStyles([styles.linkStyle, {color: theme.blueDark}]) as StylesTextCrossPlatform,
@@ -833,7 +835,7 @@ export const useAttachmentSections = (
       case T.RPCChat.GalleryItemTyp.media:
         {
           const rowSize = 4 // count of images in each row
-          const maxMediaThumbSize = infoPanelWidth() / rowSize
+          const maxMediaThumbSize = infoPanelWidth(split) / rowSize
           const getMediaCell = (m: T.Chat.MessageAttachment) => {
             const cached = mediaCellCache.get(m)
             if (cached?.size === maxMediaThumbSize) {

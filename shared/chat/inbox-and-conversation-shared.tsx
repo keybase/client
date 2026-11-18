@@ -88,7 +88,7 @@ const useStyles = Kb.Styles.createStyleHook(
         position: 'absolute',
         right: 0,
         top: 0,
-        width: C.isTablet ? 350 : 320,
+        width: isMobile ? 350 : 320,
       },
     }) as const
 )
