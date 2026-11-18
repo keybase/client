@@ -7,6 +7,7 @@ import {HeaderHeightContext} from '@react-navigation/elements'
 import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
+import {useWindowDimensions, type LayoutChangeEvent} from 'react-native'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {previousRouteIsModal} from '@/constants/nav-tree'
 
@@ -152,16 +153,21 @@ const ModalScreenWrapper = ({
   const modalBox = {size: modalSize}
   // Sides come from the window's insets, not the sheet's own safe area: in an iPhone Duo's Split
   // View the sheet's safe area also holds the column iOS keeps for header buttons, which a sheet
-  // leaves empty. The window insets still clear the Duo's status column.
+  // leaves empty. The window insets still clear the Duo's status column, but only where the sheet
+  // reaches it: iOS centers a sheet narrower than its window (an unfolded Duo), clear of the strips.
   const windowInsets = useSafeAreaInsets()
+  const {width: windowWidth} = useWindowDimensions()
+  const [sheetWidth, setSheetWidth] = React.useState<number | undefined>(undefined)
+  const onLayout = (e: LayoutChangeEvent) => setSheetWidth(e.nativeEvent.layout.width)
+  const sheetGap = Math.max(0, (windowWidth - (sheetWidth ?? windowWidth)) / 2)
   const edges = navigationOptions?.safeAreaEdges ?? allEdges
   const verticalEdges = edges.filter(e => e === 'top' || e === 'bottom')
   const sidePadding = {
-    paddingLeft: edges.includes('left') ? windowInsets.left : 0,
-    paddingRight: edges.includes('right') ? windowInsets.right : 0,
+    paddingLeft: edges.includes('left') ? Math.max(0, windowInsets.left - sheetGap) : 0,
+    paddingRight: edges.includes('right') ? Math.max(0, windowInsets.right - sheetGap) : 0,
   }
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+    <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none" onLayout={onLayout}>
       {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
           onto a view whose static style is flexGrow:1 and whose child SafeAreaView forces
           flex:1, so the shrink never reaches layout and the keyboard covers the content.
