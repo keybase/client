@@ -303,3 +303,22 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	_, err = os.Stat(path)
 	require.NoError(t, err)
 }
+
+func TestAttachmentGetURLWithoutServer(t *testing.T) {
+	ctc, _ := setupChatTest(t, "TestAttachmentGetURLWithoutServer")
+	defer ctc.Cleanup()
+	g := ctc.Context()
+	fetcher := NewCachingAttachmentFetcher(g, mockAttachmentRemoteStore{}, 1)
+	httpSrv := manager.NewSrv(g.ExternalG())
+	srv := NewAttachmentHTTPSrv(g, httpSrv, fetcher,
+		func() chat1.RemoteInterface { return mockSigningRemote{} })
+	ctx := context.TODO()
+	convID := chat1.ConversationID([]byte{1, 2, 3, 4})
+
+	url := srv.GetURL(ctx, convID, 1, false, false, false)
+	require.Regexp(t, `^http://127\.0\.0\.1:\d+/at\?key=\w+&prev=false&noanim=false&isemoji=false$`, url)
+
+	g.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	require.Eventually(t, func() bool { return !httpSrv.Active() }, 10*time.Second, 10*time.Millisecond)
+	require.Empty(t, srv.GetURL(ctx, convID, 1, false, false, false))
+}

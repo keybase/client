@@ -36,18 +36,16 @@ const Screen = (p: OwnProps) => {
   )
   const {width, height} = useSafeAreaFrame()
   const isPortrait = height > width
-  // A new window size (a rotation, an iPhone Duo folding or entering Split View) remounts the
-  // viewer: the zoom view keeps its old measurements and can leave the media off screen.
-  const size = `${width}x${height}`
-  const lastSizeRef = React.useRef(size)
+  const wasPortraitRef = React.useRef(isPortrait)
+  // reset zoom etc on change
   const [key, setKey] = React.useState(0)
 
   React.useEffect(() => {
-    if (size !== lastSizeRef.current) {
-      lastSizeRef.current = size
+    if (isPortrait !== wasPortraitRef.current) {
+      wasPortraitRef.current = isPortrait
       setKey(k => k + 1)
     }
-  }, [size])
+  }, [isPortrait])
 
   return (
     <SeededFull
