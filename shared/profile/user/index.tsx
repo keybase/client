@@ -396,16 +396,14 @@ const User = (props: {username: string}) => {
     return () => observer.disconnect()
   }, [])
 
-  // on mobile the screen can be narrower than the window (iPhone Duo Split View), and the list's
-  // content is narrower still by the screen's side insets
-  const sideInsets = Kb.useScreenSideInsets()
+  // on mobile the screen can be narrower than the window (iPhone Duo Split View)
   const onWrapperLayout = isMobile
     ? (e: {nativeEvent: {layout: {width: number}}}) => setWidth(e.nativeEvent.layout.width)
     : undefined
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
-  const {itemsInARow, itemWidth} = widthToDimensions(width - sideInsets.left - sideInsets.right)
+  const {itemsInARow, itemWidth} = widthToDimensions(width)
   const chunks: Array<Item> = React.useMemo(() => {
     const friends = selectedTab === 'following' ? p.following : p.followers
     const result: Array<Item> = width
@@ -562,41 +560,46 @@ const User = (props: {username: string}) => {
   )
 
   return (
-    <Kb.Reloadable
-      onReload={p.onReload}
-      waitingKeys={[C.waitingKeyTrackerProfileLoad]}
-      errorFilter={errorFilter}
-      style={styles.reloadable}
-    >
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType, styles)])}
-        testID={TestIDs.PROFILE_PAGE}
+    // the page runs under an iPhone Duo's side strips: only the back button sits there, and it covers
+    // nothing the page needs
+    <Kb.ScreenSideInsetsContext value={noSideInsets}>
+      <Kb.Reloadable
+        onReload={p.onReload}
+        waitingKeys={[C.waitingKeyTrackerProfileLoad]}
+        errorFilter={errorFilter}
+        style={styles.reloadable}
       >
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          ref={wrapperRef}
-          onLayout={onWrapperLayout}
+          style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType, styles)])}
+          testID={TestIDs.PROFILE_PAGE}
         >
-          <Kb.SectionList
-            key={p.username}
-            stickySectionHeadersEnabled={true}
-            renderSectionHeader={renderSectionHeader}
-            sections={sections}
-            style={styles.sectionList}
-            contentContainerStyle={styles.sectionListContentStyle}
-          />
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            ref={wrapperRef}
+            onLayout={onWrapperLayout}
+          >
+            <Kb.SectionList
+              key={p.username}
+              stickySectionHeadersEnabled={true}
+              renderSectionHeader={renderSectionHeader}
+              sections={sections}
+              style={styles.sectionList}
+              contentContainerStyle={styles.sectionListContentStyle}
+            />
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.Reloadable>
+      </Kb.Reloadable>
+    </Kb.ScreenSideInsetsContext>
   )
 }
 
 const usernameSelectedTab = new Map<string, Tab>()
+const noSideInsets = {left: 0, right: 0}
 
 // module scope outlives sign-out; keyed by username
 registerExternalResetter('profile-user-selected-tab', () => {
@@ -688,6 +691,9 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   proofsArea: Kb.Styles.platformStyles({
     isMobile: {
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
+      // a wide window (iPhone Duo unfolded, iPad) would stretch the rows across it
+      alignSelf: 'center',
+      maxWidth: 500,
     },
   }),
   proveIt: {paddingTop: Kb.Styles.globalMargins.small},
