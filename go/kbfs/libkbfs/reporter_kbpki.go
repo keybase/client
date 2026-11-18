@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
@@ -116,6 +117,13 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeWrite
 		filename = e.Filename
+	case kbfsblock.ServerErrorNoPermission, kbfsmd.ServerErrorWriteAccess:
+		// The server refused an operation the local handle check
+		// allowed, so there is no file to name; name the folder.
+		code = keybase1.FSErrorType_ACCESS_DENIED
+		if tlfName != "" {
+			filename = tlfhandle.BuildCanonicalPathForTlfName(t, tlfName)
+		}
 	case UnverifiableTlfUpdateError:
 		code = keybase1.FSErrorType_REVOKED_DATA_DETECTED
 	case idutil.NoCurrentSessionError:

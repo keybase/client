@@ -352,39 +352,11 @@ func (j *JournalManager) hasTLFJournal(tlfID tlf.ID) bool {
 	return ok
 }
 
-func (j *JournalManager) getHandleForJournal(
-	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) (
-	*tlfhandle.Handle, error,
-) {
-	bid, err := tj.getBranchID()
-	if err != nil {
-		return nil, err
-	}
-
-	head, err := tj.getMDHead(ctx, bid)
-	if err != nil {
-		return nil, err
-	}
-
-	if head == (ImmutableBareRootMetadata{}) {
-		return nil, nil
-	}
-
-	headBareHandle, err := head.MakeBareTlfHandleWithExtra()
-	if err != nil {
-		return nil, err
-	}
-
-	return tlfhandle.MakeHandleWithTlfID(
-		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), tlfID, j.config.OfflineAvailabilityForID(tlfID))
-}
-
 func (j *JournalManager) makeFBOForJournal(
 	ctx context.Context, tj *tlfJournal, tlfID tlf.ID,
 	branch data.BranchName,
 ) error {
-	handle, err := j.getHandleForJournal(ctx, tj, tlfID)
+	handle, err := tj.getHandle(ctx, tlfID)
 	if err != nil {
 		return err
 	}
@@ -1181,7 +1153,7 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 			continue
 		}
 
-		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
+		handle, err := tlfJournal.getHandle(ctx, tlfJournal.tlfID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1204,7 +1176,7 @@ func (j *JournalManager) getJournalsInConflictLocked(ctx context.Context) (
 		}
 		tlfJournal := j.tlfJournals[fakeTlfID]
 
-		handle, err := j.getHandleForJournal(ctx, tlfJournal, tlfJournal.tlfID)
+		handle, err := tlfJournal.getHandle(ctx, tlfJournal.tlfID)
 		if err != nil {
 			return nil, nil, err
 		}

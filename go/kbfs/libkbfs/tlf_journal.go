@@ -287,13 +287,16 @@ type tlfJournal struct {
 	// This channel is closed when background work shuts down.
 	backgroundShutdownCh chan struct{}
 
-	// Serializes all flushes, and protects `lastServerMDCheck` and
-	// `singleOpMode`.
+	// Serializes all flushes, and protects `lastServerMDCheck`,
+	// `singleOpMode` and `writeRefusalReported`.
 	flushLock            sync.Mutex
 	lastServerMDCheck    time.Time
 	singleOpMode         singleOpMode
 	finishSingleOpCh     chan flushContext
 	singleOpFlushContext flushContext
+	// Set once a server write refusal has been reported, and cleared
+	// when a flush makes progress, so retries don't repeat the report.
+	writeRefusalReported bool
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
@@ -886,6 +889,13 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		j.journalLock.Lock()
 		j.lastFlushErr = err
 		j.journalLock.Unlock()
+		if flushedBlockEntries > 0 || flushedMDEntries > 0 {
+			j.writeRefusalReported = false
+		}
+		if refusal := writeRefusal(err); refusal != nil &&
+			!j.writeRefusalReported {
+			j.writeRefusalReported = j.reportWriteRefusal(ctx, refusal)
+		}
 	}()
 
 	for {
@@ -2328,6 +2338,72 @@ func (j *tlfJournal) getMDHead(
 	}
 
 	return j.mdJournal.getHead(ctx, bid)
+}
+
+// getHandle returns the handle of the journal's MD head under the given
+// TLF ID, or nil if the journal has no MD.
+func (j *tlfJournal) getHandle(
+	ctx context.Context, tlfID tlf.ID,
+) (*tlfhandle.Handle, error) {
+	bid, err := j.getBranchID()
+	if err != nil {
+		return nil, err
+	}
+
+	head, err := j.getMDHead(ctx, bid)
+	if err != nil {
+		return nil, err
+	}
+
+	if head == (ImmutableBareRootMetadata{}) {
+		return nil, nil
+	}
+
+	headBareHandle, err := head.MakeBareTlfHandleWithExtra()
+	if err != nil {
+		return nil, err
+	}
+
+	return tlfhandle.MakeHandleWithTlfID(
+		ctx, headBareHandle, tlfID.Type(), j.config.resolver(),
+		j.config.usernameGetter(), tlfID,
+		j.config.OfflineAvailabilityForID(tlfID))
+}
+
+// writeRefusal returns err's server refusal of a write the local handle
+// check allowed, such as to a public folder whose writes are disabled.
+func writeRefusal(err error) error {
+	var noPermission kbfsblock.ServerErrorNoPermission
+	if errors.As(err, &noPermission) {
+		return noPermission
+	}
+	var writeAccess kbfsmd.ServerErrorWriteAccess
+	if errors.As(err, &writeAccess) {
+		return writeAccess
+	}
+	return nil
+}
+
+// reportWriteRefusal tells the user the server refused this journal's
+// writes, and returns whether it did. The entries stay in the journal and
+// flushing keeps retrying, so they go through if the server starts
+// accepting them. Blocks flush before their MD lands in the journal, so
+// with no MD to name the folder yet, it reports nothing and a later retry
+// reports instead.
+func (j *tlfJournal) reportWriteRefusal(
+	ctx context.Context, refusal error,
+) bool {
+	handle, err := j.getHandle(ctx, j.tlfID)
+	if err != nil {
+		j.log.CDebugf(ctx, "Couldn't get handle for %s: %+v", j.tlfID, err)
+		return false
+	}
+	if handle == nil {
+		return false
+	}
+	j.config.Reporter().ReportErr(
+		ctx, handle.GetCanonicalName(), j.tlfID.Type(), WriteMode, refusal)
+	return true
 }
 
 func (j *tlfJournal) getMDRange(
