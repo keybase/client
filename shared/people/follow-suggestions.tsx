@@ -12,9 +12,11 @@ export type Props = {
 
 const FollowSuggestions = (props: Props) => {
   const styles = useStyles()
+  // the list scrolls under the screen's side strips and pads its content clear of them
+  const {left} = Kb.useScreenSideInsets()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Text type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.text, {marginLeft: styles.text.marginLeft + left}])}>
         Consider following...
       </Kb.Text>
       <Kb.ScrollView
