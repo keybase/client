@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as React from 'react'
+import {HeaderHeightContext} from '@react-navigation/elements'
 import Actions from './actions'
 import Assertion from '@/tracker/assertion'
 import Bio from '@/tracker/bio'
@@ -371,7 +372,7 @@ type Tab = 'followers' | 'following'
 const User = (props: {username: string}) => {
   const styles = useStyles()
   const p = useUserData(props.username)
-  const insetTop = Kb.useSafeAreaInsets().top
+  const {bottom: insetBottom, top: insetTop} = Kb.useSafeAreaInsets()
   const {username} = p
   const [selectedTab, setSelectedTab] = React.useState<Tab>(usernameSelectedTab.get(username) ?? 'followers')
   const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
@@ -431,9 +432,22 @@ const User = (props: {username: string}) => {
     return result
   }, [selectedTab, p.following, p.followers, width, itemsInARow, itemWidth, p.userIsYou, p.username])
 
+  // The header is transparent, so the list starts below it. The bar's real height beats a guess from
+  // the status bar: in an iPhone Duo's Split View there is no status bar inset but the bar still sits
+  // 24pt down, and content under the bar gets iOS's blurred scroll edge.
+  const headerHeight = React.useContext(HeaderHeightContext)
+  const belowHeader = isIOS && !Kb.Styles.isTablet && !!headerHeight
   const containerStyle = {
-    paddingTop: (isAndroid ? 56 : Kb.Styles.isTablet ? 80 : isIOS ? 46 : 80) + insetTop,
+    paddingTop: belowHeader ? headerHeight : (isAndroid ? 56 : Kb.Styles.isTablet ? 80 : isIOS ? 46 : 80) + insetTop,
   }
+  // iOS would inset the list's bottom by the home indicator, which scrolls the page's blue background
+  // into view below the content: the content runs down behind the indicator instead
+  const listContentStyle = belowHeader
+    ? Kb.Styles.collapseStyles([
+        styles.sectionListContentStyle,
+        {paddingBottom: Kb.Styles.globalMargins.xtiny + insetBottom},
+      ])
+    : styles.sectionListContentStyle
 
   const loadingFollowing = p.following === undefined
   const loadingFollowers = p.followers === undefined
@@ -589,7 +603,8 @@ const User = (props: {username: string}) => {
               renderSectionHeader={renderSectionHeader}
               sections={sections}
               style={styles.sectionList}
-              contentContainerStyle={styles.sectionListContentStyle}
+              contentContainerStyle={listContentStyle}
+              contentInsetAdjustmentBehavior={belowHeader ? 'never' : 'automatic'}
             />
           </Kb.Box2>
         </Kb.Box2>
