@@ -56,7 +56,8 @@ export const showConversationInfoPanel = (
   show: boolean,
   tab: ConversationInfoPanelTab
 ) => {
-  if (isPhone) {
+  // a phone's split chat shows the panel beside the thread, as iPad does
+  if (isPhone && !Common.isChatSplit()) {
     const visibleScreen = getVisibleScreen()
     if (show) {
       navigateAppend(

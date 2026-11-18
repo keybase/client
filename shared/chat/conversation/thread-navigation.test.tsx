@@ -116,6 +116,7 @@ describe('showConversationInfoPanel', () => {
   })
 
   test('phone: showing pushes the panel, replacing one already showing', () => {
+    mockSplit = false
     setPhone(true)
     nav = installNavigation({
       layout: 'phone',
@@ -131,6 +132,7 @@ describe('showConversationInfoPanel', () => {
   })
 
   test('phone: hiding pops the panel only when it is the visible screen', () => {
+    mockSplit = false
     setPhone(true)
     nav = installNavigation({
       layout: 'phone',
@@ -141,6 +143,17 @@ describe('showConversationInfoPanel', () => {
     act(() => showConversationInfoPanel(convID, true, 'settings'))
     act(() => showConversationInfoPanel(convID, false, undefined))
     expect(visible()?.name).toBe('chatConversation')
+  })
+
+  // an iPhone Duo unfolded: chat is split, so the panel goes beside the thread as on iPad
+  test('a split phone shows the panel beside the thread', () => {
+    setPhone(true)
+    nav = installNavigation({rootState: stateShowing('chatRoot', {params: {conversationIDKey: convID}})})
+    act(() => showConversationInfoPanel(convID, true, 'members'))
+    expect(visibleParams()).toMatchObject({conversationIDKey: convID, infoPanel: {tab: 'members'}})
+    act(() => showConversationInfoPanel(convID, false, 'members'))
+    expect(visibleParams()?.['infoPanel']).toBeUndefined()
+    expect(nav.pushes()).toEqual([])
   })
 
   test('the hook shows the panel for the provider conversation', () => {
