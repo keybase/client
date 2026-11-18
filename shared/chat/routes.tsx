@@ -203,6 +203,8 @@ export const newModalRoutes = defineRouteMap({
         ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
         modalSize: 'large',
+        // the media runs under the side strips (an iPhone Duo's); its controls clear them
+        safeAreaEdges: ['top', 'bottom'] as const,
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
