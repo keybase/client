@@ -10,7 +10,7 @@ import {createHash} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, els, fieldText, pasteFromMenu, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
 import {appSnapshot, openUrl, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -482,7 +482,7 @@ export const flickThread = async (dy: number) => {
 // Taps the status bar, which asks the list to scroll to its top (for this inverted list, its end).
 export const tapStatusBar = async () => {
   const {width} = await browser.getWindowRect()
-  await browser.execute('mobile: tap', {x: Math.round(width / 2), y: 8})
+  await tapAt(width / 2, 8)
 }
 
 // -- conversations ------------------------------------------------------------------------------
@@ -996,7 +996,7 @@ export const hideKeyboard = async () =>
 export const openMessageMenu = async (text: string) => {
   await openSheetWith(`the menu of the message "${text}"`, async () => {
     const {x, y} = await rowCentre(text)
-    await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
+    await holdAt(x, y, 0.8)
   })
 }
 
@@ -1066,7 +1066,7 @@ export const closeMessageMenu = async () =>
       }
       if (close) {
         alive()
-        await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
+        await tapAt(close.x, close.y)
         break
       }
       if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
@@ -1560,7 +1560,7 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
     throw new Error(`the "${text}" text is not wholly inside its element on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
   console.log(`  tapTextIn: "${text}" at ${JSON.stringify(frame)} in its element ${JSON.stringify({...at, ...size})}`)
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
 }
 
 // Presses the inline pressable text `text` (a link drawn inside a message's text, such as a failed
@@ -1670,7 +1670,7 @@ export const tapControlIn = async (
   if (!frameInside(frame, {...at, ...size}, window)) {
     throw new Error(`${what} is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
 }
 
 // Taps the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") at its own frame, and
@@ -1747,7 +1747,7 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
   }
   const before = await switchOn()
   if (!before.length || before.some(o => o !== before[0])) throw new Error(`the switch reads ${JSON.stringify(before)}`)
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
   // an unmounted switch reads no value, which is not a turn
   await waitFor(
     'the switch to turn',

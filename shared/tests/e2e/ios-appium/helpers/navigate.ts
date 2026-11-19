@@ -1,12 +1,12 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {byText, el, els, waitForTestID, tab} from './elements'
+import {byText, el, els, escapePredicate, waitForTestID, tab} from './elements'
 import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {dragToClear} from '../gate/clear-row-lib'
-import {expectScreen, visibleScreen} from '../gate/screens.ts'
+import {ANY_NATIVE_BACK, expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
 
@@ -65,8 +65,16 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // tap 1, plus clearOfTabBar 29 on iOS = 55.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
-  if (!browser.isAndroid) await clearOfTabBar(() => byText(text), `the "${text}" row`)
-  await byText(text).click()
+  if (browser.isAndroid) {
+    await byText(text).click()
+    return
+  }
+  // a split (iPhone Duo, iPad) shows the selected page beside the list, and its bar's title holds the
+  // same text: the row itself is the box whose merged label holds it
+  const rowSel = `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS "${escapePredicate(text)}"`
+  const find = (await browser.$(rowSel).isExisting()) ? () => browser.$(rowSel) : () => byText(text)
+  await clearOfTabBar(find, `the "${text}" row`)
+  await find().click()
 }
 
 const PAN_OVERSHOOT = 60
@@ -89,6 +97,9 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
     let bottom = height
     for (const b of bars) {
       const r = await browser.getElementRect(b.elementId)
+      // only a bar over the row's column can cover it: an iPhone Duo's tab bar is a column beside
+      // the content, and a split's other pane has its own nav bar
+      if (r.x >= row.x + row.width || r.x + r.width <= row.x) continue
       // a bar in the lower half is the tab bar; one in the upper half is the nav bar
       if (r.y > height / 2) bottom = Math.min(bottom, r.y)
       else top = Math.max(top, r.y + r.height)
@@ -206,6 +217,14 @@ export async function dismissKeyboard(): Promise<void> {
 // because its loop re-checks atTabs and self-corrects a mis-tap.
 // `beforeTap` runs right before the tap (escapeToTabs' deadline check).
 async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Promise<boolean> {
+  // a bar's back drawn in an iPhone Duo's side column is in no navigation bar, and the bar's
+  // leftmost button is then something else (the login screen's Create account)
+  const side = browser.$(ANY_NATIVE_BACK)
+  if (await side.isExisting()) {
+    beforeTap?.()
+    await side.click().catch(() => {})
+    return true
+  }
   const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
   let leftmost: {el: (typeof btns)[number]; x: number} | undefined
   for (const b of btns) {
@@ -403,7 +422,7 @@ export const barButton = async () => {
     }
     return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
   }
-  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back'])) ?? (await browser.$$(ANY_NATIVE_BACK).getElements())[0]
 }
 
 // A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no

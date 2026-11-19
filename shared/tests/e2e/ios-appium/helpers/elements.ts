@@ -8,6 +8,15 @@ const byTestIDSelector = (id: string): string =>
   browser.isAndroid ? `android=new UiSelector().resourceId("${id}")` : `~${id}`
 
 export const el = (id: string): ChainablePromiseElement => browser.$(byTestIDSelector(id))
+
+// Taps and holds at a point, given relative to the app's window: on an unfolded iPhone Duo (xcuitest
+// driver 13) one given in screen points lands nowhere, while the window shares the frame every element
+// rect is read in. Elsewhere the window sits at the screen's origin, so the point is the same.
+const windowId = async () => (await browser.$('-ios class chain:**/XCUIElementTypeWindow[1]').getElement()).elementId
+export const tapAt = async (x: number, y: number) =>
+  browser.execute('mobile: tap', {elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
+export const holdAt = async (x: number, y: number, duration: number) =>
+  browser.execute('mobile: touchAndHold', {duration, elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
 export const els = (id: string): ChainablePromiseArray => browser.$$(byTestIDSelector(id))
 
 // Use waitForExist (presence in the XCUI tree), not waitForDisplayed: layout
@@ -65,7 +74,7 @@ export const clearFieldByKeys = async (field: ChainablePromiseElement) => {
     if (round === CLEAR_ROUNDS) throw new Error(`the field still holds ${held} characters after ${CLEAR_ROUNDS} rounds of backspaces`)
     const frame = await tappableFrame(field)
     if (!frame) throw new Error('the field is off screen or under the keyboard: no place to put its caret')
-    await browser.execute('mobile: tap', {x: Math.round(frame.right - 4), y: Math.round(frame.bottom - 4)})
+    await tapAt(frame.right - 4, frame.bottom - 4)
     await field.addValue('\b'.repeat(held))
   }
 }
@@ -152,9 +161,9 @@ export type HoldTarget = {elementId: string} | {x: number; y: number}
 // error throws. `what` names the field in the error. Bound: six tries of the hold 1.3 and 1.5 for
 // the menu, the item 1 = 18.
 export const pasteFromMenu = async (at: HoldTarget, what: string) => {
-  const hold = 'elementId' in at ? {elementId: at.elementId} : {x: Math.round(at.x), y: Math.round(at.y)}
   for (let i = 0; i < 6; i++) {
-    await browser.execute('mobile: touchAndHold', {duration: 1.3, ...hold})
+    if ('elementId' in at) await browser.execute('mobile: touchAndHold', {duration: 1.3, elementId: at.elementId})
+    else await holdAt(at.x, at.y, 1.3)
     if (await browser.$(PASTE_ITEM).waitForExist({interval: 150, timeout: 1_500}).then(() => true, () => false)) {
       await browser.$(PASTE_ITEM).click()
       return

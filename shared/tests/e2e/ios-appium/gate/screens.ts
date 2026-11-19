@@ -14,9 +14,14 @@ const TAPS = 5
 // bar's Back item, which takes no testID: a screen's default back, and the flow-aware back iOS
 // recover-password screens put in their bar.
 const NATIVE_BACK = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeButton[`label == "Back" OR name == "BackButton"`]'
+// A bar's back wherever it is drawn: an iPhone Duo's side column holds a bar's icon items, outside
+// the XCUIElementTypeNavigationBar. UIKit's own back keeps its identifier there, and the app's
+// (nativeBackHeaderItem, the recover-password screens') its label.
+export const ANY_NATIVE_BACK =
+  '-ios class chain:**/XCUIElementTypeButton[`(name == "BackButton" OR label == "Back") AND visible == 1`]'
 
 export const tapBack = async () => {
-  for (const back of [el('backButton'), browser.$(NATIVE_BACK)]) {
+  for (const back of [el('backButton'), browser.$(NATIVE_BACK), browser.$(ANY_NATIVE_BACK)]) {
     if (await back.isExisting()) {
       await back.click().catch(() => {})
       return true
