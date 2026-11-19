@@ -311,6 +311,10 @@ export const imageProps = (file: string) => {
   return {format, pixels: `${w}x${h}`}
 }
 
+// The simulator's pasteboard as text. The xcuitest driver (13+) answers UTF-8 and ignores an
+// `encoding` argument, so a base64 request comes back as plain text all the same.
+const readPasteboard = async () => browser.execute<string, []>('mobile: getPasteboard')
+
 // Puts `text` on the simulator's pasteboard and reads it back. Writes from outside the simulator
 // (`simctl pbcopy`, WDA's mobile: setPasteboard) leave it empty on this host's simulators, so the app's
 // own clipboard module writes it, over Metro (it sends no RPC; the recorder is paused all the same).
@@ -341,7 +345,7 @@ export const setPasteboard = async (text: string) => {
   })
   await waitFor(
     'the pasteboard to hold the text',
-    async () => pasteboardHolds(async () => browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}), text),
+    async () => pasteboardHolds(readPasteboard, text),
     {interval: 500, timeout: 10_000}
   )
 }
@@ -355,7 +359,7 @@ export const pasteboardText = async (): Promise<string> => {
   let got: string
   try {
     got = await withDeadline(
-      browser.execute<string, [{encoding: string}]>('mobile: getPasteboard', {encoding: 'base64'}),
+      readPasteboard(),
       PASTEBOARD_MS,
       'reading the simulator pasteboard'
     )
@@ -367,7 +371,7 @@ export const pasteboardText = async (): Promise<string> => {
   }
   // a body mocha abandoned while the read ran does not go on with what it read
   requireCurrentAttempt()
-  return Buffer.from(got, 'base64').toString('utf8')
+  return got
 }
 
 const runtimeId = async (): Promise<string | undefined> =>

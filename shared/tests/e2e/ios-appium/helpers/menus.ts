@@ -1,6 +1,7 @@
 // Generic helpers for the iOS flows' bottom-sheet menus (FloatingMenu) and labelled elements: open a
 // sheet, read and pick its items, and find the one element whose label is a name, compared in memory
 // so the name never goes into a selector or an error.
+import {tapAt} from './elements'
 import {waitFor} from './lifecycle'
 import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
 import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
@@ -108,7 +109,7 @@ const sheetItem = async (label: string) => {
 const tapSheetItem = async (item: {e: WebdriverIO.Element; visible: boolean}) => {
   if (item.visible) return item.e.click()
   const r = await frameOf(item.e, 'a sheet item')
-  return browser.execute('mobile: tap', {x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
+  return tapAt(r.x + r.width / 2, r.y + r.height / 2)
 }
 
 // Taps the open sheet's item `label` once, for an item whose sheet stays up after it. Bound: the read
@@ -215,7 +216,7 @@ export const frameOf = async (e: WebdriverIO.Element, what: string) => {
 // Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
 export const tapFrame = async (rect: Rect, what: string) => {
   check(frameInside(rect, await screenRect()), `${what} is not wholly on screen: not tapping`)
-  await browser.execute('mobile: tap', {x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2)})
+  await tapAt(rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
 // Taps `e` at its own frame. Bound: its frame read and the tap 1.

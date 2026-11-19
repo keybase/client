@@ -21,6 +21,7 @@ import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName,
 import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
 import {typeInFilter} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
+import {holdAt} from '../helpers/elements'
 import {tapFrame} from '../helpers/menus'
 import {appState, BUNDLE_ID, FOREGROUND, simctl, waitFor} from '../helpers/lifecycle'
 
@@ -199,7 +200,7 @@ const holdThenTap = async (rect: () => Promise<Rect>, item: 'Copy' | 'Share', wh
     },
     {interval: 500, timeout: 10_000}
   )
-  await browser.execute('mobile: touchAndHold', {duration: 1.3, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
+  await holdAt(r.x + r.width / 2, r.y + r.height / 2, 1.3)
   const button = pred(`type == "XCUIElementTypeButton" AND name == "${item}"`)
   await button.waitForExist({interval: 200, timeout: 5_000, timeoutMsg: `${what}'s menu did not offer ${item}`})
   await button.click()
