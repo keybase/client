@@ -30,11 +30,14 @@ type LayoutProps = {
 // scrolling content clears the strips through ScreenSideInsetsContext. Only the screen's own safe
 // area includes the header column (the root provider's window insets report 0 for it), so an
 // invisible RNScreens SafeAreaView is measured for them.
+// A screen pushed above the tabs drops the left strip: in Split View's left half that strip is kept
+// for the tab bar, which those screens hide, and their back button stays in the header. The right
+// strip holds the status column and header buttons wherever it appears, so every screen keeps it.
 const androidEdges = {bottom: true} as const
 const probeEdges = {left: true, right: true} as const
 const noSideInsets = {left: 0, right: 0}
 type LayoutEvent = {nativeEvent: {layout: {width: number; x: number}}}
-const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
+const ScreenWrapper = ({children, isTabScreen}: {children: React.ReactNode; isTabScreen: boolean}) => {
   const styles = useStyles()
   const [screenWidth, setScreenWidth] = React.useState(0)
   const [probe, setProbe] = React.useState({width: 0, x: 0})
@@ -51,7 +54,7 @@ const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
     setProbe(p => (p.width === width && p.x === x ? p : {width, x}))
   }
   const measured = screenWidth > 0 && probe.width > 0
-  const left = measured ? probe.x : 0
+  const left = measured && isTabScreen ? probe.x : 0
   const right = measured ? Math.max(0, screenWidth - probe.x - probe.width) : 0
   const sideInsets = left || right ? {left, right} : noSideInsets
   return (
@@ -197,7 +200,7 @@ const ModalScreenWrapper = ({
 export const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
-  _isTabScreen: boolean,
+  isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
   return function Layout({children, route, navigation}: LayoutProps) {
@@ -206,7 +209,7 @@ export const nativeMakeLayout = (
     const wrappedContent = <React.Suspense>{children}</React.Suspense>
 
     if (!isModal && !isLoggedOut) {
-      return <ScreenWrapper>{wrappedContent}</ScreenWrapper>
+      return <ScreenWrapper isTabScreen={isTabScreen}>{wrappedContent}</ScreenWrapper>
     }
     if (!isModal && isLoggedOut) {
       return <LoggedOutScreenWrapper>{wrappedContent}</LoggedOutScreenWrapper>
