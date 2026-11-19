@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -514,6 +515,91 @@ func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
 	delegate.requireNextState(ctx, bwBusy)
 
 	// Should still be able to shut down while busy.
+}
+
+type refusingBlockServer struct {
+	BlockServer
+}
+
+func (bs refusingBlockServer) Put(
+	_ context.Context, _ tlf.ID, _ kbfsblock.ID, _ kbfsblock.Context,
+	_ []byte, _ kbfscrypto.BlockCryptKeyServerHalf, _ DiskBlockCacheType,
+) error {
+	return kbfsblock.ServerErrorNoPermission{Msg: "public folder writes are disabled"}
+}
+
+type refusingMDServer struct {
+	MDServer
+}
+
+func (md refusingMDServer) Put(
+	_ context.Context, _ *RootMetadataSigned, _ kbfsmd.ExtraMetadata,
+	_ *keybase1.LockContext, _ keybase1.MDPriority,
+) error {
+	return kbfsmd.ServerErrorWriteAccess{}
+}
+
+type singleUsernameGetter struct {
+	name kbun.NormalizedUsername
+}
+
+func (g singleUsernameGetter) GetNormalizedUsername(
+	_ context.Context, _ keybase1.UserOrTeamID,
+	_ keybase1.OfflineAvailability,
+) (kbun.NormalizedUsername, error) {
+	return g.name, nil
+}
+
+type tlfNameRecordingReporter struct {
+	*ReporterSimple
+	names []tlf.CanonicalName
+}
+
+func (r *tlfNameRecordingReporter) ReportErr(ctx context.Context,
+	tlfName tlf.CanonicalName, t tlf.Type, mode ErrorModeType, err error,
+) {
+	r.names = append(r.names, tlfName)
+	r.ReporterSimple.ReportErr(ctx, tlfName, t, mode, err)
+}
+
+func testTLFJournalReportsWriteRefusalOnce(t *testing.T, ver kbfsmd.MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		ctx, tempdir, config, cancel, tlfJournal, delegate)
+	reporter := &tlfNameRecordingReporter{
+		ReporterSimple: config.reporter.(*ReporterSimple),
+	}
+	config.reporter = reporter
+	config.nug = singleUsernameGetter{"fake_user"}
+
+	bserver := tlfJournal.delegateBlockServer
+	tlfJournal.delegateBlockServer = refusingBlockServer{bserver}
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
+
+	// With no MD to name the folder, nothing is reported yet.
+	require.ErrorAs(t, tlfJournal.flush(ctx), new(kbfsblock.ServerErrorNoPermission))
+	require.Empty(t, reporter.names)
+
+	// Once the MD lands, the refusal is reported once, with the name.
+	putOneMD(ctx, config, tlfJournal)
+	for range 2 {
+		require.ErrorAs(t, tlfJournal.flush(ctx), new(kbfsblock.ServerErrorNoPermission))
+	}
+	require.Equal(t, []tlf.CanonicalName{"fake_user"}, reporter.names)
+	errs := reporter.AllKnownErrors()
+	require.Len(t, errs, 1)
+	require.ErrorAs(t, errs[0].Error, new(kbfsblock.ServerErrorNoPermission))
+
+	// The blocks go through before the MD is refused, so that refusal
+	// is reported again.
+	tlfJournal.delegateBlockServer = bserver
+	mdserver := config.mdserver
+	config.mdserver = refusingMDServer{mdserver}
+	require.ErrorAs(t, tlfJournal.flush(ctx), new(kbfsmd.ServerErrorWriteAccess))
+	require.Equal(t, []tlf.CanonicalName{"fake_user", "fake_user"}, reporter.names)
+
+	config.mdserver = mdserver
+	require.NoError(t, tlfJournal.flush(ctx))
 }
 
 func testTLFJournalSecondBlockOpWhileBusy(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -2030,6 +2116,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalBlockOpBasic,
 		testTLFJournalBlockOpBusyPause,
 		testTLFJournalBlockOpBusyShutdown,
+		testTLFJournalReportsWriteRefusalOnce,
 		testTLFJournalSecondBlockOpWhileBusy,
 		testTLFJournalMDServerBusyPause,
 		testTLFJournalMDServerBusyShutdown,

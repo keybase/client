@@ -36,6 +36,8 @@ func filterError(err error) error {
 	switch errors.Cause(err).(type) {
 	case kbfsblock.ServerErrorUnauthorized:
 		return errorWithErrno{err, syscall.EACCES}
+	case kbfsblock.ServerErrorNoPermission:
+		return errorWithErrno{err, syscall.EACCES}
 
 	case kbfsmd.ServerErrorUnauthorized:
 		return errorWithErrno{err, syscall.EACCES}

@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -200,6 +201,47 @@ func TestStatNonExistent(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.False(t, de.Writable)
+}
+
+// publicReadRefusingMDServer refuses public folder reads the way the
+// mdserver does when public reads are limited to writers.
+type publicReadRefusingMDServer struct {
+	libkbfs.MDServer
+}
+
+func (md publicReadRefusingMDServer) GetForHandle(
+	ctx context.Context, handle tlf.Handle, mStatus kbfsmd.MergeStatus,
+	lockBeforeGet *keybase1.LockID,
+) (tlf.ID, *libkbfs.RootMetadataSigned, error) {
+	if handle.Type() == tlf.Public {
+		return tlf.NullID, nil, kbfsmd.ServerErrorUnauthorized{}
+	}
+	return md.MDServer.GetForHandle(ctx, handle, mStatus, lockBeforeGet)
+}
+
+func TestStatRefusedPublicRead(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "dog", "cat")
+	defer func() {
+		err := config.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+
+	p := keybase1.NewPathWithKbfsPath("/public/dog/hello.txt")
+	writeRemoteFile(ctx, t, sfs, p, []byte("world"))
+	syncFS(ctx, t, sfs, "/public/dog")
+
+	config2 := libkbfs.ConfigAsUser(config, "cat")
+	defer func() {
+		err := config2.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+	config2.SetMDServer(publicReadRefusingMDServer{config2.MDServer()})
+	sfs2 := newSimpleFS(env.EmptyAppStateUpdater{}, config2)
+
+	_, err := sfs2.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: p})
+	require.Equal(t, errNoAccess, err)
 }
 
 func TestSymlink(t *testing.T) {

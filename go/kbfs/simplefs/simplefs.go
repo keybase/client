@@ -109,7 +109,10 @@ func translateErr(err error) error {
 		return errNameExists
 	case libkbfs.DirNotEmptyError:
 		return errDirNotEmpty
-	case idutil.BadTLFNameError, tlf.BadNameError, tlfhandle.ReadAccessError:
+	// The mdserver can refuse reads the local handle check allowed, such
+	// as a public folder limited to its writers.
+	case idutil.BadTLFNameError, tlf.BadNameError, tlfhandle.ReadAccessError,
+		kbfsmd.ServerErrorUnauthorized:
 		return errNoAccess
 	}
 
