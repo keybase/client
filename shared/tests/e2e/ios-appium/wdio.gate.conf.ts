@@ -126,6 +126,26 @@ export const config: WebdriverIO.Config = {
     browser.on('result', (event: {command?: string; result?: unknown}) => {
       noteProtocolResult(event)
     })
+    // With xcuitest driver 13 an element click can open nothing (a control in a modal: the add-members
+    // wizard's role dropdown, git's notify switch), while a tap addressed to the element lands. A click
+    // with options, or on an element not wholly on screen, stays the driver's.
+    // an element command: its typing only names the browser's
+    const overwriteElementCommand = browser.overwriteCommand.bind(browser) as unknown as (
+      name: 'click',
+      fn: (this: WebdriverIO.Element, click: (options?: object) => Promise<void>, options?: object) => Promise<void>,
+      options: {attachToElement: true}
+    ) => void
+    overwriteElementCommand(
+      'click',
+      async function (click, options) {
+        if (options) return click(options)
+        const r = await browser.getElementRect(this.elementId)
+        const {height, width} = await browser.getWindowRect()
+        if (r.width <= 0 || r.height <= 0 || r.x < 0 || r.y < 0 || r.x + r.width > width || r.y + r.height > height) return click()
+        await browser.execute('mobile: tap', {elementId: this.elementId, x: Math.round(r.width / 2), y: Math.round(r.height / 2)})
+      },
+      {attachToElement: true}
+    )
     if (!posture) return
     const got = await applyPosture(udid, device, posture)
     if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)

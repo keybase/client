@@ -1027,11 +1027,12 @@ const openSheetFrames = async () => {
   }
 }
 
-// The window's safe-area top: the status bar's height, as WDA reports it. Bound: 1.
+// The window's safe-area top: the status bar's height, as WDA reports it. 0 is a real answer on an
+// unfolded iPhone Duo, whose clock is in its side column. Bound: 1.
 const safeAreaTop = async () => {
   const info = await browser.execute('mobile: deviceScreenInfo')
   const h = (info as {statusBarSize?: {height?: number}} | undefined)?.statusBarSize?.height
-  if (typeof h !== 'number' || !(h > 0)) throw new Error('no status bar height from the device: not tapping')
+  if (typeof h !== 'number' || h < 0) throw new Error('no status bar height from the device: not tapping')
   return h
 }
 

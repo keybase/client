@@ -219,8 +219,15 @@ export const tapFrame = async (rect: Rect, what: string) => {
   await tapAt(rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
-// Taps `e` at its own frame. Bound: its frame read and the tap 1.
-export const tapElement = async (e: WebdriverIO.Element, what: string) => tapFrame(await frameOf(e, what), what)
+// Taps the middle of `e`, addressed to `e` itself, only when its frame lies wholly on screen. Neither a
+// click nor a tap at its frame's screen point is enough: with xcuitest driver 13 a click on a control
+// in a modal (the add-members wizard's role dropdown) can open nothing, and on an unfolded iPhone Duo a
+// screen point lands nowhere. Bound: its frame read, the window read and the tap 1.
+export const tapElement = async (e: WebdriverIO.Element, what: string) => {
+  const rect = await frameOf(e, what)
+  check(frameInside(rect, await screenRect()), `${what} is not wholly on screen: not tapping`)
+  await browser.execute('mobile: tap', {elementId: e.elementId, x: Math.round(rect.width / 2), y: Math.round(rect.height / 2)})
+}
 
 // Whether `e` is in the tree and its frame lies wholly on screen: what isDisplayed() would say if
 // XCUITest's `visible` could be trusted (it reads false now and then on a team page, a modal or a
@@ -236,13 +243,10 @@ export const onScreenID = async (id: string) => {
   return e ? onScreen(e) : false
 }
 
-// Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
-// read visible=false (a folder screen always, a team page, a modal or a sheet now and then), and a
-// click on such a box taps nothing. Bound: the reads 1, the tap 1.
-export const press = async (e: WebdriverIO.Element, what: string) => {
-  if ((await e.getAttribute('visible').catch(() => null)) === 'true') await e.click()
-  else await tapElement(e, what)
-}
+// Taps `e` (tapElement): a click can tap nothing, on a box XCUITest reads visible=false (a folder
+// screen always, a team page, a modal or a sheet now and then) and on some visible controls in a
+// modal. Bound: tapElement 1.
+export const press = async (e: WebdriverIO.Element, what: string) => tapElement(e, what)
 
 // What `selector` finds, or for a tap (`forTap`) elementsOrUnseen's read: a presence read never takes
 // an element XCUITest reports invisible.
