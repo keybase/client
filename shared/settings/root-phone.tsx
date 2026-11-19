@@ -1,6 +1,8 @@
 import * as C from '@/constants'
+import {useIsChatSplit} from '@/constants/chat/layout'
 import {useConfigState} from '@/stores/config'
 import * as React from 'react'
+import {useNavigation} from '@react-navigation/native'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import SettingsItem from './sub-nav/settings-item'
@@ -267,4 +269,18 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   },
 }))
 
-export default SettingsNav
+// An iPhone Duo unfolded to its whole inner screen shows settings like an iPad: the list beside the
+// selected page. It splits at the same window width as chat.
+const SettingsSplit = React.lazy(async () => import('./root-desktop-tablet'))
+
+function SettingsRoot() {
+  const split = useIsChatSplit()
+  const navigation = useNavigation()
+  // the split hides the tab's bar for its own column bars; the list alone uses the tab's bar
+  React.useLayoutEffect(() => {
+    if (!split) navigation.setOptions({headerShown: true})
+  }, [navigation, split])
+  return split ? <SettingsSplit /> : <SettingsNav />
+}
+
+export default SettingsRoot

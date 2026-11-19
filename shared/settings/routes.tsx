@@ -138,9 +138,10 @@ export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsAdvancedTab]: sharedNewRoutes[Settings.settingsAdvancedTab],
   [Settings.settingsArchiveTab]: sharedNewRoutes[Settings.settingsArchiveTab],
   [Settings.settingsChatTab]: sharedNewRoutes[Settings.settingsChatTab],
-  // crypto/git/devices only appear in the left nav on tablet (desktop has dedicated tabs);
-  // registering them on desktop would mount them hidden via <Activity> for no reason
-  ...(C.isTablet
+  // crypto/git/devices only appear in the left nav on mobile (an iPad, or a phone whose settings split,
+  // see root-phone). Desktop has dedicated tabs: registering them there would mount them hidden via
+  // <Activity> for no reason
+  ...(isMobile
     ? {
         [Settings.settingsCryptoTab]: sharedNewRoutes[Settings.settingsCryptoTab],
         [Settings.settingsDevicesTab]: sharedNewRoutes[Settings.settingsDevicesTab],
