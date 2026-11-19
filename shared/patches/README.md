@@ -76,6 +76,22 @@ named still needs its own entry.
 - **Remove when:** bumping to the first release that contains #4851 (expected 4.31). The hunk will then fail to apply; drop it instead of porting it.
 - **Check:** the new version's `RNSScreenStackHeaderConfig.mm` iterates `[self.reactSubviews copy]` in `updateHeaderStateInShadowTreeInContextOfNavigationBar`.
 
+### Header titles always centered
+
+- **Files:** `ios/RNSScreenStackHeaderConfig.mm` (`updateViewController:`, `titleAlignment`)
+- **Why:** on an iPhone Duo in a split, UIKit's automatic title alignment leading-aligns every header title (the bar shares the half with a side column), so titles sit at the left next to centered content. iOS 27.2's `UINavigationItem.titleAlignment = Center` keeps them centered, as on every other device. react-native-screens has no prop for it (`headerTitleAlign` is Android only).
+- **Upstream:** not reported (checked 2026-11-19; latest release 4.30.1).
+- **Remove when:** react-native-screens maps `headerTitleAlign` to `titleAlignment` on iOS; then set `headerTitleAlign: 'center'` in `router-v2/router.tsx` and `router-v2/common.tsx` instead.
+- **Check:** iPhone Duo in a split, without the hunk: a header title (an Encrypt output modal, a pushed profile) is leading-aligned. With it, centered.
+
+### Modals have no vertical bar
+
+- **Files:** `ios/RNSScreen.mm` (`preferredVerticalBarBehavior`)
+- **Why:** on iOS 27.1+ every presentation gets its own vertical bar (an iPhone Duo's side column). In a split, a modal's header reserved a 76pt strip by the screen edge for it: the sheet's icon items moved there (the PDF viewer's share button sat left of Cancel) and the title centered off the sheet's middle. A native modal now returns `UIVerticalBarBehaviorDisabled`, so its items stay in its header as on an iPhone.
+- **Upstream:** not reported (checked 2026-11-19; latest release 4.30.1).
+- **Remove when:** react-native-screens exposes the vertical bar behavior as a screen option; then set it on our modal routes instead.
+- **Check:** iPhone Duo in a split, without the hunk: open a modal (Encrypt output, a PDF). The header's safe area has a 76pt leading inset and the PDF's share button sits by the screen edge. With it, the inset is 0.
+
 ### Empty navigation bar takes no safe area
 
 - **Files:** `ios/RNSScreen.mm`
