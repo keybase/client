@@ -161,7 +161,8 @@ describe('git', function () {
   // 5s = 16.
   const notifyOff = async (base: string) => {
     await el(T.settingTestID(base, true)).waitForExist({timeout: 10_000})
-    await el(T.settingTestID(base, true)).click()
+    // a click on the switch in the delete modal can tap nothing (xcuitest driver 13)
+    await press(await el(T.settingTestID(base, true)).getElement(), 'the Notify the team switch')
     await el(T.settingTestID(base, false)).waitForExist({timeout: 5_000})
   }
 
