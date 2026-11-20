@@ -59,3 +59,25 @@ export const deepestLabelledAtFrame = (
   if (at.length !== count) throw new Error(`${at.length} of ${what} at its frame, ${count} in the page source`)
   return at.at(-1)!
 }
+
+// Where a run that reads frames (gate/shown-lib.ts) finds the control oneControlAtFrame read: a fetch
+// at its type and frame cannot ask for `visible` there (a modal's own elements can read hidden), so it
+// takes every element of the type at the frame, in document order, and this says which of those whose
+// label `matches` is the control: the deepest shown one (when `visibleOnly`), else the deepest. `total`
+// is how many the fetch should find.
+export const positionAtFrame = (
+  source: string,
+  {matches, rect, type, visibleOnly}: {matches: (label: string) => boolean; rect: Rect; type: string; visibleOnly: boolean}
+) => {
+  const els = sourceElements(source)
+  const at = els.flatMap((e, n) =>
+    e.type === type &&
+    (['height', 'width', 'x', 'y'] as const).every(k => Number(e.attrs[k]) === rect[k]) &&
+    matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' '))
+      ? [n]
+      : []
+  )
+  const shown = visibleOnly ? at.filter(n => els[n]!.attrs['visible'] === 'true') : at
+  const pick = shown.at(-1)
+  return {position: pick === undefined ? -1 : at.indexOf(pick), total: at.length}
+}
