@@ -722,6 +722,12 @@ describe('chat scroll', function () {
     it('dragging up loads older pages without moving the reader, back to the first message', async function () {
       // worst case (s): open 100, end 21, stable 10, 50 steps of drag 2 and stable 10 = 600, stable 10, row 15, two steps 4 = 760
       this.timeout(780_000)
+      // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
+      // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
+      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
+        console.log("[ios gate] skipped: an iPhone Duo unfolded has no drag that holds before it lifts")
+        this.skip()
+      }
       await openLong()
       const start = (await expectAtEnd()).t.ordinals.length
       await step('The long thread at its end')
@@ -1011,6 +1017,12 @@ describe('chat scroll', function () {
     it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async function () {
       // worst case (s): open 100, the keyboard top 36 (keyboard 10, keyboard hidden 5, stable 20, the tap 1), sent 25, keyboard 5, peer 70, eight sends 480, row 20, bringRowTo 192 (8 of stable 20 and two drags 4), stable 10, the edit 55 (menu 35, edit bar 5, keyboard 5, stable 10), the cancel 6, two steps 4 = 1003
       this.timeout(1020_000)
+      // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
+      // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
+      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
+        console.log("[ios gate] skipped: an iPhone Duo unfolded has no drag that holds before it lifts")
+        this.skip()
+      }
       await openScratch()
       const kbTop = await keyboardTopWhenUp()
       const {ordinal, text} = await sendWithRowsBelow(8)
