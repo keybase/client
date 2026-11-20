@@ -386,8 +386,8 @@ describe('setChatRootParams', () => {
 
     expect(setChatRootParams({conversationIDKey: 'NEW' as never})).toBe(true)
 
-    // in place, targeting the chat tab's own stack - not a reset of the tab navigator
-    expect(nav.lastAction()).toMatchObject({target: stackKeyOf('chatRoot'), type: 'NAVIGATE'})
+    // in place, on the chatRoot route of the chat tab's own stack - not a reset of the tab navigator
+    expect(nav.lastAction()).toMatchObject({source: key, target: stackKeyOf('chatRoot'), type: 'SET_PARAMS'})
     expect(visible()).toMatchObject({key, name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
   })
 
