@@ -138,7 +138,7 @@ const SYSTEM_PICKERS = 'a system picker'
 
 // A system picker's button, by its name or (where the picker names it for its action, as the document
 // picker's Open on a wide window) its label.
-const button = (name: string) => browser.$(`-ios predicate string:type == "XCUIElementTypeButton" AND (name == "${name}" OR label == "${name}")`)
+const button = (name: string) => browser.$(`-ios predicate string:type == "XCUIElementTypeButton" AND (name == ${JSON.stringify(name)} OR label == ${JSON.stringify(name)})`)
 // The photo picker is up while its Photos / Collections switch is; its confirm reads "Done" and is
 // named Done with nothing selected, Add once something is. The document picker's tab bar.
 const PHOTO_PICKER = 'Collections'

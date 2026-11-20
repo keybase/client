@@ -111,8 +111,6 @@ const TARGET_QUIET_MS = 300
 // Longer than a Pressable's 500ms long press delay.
 const LONG_PRESS_S = 1
 
-// How a capture that left the app broken (`why`) is first tried: a reload runs through the
-// app's inspector page, so without one only a relaunch can help.
 // Why a capture would not be the app's screen: system UI (Control Center, Notification Center, an
 // alert) is over it, which deactivates the app's scene. Seen on the folded iPhone Duo, where a press
 // under the status column at the right edge opened Control Center.
@@ -131,6 +129,8 @@ export const innerPressPoint = (
   y: (box.top + box.bottom) / 2,
 })
 
+// How a capture that left the app broken (`why`) is first tried: a reload runs through the
+// app's inspector page, so without one only a relaunch can help.
 export const recoveryFor = (why: string): 'reload' | 'relaunch' => (lostInspectorPage(why) ? 'relaunch' : 'reload')
 
 // A capture whose first error was a lost inspector page is taken once more only when the app lived

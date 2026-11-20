@@ -1,4 +1,5 @@
 import type {ChainablePromiseElement, ChainablePromiseArray} from 'webdriverio'
+import {readsFrames} from '../gate/shown-lib.ts'
 
 // Select by testID. React Native maps testID to different native attributes per
 // platform: iOS → accessibilityIdentifier (Appium "~" accessibility-id), Android
@@ -9,14 +10,18 @@ const byTestIDSelector = (id: string): string =>
 
 export const el = (id: string): ChainablePromiseElement => browser.$(byTestIDSelector(id))
 
-// Taps and holds at a point, given relative to the app's window: on an unfolded iPhone Duo (xcuitest
-// driver 13) one given in screen points lands nowhere, while the window shares the frame every element
-// rect is read in. Elsewhere the window sits at the screen's origin, so the point is the same.
+// Taps and holds at a point in the frame every element rect is read in. On a run that reads frames
+// (an unfolded iPhone Duo, xcuitest driver 13) a point given in screen points lands nowhere, so it is
+// sent relative to the app's window, which shares that frame. Elsewhere the window sits at the
+// screen's origin and the point goes as screen points.
 export const windowId = async () => (await browser.$('-ios class chain:**/XCUIElementTypeWindow[1]').getElement()).elementId
-export const tapAt = async (x: number, y: number) =>
-  browser.execute('mobile: tap', {elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
-export const holdAt = async (x: number, y: number, duration: number) =>
-  browser.execute('mobile: touchAndHold', {duration, elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
+const at = async (x: number, y: number) => ({
+  ...(readsFrames() ? {elementId: await windowId()} : {}),
+  x: Math.round(x),
+  y: Math.round(y),
+})
+export const tapAt = async (x: number, y: number) => browser.execute('mobile: tap', await at(x, y))
+export const holdAt = async (x: number, y: number, duration: number) => browser.execute('mobile: touchAndHold', {duration, ...(await at(x, y))})
 export const els = (id: string): ChainablePromiseArray => browser.$$(byTestIDSelector(id))
 
 // Use waitForExist (presence in the XCUI tree), not waitForDisplayed: layout

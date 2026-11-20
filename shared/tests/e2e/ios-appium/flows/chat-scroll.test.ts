@@ -29,11 +29,18 @@ import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
+import {isDuoUnfolded} from '../gate/thread-route'
 import {catchUpPill, centreOffset, centreTolerance, clearComposer, closeInfoPanel, closeSearch, dragThread, editCancel, expectAtEnd, expectCentred, flickThread, hideKeyboard, infoPanelShown, isAtEnd, isKeyboardUp, jumpToRecentButton, newestGap, openConversation, openHeaderMenuItem, openMessageMenu, openThreadSearch, ordinalsWithText, pickAnchor, readThread, requireThread, resetComposer, rowOf, rowText, sampleThreadWhile, sampleTop, searchAgain, searchFor, searchOpen, sendMessage, summary, tapStatusBar, threadListPrelude, type ThreadReading, type ThreadSample, type Viewport, viewport, waitForKeyboard, waitForRow, waitForThreadStable, wholly} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
+
+// Skips the running test, logging why for the gate's log.
+const skipBecause = (test: Mocha.Context, reason: string) => {
+  console.log(`[ios gate] skipped: ${reason}`)
+  test.skip()
+}
 
 describe('chat scroll', function () {
   // no retries: a retry would let an intermittent race pass
@@ -724,10 +731,7 @@ describe('chat scroll', function () {
       this.timeout(780_000)
       // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
       // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
-      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
-        console.log("[ios gate] skipped: an iPhone Duo unfolded has no drag that holds before it lifts")
-        this.skip()
-      }
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded has no drag that holds before it lifts')
       await openLong()
       const start = (await expectAtEnd()).t.ordinals.length
       await step('The long thread at its end')
@@ -785,10 +789,7 @@ describe('chat scroll', function () {
       this.timeout(860_000)
       // an iPhone Duo unfolded has no top inset, and there the thread takes no status-bar tap (its top
       // strip holds the app's header): nothing to test
-      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
-        console.log('[ios gate] skipped: an iPhone Duo unfolded takes no status-bar tap in a thread')
-        this.skip()
-      }
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
       const start = await openOnOldHit()
       await tapToThePresent()
       await expectAtThePresent('a status-bar tap')
@@ -891,10 +892,7 @@ describe('chat scroll', function () {
       it(`${how} re-pins it, and a later incoming message keeps the end`, async function () {
         // worst case (s): open 100, end 21, the drags 30 overrun by one 12, back to the end 72 (6 drags of stable 10 and drag 2), end 21, peer 70, send 60, row 20, two stables 20, three steps 6 = 432
         this.timeout(440_000)
-        if (toEnd === tapStatusBar && process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
-          console.log('[ios gate] skipped: an iPhone Duo unfolded takes no status-bar tap in a thread')
-          this.skip()
-        }
+        if (toEnd === tapStatusBar && isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
         await openScratch()
         await expectAtEnd()
         // the first drag from the end can stop short as the first older page lands (see paging)
@@ -1019,10 +1017,7 @@ describe('chat scroll', function () {
       this.timeout(1020_000)
       // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
       // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
-      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
-        console.log("[ios gate] skipped: an iPhone Duo unfolded has no drag that holds before it lifts")
-        this.skip()
-      }
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded has no drag that holds before it lifts')
       await openScratch()
       const kbTop = await keyboardTopWhenUp()
       const {ordinal, text} = await sendWithRowsBelow(8)
@@ -1321,11 +1316,8 @@ describe('chat scroll', function () {
       check(!!first, 'the list never drew a row')
       // an iPhone Duo unfolded shows the thread in a landscape column too short for this: the sparse
       // thread's first page fills it, so there is nothing to test
-      if (first!.content >= first!.view && process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
-        console.log(`[ios gate] skipped: the sparse thread's first page fills a Duo's view: ${JSON.stringify(first)}`)
-        this.skip()
-      }
-      check(first!.content < first!.view,`the first page drew enough to fill the view: ${JSON.stringify(first)}`)
+      if (first!.content >= first!.view && isDuoUnfolded()) skipBecause(this, `the sparse thread's first page fills a Duo's view: ${JSON.stringify(first)}`)
+      check(first!.content < first!.view, `the first page drew enough to fill the view: ${JSON.stringify(first)}`)
       const t = await waitForThreadStable()
       check(
         t.ordinals.length >= SPARSE_OLDER + SPARSE_NEWER,

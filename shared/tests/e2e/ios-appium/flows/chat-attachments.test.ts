@@ -116,7 +116,6 @@ describe('chat attachments', function () {
     check(a.author === loadE2EEnv().secondUser, 'the attachment did not come from the second account')
   }
 
-  // Taps `button` and checks the fullscreen view that opens is the attachment's, then goes back.
   // Closes the fullscreen view and waits for it to go: back, or where back is no gesture the view takes
   // (an iPhone Duo unfolded) closeAttachmentFullscreen. Bound: the back 10, gone 5 = 15.
   const closeFullscreen = async () => {
@@ -125,6 +124,7 @@ describe('chat attachments', function () {
     await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
   }
 
+  // Taps `button` and checks the fullscreen view that opens is the attachment's, then goes back.
   const openFullscreen = async (button: WebdriverIO.Element, a: StoredAttachment, what: string) => {
     await button.click()
     await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({timeout: 10_000})

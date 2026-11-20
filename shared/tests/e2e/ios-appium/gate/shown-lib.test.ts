@@ -65,6 +65,13 @@ describe('a run that reads frames (an unfolded Duo)', () => {
     )
   })
 
+  test('a find asking for visible in any spacing, or as true, asks for a frame in the window', () => {
+    expect(shownFind('-ios predicate string', 'label == "x" AND visible==1').value).toBe(`label == "x" AND ${FRAME}`)
+    expect(shownFind('-ios predicate string', 'visible  ==  true AND label == "x"').value).toBe(`${FRAME} AND label == "x"`)
+    expect(shownFind('-ios class chain', '**/XCUIElementTypeButton[`visible == true`]').value).toBe(`**/XCUIElementTypeButton[\`${FRAME}\`]`)
+    expect(shownFind('-ios predicate string', 'visible == 10').value).toBe('visible == 10')
+  })
+
   test('with a modal up, a find goes as written', () => {
     setPresentedForTest(true)
     expect(shownFind('-ios predicate string', 'label == "x" AND visible == 1').value).toBe('label == "x" AND visible == 1')

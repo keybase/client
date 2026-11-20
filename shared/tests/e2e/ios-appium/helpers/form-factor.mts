@@ -94,8 +94,9 @@ export const readFormFactor = (udid: string, exec: Exec = realExec): FormFactor 
 export const screenshotDisplayOf = (udid: string, exec: Exec = realExec): number | undefined => {
   const type = deviceTypeOf(udid, exec)
   if (!isDuo(type)) return undefined
-  const f = classifyFormFactor(type, displaysOf(udid, exec))
-  return displaysOf(udid, exec).find(d => d.primary === (f === 'duo-folded'))?.displayId
+  const displays = displaysOf(udid, exec)
+  const f = classifyFormFactor(type, displays)
+  return displays.find(d => d.primary === (f === 'duo-folded'))?.displayId
 }
 
 // KB_IOS_SCREEN=<udid>:<displayId>: set by a Duo flow run for its workers, whose screenshots then go
