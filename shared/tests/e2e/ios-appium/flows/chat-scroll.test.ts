@@ -777,6 +777,12 @@ describe('chat scroll', function () {
     it('a status-bar tap from an old hit loads newer pages until the present', async function () {
       // worst case (s): openOnOldHit 248, 12 taps of stable 10, a page 15 and the tap 1 = 312, expectAtThePresent 43, stable 10, 20 flicks of 1 and stable 10 = 220, step 2 = 835
       this.timeout(860_000)
+      // an iPhone Duo unfolded has no top inset, and there the thread takes no status-bar tap (its top
+      // strip holds the app's header): nothing to test
+      if (process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
+        console.log('[ios gate] skipped: an iPhone Duo unfolded takes no status-bar tap in a thread')
+        this.skip()
+      }
       const start = await openOnOldHit()
       await tapToThePresent()
       await expectAtThePresent('a status-bar tap')
@@ -879,6 +885,10 @@ describe('chat scroll', function () {
       it(`${how} re-pins it, and a later incoming message keeps the end`, async function () {
         // worst case (s): open 100, end 21, the drags 30 overrun by one 12, back to the end 72 (6 drags of stable 10 and drag 2), end 21, peer 70, send 60, row 20, two stables 20, three steps 6 = 432
         this.timeout(440_000)
+        if (toEnd === tapStatusBar && process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
+          console.log('[ios gate] skipped: an iPhone Duo unfolded takes no status-bar tap in a thread')
+          this.skip()
+        }
         await openScratch()
         await expectAtEnd()
         // the first drag from the end can stop short as the first older page lands (see paging)
