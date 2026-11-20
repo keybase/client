@@ -6,14 +6,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import SaveIndicator from '@/common-adapters/save-indicator'
 import logger from '@/logger'
-import {registerExternalResetter} from '@/util/zustand'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {
-  type CachedResourceCache,
-  createCachedResourceCache,
-  getCachedResourceCache,
-  useCachedResource,
-} from '@/util/use-cached-resource'
+import {refreshLoad, useLoadData} from '@/query'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'
@@ -374,61 +368,42 @@ const policyToExplanation = (
   return exp
 }
 
-type TeamRetentionData = T.Retention.RetentionPolicy | undefined
-
 const teamRetentionStaleMs = 5_000
-const noTeamRetentionPolicy: TeamRetentionData = undefined
 
-// One cache per team, shared by every consumer (settings tab and every chat info
-// panel for the team): a burst of remounts would otherwise be a burst of
+const teamRetentionLoad = 'teams.retention'
+
+// resolve rather than reject on failure: the picker falls back to the default
+// "retain" policy on error instead of spinning forever. Module scope: a try/catch
+// wrapping a value block is a react-compiler bailout.
+const loadTeamRetention = async (teamID: T.Teams.TeamID): Promise<T.Retention.RetentionPolicy> => {
+  let servicePolicy: T.RPCChat.RetentionPolicy | undefined | null
+  try {
+    servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
+      {teamID},
+      C.waitingKeyTeamsLoadRetentionPolicy(teamID)
+    )
+  } catch (error) {
+    logger.warn(`Failed to load team retention policy for ${teamID}`, error)
+  }
+  const policy = Teams.serviceRetentionPolicyToRetentionPolicy(servicePolicy)
+  return policy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : policy
+}
+
+// One cache entry per team, shared by every consumer (settings tab and every chat
+// info panel for the team): a burst of remounts would otherwise be a burst of
 // GetTeamRetentionLocal calls with identical arguments.
-const teamRetentionCaches = new Map<T.Teams.TeamID, CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>()
-
-// module scope outlives sign-out, so the next user would inherit this user's policies
-registerExternalResetter('teams-retention-caches', () => {
-  teamRetentionCaches.clear()
-})
-
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
+  // an adhoc conversation has no team
   const enabled = !!teamID && teamID !== T.Teams.noTeamID
-  // an adhoc conversation has no team, and useCachedResource resets the cache it
-  // holds when disabled — give those instances their own throwaway cache so they
-  // can't wipe the shared one out from under a real loader
-  const [localCache] = React.useState<CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>(() =>
-    createCachedResourceCache<TeamRetentionData, T.Teams.TeamID>(noTeamRetentionPolicy, teamID)
-  )
-  const sharedCache = React.useMemo(
-    () => getCachedResourceCache(teamRetentionCaches, noTeamRetentionPolicy, teamID),
-    [teamID]
-  )
-  const {data: teamPolicy, reload} = useCachedResource({
-    cache: enabled ? sharedCache : localCache,
-    cacheKey: teamID,
+  const {data: teamPolicy} = useLoadData(teamRetentionLoad, teamID, async () => loadTeamRetention(teamID), {
     enabled,
-    initialData: noTeamRetentionPolicy,
-    // resolve rather than reject on failure: the picker falls back to the default
-    // "retain" policy on error instead of spinning forever
-    load: async () => {
-      let servicePolicy: T.RPCChat.RetentionPolicy | undefined | null
-      try {
-        servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
-          {teamID},
-          C.waitingKeyTeamsLoadRetentionPolicy(teamID)
-        )
-      } catch (error) {
-        logger.warn(`Failed to load team retention policy for ${teamID}`, error)
-      }
-      const policy = Teams.serviceRetentionPolicyToRetentionPolicy(servicePolicy)
-      return policy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : policy
-    },
     staleMs: teamRetentionStaleMs,
   })
 
-  // the notification carries the new policy, but reload() is what actually
-  // invalidates the shared cache for the other consumers
+  // the notification carries the new policy, but the reload is what updates every consumer
   useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
     if (action.payload.params.teamID === teamID) {
-      void reload()
+      refreshLoad(teamRetentionLoad, teamID)
     }
   })
 

@@ -1,9 +1,11 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
-import * as T from '@/constants/types'
+import {act, cleanup, renderHook} from '@testing-library/react'
+import type * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
 import {useProofSuggestions} from './use-proof-suggestions'
 
@@ -28,123 +30,88 @@ const makeResponse = (
   suggestions,
 })
 
+const proofSuggestions = 'keybase.1.user.proofSuggestions'
+
+const asUser = (uid: string) =>
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID: '', deviceName: '', uid, username: 'alice'})
+
+const userChanged = (uid: string) =>
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {params: {uid}},
+      type: 'keybase.1.NotifyUsers.userChanged',
+    } as never)
+  })
+
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('loads suggestions on mount and reloads only for the current user', async () => {
-  useCurrentUserState.getState().dispatch.setBootstrap({
-    deviceID: '',
-    deviceName: '',
-    uid: 'uid-1',
-    username: 'alice',
-  })
-
-  const loadSuggestions = jest
-    .spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise')
-    .mockResolvedValueOnce(makeResponse([makeSuggestion('github')]))
-    .mockResolvedValueOnce(makeResponse([makeSuggestion('twitter', true)]))
+  asUser('uid-1')
+  const fake = installFakeEngine()
+  let response = makeResponse([makeSuggestion('github')])
+  fake.answer(proofSuggestions, () => response)
 
   const {result} = renderHook(() => useProofSuggestions())
+  await flush()
+  expect(result.current.proofSuggestions[0]?.assertionKey).toBe('github')
+  expect(fake.calls).toHaveLength(1)
 
-  await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('github'))
-  expect(loadSuggestions).toHaveBeenCalledTimes(1)
+  response = makeResponse([makeSuggestion('twitter', true)])
+  userChanged('uid-2')
+  await flush()
+  expect(fake.calls).toHaveLength(1)
 
-  act(() => {
-    notifyEngineActionListeners({
-      payload: {params: {uid: 'uid-2'}},
-      type: 'keybase.1.NotifyUsers.userChanged',
-    } as never)
-  })
-
-  expect(loadSuggestions).toHaveBeenCalledTimes(1)
-
-  act(() => {
-    notifyEngineActionListeners({
-      payload: {params: {uid: 'uid-1'}},
-      type: 'keybase.1.NotifyUsers.userChanged',
-    } as never)
-  })
-
-  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
-  await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('twitter'))
+  userChanged('uid-1')
+  await flush()
+  expect(fake.calls).toHaveLength(2)
+  expect(result.current.proofSuggestions[0]?.assertionKey).toBe('twitter')
 })
 
 test('newer reloads beat stale proof suggestion results', async () => {
-  useCurrentUserState.getState().dispatch.setBootstrap({
-    deviceID: '',
-    deviceName: '',
-    uid: 'uid-1',
-    username: 'alice',
-  })
-
-  const pending: Array<(value: T.RPCGen.ProofSuggestionsRes) => void> = []
-  const loadSuggestions = jest.spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise').mockImplementation(
-    async () =>
-      new Promise(resolve => {
-        pending.push(resolve)
-      })
-  )
+  asUser('uid-1')
+  const fake = installFakeEngine()
+  const held = fake.hold(proofSuggestions)
 
   const {result} = renderHook(() => useProofSuggestions())
-
-  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(1))
+  await flush()
+  expect(held).toHaveLength(1)
 
   act(() => {
     result.current.reload()
   })
+  await flush()
+  expect(held).toHaveLength(2)
 
-  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
-
-  act(() => {
-    pending[0]?.(makeResponse([makeSuggestion('github')]))
-    pending[1]?.(makeResponse([makeSuggestion('reddit')]))
-  })
-
-  await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit'))
+  held[0]!.reply(makeResponse([makeSuggestion('github')]))
+  held[1]!.reply(makeResponse([makeSuggestion('reddit')]))
+  await flush()
+  expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit')
 })
 
 test('a burst of user changes loads once more after the load in flight, not once per notice', async () => {
-  useCurrentUserState.getState().dispatch.setBootstrap({
-    deviceID: '',
-    deviceName: '',
-    uid: 'uid-1',
-    username: 'alice',
-  })
-
-  const pending: Array<(value: T.RPCGen.ProofSuggestionsRes) => void> = []
-  const loadSuggestions = jest.spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise').mockImplementation(
-    async () =>
-      new Promise(resolve => {
-        pending.push(resolve)
-      })
-  )
+  asUser('uid-1')
+  const fake = installFakeEngine()
+  const held = fake.hold(proofSuggestions)
 
   const {result} = renderHook(() => useProofSuggestions())
-  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(1))
+  await flush()
+  expect(held).toHaveLength(1)
 
-  act(() => {
-    for (let i = 0; i < 5; i++) {
-      notifyEngineActionListeners({
-        payload: {params: {uid: 'uid-1'}},
-        type: 'keybase.1.NotifyUsers.userChanged',
-      } as never)
-    }
-  })
-  expect(loadSuggestions).toHaveBeenCalledTimes(1)
+  for (let i = 0; i < 5; i++) {
+    userChanged('uid-1')
+  }
+  await flush()
+  expect(held).toHaveLength(1)
 
-  await act(async () => {
-    pending[0]?.(makeResponse([makeSuggestion('github')]))
-    await Promise.resolve()
-  })
-  await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
+  held[0]!.reply(makeResponse([makeSuggestion('github')]))
+  await flush()
+  expect(held).toHaveLength(2)
 
-  await act(async () => {
-    pending[1]?.(makeResponse([makeSuggestion('reddit')]))
-    await Promise.resolve()
-  })
-  await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit'))
-  expect(loadSuggestions).toHaveBeenCalledTimes(2)
+  held[1]!.reply(makeResponse([makeSuggestion('reddit')]))
+  await flush()
+  expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit')
+  expect(held).toHaveLength(2)
 })

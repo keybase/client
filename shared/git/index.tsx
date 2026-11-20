@@ -6,7 +6,7 @@ import Row from './row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'
 import {NewItemsContext, useLocalBadging} from '@/util/use-local-badging'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import {useConfigState} from '@/stores/config'
 import * as dateFns from 'date-fns'
 
@@ -46,10 +46,10 @@ const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
+const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult> | null) => {
   const errors: Array<Error> = []
   const repos = new Map<string, T.Git.GitInfo>()
-  results.forEach(result => {
+  results?.forEach(result => {
     if (result.state === T.RPCGen.GitRepoResultState.ok) {
       const parsedRepo = parseRepoResult(result)
       if (parsedRepo) {
@@ -118,15 +118,29 @@ const GitRoot = (ownProps: OwnProps) => {
     // channel name (e.g. after returning from the channel selector)
     loadCount: refreshToken,
     reload: load,
-  } = useRPCLoad(T.RPCGen.gitGetAllGitMetadataRpcPromise, [undefined, C.waitingKeyGitLoading], {
-    map: results => parseRepos(results || []),
-    onResult: ({errors}) => {
-      setRowError(undefined)
-      const {setGlobalError} = useConfigState.getState().dispatch
-      errors.forEach(e => setGlobalError(e))
-    },
-    when: 'focus',
+  } = useRpcData(T.RPCGen.gitGetAllGitMetadataRpcPromise, undefined, {
+    reloadOnFocus: true,
+    select: parseRepos,
+    waitingKey: C.waitingKeyGitLoading,
   })
+  // a row's error shows until the next load lands
+  const [rowErrorLoad, setRowErrorLoad] = React.useState(refreshToken)
+  if (rowErrorLoad !== refreshToken) {
+    setRowErrorLoad(refreshToken)
+    setRowError(undefined)
+  }
+  const onLoaded = React.useEffectEvent(() => {
+    const {setGlobalError} = useConfigState.getState().dispatch
+    data?.errors.forEach(e => setGlobalError(e))
+  })
+  // not for what was already cached when the screen opened
+  const reportedLoad = React.useRef(refreshToken)
+  React.useEffect(() => {
+    if (refreshToken !== reportedLoad.current) {
+      reportedLoad.current = refreshToken
+      onLoaded()
+    }
+  }, [refreshToken])
   const idToInfo = data?.repos ?? noRepos
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.Router2.navigateAppend

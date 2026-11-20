@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
+import {useLoadData} from '@/query'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -23,7 +23,7 @@ type ActivityLevels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>
   loaded: boolean
   loading: boolean
-  reload: () => Promise<void>
+  reload: () => void
   teams: ReadonlyMap<T.Teams.TeamID, T.Teams.ActivityLevel>
 }
 
@@ -51,7 +51,6 @@ const emptyActivityLevelsData: ActivityLevelsData = {
   channels: emptyChannelActivityLevels,
   teams: emptyTeamActivityLevels,
 }
-const activityLevelsCacheKey = 'activity' as const
 
 const parseActivityLevels = (
   results: Awaited<ReturnType<typeof T.RPCChat.localGetLastActiveForTeamsRpcPromise>>
@@ -76,34 +75,21 @@ const parseActivityLevels = (
   }
 }
 
-const useActivityLevelsRaw = (
-  cache: CachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>,
-  enabled = true
-): ActivityLevels => {
-  const {data, loaded, loading, reload} = useCachedResource({
-    cache,
-    cacheKey: activityLevelsCacheKey,
-    enabled,
-    initialData: emptyActivityLevelsData,
-    load: async () => parseActivityLevels(await T.RPCChat.localGetLastActiveForTeamsRpcPromise()),
-    onError: error => {
-      logger.warn('Failed to load activity levels', error)
-    },
-    staleMs: activityLevelsReloadStaleMs,
-  })
-
-  return {...data, loaded, loading, reload}
-}
+const loadActivityLevels = async (signal: AbortSignal) =>
+  parseActivityLevels(await T.RPCChat.localGetLastActiveForTeamsRpcPromise(undefined, undefined, signal))
 
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const [cache] = React.useState(() =>
-    createCachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>(
-      emptyActivityLevelsData,
-      activityLevelsCacheKey
-    )
-  )
-  const value = useActivityLevelsRaw(cache)
+  const {
+    data = emptyActivityLevelsData,
+    loaded,
+    loading,
+    reload,
+  } = useLoadData('teams.activityLevels', null, loadActivityLevels, {
+    onError: error => logger.warn('Failed to load activity levels', error),
+    staleMs: activityLevelsReloadStaleMs,
+  })
+  const value = React.useMemo(() => ({...data, loaded, loading, reload}), [data, loaded, loading, reload])
   return <ActivityLevelsContext value={value}>{children}</ActivityLevelsContext>
 }
 

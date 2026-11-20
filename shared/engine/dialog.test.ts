@@ -340,6 +340,7 @@ test('a listener rejection that is not an RPCError reaches done unchanged', asyn
   installCallPort({
     call: () => 0,
     cancelOutstandingSessions: () => {},
+    cancelSession: () => {},
     listen: async () => Promise.reject(wrapped),
   })
   const dialog = openDialog(rpc, {username: 'testuser'}, {prompts: [choose]})
