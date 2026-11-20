@@ -468,8 +468,10 @@ export const previewConversation = (p: PreviewConversationParams) => {
   ignorePromise(previewConversationTeam())
 }
 
-export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
-  getNavigator().setChatRootParams(params)
+export const setChatRootParams = (
+  params: Partial<NonNullable<KBRootParamList['chatRoot']>>,
+  opts?: {focus?: boolean}
+): boolean => getNavigator().setChatRootParams(params, opts)
 
 export const pushInTab = (tab: Tabs.AppTab, screen: {name: RouteKeys; params?: Record<string, unknown>}): boolean =>
   getNavigator().pushInTab(tab, screen)
@@ -503,6 +505,8 @@ export const setThreadInputReplyTo = (
 
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
+  // false: select the thread under whatever is above the tabs (the split's own pick of a thread)
+  focus?: boolean
   threadSearch?: {query?: string}
 }
 
@@ -541,19 +545,37 @@ type OpenThreadParams = {
   threadSearch?: {query?: string}
 }
 
+// A selection still waiting for the chat tab to mount; cancelled by any newer thread navigation or
+// layout change, which the user acted on after it
+let cancelPendingChatRootSelect: (() => void) | undefined
+const cancelChatRootSelect = () => {
+  cancelPendingChatRootSelect?.()
+  cancelPendingChatRootSelect = undefined
+}
+
 // The tab navigator under a pushed screen may not have reported its state yet, so the selection
-// waits for it (a few seconds at most)
+// waits for it (a few seconds at most), while chat is still split and the account the same
 const selectInChatRootOnceMounted = (params: OpenThreadParams) => {
+  cancelChatRootSelect()
   if (setChatRootParams(params)) return
-  const timer = setTimeout(() => {
+  const username = useCurrentUserState.getState().username
+  const stop = () => {
+    clearTimeout(timer)
     unsub()
+    if (cancelPendingChatRootSelect === stop) cancelPendingChatRootSelect = undefined
+  }
+  const timer = setTimeout(() => {
+    stop()
     logger.warn('chat layout: the chat tab never mounted, the thread stays unselected')
   }, 5000)
   const unsub = getNavigator().addListener('state', () => {
-    if (!setChatRootParams(params)) return
-    clearTimeout(timer)
-    unsub()
+    if (!isChatSplit() || useCurrentUserState.getState().username !== username) {
+      stop()
+      return
+    }
+    if (setChatRootParams(params)) stop()
   })
+  cancelPendingChatRootSelect = stop
 }
 
 // The chat layout of a phone that splits by width just changed (see constants/chat/layout): the
@@ -562,6 +584,7 @@ const selectInChatRootOnceMounted = (params: OpenThreadParams) => {
 // the panel is chatInfoPanel over it. Only a thread on top (or under its own panel) moves: under
 // another modal, or a screen pushed over it, the user is looking at something else, which stays put.
 export const moveOpenThreadToLayout = (split: boolean) => {
+  cancelChatRootSelect()
   const rs = getRootState()
   if (split) {
     const routes = rs?.routes ?? []
@@ -592,11 +615,10 @@ export const moveOpenThreadToLayout = (split: boolean) => {
   if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
   logger.info(`chat layout: narrow, thread ${conversationIDKey} moves to chatConversation`)
   const nav = getNavigator()
-  if (infoPanel) {
-    // chatRoot would show the panel again the next time it splits
-    nav.setChatRootParams({infoPanel: undefined})
-  }
-  nav.showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey, threadSearch}})
+  // chatRoot (showing the inbox now) lets the thread go, or it would show it again the next time it
+  // splits; the thread pushes above the tabs, which keep their state
+  nav.setChatRootParams({conversationIDKey: undefined, infoPanel: undefined, threadSearch: undefined}, {focus: false})
+  nav.navigateAppend({name: 'chatConversation', params: {conversationIDKey, threadSearch}})
   if (infoPanel) {
     nav.navigateAppend({name: 'chatInfoPanel', params: {conversationIDKey, tab: infoPanel.tab}})
   }
@@ -606,6 +628,7 @@ const navToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   navParams?: ThreadNavParams
 ): boolean => {
+  cancelChatRootSelect()
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
@@ -620,7 +643,7 @@ const navToThread = (
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    return setChatRootParams(params)
+    return setChatRootParams(params, {focus: navParams?.focus})
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     return getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
@@ -666,6 +689,7 @@ export const navigateToThread = (
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
   const navParams = {
     createConversationError,
+    focus: reason !== 'findNewestConversationFromLayout',
     threadSearch,
   }
   let navigated: boolean

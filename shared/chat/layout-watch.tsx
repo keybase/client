@@ -1,5 +1,5 @@
 import {Dimensions} from 'react-native'
-import {chatSplitsAtWidth, chatSplitsByWidth, isChatSplit} from '@/constants/chat/layout'
+import {chatSplitsAt, chatSplitsByWidth, isChatSplit} from '@/constants/chat/layout'
 import {moveOpenThreadToLayout} from '@/constants/router'
 
 // App init starts it; the returned function stops it. On a phone whose chat splits by window width,
@@ -7,8 +7,8 @@ import {moveOpenThreadToLayout} from '@/constants/router'
 export const watchChatLayout = () => {
   if (!chatSplitsByWidth) return () => {}
   let wasSplit = isChatSplit()
-  const sub = Dimensions.addEventListener('change', ({window}: {window: {width: number}}) => {
-    const split = chatSplitsAtWidth(window.width)
+  const sub = Dimensions.addEventListener('change', ({window}: {window: {height: number; width: number}}) => {
+    const split = chatSplitsAt(window)
     if (split === wasSplit) return
     wasSplit = split
     moveOpenThreadToLayout(split)
