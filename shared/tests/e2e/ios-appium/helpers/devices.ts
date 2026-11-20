@@ -7,6 +7,7 @@ import type {E2EEnv} from '../../accounts/env'
 import {requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
+import {shownNow} from '../gate/shown-lib.ts'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled, maskingName} from './elements'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from './navigate'
@@ -102,7 +103,7 @@ export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
     // the list's own header, the Add button, sits above its rows and does not scroll; it is drawn a
     // moment after a screen over the list (the paper key's) closes
     const add = labeled('Other', 'Add a device or paper key')
-    await add.waitForDisplayed({timeout: 10_000})
+    await browser.waitUntil(async () => shownNow(add), {interval: 250, timeout: 10_000, timeoutMsg: 'the Add a device or paper key header never showed'})
     const until = Date.now() + timeoutMs
     const {height} = await browser.getWindowRect()
     const listTop = (await add.getLocation('y')) + (await add.getSize('height'))

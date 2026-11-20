@@ -162,7 +162,7 @@ describe('profile proofs', function () {
 
   // Drags the profile until its "Add more identities" is on screen, which brings the identity rows
   // above it into view. Bound: 20.
-  const revealIdentities = async () => dragUntilOnScreen('"Add more identities"', () => browser.$(ADD_IDENTITIES))
+  const revealIdentities = async () => dragUntilOnScreen('"Add more identities"', () => browser.$(ADD_IDENTITIES()))
 
   // The rects of the texts on screen that `match` reads as the identity row's, innermost of nested
   // ones, read off one page source (an attribute call per text of the profile took longer than the
@@ -219,7 +219,7 @@ describe('profile proofs', function () {
     await waitFor(
       what,
       async () => {
-        check(await browser.$(ADD_IDENTITIES).isExisting(), 'the profile does not draw its "Add more identities"')
+        check(await browser.$(ADD_IDENTITIES()).isExisting(), 'the profile does not draw its "Add more identities"')
         return (await rowTextRects(match)).length === 0 ? true : undefined
       },
       {interval: 500, timeout: 15_000}
@@ -242,7 +242,7 @@ describe('profile proofs', function () {
   // Bound: identities 21, screen 11, fill 26, the platform 32 = 90.
   const pickPlatform = async (name: string) => {
     await revealIdentities()
-    await browser.$(ADD_IDENTITIES).click()
+    await browser.$(ADD_IDENTITIES()).click()
     await expectScreen('the proofs list', 'profileProofsList')
     await fillField(() => el(T.PROFILE_PROOFS_FILTER), name, "the proofs list's filter")
     // the platforms arrive from the service after the list shows

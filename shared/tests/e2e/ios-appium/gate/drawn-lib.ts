@@ -2,6 +2,7 @@
 // unit-tested.
 import {frameInside, type Rect} from './chat-lib.ts'
 import {sourceElements, sourceParents} from './page-source-lib.ts'
+import {shownAttrs} from './shown-lib.ts'
 
 // How far a row the tree holds but that no hit drew lies from the screen's middle (its top's), to steer
 // filesRowNamed's drags by; undefined to drag blind. A Files row steers from wherever it is (drawn
@@ -27,7 +28,7 @@ export const oneControlAtFrame = (
   const parents = sourceParents(source)
   const at = sourceElements(source).flatMap((e, n) =>
     e.type === type &&
-    (!visibleOnly || e.attrs['visible'] === 'true') &&
+    (!visibleOnly || shownAttrs(e.attrs)) &&
     (['height', 'width', 'x', 'y'] as const).every(k => Number(e.attrs[k]) === rect[k]) &&
     matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' '))
       ? [n]

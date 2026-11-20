@@ -24,6 +24,7 @@ import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, pr
 import {waitFor} from './lifecycle'
 import {expectScreen} from '../gate/screens.ts'
 import {backUntil, goBack, openTabRoot} from './navigate'
+import {elementShown, SHOWN, shownAttrs} from '../gate/shown-lib.ts'
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -66,7 +67,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     const screen = await screenRect()
     // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
     const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
-    const candidates = pick(all, e => e.attrs['visible'] === 'true')
+    const candidates = pick(all, e => shownAttrs(e.attrs))
     // a Files row is taken wherever it is drawn in the files browser, reported visible or not (a
     // folder screen reports every element invisible); another list's row only among the candidates,
     // on screen
@@ -91,7 +92,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   const found: Array<DrawnRow> = []
   const labels: Array<string> = []
   const byID = `-ios predicate string:name == ${JSON.stringify(testID)}`
-  const shown = files ? [] : await within.$$(`${byID} AND visible == 1`).getElements()
+  const shown = files ? [] : await within.$$(`${byID} AND ${SHOWN()}`).getElements()
   for (const e of files || !shown.length ? await within.$$(byID).getElements() : shown) {
     const label = (await e.getAttribute('label').catch(() => null)) ?? ''
     labels.push(label)
@@ -293,7 +294,7 @@ const topScreenButtonLabelled = async (label: string, what: string) => {
   return found[inner[0]!]!.e
 }
 export const buttonLabelled = async (label: string, what: string) =>
-  labelledElement(BUTTON_ELEMENTS, label, what).catch(async () => topScreenButtonLabelled(label, what))
+  labelledElement(BUTTON_ELEMENTS(), label, what).catch(async () => topScreenButtonLabelled(label, what))
 
 // Clicks the button `button()` finds until `done()` says the click took: a click while the keyboard is
 // up only closes the keyboard (and XCUITest reports the keyboard shown or not unreliably, so it is not
@@ -377,7 +378,7 @@ export const typeInFilter = async (text: string, what: string) => {
     // a filter of another tab's screen can be in the tree too: the visible one, else the newest
     const boxes = await browser.$$(`~${T.SEARCH_FILTER}`).getElements()
     let box = boxes.at(-1)!
-    for (const e of boxes) if ((await e.getAttribute('visible').catch(() => null)) === 'true') box = e
+    for (const e of boxes) if (await elementShown(e)) box = e
     await press(box, what)
   }
   try {

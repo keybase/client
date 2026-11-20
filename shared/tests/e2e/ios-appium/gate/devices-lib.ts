@@ -8,6 +8,7 @@ import {escapePredicate} from '../helpers/elements.ts'
 import {sourceElements} from './page-source-lib.ts'
 import type {LoggedCall} from '../../shared/call-log.ts'
 import {uiCallsOf} from './recorder-lib.ts'
+import {shownAttrs} from './shown-lib.ts'
 
 export type ListRow = {label: string; visible: boolean; y: number}
 
@@ -16,7 +17,7 @@ export const deviceRowsIn = (source: string): Array<ListRow> =>
   sourceElements(source)
     .map(e => e.attrs)
     .filter(a => a['name'] === DEVICES_ROW)
-    .map(a => ({label: a['label'] ?? '', visible: a['visible'] === 'true', y: Number(a['y'])}))
+    .map(a => ({label: a['label'] ?? '', visible: shownAttrs(a), y: Number(a['y'])}))
     .sort((a, b) => a.y - b.y)
 
 // Whether the page source shows the "Revoked devices" divider that ends the active devices.

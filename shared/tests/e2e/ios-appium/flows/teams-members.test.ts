@@ -439,12 +439,12 @@ describe('teams members', function () {
     // -- added to both channels from the member page ------------------------------------------------
     await openSecondsMemberPage(teamID)
     const row = await expandSubteamRow(name)
-    await (await shownInside(row.rect, BUTTON_ELEMENTS, 'Add to channels', "the subteam row's Add to channels")).click()
+    await (await shownInside(row.rect, BUTTON_ELEMENTS(), 'Add to channels', "the subteam row's Add to channels")).click()
     const onAdd = (p: Params) =>
       p['teamID'] === teamID && Array.isArray(p['usernames']) && p['usernames'].length === 1 && p['usernames'][0] === secondUser
     await expectScreen("the second account's add to channels", 'teamAddToChannels', onAdd)
     for (const c of channels) {
-      const pick = await waitFor('a host-made channel to add to', async () => elementWithLabelPart(TEXTS, `#${c}`, 'a host-made channel to add to', {forTap: true}), {
+      const pick = await waitFor('a host-made channel to add to', async () => elementWithLabelPart(TEXTS(), `#${c}`, 'a host-made channel to add to', {forTap: true}), {
         interval: 250,
         timeout: 5_000,
       })
@@ -488,7 +488,7 @@ describe('teams members', function () {
     await el(T.TEAMS_CHANNEL_PAGE).waitForExist({timeout: 10_000})
     const inChannel = await filesRowNamed(secondUser, "the second account's row on the channel page", {testID: T.TEAMS_CHANNEL_MEMBER_ROW})
     const popup = await checkRowForPopup(inChannel.rect, "the second account's check on the channel page")
-    await (await shownInside(popup, BUTTON_ELEMENTS, 'Remove from channel', "the selection popup's Remove from channel")).click()
+    await (await shownInside(popup, BUTTON_ELEMENTS(), 'Remove from channel', "the selection popup's Remove from channel")).click()
     const onRemove = (p: Params) =>
       onChannel(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
     await expectScreen("the remove from channel confirm", 'teamReallyRemoveChannelMember', onRemove)
@@ -529,7 +529,7 @@ describe('teams members', function () {
     // -- the selection popup's Remove from team, then Kick out ---------------------------------------
     const row = await memberRow(secondUser, "the second account's member row")
     const popup = await checkRowForPopup(row.rect, "the second account's check")
-    await (await shownInside(popup, BUTTON_ELEMENTS, 'Remove from team', "the selection popup's Remove from team")).click()
+    await (await shownInside(popup, BUTTON_ELEMENTS(), 'Remove from team', "the selection popup's Remove from team")).click()
     const onKick = (p: Params) =>
       onSubteam(p) && Array.isArray(p['members']) && p['members'].length === 1 && p['members'][0] === secondUser
     await expectScreen('the kick out confirm', 'teamReallyRemoveMember', onKick)
@@ -583,7 +583,7 @@ describe('teams members', function () {
     await expectScreen("the subteam's add-members wizard", 'teamAddToTeamFromWhere', p => wizardOf(p).teamID === teamID)
     const byEmail = await waitFor(
       "the wizard's email list choice",
-      async () => elementWithLabelPart(TEXTS, 'A list of email addresses', "the wizard's email list choice", {forTap: true}),
+      async () => elementWithLabelPart(TEXTS(), 'A list of email addresses', "the wizard's email list choice", {forTap: true}),
       {interval: 250, timeout: 5_000}
     )
     await byEmail.click()

@@ -148,8 +148,8 @@ describe('profile edit', function () {
     this.timeout(160_000)
     const {smokeUser} = loadE2EAccounts()
     await openOwnProfile()
-    await dragUntilOnScreen('"Add more identities"', () => browser.$(ADD_IDENTITIES))
-    await browser.$(ADD_IDENTITIES).click()
+    await dragUntilOnScreen('"Add more identities"', () => browser.$(ADD_IDENTITIES()))
+    await browser.$(ADD_IDENTITIES()).click()
     await expectScreen('the proofs list', 'profileProofsList')
     await waitForTestID(T.PROFILE_PROOFS_FILTER, 10_000)
     // proving an identity on an external site is done by hand; no platform is picked here

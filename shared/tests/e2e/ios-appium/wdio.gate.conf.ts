@@ -33,6 +33,7 @@ import {iosFlowProject} from './theme'
 import {approveKeybaseLinks} from './helpers/sim-links.mts'
 import {formFactorMismatch, readFormFactor, restartSimulator, screenshotDisplayOf} from './helpers/form-factor.mts'
 import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor} from './helpers/split-view.mts'
+import {recordFrameShown} from './gate/shown-lib.ts'
 
 // KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
 // run. The run's form factor (iphone, duo-folded, duo-split-left, …) is set in onPrepare and handed to
@@ -129,6 +130,7 @@ export const config: WebdriverIO.Config = {
     if (!posture) return
     const got = await applyPosture(udid, device, posture)
     if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)
+    if (got !== 'duo-folded') recordFrameShown(await browser.getWindowRect())
     const display = screenshotDisplayOf(udid)
     if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
   },

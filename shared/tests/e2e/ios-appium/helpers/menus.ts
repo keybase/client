@@ -6,6 +6,7 @@ import {waitFor} from './lifecycle'
 import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
 import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
+import {SHOWN, shownAttrs} from '../gate/shown-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
 // the bottom SHEET_PEEK points of the window. XCUITest reports a sheet (and its items) visible=false
@@ -15,7 +16,7 @@ import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page
 const SHEET_PEEK = 114
 export const openSheets = async () => {
   const {height} = await browser.getWindowRect()
-  return `-ios predicate string:label == "Bottom Sheet" AND (visible == 1 OR rect.y < ${height - SHEET_PEEK})`
+  return `-ios predicate string:label == "Bottom Sheet" AND (${SHOWN()} OR rect.y < ${height - SHEET_PEEK})`
 }
 export const menuSheet = async () => browser.$(await openSheets())
 
@@ -86,7 +87,7 @@ export const dragSheetUp = async () => {
 // The item `label` of the open sheet: the one reported visible, else the one drawn inside the sheet
 // (see menuSheet), with whether it reads visible. Undefined when there is none; throws on more than one.
 const sheetItem = async (label: string) => {
-  const shown = await browser.$$(`${menuItemPredicate(label)} AND visible == 1`).getElements()
+  const shown = await browser.$$(`${menuItemPredicate(label)} AND ${SHOWN()}`).getElements()
   if (shown.length) return {e: shown[0]!, visible: true}
   const sheets: Array<Rect> = []
   for (const sh of await browser.$$(await openSheets()).getElements()) {
@@ -178,17 +179,17 @@ export const openSheetWith = async (what: string, open: () => Promise<unknown>, 
 export const openMenuFrom = async (what: string, tap: () => Promise<unknown>) =>
   openSheetWith(what, async () => tap().catch(() => {}))
 
-// What `selector` finds; for a selector that asks for `visible == 1` and finds nothing, what it finds
+// What `selector` finds; for a selector that asks for SHOWN() and finds nothing, what it finds
 // without that and drawn on screen (a modal or sheet XCUITest reports invisible now and then). Bound:
 // two reads 2, and a frame read per element of the fallback.
-const VISIBLE_CLAUSE = ' AND visible == 1'
+const visibleClause = () => ` AND ${SHOWN()}`
 export const elementsOrUnseen = async (selector: string) => {
   const found = await browser.$$(selector).getElements()
-  if (found.length || !selector.endsWith(VISIBLE_CLAUSE)) return [...found]
+  if (found.length || !selector.endsWith(visibleClause())) return [...found]
   // only those drawn on screen: a screen under the top one keeps its elements in the tree
   const screen = await screenRect()
   const drawn: Array<WebdriverIO.Element> = []
-  for (const e of await browser.$$(selector.slice(0, -VISIBLE_CLAUSE.length)).getElements()) {
+  for (const e of await browser.$$(selector.slice(0, -visibleClause().length)).getElements()) {
     const r = await rectOf(e)
     if (r && frameInside(r, screen)) drawn.push(e)
   }
@@ -271,12 +272,12 @@ export const labelledElement = async (selector: string, label: string, what: str
 }
 
 // Every visible button, for labelledElement.
-export const BUTTON_ELEMENTS = '-ios predicate string:type == "XCUIElementTypeButton" AND visible == 1'
+export const BUTTON_ELEMENTS = () => `-ios predicate string:type == "XCUIElementTypeButton" AND ${SHOWN()}`
 
 // The visible button labelled `label`, tapped once the screen draws it. Bound: the find 5, the tap
 // 1 = 6.
 export const tapButton = async (label: string, what: string) =>
-  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS, label, what), {interval: 300, timeout: 5_000})).click()
+  (await waitFor(what, async () => labelledElement(BUTTON_ELEMENTS(), label, what), {interval: 300, timeout: 5_000})).click()
 
 // The one element on screen of those `selector` finds whose label, split at its ", " joins, holds
 // `name` as a part (a tappable row merges its texts into one label): compared in memory, so a name
@@ -303,7 +304,7 @@ export const NAMED_ELEMENT_TYPES: ReadonlyArray<string> = ['XCUIElementTypeStati
 // them all (a label asked of each element is a WebDriver call apiece). Bound: one read 2.
 export const drawnLabels = async (): Promise<Array<string>> =>
   sourceElements(await browser.getPageSource())
-    .filter(e => NAMED_ELEMENT_TYPES.includes(e.type) && e.attrs['visible'] === 'true' && !!e.attrs['label'])
+    .filter(e => NAMED_ELEMENT_TYPES.includes(e.type) && shownAttrs(e.attrs) && !!e.attrs['label'])
     .map(e => e.attrs['label']!)
 // For a tap only, not a presence read: when XCUITest reports none of the matches visible (a modal
 // or sheet it reports invisible now and then), the one of them whose frame lies wholly on screen.
@@ -336,7 +337,7 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
       e,
       r: sourceRect(e.attrs),
     }))
-  const shown = all.filter(({e}) => e.attrs['visible'] === 'true')
+  const shown = all.filter(({e}) => shownAttrs(e.attrs))
   // a tap's fallback keeps to frames wholly on screen: a screen under the top one, and a list's rows
   // scrolled away, keep their elements in the tree
   const screen = forTap && !shown.length ? await screenRect() : undefined
@@ -353,7 +354,7 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const visibleOnly = shown.length > 0
   const count = oneControlAtFrame(source, {matches, rect: r, type, visibleOnly}, what)
   // the label is compared in memory, never put in the selector
-  const visible = visibleOnly ? ' AND visible == 1' : ''
+  const visible = visibleOnly ? ` AND ${SHOWN()}` : ''
   const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}${visible}`).getElements()
   const labels: Array<string | null> = []
   for (const e of els) labels.push(await e.getAttribute('label').catch(() => null))
