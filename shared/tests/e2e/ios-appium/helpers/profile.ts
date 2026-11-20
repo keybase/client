@@ -8,10 +8,9 @@ import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {check} from './menus'
 import {escapeToTabs} from './navigate'
-import {SHOWN} from '../gate/shown-lib.ts'
 
 // the profile's "Add more identities" button, drawn below its identity rows
-export const ADD_IDENTITIES = () => `-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add more identities" AND ${SHOWN()}`
+export const ADD_IDENTITIES = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Add more identities" AND visible == 1'
 
 // `username`'s own profile (the account the app is on), opened from a link; `who` names it in the
 // screen wait ("the smoke account"). Bound: escapeToTabs 30, the link 1, screen 21, the page 11 = 63.

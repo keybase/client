@@ -34,13 +34,12 @@ import {
 } from './menus'
 import {waitFor} from './lifecycle'
 import {backUntil, barButton, goBack, openTabRoot} from './navigate'
-import {SHOWN, shownAttrs} from '../gate/shown-lib.ts'
 
 // The visible texts a flow reads or taps, drawn as menus' NAMED_ELEMENT_TYPES: its own text, a
 // pressable text (a link), or a tappable box merging its texts. A read of many goes off one page
 // source by those types instead (an attribute call per element of every labelled box on a screen took
 // minutes).
-export const TEXTS = () => `-ios predicate string:(${NAMED_ELEMENT_TYPES.map(t => `type == "${t}"`).join(' OR ')}) AND label != "" AND ${SHOWN()}`
+export const TEXTS = `-ios predicate string:(${NAMED_ELEMENT_TYPES.map(t => `type == "${t}"`).join(' OR ')}) AND label != "" AND visible == 1`
 // what a header's text action (Skip) can be drawn as: a native bar button, or a pressable text
 const HEADER_ACTION_TYPES = ['XCUIElementTypeButton', 'XCUIElementTypeStaticText', 'XCUIElementTypeLink']
 
@@ -269,7 +268,7 @@ export const tapTeamsCard = async (label: string, what: string) => {
   const card = await waitFor(
     what,
     async () =>
-      elementWithLabelPart(`-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(label)} AND ${SHOWN()}`, label, what, {
+      elementWithLabelPart(`-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS ${JSON.stringify(label)} AND visible == 1`, label, what, {
         forTap: true,
       }),
     {interval: 250, timeout: 5_000}
@@ -310,7 +309,7 @@ export const tapHeaderAddInvite = async () => {
 // Throws unless there is exactly one. Bound: 10s, one read 1.
 export const onlyField = async (type: 'TextField' | 'TextView', what: string) => {
   const any = `-ios predicate string:type == "XCUIElementType${type}"`
-  const visible = `${any} AND ${SHOWN()}`
+  const visible = `${any} AND visible == 1`
   await waitFor(what, async () => ((await browser.$$(any).length) > 0 ? true : undefined), {interval: 250, timeout: 10_000})
   const selector = (await browser.$$(visible).length) > 0 ? visible : any
   const n = await browser.$$(selector).length
@@ -326,7 +325,7 @@ export const onlyField = async (type: 'TextField' | 'TextView', what: string) =>
 // the rect; then fetched by its type and frame. `what` names it. Throws when none or more than one is.
 // Bound: one read 2.
 export const labelPartInside = async (rect: Rect, selector: string, part: string, what: string) => {
-  const types = selector === BUTTON_ELEMENTS() ? ['XCUIElementTypeButton'] : NAMED_ELEMENT_TYPES
+  const types = selector === BUTTON_ELEMENTS ? ['XCUIElementTypeButton'] : NAMED_ELEMENT_TYPES
   const inRect = sourceElements(await browser.getPageSource())
     .filter(e => types.includes(e.type) && (e.attrs['label'] ?? '') !== '')
     .filter(e => labelHas(e.attrs['label'] ?? '', part))
@@ -336,7 +335,7 @@ export const labelPartInside = async (rect: Rect, selector: string, part: string
       const y = r.y + r.height / 2
       return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height
     })
-  const shown = inRect.filter(({e}) => shownAttrs(e.attrs))
+  const shown = inRect.filter(({e}) => e.attrs['visible'] === 'true')
   const found = shown.length ? shown : inRect
   const inner = innermost(found.map(f => f.r))
   check(inner.length === 1, `${inner.length} of ${what} drawn, not one`)
@@ -362,8 +361,8 @@ const rolePicker = async () => {
 // `beforeSave`.
 export const pickRole = async (role: string, beforeSave: () => Promise<void>) => {
   const picker = await rolePicker()
-  await press(await shownInside(picker, TEXTS(), role, `the role picker's ${role}`), `the role picker's ${role}`)
-  const save = await shownInside(picker, BUTTON_ELEMENTS(), 'Save', "the role picker's Save")
+  await press(await shownInside(picker, TEXTS, role, `the role picker's ${role}`), `the role picker's ${role}`)
+  const save = await shownInside(picker, BUTTON_ELEMENTS, 'Save', "the role picker's Save")
   await beforeSave()
   await save.click()
   await el(T.TEAMS_ROLE_PICKER).waitForExist({reverse: true, timeout: 10_000})
