@@ -5,7 +5,7 @@ import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useRoute} from '@react-navigation/native'
 import type * as T from '@/constants/types'
-import {getTab, navigateToInbox} from '@/constants/router'
+import {getTab, getVisibleScreen, navigateToInbox} from '@/constants/router'
 import * as Tabs from '@/constants/tabs'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
@@ -44,9 +44,12 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     // An iPhone Duo folding or unfolding moved the panel to the other layout's place for it
     // (moveOpenThreadToLayout); hiding here would close the moved panel.
     if (asRoute === Chat.isChatSplit()) return
-    // Unmounted because another tab took over (a backup's "See progress" opening Settings): there is
-    // no panel on screen to close, and a split's hide resets the tabs onto chat.
+    // Unmounted because another tab took over (a backup's "See progress" opening Settings), or another
+    // conversation now shows (a link opened one): there is no panel of this conversation on screen to
+    // close, and the hide would put this conversation back (and, in a split, reset the tabs onto chat).
     if (getTab() !== Tabs.chatTab) return
+    const shown = getVisibleScreen()?.params as {conversationIDKey?: unknown} | undefined
+    if (shown?.conversationIDKey !== undefined && shown.conversationIDKey !== conversationIDKey) return
     showConversationInfoPanel(conversationIDKey, false, undefined)
   })
   React.useEffect(() => {
