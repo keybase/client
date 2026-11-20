@@ -7798,9 +7798,12 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	})
 }
 
+var errCancelUploadsBeforeHead = errors.New(
+	"Can't cancel uploads before the folder's head is loaded")
+
 func (fbo *folderBranchOps) cancelUploadsLocked(
 	ctx context.Context, lState *kbfssync.LockState,
-) error {
+) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	jManager, _ := GetJournalManager(fbo.config)
@@ -7815,10 +7818,22 @@ func (fbo *folderBranchOps) cancelUploadsLocked(
 		return errors.New("Can't cancel uploads while there's a conflict")
 	}
 
-	// Pause the uploads right away.
-	jManager.PauseBackgroundWork(ctx, fbo.id())
+	// Undoing the MD updates below needs the head to undo from.
+	if md, _ := fbo.getHead(ctx, lState, mdNoCommit); md == (ImmutableRootMetadata{}) {
+		return errCancelUploadsBeforeHead
+	}
+
+	// Pause the uploads right away. If this paused them, resume them if
+	// cancelling fails.
+	if jManager.PauseBackgroundWork(ctx, fbo.id()) {
+		defer func() {
+			if err != nil {
+				jManager.ResumeBackgroundWork(ctx, fbo.id())
+			}
+		}()
+	}
 	// Wait until the pause takes effect.
-	err := jManager.Wait(ctx, fbo.id())
+	err = jManager.Wait(ctx, fbo.id())
 	if err != nil {
 		return err
 	}
@@ -9145,6 +9160,36 @@ func (fbo *folderBranchOps) onMDFlush(
 		}
 
 		fbo.handleMDFlush(ctx, rev)
+	})
+}
+
+// onTLFWriteRefused discards the journaled writes the server refused,
+// since retrying them can't succeed, and then reports the refusal.
+func (fbo *folderBranchOps) onTLFWriteRefused(
+	tlfName tlf.CanonicalName, refusal error,
+) {
+	fbo.goTracked(func() {
+		ctx, cancelFunc := fbo.newCtxWithFBOID()
+		defer cancelFunc()
+
+		err := fbo.CancelUploads(ctx, fbo.folderBranch)
+		switch {
+		case err == nil:
+			refusal = WritesDiscardedError{refusal}
+		case errors.As(err, new(NotPermittedWhileDirtyError)) ||
+			errors.Is(err, errCancelUploadsBeforeHead):
+			// Once the writes are synced or the head is loaded, the
+			// journal's next refused flush tries again.
+			fbo.log.CDebugf(ctx, "Will retry discarding refused writes: %+v", err)
+			if jManager, _ := GetJournalManager(fbo.config); jManager != nil {
+				jManager.retryWriteRefusal(fbo.id())
+			}
+			return
+		default:
+			fbo.log.CDebugf(ctx, "Couldn't discard refused writes: %+v", err)
+		}
+		fbo.config.Reporter().ReportErr(
+			ctx, tlfName, fbo.id().Type(), WriteMode, refusal)
 	})
 }
 

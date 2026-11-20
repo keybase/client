@@ -427,7 +427,7 @@ func TestJournalManagerRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil, nil,
 		TLFJournalBackgroundWorkPaused)
 	err = jManager.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
@@ -797,7 +797,7 @@ func TestJournalManagerEnableAuto(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil, nil,
 		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -922,7 +922,7 @@ func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil, nil,
 		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -992,7 +992,7 @@ func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil, nil,
 		TLFJournalBackgroundWorkPaused)
 	err = jManager.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
@@ -1111,7 +1111,7 @@ func TestJournalManagerCorruptJournal(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil, nil,
 		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)

@@ -1290,6 +1290,7 @@ func (c *ConfigLocal) EnableJournaling(
 	log := c.MakeLogger("")
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
+	refusalListener := c.KBFSOps().(writeRefusalListener)
 
 	// Make sure the journal root exists.
 	err := ioutil.MkdirAll(journalRoot, 0o700)
@@ -1299,7 +1300,7 @@ func (c *ConfigLocal) EnableJournaling(
 
 	jManager := makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener, bws)
+		flushListener, refusalListener, bws)
 
 	c.SetBlockServer(jManager.blockServer())
 	c.SetMDOps(jManager.mdOps())
