@@ -300,9 +300,13 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
       // When split chat is already showing chatRoot, update that route in place instead of
       // resetting the whole tab navigator. This avoids an extra same-screen navigation when
       // the tab becomes visible and chat selects a thread immediately afterward.
+      // setParams on the route itself, not a navigate: a navigate a stack does not take (its state
+      // just reset, as a link's root reset under a modal does) climbs to the root, which navigates to
+      // loggedIn and pops the modal over it (an incoming share's).
       if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
         ref.dispatch({
-          ...CommonActions.navigate('chatRoot', nextChatRoot.params, {merge: true}),
+          ...CommonActions.setParams(nextChatRoot.params),
+          source: currentChatRoute.key,
           target: chatStackState.key,
         })
       }
