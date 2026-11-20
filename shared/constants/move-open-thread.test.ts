@@ -29,6 +29,32 @@ test('narrowing pushes the selected thread above the tabs, search and all', () =
   expect(visible()).toMatchObject({name: 'chatConversation', params: {conversationIDKey: convID, threadSearch}})
 })
 
+test('narrowing keeps the tabs (no reset) and lets chatRoot drop the thread', () => {
+  showing({tabStack: [{name: 'chatRoot', params: {conversationIDKey: convID, threadSearch}}]})
+  const loggedInKey = nav.getRootState()?.routes?.[0]?.key
+
+  moveOpenThreadToLayout(false)
+
+  expect(nav.types()).not.toContain('RESET')
+  expect(nav.getRootState()?.routes?.[0]?.key).toBe(loggedInKey)
+  const loggedIn = nav.getRootState()?.routes?.[0]?.state
+  const chatTab = loggedIn?.routes.find(r => r.name === Tabs.chatTab)
+  expect(chatTab?.state?.routes[0]).toMatchObject({
+    name: 'chatRoot',
+    params: {conversationIDKey: undefined, threadSearch: undefined},
+  })
+})
+
+test('a fold before the chat tab mounts drops the waiting split selection', async () => {
+  showing({above: [{name: 'chatConversation', params: {conversationIDKey: convID}}]})
+
+  moveOpenThreadToLayout(true)
+  moveOpenThreadToLayout(false)
+  await rendersUntil(() => visible()?.name === 'chatRoot')
+
+  expect(visible()?.params).not.toMatchObject({conversationIDKey: convID})
+})
+
 test('narrowing with no thread selected leaves the inbox showing', () => {
   showing({tabStack: [{name: 'chatRoot'}]})
 
