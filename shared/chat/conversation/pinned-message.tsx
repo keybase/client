@@ -16,6 +16,9 @@ import {RPCError} from '@/util/errors'
 const PinnedMessage = function PinnedMessage() {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
+  // clear of the right strip (an iPhone Duo's status column), where its close button would sit under
+  // the status indicators; on the left it meets the inbox or the screen's edge
+  const {right} = Kb.useScreenSideInsets()
   const conversationIDKey = useConversationThreadID()
   const {pinnedMsg, teamID, teamname} = useThreadMeta(
     C.useShallow(m => ({
@@ -88,7 +91,7 @@ const PinnedMessage = function PinnedMessage() {
   }
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
-    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container} testID={TestIDs.CHAT_PINNED_BANNER}>
+    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={right ? Kb.Styles.collapseStyles([styles.container, {paddingRight: Kb.Styles.globalMargins.xsmall + right}]) : styles.container} testID={TestIDs.CHAT_PINNED_BANNER}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
