@@ -479,6 +479,10 @@ const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordin
 
 const NativeConversationList = function NativeConversationList() {
   const nativeStyles = useNativeStyles()
+  // A status-bar tap jumps to the newest message, only where the screen has a top inset: with none (an
+  // iPhone Duo unfolded) the screen's top strip holds the app's own header, and iOS takes a tap on its
+  // title or buttons as a status-bar tap.
+  const {top: topInset} = Kb.useSafeAreaInsets()
   const List = FlatList as unknown as React.ComponentType<
     Record<string, unknown> & {ref?: React.Ref<NativeListRef>}
   >
@@ -644,6 +648,7 @@ const NativeConversationList = function NativeConversationList() {
               onScrollEndDrag={onScrollEndDrag}
               onMomentumScrollEnd={onMomentumScrollEnd}
               onScrollToTop={onScrollToTop}
+              scrollsToTop={topInset > 0}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
