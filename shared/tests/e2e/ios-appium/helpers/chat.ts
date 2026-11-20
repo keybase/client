@@ -2028,20 +2028,24 @@ const infoPanelTabSelected = async (tab: string) =>
 // end (a drag no longer moves it), wholly on screen. Bound: `timeout`.
 export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
   let lastY: number | undefined
+  // the drag goes down the target's own column once it is in the tree: beside a thread (an iPhone
+  // Duo's info panel) the window's middle is another pane
+  let column: number | undefined
   return waitFor(
     `${what} on screen`,
     async () => {
       const e = target()
       if (await e.isExisting()) {
-        const {y} = await e.getLocation()
-        const {height} = await e.getSize()
+        const {x, y} = await e.getLocation()
+        const {height, width: w} = await e.getSize()
         const {height: window} = await browser.getWindowRect()
         if (y > 0 && y + height / 2 < window - 80) return true
         if (lastY !== undefined && Math.abs(lastY - y) < 1 && y > 0 && y + height <= window) return true
         lastY = y
+        column = x + w / 2
       }
       const {height, width} = await browser.getWindowRect()
-      const x = Math.round(width / 2)
+      const x = Math.round(column ?? width / 2)
       await browser
         .action('pointer', {parameters: {pointerType: 'touch'}})
         .move({x, y: Math.round(height * 0.7)})

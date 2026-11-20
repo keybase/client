@@ -1,6 +1,6 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {byText, el, els, escapePredicate, waitForTestID, tab} from './elements'
+import {byText, el, els, escapePredicate, tapAt, waitForTestID, tab} from './elements'
 import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
@@ -451,6 +451,17 @@ async function dismissModalByBar(alive: () => void): Promise<boolean> {
   )
 }
 
+// Where a pointer at the screen's edge touches nothing (an iPhone Duo unfolded) a modal is a form sheet
+// over UIKit's dimming view, which a tap outside the sheet dismisses: one tap at the window's left edge,
+// clear of the sheet. False when there is no such modal. Bound: the find 1, the tap 1, 1s.
+const dismissFormSheet = async () => {
+  if (!readsFrames() || !(await browser.$('-ios predicate string:name == "PopoverDismissRegion"').isExisting())) return false
+  const {height} = await browser.getWindowRect()
+  await tapAt(20, height / 2)
+  await browser.pause(1_000)
+  return true
+}
+
 // Closes the fullscreen attachment view where back is no gesture it takes: an iPhone Duo unfolded, where
 // a pointer at the screen's edge touches nothing, a tap on the view fades its header (and Close) out of
 // the tree, and a video's view takes the taps itself. As cleanup, not the flow under test, it is popped
@@ -556,6 +567,7 @@ async function escapeHops(alive: () => void): Promise<void> {
       await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
       continue
     }
+    if (await dismissFormSheet()) continue
     // No back button visible — try the iOS pop gesture (swipe from left edge).
     const {width, height} = await browser.getWindowRect()
     alive()
@@ -602,6 +614,7 @@ export async function goBack(): Promise<void> {
   // 16.4). Guard to a true left-edge chevron so the iPad split conversation
   // pane's mid-screen nav button isn't mistaken for back.
   if (await tapNavBack(true)) return
+  if (await dismissFormSheet()) return
   const {width, height} = await browser.getWindowRect()
   await browser
     .action('pointer')
