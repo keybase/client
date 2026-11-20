@@ -51,6 +51,7 @@ import {fillHiddenField, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
 import {openSelfConversation, waitFor} from '../helpers/lifecycle'
 import {check} from '../helpers/menus'
+import {threadRoute} from '../gate/thread-route.ts'
 
 const POST_ATTACHMENT = 'chat.1.local.postFileAttachmentLocalNonblock'
 const POST_TEXT = 'chat.1.local.postTextNonblock'
@@ -182,7 +183,7 @@ describe('share extension', function () {
       interval: 500,
       timeout: 10_000,
     })
-    await expectScreen('the self conversation, before Send', 'chatConversation', p => p['conversationIDKey'] === convID)
+    await expectScreen('the self conversation, before Send', threadRoute(), p => p['conversationIDKey'] === convID)
     const seq = await currentCallSeq()
     await el(T.CHAT_SEND_BUTTON).waitForExist({timeout: 5_000})
     await el(T.CHAT_SEND_BUTTON).click()

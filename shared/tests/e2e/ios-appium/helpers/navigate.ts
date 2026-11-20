@@ -119,7 +119,7 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
 // element counts as a check with no drag. Worst case (s): the window read 2, then four checks of 6
 // (rowAndBand) and three drags of 1 = 29.
 export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
-  const {height, width} = await browser.getWindowRect()
+  const {height} = await browser.getWindowRect()
   let stale = false
   for (let i = 0; i <= 3; i++) {
     const read = await rowAndBand(find, height)
@@ -131,7 +131,8 @@ export async function clearOfTabBar(find: () => ChainablePromiseElement, what: s
     // A move this short reads as a tap on the row under the finger (live: it opened Advanced), so the
     // touch goes PAN_OVERSHOOT past the target first, and comes back to it before lifting: the list
     // pans, and comes to rest dy from where it was.
-    const x = Math.round(width * 0.15)
+    // inside the row's own column: an iPhone Duo's split puts another pane beside it
+    const x = Math.round(read.row.x + read.row.width * 0.15)
     const from = Math.round(height / 2 - dy / 2)
     const past = from + dy + Math.sign(dy) * PAN_OVERSHOOT
     await browser

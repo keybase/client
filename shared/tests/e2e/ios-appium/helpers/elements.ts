@@ -13,21 +13,11 @@ export const el = (id: string): ChainablePromiseElement => browser.$(byTestIDSel
 // Taps and holds at a point, given relative to the app's window: on an unfolded iPhone Duo (xcuitest
 // driver 13) one given in screen points lands nowhere, while the window shares the frame every element
 // rect is read in. Elsewhere the window sits at the screen's origin, so the point is the same.
-const windowId = async () => (await browser.$('-ios class chain:**/XCUIElementTypeWindow[1]').getElement()).elementId
+export const windowId = async () => (await browser.$('-ios class chain:**/XCUIElementTypeWindow[1]').getElement()).elementId
 export const tapAt = async (x: number, y: number) =>
   browser.execute('mobile: tap', {elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
 export const holdAt = async (x: number, y: number, duration: number) =>
   browser.execute('mobile: touchAndHold', {duration, elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
-// A press-drag between points relative to the window (as tapAt), pressed `press` seconds first.
-export const dragAt = async (from: {x: number; y: number}, to: {x: number; y: number}, press: number) =>
-  browser.execute('mobile: dragFromToForDuration', {
-    duration: press,
-    elementId: await windowId(),
-    fromX: Math.round(from.x),
-    fromY: Math.round(from.y),
-    toX: Math.round(to.x),
-    toY: Math.round(to.y),
-  })
 // Clicks what `find` finds, or on a run that reads frames (an unfolded Duo, where a click on some
 // controls taps nothing) taps it at its middle, relative to itself. Bound: 2.
 export const clickOrTap = async (find: ChainablePromiseElement) => {

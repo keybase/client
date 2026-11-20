@@ -33,6 +33,7 @@ import {iosFlowProject} from './theme'
 import {approveKeybaseLinks} from './helpers/sim-links.mts'
 import {formFactorMismatch, readFormFactor, restartSimulator, screenshotDisplayOf} from './helpers/form-factor.mts'
 import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor} from './helpers/split-view.mts'
+import {sendPointerActionsAsWindowGestures} from './gate/window-gestures.ts'
 import {FIND_COMMANDS, notePresented, readsFrames, recordFrameShown, shownFind} from './gate/shown-lib.ts'
 
 // KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
@@ -132,7 +133,11 @@ export const config: WebdriverIO.Config = {
     const got = await applyPosture(udid, device, posture)
     if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)
     // unfolded or split, the base screens' elements read visible=false: "shown" is read off frames
-    if (got !== 'duo-folded') recordFrameShown(await browser.getWindowRect())
+    if (got !== 'duo-folded') {
+      recordFrameShown(await browser.getWindowRect())
+      // and a W3C pointer there touches nothing: pointer actions go as window-relative gestures
+      sendPointerActionsAsWindowGestures()
+    }
     const display = screenshotDisplayOf(udid)
     if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
   },

@@ -25,28 +25,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
-import {
-  closeInfoPanel,
-  closeMessageMenu,
-  deletePhase,
-  elementInRow,
-  expectPersists,
-  galleryListing,
-  hideKeyboard,
-  openConversation,
-  openHeaderMenuItem,
-  openMessageMenu,
-  ordinalsWithText,
-  scrollRowIntoView,
-  storedAttachment,
-  type StoredAttachment,
-  tapTextIn,
-  typeInComposer,
-  videoFullscreenButton,
-  waitForComposerText,
-  waitForRow,
-  waitForThreadStable,
-} from '../helpers/chat'
+import {closeInfoPanel, closeMessageMenu, deletePhase, elementInRow, expectPersists, galleryListing, hideKeyboard, infoPanelShown, openConversation, openHeaderMenuItem, openMessageMenu, ordinalsWithText, scrollRowIntoView, storedAttachment, tapTextIn, type StoredAttachment, typeInComposer, videoFullscreenButton, waitForComposerText, waitForRow, waitForThreadStable} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
@@ -309,7 +288,7 @@ describe('chat attachments', function () {
     const {a: videoA} = await waitForAttachment(video, 'attachment:video')
     const {a: fileA} = await waitForAttachment(file, 'attachment:file')
 
-    await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+    await openHeaderMenuItem('Info', infoPanelShown)
     await el(T.CHAT_INFO_PANEL_ATTACHMENTS_TAB).waitForExist({timeout: 10_000})
     await el(T.CHAT_INFO_PANEL_ATTACHMENTS_TAB).click()
     await el(T.CHAT_INFO_PANEL_MEDIA).waitForExist({timeout: 10_000})
