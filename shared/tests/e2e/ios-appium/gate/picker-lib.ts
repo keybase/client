@@ -102,37 +102,6 @@ export const requirePicked = (
   })
 }
 
-// The Photos app's library on iOS 27 draws a date's videos before its photos (iOS 26.5 drew them in
-// LIBRARY_GRID_ORDER, as the photo picker still does). There the corpus is the one run of cells that
-// is a whole date's group holding the order's kinds in any order, and a file is the nth cell of its
-// kind, n its place among its kind in the order. The pick is proven by the picked file's sha256.
-export const corpusCellsAnyKindOrder = (
-  cells: ReadonlyArray<LibraryCell>,
-  order: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDER
-): Array<LibraryCell> => {
-  const n = order.length
-  const want = (kind: 'Photo' | 'Video') => order.filter(o => kindOf(o) === kind).length
-  const runs: Array<Array<LibraryCell>> = []
-  for (let i = 0; i + n <= cells.length; i++) {
-    const run = cells.slice(i, i + n)
-    const date = run[0]?.date
-    if (!date) continue
-    if (cells[i - 1]?.date === date || cells[i + n]?.date === date) continue
-    if (!run.every(c => c.date === date)) continue
-    if (run.filter(c => c.kind === 'Photo').length === want('Photo') && run.filter(c => c.kind === 'Video').length === want('Video')) runs.push(run)
-  }
-  if (runs.length !== 1) throw new Error(`the Photos library shows ${runs.length} runs of cells that read as the corpus, not one`)
-  return runs[0] ?? []
-}
-
-export const corpusCellOfKind = (
-  run: ReadonlyArray<LibraryCell>,
-  name: LibraryName,
-  order: ReadonlyArray<LibraryName> = LIBRARY_GRID_ORDER
-) => {
-  const kind = kindOf(name)
-  const place = order.filter(o => kindOf(o) === kind).indexOf(name)
-  const cell = run.filter(c => c.kind === kind)[place]
-  if (!cell) throw new Error(`the corpus run has no cell for ${name}`)
-  return cell
-}
+// The Photos app's library on iOS 27 draws a date's items newest-added first: the corpus in the reverse
+// of the order it was added (LIBRARY_GRID_ORDER, which iOS 26.5's Photos and the photo picker draw).
+export const LIBRARY_GRID_ORDER_REVERSED: ReadonlyArray<LibraryName> = [...LIBRARY_GRID_ORDER].reverse()

@@ -17,11 +17,11 @@ import {requireCurrentAttempt} from './attempt.ts'
 import {FILES_APP, groupContainer, openLink, preflightUdid, seedFolderPath} from './device.ts'
 import {labelHas, sourceElements, sourceRect} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
-import {corpusCellOf, corpusCellOfKind, corpusCells, corpusCellsAnyKindOrder, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
+import {corpusCellOf, corpusCells, fileCellName, LIBRARY_GRID_ORDER_REVERSED, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
 import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
 import {typeInFilter} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
-import {holdAt} from '../helpers/elements'
+import {holdAt, tapAt} from '../helpers/elements'
 import {tapFrame} from '../helpers/menus'
 import {appState, BUNDLE_ID, FOREGROUND, simctl, waitFor} from '../helpers/lifecycle'
 
@@ -214,11 +214,12 @@ const holdThenTap = async (rect: () => Promise<Rect>, item: 'Copy' | 'Share', wh
 const photoMenu = async (name: LibraryName, item: 'Copy' | 'Share') => {
   const cellNow = async () => {
     const cells = libraryCells(sourceElements(await browser.getPageSource()))
-    // iOS 27's Photos draws a date's videos first (picker-lib.ts): the grid's own order where it shows
+    // iOS 27's Photos draws the corpus in the reverse order (picker-lib.ts): the grid's own order where
+    // it shows
     try {
       return corpusCellOf(corpusCells(cells), name).rect
     } catch {
-      return corpusCellOfKind(corpusCellsAnyKindOrder(cells), name).rect
+      return corpusCellOf(corpusCells(cells, LIBRARY_GRID_ORDER_REVERSED), name, LIBRARY_GRID_ORDER_REVERSED).rect
     }
   }
   await waitFor('the corpus in the Photos library', cellNow, {interval: 1_000, timeout: 20_000})
@@ -330,7 +331,21 @@ export const mapsSheet = (lat: number, lon: number, place: string) => async () =
     },
     {interval: 1_000, timeout: 45_000}
   )
-  await share.click()
+  // the element found can be a card the view no longer holds (seen live on iOS 27: the Share found was
+  // "not present in the current view anymore"), so the tap goes to the frame the page source draws it
+  // at, the shown one's
+  await share.click().catch(async (e: unknown) => {
+    if (!(e instanceof Error) || !/stale element|not present in the current view/i.test(e.message)) throw e
+    const drawn = sourceElements(await browser.getPageSource()).find(
+      el =>
+        el.type === 'XCUIElementTypeButton' &&
+        (el.attrs['name'] === 'CardButtonTypeShare' || el.attrs['name'] === 'Share') &&
+        el.attrs['visible'] === 'true'
+    )
+    if (!drawn) throw e
+    const r = sourceRect(drawn.attrs)
+    await tapAt(r.x + r.width / 2, r.y + r.height / 2)
+  })
 }
 
 // -- the share ---------------------------------------------------------------------------------------
