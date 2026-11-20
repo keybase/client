@@ -223,6 +223,16 @@ const openFolderHeaderSheet = async (item: 'More' | 'Upload', what: string) => {
     const rect = await rectOf(e)
     if (rect) pills.push(rect)
   }
+  // an iPhone Duo draws the header's icon items in its side column, outside the bar: there the pill is
+  // the More that is not one of the floating tab bar's buttons (which line up with its People)
+  if (!pills.length) {
+    const people = await browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND name == "People"')
+    const tab = (await people.isExisting()) ? await rectOf(await people.getElement()) : undefined
+    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "More"').getElements()) {
+      const rect = await rectOf(e)
+      if (rect && !(tab && rect.x === tab.x && rect.width === tab.width)) pills.push(rect)
+    }
+  }
   if (pills.length !== 1) throw new Error(`${pills.length} More buttons in the folder's header, not one`)
   const pillRect = pills[0]!
   // the menu's items report visible=false too
