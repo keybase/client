@@ -1,5 +1,5 @@
 import {sourceElements} from './page-source-lib'
-import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
+import {corpusCellOf, corpusCellOfKind, corpusCells, corpusCellsAnyKindOrder, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
 
 const cell = (label: string, i: number, selected = false) =>
   `<XCUIElementTypeImage type="XCUIElementTypeImage" name="PXGGridLayout-Info" label="${label}" enabled="true" visible="false" accessible="true" x="${(i % 3) * 134}" y="${307 + Math.floor(i / 3) * 134}" width="133" height="133" index="${i}" traits="${selected ? 'Selected, Image' : 'Image'}"/>`
@@ -83,5 +83,25 @@ describe('picker-lib', () => {
     expect(() => requirePicked([{sha256: 'aa'}, {sha256: 'bb'}], want)).not.toThrow()
     expect(() => requirePicked([{sha256: 'bb'}, {sha256: 'aa'}], want)).toThrow('picked file 1 is not')
     expect(() => requirePicked([{sha256: 'aa'}], want)).toThrow('handed 1 files, not 2')
+  })
+})
+
+describe('the corpus in any kind order (iOS 27 Photos)', () => {
+  const videosFirst = [`Video, two seconds, ${NEW}`, `Video, two seconds, ${NEW}`, ...Array.from({length: 5}, () => `Photo, ${NEW}`)]
+
+  test('the one whole date group with the corpus kinds, videos first', () => {
+    const run = corpusCellsAnyKindOrder(grid([...older, ...videosFirst]))
+    expect(run.map(c => c.kind)).toEqual(['Video', 'Video', 'Photo', 'Photo', 'Photo', 'Photo', 'Photo'])
+  })
+
+  test('a file is the nth cell of its kind', () => {
+    const run = corpusCellsAnyKindOrder(grid(videosFirst))
+    expect(corpusCellOfKind(run, 'e2e-c.png')).toBe(run[2])
+    expect(corpusCellOfKind(run, 'e2e-c-large.png')).toBe(run[6])
+    expect(corpusCellOfKind(run, 'e2e-c.mp4')).toBe(run[1])
+  })
+
+  test('a group with a cell of another date is not the corpus', () => {
+    expect(() => corpusCellsAnyKindOrder(grid([...videosFirst.slice(0, 6), older[0]!]))).toThrow('0 runs')
   })
 })
