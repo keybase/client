@@ -20,10 +20,10 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const firstSafeDokanVersion = 121
+const firstSafeDokanVersion = 200
 
 const (
-	shortPath = `DOKAN1.DLL`
+	shortPath = `DOKAN2.DLL`
 	syswow64  = `C:\WINDOWS\SYSWOW64\`
 	system32  = `C:\WINDOWS\SYSTEM32\`
 )
@@ -97,6 +97,8 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 		{`DokanRemoveMountPoint`, &C.kbfsLibdokanPtr_RemoveMountPoint},
 		{`DokanOpenRequestorToken`, &C.kbfsLibdokanPtr_OpenRequestorToken},
 		{`DokanMain`, &C.kbfsLibdokanPtr_Main},
+		{`DokanInit`, &C.kbfsLibdokanPtr_Init},
+		{`DokanShutdown`, &C.kbfsLibdokanPtr_Shutdown},
 		{`DokanVersion`, &dokanVersionProc},
 		{`DokanDriverVersion`, &dokanDriverVersionProc},
 	} {

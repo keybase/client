@@ -72,7 +72,7 @@ func (fi *FileInfo) Path() string {
 
 // IsDeleteOnClose should be checked from Cleanup.
 func (fi *FileInfo) IsDeleteOnClose() bool {
-	return fi.ptr.DeleteOnClose != 0
+	return fi.ptr.DeletePending != 0
 }
 
 // IsRequestorUserSidEqualTo returns true if the argument is equal
