@@ -18,6 +18,7 @@ import {deleteSavedAsset, libraryHasAsset, mediaPermission, requestFullPhotoAcce
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
 import {hasTrait, sourceElements} from './page-source-lib.ts'
 import {WaitStopped} from './wait-lib.ts'
+import {readsFrames} from './shown-lib.ts'
 import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_GRID_ORDER, LIBRARY_PHOTO_ORDER, libraryCells, type LibraryName} from './picker-lib.ts'
 
 const BANNER_MS = 8_000
@@ -93,6 +94,13 @@ const clearRunNotifications = async () => {
     await clear.click()
   }
 }
+
+// Whether this run can open Notification Center over the app. An iPhone Duo unfolded or in a Split View
+// cannot: XCUITest's system gestures go to SpringBoard's frame there, the outer display's (466x678),
+// so a pull never reaches the inner one, and an earlier one that did was never put back. Its banners
+// still come up and take taps (findBanner, tapBanner).
+export const NOTIFICATION_CENTER_UNREACHABLE = 'Notification Center cannot be pulled on an iPhone Duo unfolded or in a Split View'
+export const notificationCenterReachable = () => !readsFrames()
 
 // Opens Notification Center over the app, runs `fn` with a bounded find inside it, then clears this
 // run's notifications and closes it. Notification Center left open (or this run's notifications left

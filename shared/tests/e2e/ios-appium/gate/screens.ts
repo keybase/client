@@ -7,6 +7,7 @@ import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
 import {guiValue} from './app-ask.ts'
 import {savedRouteIsPeople} from './links-push-lib.ts'
+import {threadRoute} from './thread-route.ts'
 
 const TAPS = 5
 
@@ -119,7 +120,7 @@ export const fromPeople = async () => {
 
 // Waits for the conversation `convID` to be up. Bound: `timeout`, plus one read 1.
 export const conversationOpened = async (what: string, convID: string, timeout = 20_000) =>
-  expectScreen(what, 'chatConversation', p => p['conversationIDKey'] === convID, timeout)
+  expectScreen(what, threadRoute(), p => p['conversationIDKey'] === convID, timeout)
 
 // On the People tab's root, with People read back as the route the app saved for its next launch
 // (it saves a second after each navigation): a cold launch after this lands on People unless what

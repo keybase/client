@@ -29,52 +29,7 @@ import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
-import {
-  catchUpPill,
-  centreOffset,
-  centreTolerance,
-  clearComposer,
-  closeInfoPanel,
-  closeSearch,
-  dragThread,
-  editCancel,
-  expectAtEnd,
-  expectCentred,
-  flickThread,
-  hideKeyboard,
-  isAtEnd,
-  isKeyboardUp,
-  jumpToRecentButton,
-  newestGap,
-  openConversation,
-  openHeaderMenuItem,
-  openMessageMenu,
-  openThreadSearch,
-  ordinalsWithText,
-  pickAnchor,
-  readThread,
-  requireThread,
-  resetComposer,
-  rowOf,
-  rowText,
-  sampleThreadWhile,
-  sampleTop,
-  searchAgain,
-  searchFor,
-  searchOpen,
-  sendMessage,
-  summary,
-  tapStatusBar,
-  threadListPrelude,
-  type ThreadReading,
-  type ThreadSample,
-  viewport,
-  type Viewport,
-  waitForKeyboard,
-  waitForRow,
-  waitForThreadStable,
-  wholly,
-} from '../helpers/chat'
+import {catchUpPill, centreOffset, centreTolerance, clearComposer, closeInfoPanel, closeSearch, dragThread, editCancel, expectAtEnd, expectCentred, flickThread, hideKeyboard, infoPanelShown, isAtEnd, isKeyboardUp, jumpToRecentButton, newestGap, openConversation, openHeaderMenuItem, openMessageMenu, openThreadSearch, ordinalsWithText, pickAnchor, readThread, requireThread, resetComposer, rowOf, rowText, sampleThreadWhile, sampleTop, searchAgain, searchFor, searchOpen, sendMessage, summary, tapStatusBar, threadListPrelude, type ThreadReading, type ThreadSample, type Viewport, viewport, waitForKeyboard, waitForRow, waitForThreadStable, wholly} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
@@ -1342,7 +1297,13 @@ describe('chat scroll', function () {
       const changes = samples.filter((x, i) => i === 0 || x.rows !== samples[i - 1]!.rows || x.offset !== samples[i - 1]!.offset)
       console.log(`sparse thread, each change (ms: rows, content/view, offset): ${changes.map(x => `${x.t}: ${x.rows}, ${x.content}/${x.view}, ${x.offset}`).join('; ')}`)
       check(!!first, 'the list never drew a row')
-      check(first!.content < first!.view, `the first page drew enough to fill the view: ${JSON.stringify(first)}`)
+      // an iPhone Duo unfolded shows the thread in a landscape column too short for this: the sparse
+      // thread's first page fills it, so there is nothing to test
+      if (first!.content >= first!.view && process.env['KB_IOS_FORM_FACTOR'] === 'duo-unfolded') {
+        console.log(`[ios gate] skipped: the sparse thread's first page fills a Duo's view: ${JSON.stringify(first)}`)
+        this.skip()
+      }
+      check(first!.content < first!.view,`the first page drew enough to fill the view: ${JSON.stringify(first)}`)
       const t = await waitForThreadStable()
       check(
         t.ordinals.length >= SPARSE_OLDER + SPARSE_NEWER,
@@ -1367,7 +1328,7 @@ describe('chat scroll', function () {
       const anchor = pickAnchor(before, await viewport(before))
       await step('The reader up in the history of the long thread')
 
-      await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+      await openHeaderMenuItem('Info', infoPanelShown)
       await step('The info panel over the thread')
       await closeInfoPanel()
       await waitFor('the thread to show again', async () => ((await readThread()) ? true : undefined), {timeout: 5_000})

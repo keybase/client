@@ -23,7 +23,7 @@ import {focusChanges, focusLeftAndBack, GO_BACKGROUND, GO_FOREGROUND, GO_HTTP_SR
 import {attemptRecording} from '../gate/recording'
 import {expectScreen, fromPeople, leaveOnPeople} from '../gate/screens'
 import {step} from '../gate/step'
-import {withNotificationCenter} from '../gate/system-ui'
+import {NOTIFICATION_CENTER_UNREACHABLE, notificationCenterReachable, withNotificationCenter} from '../gate/system-ui'
 import {openConversation, rowElement, waitForRow, waitSignedIn} from '../helpers/chat'
 import {
   appPid,
@@ -39,6 +39,7 @@ import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {secondSender, throwawayChannels} from '../helpers/chat-host'
 import {masked} from '../helpers/teams'
+import {threadRoute} from '../gate/thread-route.ts'
 
 const CYCLES = 5
 
@@ -154,7 +155,7 @@ describe('app lifecycle', function () {
 
     await waitForLinesInOrder('the phone service to record the trip in order', () => linesSince(goMark), [GO_BACKGROUND, GO_FOREGROUND])
     await waitForAppState('active', undefined, 30_000)
-    await expectScreen('the channel still up after the trip', 'chatConversation', p => p['conversationIDKey'] === convID)
+    await expectScreen('the channel still up after the trip', threadRoute(), p => p['conversationIDKey'] === convID)
     // the message the second account sent while the app was away, loaded and drawn
     await waitForRow(text, 60_000)
     await rowElement(text).waitForExist({timeout: 10_000})
@@ -186,6 +187,10 @@ describe('app lifecycle', function () {
     // worst case (s): people 66, app mark 2, mark 120, center 55 + 16 + 21, go 21, until 12, screen 11,
     // step 2 = 326
     this.timeout(360_000)
+    if (!notificationCenterReachable()) {
+      console.log(`[ios gate] skipped: ${NOTIFICATION_CENTER_UNREACHABLE}`)
+      this.skip()
+    }
     await fromPeople()
     const mark = await appLogMark()
     const goMark = goLogMark()

@@ -1,8 +1,7 @@
 // Generic helpers for the iOS flows' bottom-sheet menus (FloatingMenu) and labelled elements: open a
 // sheet, read and pick its items, and find the one element whose label is a name, compared in memory
 // so the name never goes into a selector or an error.
-import {dragAt, tapAt} from './elements'
-import {readsFrames} from '../gate/shown-lib.ts'
+import {tapAt} from './elements'
 import {waitFor} from './lifecycle'
 import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
 import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
@@ -58,21 +57,20 @@ export const menuHas = async (label: string) => offers(await menuLabels(), label
 export const menuOffers = offers
 
 // Waits for the open sheet to leave the tree, then reads the screen under it positively (a navigation
-// or tab bar in the tree): an absence alone could be a read of an empty or failed tree. Rejects
-// (as waitForExist does) when the sheet stays. Bound: `timeout`, the bar read 1.
+// or tab bar in the tree, or the tab buttons of an iPhone Duo's floating tab bar, which a thread beside
+// the inbox has with no bar): an absence alone could be a read of an empty or failed tree. Rejects (as
+// waitForExist does) when the sheet stays. Bound: `timeout`, the bar read 1.
 export const waitForSheetGone = async (timeout: number) => {
   await (await menuSheet()).waitForExist({reverse: true, timeout})
-  const bars = await browser.$$('-ios predicate string:type == "XCUIElementTypeNavigationBar" OR type == "XCUIElementTypeTabBar"').length
+  const bars = await browser.$$(
+    '-ios predicate string:type == "XCUIElementTypeNavigationBar" OR type == "XCUIElementTypeTabBar" OR (type == "XCUIElementTypeButton" AND name IN {"People", "Chat", "Files", "Teams", "More"})'
+  ).length
   if (!bars) throw new Error('the menu sheet left, but no screen under it reads back')
 }
 
-// A touch drag from `from` to `to`, held still before lifting so the list does not fling on. On a run
-// that reads frames (an unfolded Duo, where a W3C pointer at screen points lands nowhere) it is a
-// press-drag relative to the window. Bound: 1.
+// A touch drag from `from` to `to`, held still before lifting so the list does not fling on. Bound: 1.
 export const dragBetween = async (from: {x: number; y: number}, to: {x: number; y: number}, duration = 300) =>
-  readsFrames()
-    ? dragAt(from, to, 0.1)
-    : browser
+  browser
     .action('pointer', {parameters: {pointerType: 'touch'}})
     .move({x: Math.round(from.x), y: Math.round(from.y)})
     .down()

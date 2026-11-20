@@ -10,8 +10,8 @@ import {createHash} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
-import {appSnapshot, openUrl, waitFor} from './lifecycle'
+import {byText, clearFieldByKeys, clickOrTap, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
+import {appSnapshot, openUrl, selfConversationID, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
@@ -45,6 +45,7 @@ import {
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
+import {threadRoute} from '../gate/thread-route.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -490,7 +491,7 @@ export const tapStatusBar = async () => {
 // The conversation the visible screen shows once a chat thread is pushed, or undefined before then.
 const openedConversation = async () => {
   const {screen} = await appSnapshot()
-  const id = screen?.name === 'chatConversation' ? screen.params?.['conversationIDKey'] : undefined
+  const id = screen?.name === threadRoute() ? screen.params?.['conversationIDKey'] : undefined
   return typeof id === 'string' ? id : undefined
 }
 
@@ -511,12 +512,23 @@ export const openConversation = async (convID: string) => {
   await hideKeyboard()
   await escapeToTabs()
   await navigateToChat()
+  // the thread beside the inbox (an iPhone Duo unfolded) stays mounted at the tab root, so opening it
+  // again would keep it where an earlier test left it: another conversation (the smoke account's own)
+  // opens first, and this one then mounts afresh, as a phone's pushed thread does
+  if (threadRoute() === 'chatRoot' && (await openedConversation()) === convID) {
+    const self = await selfConversationID(loadE2EAccounts().smokeUser)
+    if (self !== convID) await openByLink(self)
+  }
+  await openByLink(convID)
+  await waitForThread(convID)
+}
+
+const openByLink = async (convID: string) => {
   openUrl(`keybase://convid/${convID}`)
   await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
     interval: 250,
     timeout: 20_000,
   })
-  await waitForThread(convID)
 }
 
 // The inbox from its top to its end is ~8 pages on the test account (each drag ~3s, the app settling)
@@ -1175,12 +1187,27 @@ const headerMenuItem = (label: string) =>
 // Each tap waits for its effect before the next: the menu closes as soon as its item is tapped but
 // what it opens can take longer to show, and a More tapped in that gap reopens the menu over it (seen
 // live: thread search open under the header menu). Bound: 15s.
-export const openHeaderMenuItem = async (item: string, opened: () => Promise<boolean>) => {
+export const openHeaderMenuItem = async (item: 'Info' | 'Search', opened: () => Promise<boolean>) => {
   await hideKeyboard()
   const settle = async (what: string, done: () => Promise<boolean>) =>
     waitFor(what, async () => ((await done()) ? true : undefined), {interval: 250, timeout: 3_000}).catch((e: unknown) => {
       if (isAttemptOver(e)) throw e
     })
+  // the thread beside the inbox (an iPhone Duo unfolded) has its own header, with a button for each
+  if (threadRoute() === 'chatRoot') {
+    const button = item === 'Search' ? T.CHAT_HEADER_SEARCH_BUTTON : T.CHAT_HEADER_INFO_BUTTON
+    await waitFor(
+      `${item} to open from the header`,
+      async () => {
+        if (await opened()) return true
+        await clickOrTap(el(button)).catch(() => {})
+        await settle(`${item} to open`, opened)
+        return undefined
+      },
+      {interval: 250, timeout: 15_000}
+    )
+    return
+  }
   await waitFor(
     `${item} to open from the header menu`,
     async () => {
@@ -1416,20 +1443,28 @@ export const videoFullscreenButton = async (title: string, ordinal: number) => {
   return elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
 }
 
-// Closes the conversation's info panel, a modal sheet, with its header's Done (a back swipe from the
-// left edge does not close a sheet), and waits for it to go. Bound: 3 tries of the tap and 5s = 16s.
+// The conversation's info panel, or its parts: beside a thread shown beside the inbox (an iPhone Duo
+// unfolded) its own box is not in the tree, only what it holds (its tabs, its menu button).
+const INFO_PANEL = `-ios predicate string:name == "${T.CHAT_INFO_PANEL}" OR name BEGINSWITH "${T.CHAT_INFO_PANEL}-"`
+export const infoPanelShown = async () => browser.$(INFO_PANEL).isExisting()
+
+// Closes the conversation's info panel and waits for it to go: a phone's modal sheet with its header's
+// Done (a back swipe from the left edge does not close a sheet), the panel beside a thread shown beside
+// the inbox with the header's info button, which toggles it. Bound: 3 tries of the tap and 5s = 16s.
 export const closeInfoPanel = async () => {
   const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
   for (let i = 0; i < 3; i++) {
-    if (!(await el(T.CHAT_INFO_PANEL).isExisting())) return
-    await browser.$(done).click().catch(() => {})
-    const gone = await el(T.CHAT_INFO_PANEL)
+    if (!(await infoPanelShown())) return
+    if (threadRoute() === 'chatRoot') await clickOrTap(el(T.CHAT_HEADER_INFO_BUTTON)).catch(() => {})
+    else await browser.$(done).click().catch(() => {})
+    const gone = await browser
+      .$(INFO_PANEL)
       .waitForExist({reverse: true, timeout: 5_000})
       .then(() => true)
       .catch(() => false)
     if (gone) return
   }
-  throw new Error('the info panel did not close from its Done button')
+  throw new Error('the info panel did not close')
 }
 
 // Drags the thread until the loaded row at `ordinal` sits wholly in the reader's view, and returns
@@ -1951,7 +1986,7 @@ export const giphyGalleryShown = async () =>
 // Opens the visible conversation's info panel from the header's More menu and, given one, a tab of
 // it (its testID). Bound: the header menu 15, the tab 5 and its taps 5 = 25.
 export const openInfoPanel = async (tab?: string) => {
-  await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+  await openHeaderMenuItem('Info', infoPanelShown)
   if (tab === undefined) return
   await el(tab).waitForExist({timeout: 5_000})
   // a tap while the panel still comes up can do nothing (seen live): tapped again until the panel's
