@@ -10,7 +10,7 @@ import {createHash} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, clickOrTap, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
+import {byText, clearFieldByKeys, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
 import {appSnapshot, openUrl, selfConversationID, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
@@ -657,6 +657,10 @@ const seekInbox = async (
       // as at the end: one still drag may be a tap or a settling list, two in a row cannot move it
       stillShifts = shifted.signature === drawn.signature ? stillShifts + 1 : 0
       if (stillShifts >= INBOX_END_STILL_DRAGS) {
+        // the list cannot move further (an item at the top of an inbox at its start, as an iPhone
+        // Duo's inbox column draws its first row flush with the band): one wholly inside the band,
+        // with no margin, is in view
+        if (whollyInBand(span, band, 0)) return elementOfItem(drawn.items[at]!)
         throw new Error(`the inbox item asked for cannot be brought wholly into view: ${stillShifts} drags to move it changed nothing (${last})`)
       }
       drawn = shifted
@@ -1200,7 +1204,7 @@ export const openHeaderMenuItem = async (item: 'Info' | 'Search', opened: () => 
       `${item} to open from the header`,
       async () => {
         if (await opened()) return true
-        await clickOrTap(el(button)).catch(() => {})
+        await el(button).click().catch(() => {})
         await settle(`${item} to open`, opened)
         return undefined
       },
@@ -1455,7 +1459,7 @@ export const closeInfoPanel = async () => {
   const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
   for (let i = 0; i < 3; i++) {
     if (!(await infoPanelShown())) return
-    if (threadRoute() === 'chatRoot') await clickOrTap(el(T.CHAT_HEADER_INFO_BUTTON)).catch(() => {})
+    if (threadRoute() === 'chatRoot') await el(T.CHAT_HEADER_INFO_BUTTON).click().catch(() => {})
     else await browser.$(done).click().catch(() => {})
     const gone = await browser
       .$(INFO_PANEL)

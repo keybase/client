@@ -1,5 +1,4 @@
 import type {ChainablePromiseElement, ChainablePromiseArray} from 'webdriverio'
-import {readsFrames} from '../gate/shown-lib.ts'
 
 // Select by testID. React Native maps testID to different native attributes per
 // platform: iOS → accessibilityIdentifier (Appium "~" accessibility-id), Android
@@ -18,14 +17,6 @@ export const tapAt = async (x: number, y: number) =>
   browser.execute('mobile: tap', {elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
 export const holdAt = async (x: number, y: number, duration: number) =>
   browser.execute('mobile: touchAndHold', {duration, elementId: await windowId(), x: Math.round(x), y: Math.round(y)})
-// Clicks what `find` finds, or on a run that reads frames (an unfolded Duo, where a click on some
-// controls taps nothing) taps it at its middle, relative to itself. Bound: 2.
-export const clickOrTap = async (find: ChainablePromiseElement) => {
-  if (!readsFrames()) return find.click()
-  const e = await find.getElement()
-  const r = await browser.getElementRect(e.elementId)
-  return browser.execute('mobile: tap', {elementId: e.elementId, x: Math.round(r.width / 2), y: Math.round(r.height / 2)})
-}
 export const els = (id: string): ChainablePromiseArray => browser.$$(byTestIDSelector(id))
 
 // Use waitForExist (presence in the XCUI tree), not waitForDisplayed: layout
@@ -204,7 +195,7 @@ export const tapForTestID = async (
   {taps = 3, timeout = 5000}: {taps?: number; timeout?: number} = {}
 ): Promise<void> => {
   for (let i = 0; i < taps; i++) {
-    await clickOrTap(el(tapId)).catch(() => {})
+    await el(tapId).click().catch(() => {})
     const ok = await el(expectId)
       .waitForExist({timeout, interval: 150})
       .then(() => true)
