@@ -74,18 +74,21 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       self.componentStatus = [KBComponentStatus componentStatusWithError:error];
     } else {
 
-      GHODictionary *info = [GHODictionary dictionary];
-      info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
+      NSMutableArray<NSString *> *info = [NSMutableArray array];
+      void (^addInfo)(NSString *, NSString *) = ^(NSString *key, NSString *value) {
+        if ([value length] > 0) [info addObject:NSStringWithFormat(@"%@: %@", key, value)];
+      };
+      addInfo(@"Version", fuseStatus.version);
 
       if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
-        info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
+        addInfo(@"Bundle Version", fuseStatus.bundleVersion);
       }
 
       if (![NSString gh_isBlank:fuseStatus.kextID]) {
-        info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
-        info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
+        addInfo(@"Kext ID", fuseStatus.kextID);
+        addInfo(@"Kext Loaded", fuseStatus.kextStarted ? @"Yes" : @"No");
       }
-      info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
+      addInfo(@"Path", fuseStatus.path);
 
       if (fuseStatus.status.code > 0) {
         error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);

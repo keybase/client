@@ -14,12 +14,12 @@
 @property NSError *error;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
-@property GHODictionary *info;
+@property (copy) NSArray<NSString *> *info;
 @end
 
 @implementation KBComponentStatus
 
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error {
++ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(NSArray<NSString *> *)info error:(NSError *)error {
   KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
   componentStatus.installStatus = installStatus;
   componentStatus.installAction = installAction;
@@ -46,11 +46,7 @@
   NSMutableArray *str = [NSMutableArray array];
   [str addObject:NSStringFromKBRInstallStatus(_installStatus)];
   
-  NSMutableArray *infos = [NSMutableArray array];
-  for (id key in _info) {
-    [infos addObject:NSStringWithFormat(@"%@: %@", key, _info[key])];
-  }
-  if ([infos count] > 0) [str addObject:[infos join:delimeter]];
+  if ([_info count] > 0) [str addObject:[_info join:delimeter]];
 
   return [str join:@", "];
 }

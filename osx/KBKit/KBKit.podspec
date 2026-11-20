@@ -15,7 +15,6 @@ Pod::Spec.new do |s|
   s.dependency "CocoaLumberjack"
   s.dependency "Mantle"
   s.dependency "MPMessagePack"
-  s.dependency "GHODictionary"
 
   s.platform = :osx, "13.5"
   s.osx.source_files = "KBKit/**/*.{h,m}"

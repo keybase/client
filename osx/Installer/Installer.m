@@ -52,7 +52,6 @@ typedef NS_ENUM (NSInteger, KBExit) {
   GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
 #if DEBUG
   [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
-  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
   [settings setObject:@"prod" forKey:@"run-mode"];
   [settings setObject:@"10" forKey:@"timeout"];
 #endif

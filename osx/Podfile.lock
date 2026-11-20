@@ -7,11 +7,9 @@ PODS:
     - CocoaLumberjack/Default
   - GBCli (1.2.1)
   - GHKit (2.0.3)
-  - GHODictionary (1.1.0)
   - KBKit (0.1.6):
     - CocoaLumberjack
     - GHKit
-    - GHODictionary
     - Mantle
     - MPMessagePack
     - ObjectiveSugar
@@ -31,7 +29,6 @@ SPEC REPOS:
     - CocoaLumberjack
     - GBCli
     - GHKit
-    - GHODictionary
     - Mantle
     - ObjectiveSugar
 
@@ -45,8 +42,7 @@ SPEC CHECKSUMS:
   CocoaLumberjack: 8311463ddf9ee86a06ef92a071dd656c89244500
   GBCli: 3af947f1793263cda07c220aed0b4af46034d94d
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
-  GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
-  KBKit: dc36071e37e8bb4efd52eefbb089f649087621ea
+  KBKit: 0ef21736379f7d55f5e492c990db101ff81b37f3
   Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
   MPMessagePack: ee19ac91af5bd970b152156bad4d3aaa9e53a5bd
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
