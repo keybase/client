@@ -306,7 +306,6 @@ const Developer = () => {
     }
     ignorePromise(f())
   }
-  const onToggleRuntimeStats = useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {
       const next = s + 1
@@ -385,12 +384,6 @@ const Developer = () => {
       )}
       {showPprofControls && (
         <>
-          <Kb.Button
-            label="Toggle Runtime Stats"
-            onClick={onToggleRuntimeStats}
-            mode="Secondary"
-            style={styles.developerButtons}
-          />
           <Kb.Button
             waiting={traceInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}

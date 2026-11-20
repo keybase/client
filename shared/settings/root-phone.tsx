@@ -1,52 +1,14 @@
 import * as C from '@/constants'
 import {useIsChatSplit} from '@/constants/chat/layout'
-import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 import SettingsItem from './sub-nav/settings-item'
-import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useNotifState} from '@/stores/notifications'
-
-const PerfRow = () => {
-  const styles = useStyles()
-  const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.Input3Ref>(null)
-
-  return (
-    <Kb.Box2
-      alignItems="center"
-      direction="horizontal"
-      fullWidth={true}
-      gap="xtiny"
-      style={styles.perfRow}
-      gapStart={true}
-    >
-      <Kb.Button
-        small={true}
-        label="PerfLog"
-        onClick={() => {
-          T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
-            .then(() => {})
-            .catch(() => {})
-          ref.current?.clear()
-        }}
-      />
-      <Kb.Input3
-        ref={ref}
-        onChangeText={(text: string) => setToSubmit(`GUI: ${text}`)}
-        hideBorder={true}
-        containerStyle={styles.perfInput}
-        placeholder="Add to perf log"
-      />
-    </Kb.Box2>
-  )
-}
 
 type Item = {
   badgeNumber?: number
@@ -72,7 +34,6 @@ function SettingsNav() {
     }))
   )
   const badgeNotifications = usePushState(s => !s.hasPermissions)
-  const statsShown = useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.Router2.navigateAppend
   const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
@@ -81,7 +42,6 @@ function SettingsNav() {
   const sections: Array<Section> = [
     {
       data: [
-        ...(statsShown ? [{onClick: noop, text: 'perf'}] : []),
         {
           icon: 'iconfont-nav-2-crypto',
           onClick: () => {
@@ -241,9 +201,7 @@ function SettingsNav() {
             </Kb.Text>
           ) : null}
           {section.data.map((item, index) =>
-            item.text === 'perf' ? (
-              <PerfRow key="perf" />
-            ) : item.text ? (
+            item.text ? (
               <SettingsItem
                 {...item}
                 key={item.text + String(index)}
@@ -260,8 +218,6 @@ function SettingsNav() {
 }
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
-  perfInput: {backgroundColor: theme.grey, flex: 1, padding: 0, width: 'auto' as const},
-  perfRow: {height: 44},
   sectionTitle: {
     backgroundColor: theme.blueLighter3,
     color: theme.black_50,
