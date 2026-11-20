@@ -36,10 +36,22 @@ const DIMMING = 'name == "PopoverDismissRegion"'
 // The `visible` each of a page source's elements (their frames and flags, in document order) should
 // read: unchanged on a run that reads XCUITest's flag or while the source holds a dimming view, else
 // whether its frame starts inside the window.
-export const sourceVisible = (source: string, els: ReadonlyArray<{rect: Rect; visible: string | undefined}>): Array<string | undefined> => {
+// With a modal up, its elements can read visible=false too: one in the top layer (the first window's
+// last child, the modal) whose frame starts inside the window counts as well. `parents` are each
+// element's parent index (page-source-lib.ts' sourceParents).
+export const sourceVisible = (
+  source: string,
+  els: ReadonlyArray<{rect: Rect; type: string; visible: string | undefined}>,
+  parents: () => ReadonlyArray<number>
+): Array<string | undefined> => {
   const w = frameWindow()
-  if (!w || source.includes('name="PopoverDismissRegion"')) return els.map(e => e.visible)
-  return els.map(e => String(frameIn(e.rect, w)))
+  if (!w) return els.map(e => e.visible)
+  if (!source.includes('name="PopoverDismissRegion"')) return els.map(e => String(frameIn(e.rect, w)))
+  const up = parents()
+  const win = els.findIndex(e => e.type === 'XCUIElementTypeWindow')
+  const top = els.findLastIndex((e, i) => up[i] === win && e.type === 'XCUIElementTypeOther')
+  const under = (i: number): boolean => i === top || (i > top && i >= 0 && under(up[i] ?? -1))
+  return els.map((e, i) => (e.visible === 'true' || (win >= 0 && top >= 0 && under(i) && frameIn(e.rect, w)) ? 'true' : e.visible))
 }
 
 // Whether a modal was up at the last read (notePresented), for the finds after it.

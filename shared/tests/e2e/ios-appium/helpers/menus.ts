@@ -2,9 +2,10 @@
 // sheet, read and pick its items, and find the one element whose label is a name, compared in memory
 // so the name never goes into a selector or an error.
 import {tapAt} from './elements'
+import {readsFrames} from '../gate/shown-lib.ts'
 import {waitFor} from './lifecycle'
 import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
-import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
+import {deepestLabelledAtFrame, oneControlAtFrame, positionAtFrame} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
@@ -357,6 +358,14 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const type = found[i]!.e.type
   const visibleOnly = shown.length > 0
   const count = oneControlAtFrame(source, {matches, rect: r, type, visibleOnly}, what)
+  if (readsFrames()) {
+    const {position, total} = positionAtFrame(source, {matches, rect: r, type, visibleOnly})
+    const all = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}`).getElements()
+    const matching: Array<WebdriverIO.Element> = []
+    for (const e of all) if (matches(((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' '))) matching.push(e)
+    if (matching.length !== total || position < 0) throw new Error(`${matching.length} of ${what} at its frame, ${total} in the page source`)
+    return matching[position]!
+  }
   // the label is compared in memory, never put in the selector
   const visible = visibleOnly ? ' AND visible == 1' : ''
   const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}${visible}`).getElements()

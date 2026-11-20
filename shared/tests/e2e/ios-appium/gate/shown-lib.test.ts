@@ -54,6 +54,10 @@ describe('a run that reads frames (an unfolded Duo)', () => {
     expect(shown(app(base, modal('step 1', false), modal('step 2', false), modal('step 3', true)))).toEqual(['step 3'])
   })
 
+  test('with a modal up, its own elements in the window count even when XCUITest reads them hidden', () => {
+    expect(shown(app(base, modal('step 1', false), modal('step 2', false)))).toEqual(['step 2'])
+  })
+
   test('with no modal up, a find asking for visible asks for a frame in the window', () => {
     expect(shownFind('-ios predicate string', 'label == "x" AND visible == 1')).toEqual({using: '-ios predicate string', value: `label == "x" AND ${FRAME}`})
     expect(shownFind('-ios class chain', '**/XCUIElementTypeButton[`label == "Back" AND visible == 1`]').value).toBe(

@@ -25,7 +25,8 @@ export const sourceElements = (source: string): Array<SourceElement> => {
   if (!readsFrames()) return els
   const visible = sourceVisible(
     source,
-    els.map(e => ({rect: sourceRect(e.attrs), visible: e.attrs['visible']}))
+    els.map(e => ({rect: sourceRect(e.attrs), type: e.type, visible: e.attrs['visible']})),
+    () => sourceParents(source)
   )
   return els.map((e, i) => {
     const v = visible[i]
