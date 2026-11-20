@@ -4,7 +4,7 @@
 // while the field holds it. Every message is built from usernames, states and the app's error text.
 import {loadE2EAccounts} from '../../accounts/env'
 import * as T from '../../shared/test-ids'
-import {openAccountSwitcher} from '../helpers/chat'
+import {openAccountSwitcher, typeIntoFocused} from '../helpers/chat'
 import {byText, el, labeled} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
 import {appAccount, settledAppAccount} from './accounts'
@@ -22,6 +22,7 @@ import {withHarnessRpcs} from './recorder'
 import {pressBackToLoginList, tapUntil} from './screens'
 import {emptySecretField, focusSecretField, submitSecret} from './secret-input'
 import {clearSecretOnScreen, markSecretOnScreen} from './secret-screen.ts'
+import {readsFrames} from './shown-lib.ts'
 
 const SIGN_IN_MS = 60_000
 let asks = 0
@@ -129,7 +130,10 @@ export const submitLoginPassword = async (username: string, text: string) => {
       const s = await loginScreen()
       return s.state === 'shown' && !s.error ? true : undefined
     }, {interval: 250, timeout: 10_000})
-    await logInButton().click()
+    // on an iPhone Duo unfolded the keyboard covers Log in on its short screen: the field's own Return
+    // submits it
+    if (readsFrames()) await typeIntoFocused('the password field', '\uE007')
+    else await logInButton().click()
   } catch (e) {
     return withFieldEmptied(e)
   }
