@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 //
-//go:build !linux && !windows
+//go:build !linux && !windows && !darwin
 
 package main
 

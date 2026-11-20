@@ -1010,12 +1010,16 @@ var preferredKBFSMountDirs = func() []string {
 	switch RuntimeGroup() {
 	case keybase1.RuntimeGroup_LINUXLIKE:
 		return []string{"/keybase"}
-	case keybase1.RuntimeGroup_DARWINLIKE:
-		return []string{"/keybase", "/Volumes/Keybase"}
 	default:
 		return []string{}
 	}
 }()
+
+// HasPreferredKBFSMountDirs returns whether this platform has any preferred
+// (redirector) mount dirs.
+func HasPreferredKBFSMountDirs() bool {
+	return len(preferredKBFSMountDirs) > 0
+}
 
 func FindPreferredKBFSMountDirs() (mountDirs []string) {
 	for _, mountDir := range preferredKBFSMountDirs {
