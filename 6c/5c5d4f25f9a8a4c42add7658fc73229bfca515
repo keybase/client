@@ -1,0 +1,103 @@
+go/kbfs/simplefs/simplefs_test.go
+  s_f089fda757ef18::t_913cdeec6265ef 25
+  s_f089fda757ef18::t_dcaff978b79268 206-246
+go/kbfs/simplefs/simplefs.go
+  s_f089fda757ef18::t_15e5ef502200f0 112-115
+go/kbfs/libkbfs/tlf_journal.go
+  s_f089fda757ef18::t_1793919dfe4988 2356,2384,2388,2409-2410
+  s_f089fda757ef18::t_b08bcc30b5ac1b 2348-2350,2357-2375
+  s_f089fda757ef18::t_601ef7b7f35e39 2351-2352
+  s_f089fda757ef18::t_b55104f61d733c 2403-2404
+  s_f089fda757ef18::t_3542ef00e7674d 897-901,903
+  s_f089fda757ef18::t_1624c849e213c4 2405-2408,2411-2412,2420-2422
+  s_f089fda757ef18::t_5b197e16305813 291-292,298-300
+  s_f089fda757ef18::t_e03031be84c0c6 2353-2355
+  s_f089fda757ef18::t_7891532babc5d3 2376-2378,2381-2383
+  s_f089fda757ef18::t_8256297e71f565 2385-2387
+  s_f089fda757ef18::t_b08d15f3a0a9c8 2389-2391
+  s_f089fda757ef18::t_bb8a1e1f7b8bf7 2423-2424
+  s_f089fda757ef18::t_63b3d77400af9e 2379-2380
+  s_f089fda757ef18::t_b8231eb986cf06 255
+  s_f089fda757ef18::t_86fd905b224929 902
+  s_f089fda757ef18::t_d3c2f3d2f1b784 387-388
+  s_f089fda757ef18::t_85eabe6cbae5ae 476
+  s_f089fda757ef18::t_efdbf2fb5f5005 2392-2396,2402,2413-2419
+  s_f089fda757ef18::t_099f8a7719de6e 2397-2401
+  s_f089fda757ef18::t_723fdb7d0b0ff6 760-761,769,777,780-781
+  s_f089fda757ef18::t_514c36a1d6937e 2425-2432
+go/kbfs/libkbfs/tlf_journal_test.go
+  s_f089fda757ef18::t_f7eddb7000ecbd 520-521,523-528,530-531,565-568,579-580,582-583,590-592,596,599,605,607-609
+  s_f089fda757ef18::t_90c39906d35df2 603
+  s_f089fda757ef18::t_752a573d121fcb 593
+  s_f089fda757ef18::t_b3c56fd7c8a9af 532-542,553-564,569-572,584-589,597-598,600-602,606
+  s_f089fda757ef18::t_cb6fb0afe1a648 2124
+  s_f089fda757ef18::t_0f4555bcf6d5cd 545-546,551-552
+  s_f089fda757ef18::t_bbc68a14836800 522,529,544,573-575
+  s_f089fda757ef18::t_5cc1166e4f9dd5 19,317,543,547-550,576-578,581,594-595,604
+go/kbfs/libfuse/errors.go
+  s_f089fda757ef18::t_8ca74cd684b5f9 39-40
+go/kbfs/libkbfs/reporter_kbpki.go
+  s_f089fda757ef18::t_7ba638e3583887 123-125,129-131
+  s_f089fda757ef18::t_b6044be810cbd2 16
+  s_f089fda757ef18::t_f76212f0e098e9 39
+  s_f089fda757ef18::t_175eea15e4be97 121-122,126-128
+go/kbfs/libkbfs/reporter_kbpki_test.go
+  s_f089fda757ef18::t_e4e43070400b71 1-29,37,39-43,46,48-50
+  s_f089fda757ef18::t_fbda5a215b57da 30-36,38,44-45,47
+go/kbfs/libkbfs/journal_manager.go
+  s_f089fda757ef18::t_db164d07cd60f3 370,1178,1201
+  s_f089fda757ef18::t_8f96f0c9d3b6f8 956-959,962,968
+  s_1a8eb045cbccb9::t_7e97bdb8b7f9fd 124-132,171,198,216,484-485,856,985-992
+go/kbfs/kbfsblock/server_errors.go
+  s_f089fda757ef18::t_704358ce34f8e5 208-212
+shared/util/platform-specific/kbfs-notifications.tsx
+  s_f089fda757ef18::t_5de7a19d41183f 32,34-37
+go/kbfs/libkbfs/kbfs_ops.go
+  s_f089fda757ef18::t_3ea9a50360126c 2211-2218
+go/kbfs/libkbfs/errors.go
+  s_f089fda757ef18::t_08d7f4fb318193 109-123
+shared/util/platform-specific/kbfs-notifications.test.tsx
+  s_f089fda757ef18::t_ca57c1c76a7efc 1-40
+go/kbfs/libkbfs/folder_branch_ops.go
+  s_f089fda757ef18::t_710b884b45f9e6 7801-7803,7806,7822-7823,7836
+  s_f089fda757ef18::t_3572984242d89b 7821
+  s_f089fda757ef18::t_0c0a0023ead2fa 7824,7826-7834
+  s_f089fda757ef18::t_b86324ba7278c0 9166-9168,9176-9177,9179-9189
+  s_f089fda757ef18::t_dabbd53135ad6d 9169-9175,9178,9190-9195
+  s_1a8eb045cbccb9::t_6aab1c8d75d9f3 7825
+go/kbfs/libkbfs/kbfs_ops_test.go
+  s_f089fda757ef18::t_58420b2a9e55da 5017-5018
+  s_f089fda757ef18::t_3698ae0e5cd480 4952,4967-4970,4972-4973,4976-4982,4984-4996,4999-5008,5020-5021,5025,5027,5033-5037,5043-5044,5046-5047,5058,5075,5082,5085,5100,5107,5116,5118,5122,5129,5131,5151,5153,5155-5156,5174
+  s_f089fda757ef18::t_f1889332c3d273 5140-5141
+  s_f089fda757ef18::t_9679b69658f3ff 5048
+  s_f089fda757ef18::t_8447f3ffbe7320 4960,4998,5049,5065,5091,5111,5133-5139,5142-5149,5157
+  s_f089fda757ef18::t_bae51d056ae15b 4953-4959,4961-4966,4971,4974-4975,4983,4997,5009-5016,5019,5022-5024,5026,5028-5032,5038-5042,5045,5050-5057,5059-5064,5066-5074,5076-5081,5083-5084,5086-5090,5092-5099,5101-5106,5108-5110,5112-5115,5117,5119-5121,5123-5128,5130,5132,5150,5152,5154,5158-5173
+go/kbfs/libkbfs/config_local.go
+  s_f089fda757ef18::t_967ad2f1fd4112 1293,1303
+go/kbfs/libkbfs/journal_manager_test.go
+  s_f089fda757ef18::t_1445e7b011128d 430,800,925,995,1114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6c5c5d4f25f9a8a4c42add7658fc73229bfca515",
+  "prompts": {},
+  "sessions": {
+    "s_1a8eb045cbccb9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "402705e6-fa47-4d57-b095-8ab050ac16d1",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_f089fda757ef18": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d0e9dd7-d2a4-40a8-ae13-da469017345b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
