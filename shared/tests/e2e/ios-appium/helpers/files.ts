@@ -19,12 +19,12 @@ import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
-import {isKeyboardUp, typeIntoFocused} from './chat'
+import {hideKeyboard, isKeyboardUp, typeIntoFocused} from './chat'
 import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, press, screenRect, tapElement, tapFrame} from './menus'
 import {waitFor} from './lifecycle'
 import {expectScreen} from '../gate/screens.ts'
 import {backUntil, goBack, openTabRoot} from './navigate'
-import {elementShown} from '../gate/shown-lib.ts'
+import {elementShown, readsFrames} from '../gate/shown-lib.ts'
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -337,9 +337,12 @@ export const tapButton = async (label: string, what: string) => {
 // clearValue, after which the app's process stays in hardware-keyboard mode and a later focus draws
 // no software keyboard until the app relaunches. A read-back that lost a key (fast key presses into a
 // field that re-renders on its first one drop one now and then) is deleted and typed again, twice at
-// most. Bound: the field 10, the tap 1 and its 1s settle, three of (the reads 2, the keys 5) = 33.
+// most. Bound: the field 10, the keyboard's hide 5, the tap 1 and its 1s settle, three of (the reads 2, the keys 5) = 38.
 export const fillField = async (field: () => ChainablePromiseElement, text: string, what: string) => {
   await field().waitForExist({timeout: 10_000})
+  // an iPhone Duo's short screen puts a field below the one before it under the keyboard that field
+  // raised, where a tap lands on the keyboard: it is lowered first (and the field's frame read after)
+  if (readsFrames()) await hideKeyboard()
   const rect = await frameOf(await field().getElement(), what)
   await tapFrame({height: 8, width: 8, x: rect.x + rect.width - 12, y: rect.y + rect.height - 12}, what)
   await browser.pause(1_000)
