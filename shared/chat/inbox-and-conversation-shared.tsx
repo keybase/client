@@ -1,7 +1,8 @@
-// Just for desktop and tablet, we show inbox and conversation side by side
+// Desktop, iPad and a phone wide enough (an unfolded iPhone Duo) show the inbox and conversation side by side
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import {infoPanelWidth} from './conversation/info-panel/common'
 import * as NavTree from '@/constants/nav-tree'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -23,8 +24,6 @@ type Props = InboxAndConversationProps & {
   leftPane: React.ReactNode
 }
 
-const infoPanelWidth = isMobile ? 350 : 320
-const noSideInsets = {left: 0, right: 0}
 
 export function InboxAndConversationShell(props: Props) {
   const styles = useStyles()
@@ -74,9 +73,9 @@ export function InboxAndConversationShell(props: Props) {
           <Kb.Box2
             direction="vertical"
             fullHeight={true}
-            style={Kb.Styles.collapseStyles([styles.infoPanel, {paddingRight: right, width: infoPanelWidth + right}])}
+            style={Kb.Styles.collapseStyles([styles.infoPanel, {paddingRight: right, width: infoPanelWidth(true) + right}])}
           >
-            <Kb.ScreenSideInsetsContext value={noSideInsets}>
+            <Kb.ScreenSideInsetsContext value={Kb.noSideInsets}>
               <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
             </Kb.ScreenSideInsetsContext>
           </Kb.Box2>

@@ -140,8 +140,7 @@ const useStyles = Kb.Styles.createStyleHook(
         common: {flex: 1},
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      // hacky, redo the layout of this component later
-      searchBoxSplit: {maxWidth: 270 - 16 * 2},
+      searchBoxSplit: {maxWidth: 270 - 2 * Kb.Styles.globalMargins.small},
       searchPlaceholder: {
         backgroundColor: theme.black_10,
         borderRadius: Kb.Styles.borderRadius,

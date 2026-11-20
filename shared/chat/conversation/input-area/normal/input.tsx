@@ -1235,13 +1235,12 @@ const NativeAnimatedInput = (() => {
   }
 })()
 
-const noSideInsets = {left: 0, right: 0}
 const NativePlatformInput = (p: Props) => {
   const nativeStyles = useNativeStyles()
   // In a phone's split chat the tab bar floats over the right strip, beside the composer. A thread on
   // its own (a narrow window) has no tab bar, and nothing else in a strip reaches the composer.
   const screenSideInsets = Kb.useScreenSideInsets()
-  const sideInsets = useIsChatSplit() ? screenSideInsets : noSideInsets
+  const sideInsets = useIsChatSplit() ? screenSideInsets : Kb.noSideInsets
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [showAudioSend, setShowAudioSend] = React.useState(false)

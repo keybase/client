@@ -576,7 +576,7 @@ const User = (props: {username: string}) => {
   return (
     // the page runs under an iPhone Duo's side strips: only the back button sits there, and it covers
     // nothing the page needs
-    <Kb.ScreenSideInsetsContext value={noSideInsets}>
+    <Kb.ScreenSideInsetsContext value={Kb.noSideInsets}>
       <Kb.Reloadable
         onReload={p.onReload}
         waitingKeys={[C.waitingKeyTrackerProfileLoad]}
@@ -614,7 +614,6 @@ const User = (props: {username: string}) => {
 }
 
 const usernameSelectedTab = new Map<string, Tab>()
-const noSideInsets = {left: 0, right: 0}
 
 // module scope outlives sign-out; keyed by username
 registerExternalResetter('profile-user-selected-tab', () => {

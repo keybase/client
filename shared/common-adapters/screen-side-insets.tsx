@@ -6,7 +6,7 @@ import type {StyleProp, ViewStyle} from 'react-native'
 // in Split View the column of header buttons). Screens lay out on the full window so centered
 // content stays centered; scrolling content takes these as padding to keep clear of the strips.
 export type ScreenSideInsets = {left: number; right: number}
-const noSideInsets: ScreenSideInsets = {left: 0, right: 0}
+export const noSideInsets: ScreenSideInsets = {left: 0, right: 0}
 export const ScreenSideInsetsContext = React.createContext<ScreenSideInsets>(noSideInsets)
 export const useScreenSideInsets = () => React.useContext(ScreenSideInsetsContext)
 

@@ -8,6 +8,6 @@ import inboxOptions from '@/chat/inbox/get-options'
 // bar, because a push from a bar-less screen to a headered one on the same stack judders on iOS
 // (react-native-screens#3773). That cannot happen here: a phone's chat tab stack holds only this
 // screen, and everything it opens is pushed on the root stack above the tabs. So the routes keep the
-// bar in their options and only this screen, while split, hides it.
+// bar in their options, and among the chat routes only this screen, while split, hides it.
 export const narrowOptions = {...inboxOptions, headerShown: true}
 export const splitOptions = {headerShown: false}

@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {RefreshControl, ScrollView as NativeScrollView} from 'react-native'
 import type {ScrollViewProps, ScrollViewInstance, RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
-import {useScreenSideInsets, withSideInsets} from './screen-side-insets'
+import {noSideInsets as zeroSideInsets, useScreenSideInsets, withSideInsets} from './screen-side-insets'
 
 export type ScrollViewRef = {
   scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
@@ -54,7 +54,6 @@ type Props = {
   noSideInsets?: boolean
 }
 
-const zeroSideInsets = {left: 0, right: 0}
 
 type DivScrollable = {
   scrollTo: (opts: {left?: number; top?: number}) => void
