@@ -1,7 +1,7 @@
 // Evals in the running app, and asks of the phone's own service. What lives only on the phone (its
 // files settings, a folder's sync config, the emoji skin tone, remember-password, the proxy, the GUI
-// config, the photo compress preference, the KBFS debug level, runtime stats, backup jobs) is read
-// back and restored here, never through the host's main service, which holds the Mac's copy.
+// config, the photo compress preference, the KBFS debug level, backup jobs) is read back and
+// restored here, never through the host's main service, which holds the Mac's copy.
 import {maskE2E} from '../../accounts/sweep-lib.ts'
 import {GATEWAY_ERROR_RE} from '../../shared/chat-data.ts'
 import {jsEval as jsEvalOnce, waitFor} from '../helpers/lifecycle'
@@ -156,7 +156,7 @@ export const setFolderSyncConfig = async (path: string, c: FolderSyncConfig) => 
   )
 }
 
-// -- remember-password, proxy, GUI config, photo compress, debug level, runtime stats ---------------
+// -- remember-password, proxy, GUI config, photo compress, debug level -----------------------------
 
 // "Always stay logged in" (Settings > Advanced), as the phone's service keeps it.
 export const rememberPassphrase = async () =>
@@ -279,26 +279,6 @@ export const trackerState = async (username: string) => {
     `Promise.resolve(kbModule('tracker/identify-session.tsx').getProfileDetails(${JSON.stringify(username)})?.state ?? null)`
   )
 }
-
-// Toggles the phone's runtime stats (a restore: read runtimeStatsEnabled first).
-export const toggleRuntimeStats = async () =>
-  askApp<boolean>('toggling the runtime stats', `${RPC_GEN}.configToggleRuntimeStatsRpcPromise().then(() => true)`)
-
-// Whether the phone's service config has runtime stats on (the flag Toggle Runtime Stats flips and
-// a relaunch keeps): the truth even before the first stats arrive or after the last one. The app
-// has no generated call for it, so this goes through the engine's call port.
-export const runtimeStatsEnabled = async () =>
-  askApp<boolean>(
-    "the phone's runtime stats setting",
-    `new Promise((resolve, reject) =>
-       kbModule('engine/call-port.tsx').getCallPort().call({
-         callback: (e, v) =>
-           e ? (/no such key/i.test(String(e && e.message)) ? resolve(false) : reject(e)) : resolve(!!(v && !v.isNull && v.b)),
-         method: 'keybase.1.config.getValue',
-         params: {path: 'runtime_stats_enabled'},
-       })
-     )`
-  )
 
 const reachOnce = async (timeout: number) =>
   askApp<boolean>(

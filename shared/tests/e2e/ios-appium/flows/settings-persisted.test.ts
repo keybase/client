@@ -17,8 +17,7 @@
 //   form loaded (refused unless the phone has no proxy, so the save can never point it at one; the
 //   network is checked after), Enable Detailed Logging (read off the phone's service log, where the
 //   in-process KBFS logs each level it is set to; it lives only in the running app, so it is put back
-//   by the harness, not read after a relaunch), and the developer section's Toggle Runtime Stats (the
-//   overlay and the More list's perf row, on, through a relaunch, and off again).
+//   by the harness, not read after a relaunch).
 //
 // The switch and radio states are read off their testIDs, which say what each shows, or that it is
 // still loading or saving (test-ids.ts SETTING_*), since the control alone has no state in the tree.
@@ -33,7 +32,7 @@
 // file too, every later test of the whole gate refuses (gate/poison-lib.ts).
 //
 // Never pressed: Dark, "Allow TLS Interception" (and its "Yes, I am sure"), DB Nuke, Clear Logs,
-// Trace, CPU Profile, the perf row's PerfLog, "Unsubscribe from all", a lockdown "Read more" link.
+// Trace, CPU Profile, "Unsubscribe from all", a lockdown "Read more" link.
 import * as fs from 'fs'
 import {withCleanup} from '../../shared/cleanup.ts'
 import {
@@ -66,11 +65,9 @@ import {
   phoneReachesServer,
   proxyData,
   randomPW,
-  runtimeStatsEnabled,
   setCompressPreference,
   setDebugLevel,
   setProxyData,
-  toggleRuntimeStats,
   type CompressPreference,
   type GuiValue,
   type ProxyData,
@@ -78,8 +75,7 @@ import {
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {creditSurface} from '../gate/attempt'
 import {clearGatePoison, poisonGate} from '../gate/poison-lib.ts'
-import {frameInside, rectOf} from '../gate/chat-lib.ts'
-import {proxySaveWrites, rectsOverlap, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
+import {proxySaveWrites, vdebugDetailed, vdebugLevels} from '../gate/persisted-lib.ts'
 import {currentCallSeq} from '../gate/recorder'
 import {step} from '../gate/step'
 import {dragUntilOnScreen} from '../helpers/chat'
@@ -87,9 +83,9 @@ import {el} from '../helpers/elements'
 import {tapButton} from '../helpers/files'
 import {goLogMark, waitFor} from '../helpers/lifecycle'
 import {linesSince} from '../gate/go-log-lib.ts'
-import {BUTTON_ELEMENTS, check, labelledElement, NAMED_ELEMENT_TYPES, screenRect} from '../helpers/menus'
+import {check} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
-import {openMore, openSettingsPage} from '../helpers/settings'
+import {openSettingsPage} from '../helpers/settings'
 import {
   calledOnce,
   expectShown,
@@ -103,7 +99,6 @@ import {
   type Shown,
 } from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
-import {labelHas, sourceElements, sourceRect} from '../gate/page-source-lib'
 import {iosTheme} from '../theme'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
@@ -116,7 +111,6 @@ const TOGGLE_EMOJI = 'chat.1.local.toggleEmojiAnimations'
 const SET_LOCKDOWN = 'keybase.1.account.setLockdownMode'
 const SET_PROXY = 'keybase.1.config.setProxyData'
 const SET_DEBUG = 'keybase.1.SimpleFS.simpleFSSetDebugLevel'
-const TOGGLE_STATS = 'keybase.1.config.toggleRuntimeStats'
 
 // The chat unfurl flow keeps the account's link preview settings here while it runs, and puts them
 // back from it at its next start when a run died (chat-unfurl.test.ts): while the file is there the
@@ -129,9 +123,6 @@ const PLAINTEXT_MOBILE = '1'
 // UnfurlMode, as the link preview radios' testIDs name it
 const UNFURL_MODES: Record<number, string | undefined> = {0: 'always', 1: 'never', 2: 'whitelisted'}
 const modeOf = (s: UnfurlSettings) => UNFURL_MODES[s.mode]
-const DEVELOPER_LINE = "Please don't do anything below here unless instructed to by a developer."
-// the developer controls show after this many taps on the line (settings/advanced.tsx)
-const DEVELOPER_TAPS = 7
 
 // -- pages ---------------------------------------------------------------------------------------
 
@@ -210,32 +201,13 @@ const logMark = () => {
 const levelSetSince = async (mark: ReturnType<typeof goLogMark>, level: string, what: string) =>
   waitFor(what, () => (levelsSince(mark).includes(level) ? true : undefined), {interval: 500, timeout: 20_000})
 
-// -- the More list -------------------------------------------------------------------------------
-
-// The More list off one page source: how many texts on screen hold the Crypto row's label as a part
-// (a row merges its texts into one label), and how many PerfLog buttons (the perf row's, shown while
-// runtime stats are on) the tree holds. XCUITest can report the whole list visible=false (seen live),
-// so a frame on screen stands for visible. Bound: the source and the window 2.
-const moreListDraws = async () => {
-  const screen = await screenRect()
-  let crypto = 0
-  let perf = 0
-  for (const {attrs, type} of sourceElements(await browser.getPageSource())) {
-    const label = (attrs['label'] ?? '').replace(/\u00a0/g, ' ')
-    if (type === 'XCUIElementTypeButton' && label === 'PerfLog') perf++
-    if (!NAMED_ELEMENT_TYPES.includes(type) || !labelHas(label, 'Crypto')) continue
-    if (frameInside(sourceRect(attrs), screen)) crypto++
-  }
-  return {crypto, perf}
-}
-
 describe('settings persisted', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
   //   smoke     requireAppIsSmoke 1;  host  a host read 150;  ask  an askApp 22 (20, the pause and
   //             resume 2);  reach  phoneReachesServer 111
   //   round     roundTrip 715 + 2C + 3S, C the change's bound, S its settles (host 180, phone 52)
   //   tap       tapAndCall 37;  save  saveAndCall 37;  shown  expectShown 41;  control  tapControl 21
-  //   open      openSettingsPage 126;  more  openMore 50;  relaunched  291
+  //   open      openSettingsPage 126;  relaunched  291
   //   step      2 (its 1s settle and the attach)
   //   mark      logMark 120;  level  levelSetSince 21
   //   restore   a host restore 355 (a read 150, the write 35, 20s of reads overrun by one 150 = 170)
@@ -254,7 +226,6 @@ describe('settings persisted', function () {
     compress?: CompressPreference
     emoji?: boolean
     debugLevel?: string
-    runtimeStats?: true
   }
   const touched: Touched = {}
   // what a restore failed to put back, with where the owner puts it back by hand
@@ -378,20 +349,6 @@ describe('settings persisted', function () {
     touched.debugLevel = undefined
   })
 
-  // Bound: ask 22, the toggle 22, 30s of asks overrun by one 22 = 96.
-  const restoreRuntimeStats = guarded(
-    'the runtime stats',
-    'turn them off in Settings > Advanced (tap the developer line 7 times, then Toggle Runtime Stats)',
-    async () => {
-      if (!touched.runtimeStats) return
-      if (await runtimeStatsEnabled()) {
-        await toggleRuntimeStats()
-        await settles('the runtime stats off after the restore', runtimeStatsEnabled, false)
-      }
-      touched.runtimeStats = undefined
-    }
-  )
-
   // A restore that failed leaves the app or the account changed: no later test runs on it.
   beforeEach(function () {
     if (!unrestored.size) return
@@ -414,7 +371,6 @@ describe('settings persisted', function () {
       restoreCompress,
       restoreEmoji,
       restoreDebugLevel,
-      restoreRuntimeStats,
       escapeToTabs,
     ])
   })
@@ -703,90 +659,5 @@ describe('settings persisted', function () {
     await levelSetSince(back, was, "the original level in the phone's service log")
     touched.debugLevel = undefined
     await step('Detailed logging put back')
-  })
-
-  it('Advanced > Toggle Runtime Stats: the overlay and the perf row on, through a relaunch, and off again', async function () {
-    // worst case (s): smoke 1, ask 22, more 50, the anchor 6, the reads 2, step 2; open 126, the
-    // developer controls 65, tapButton 7, calledOnce 14, the overlay 20, settles 52, step 2, more 50,
-    // the perf row 6, step 2; relaunched 291, the overlay 20, settles 52, step 2; open 126, the
-    // developer controls 65, tapButton 7, calledOnce 14, the overlay gone 20, settles 52, more 50, the
-    // anchor 6, the reads 2, step 2 = 1136
-    this.timeout(1_150_000)
-    await requireAppIsSmoke()
-    check(!(await runtimeStatsEnabled()), 'refusing: runtime stats are already on for the phone (the flow starts from off and leaves them off)')
-
-    // off: the More list draws its Crypto row and no perf row, and there is no overlay
-    const statsOff = async (what: string) => {
-      await openMore()
-      // the Crypto row anchors the perf row's absence in the same read
-      const drawn = await waitFor('the More list Crypto row', async () => {
-        const d = await moreListDraws()
-        return d.crypto > 0 ? d : undefined
-      }, {interval: 250, timeout: 5_000})
-      check(drawn.perf === 0, `the More list draws the perf row ${what}`)
-      check(!(await el(T.RUNTIME_STATS).isExisting()), `the runtime stats overlay is drawn ${what}`)
-    }
-    await statsOff('before the test')
-    await step('No runtime stats')
-    touched.runtimeStats = true
-
-    // The developer controls, from 7 taps on the warning line's own text (never a container around
-    // it), once its rect is seen clear of the DB Nuke and Clear Logs buttons below it. Bound: DB Nuke
-    // dragged on screen 20, the line 20 and its read 1, the buttons 2, 7 taps 7, the button 15 = 65.
-    const developerControls = async () => {
-      const line = `-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "${DEVELOPER_LINE.replace(/"/g, '\\"')}" AND visible == 1`
-      // DB Nuke first: it sits under the line, so both are drawn for the overlap check
-      await dragUntilOnScreen('the DB Nuke button', () =>
-        browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "DB Nuke" AND visible == 1')
-      )
-      await dragUntilOnScreen('the developer warning line', () => browser.$(line))
-      const text = await labelledElement(line, DEVELOPER_LINE, 'the developer warning line')
-      const lineRect = await rectOf(text)
-      check(lineRect !== undefined, 'the developer line has no frame, so it cannot be seen clear of the buttons')
-      for (const label of ['DB Nuke', 'Clear Logs']) {
-        const button = await labelledElement(BUTTON_ELEMENTS, label, `the ${label} button`).catch(() => undefined)
-        check(label !== 'DB Nuke' || button !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
-        if (!button) continue
-        // a drawn button with no frame cannot be seen clear of the line
-        const at = await rectOf(button)
-        check(at !== undefined, `the ${label} button has no frame, so the developer line cannot be seen clear of it`)
-        check(!rectsOverlap(lineRect!, at!), `refusing to tap the developer line: it overlaps the ${label} button`)
-      }
-      for (let i = 0; i < DEVELOPER_TAPS; i++) await text.click()
-      await dragUntilOnScreen('Toggle Runtime Stats', () =>
-        browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Toggle Runtime Stats" AND visible == 1')
-      )
-    }
-    const toggle = async () => {
-      const seq = await currentCallSeq()
-      await tapButton('Toggle Runtime Stats', 'the Toggle Runtime Stats button')
-      await calledOnce(seq, TOGGLE_STATS, 'the runtime stats toggle')
-    }
-
-    await openAdvanced()
-    await developerControls()
-    await toggle()
-    await el(T.RUNTIME_STATS).waitForExist({timeout: 20_000, timeoutMsg: 'the runtime stats overlay never showed'})
-    await settles('the runtime stats setting on', runtimeStatsEnabled, true)
-    await step('Runtime stats on', {card: true})
-    await openMore()
-    await waitFor('the More list perf row', async () => ((await moreListDraws()).perf === 1 ? true : undefined), {interval: 250, timeout: 5_000})
-    await step('The perf row in the More list')
-
-    // the setting is kept in the phone's service config, so a relaunch starts them again
-    await relaunchOnSmoke()
-    await el(T.RUNTIME_STATS).waitForExist({timeout: 20_000, timeoutMsg: 'the runtime stats overlay never showed after a relaunch'})
-    await settles('the runtime stats setting on after a relaunch', runtimeStatsEnabled, true)
-    creditSurface('relaunch')
-    await step('Runtime stats after a relaunch')
-
-    await openAdvanced()
-    await developerControls()
-    await toggle()
-    await el(T.RUNTIME_STATS).waitForExist({reverse: true, timeout: 20_000, timeoutMsg: 'the runtime stats overlay stayed after the toggle'})
-    await settles('the runtime stats setting off', runtimeStatsEnabled, false)
-    await statsOff('after the toggle')
-    touched.runtimeStats = undefined
-    await step('Runtime stats off')
   })
 })

@@ -51,7 +51,6 @@ type Store = T.Immutable<{
   loggedIn: boolean;
   outOfDate: T.Config.OutOfDate;
   revokedTrigger: number;
-  runtimeStats?: T.RPCGen.RuntimeStats;
   startup: {
     loaded: boolean;
     conversation: T.Chat.ConversationIDKey;
@@ -137,7 +136,6 @@ export type State = Store & {
     setUserSwitching: (...args: [sw: true, to: string] | [sw: false]) => void;
     // Starts a switch to a stored account unless one is already running. Returns whether it started.
     switchToAccount: (username: string) => boolean;
-    toggleRuntimeStats: () => void;
     updateGregorCategory: (
       category: string,
       body: string,
@@ -196,14 +194,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       s.allowAnimatedEmojis = !goodState.find(
         (i) => i.item.category === "emojianimations",
       );
-    });
-  };
-
-  const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
-    set((s) => {
-      s.runtimeStats = stats
-        ? T.castDraft({ ...s.runtimeStats, ...stats })
-        : undefined;
     });
   };
 
@@ -447,10 +437,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           setGregorPushState(state);
           break;
         }
-        case "keybase.1.NotifyRuntimeStats.runtimeStatsUpdate": {
-          updateRuntimeStats(action.payload.params.stats ?? undefined);
-          break;
-        }
         case "keybase.1.NotifyService.HTTPSrvInfoUpdate": {
           get().dispatch.setHTTPSrvInfo(
             action.payload.params.info.address,
@@ -682,12 +668,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       get().dispatch.setUserSwitching(true, username);
       get().dispatch.login(username, "");
       return true;
-    },
-    toggleRuntimeStats: () => {
-      const f = async () => {
-        await T.RPCGen.configToggleRuntimeStatsRpcPromise();
-      };
-      ignorePromise(f());
     },
     updateGregorCategory: (category, body, dtime) => {
       const f = async () => {

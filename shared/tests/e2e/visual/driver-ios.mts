@@ -330,7 +330,7 @@ const ROUTER = `const r = kbModule('constants/router.tsx');`
 // The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
 // and placements of coverage/visible.ts: screenPlacement says whether a view is in the focused
 // screen, a hidden one (a hidden tab, a screen under the top one), or outside every screen (the
-// overlays and sheets drawn over the navigator: the global error bar, runtime stats, popups).
+// overlays and sheets drawn over the navigator: the global error bar, popups).
 const FIBERS = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')

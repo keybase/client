@@ -71,9 +71,3 @@ export const isVdebugLevel = (level: string) =>
 
 // Whether `level` turns detailed logging (vlog2) on.
 export const vdebugDetailed = (level: string) => level.split(',').includes('vlog2')
-
-export type Rect = {height: number; width: number; x: number; y: number}
-
-// Whether two drawn rects share any area (rects that only touch do not).
-export const rectsOverlap = (a: Rect, b: Rect) =>
-  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height

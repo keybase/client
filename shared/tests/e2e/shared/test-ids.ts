@@ -520,11 +520,10 @@ export const PROVISION_USERNAME_INPUT = 'provision-username-input'
 export const FORGOT_USERNAME_EMAIL_INPUT = 'forgot-username-email-input'
 export const RECOVER_PASSWORD_PAPER_KEY_INPUT = 'recover-password-paper-key-input'
 
-// Debug overlays: the global error bar and the runtime stats the service sends when turned on
+// Debug overlay: the global error bar
 export const GLOBAL_ERROR = 'global-error'
 // the overlay the main window shows while it has no connection to the service
 export const DISCONNECT_OVERLAY = 'disconnect-overlay'
-export const RUNTIME_STATS = 'runtime-stats'
 
 // A row of the account switcher sheet and of the login screen's account list, each followed by the
 // account's username

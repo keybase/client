@@ -526,7 +526,7 @@ export const onEngineConnected = () => {
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
             deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
+            paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })

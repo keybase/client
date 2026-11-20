@@ -8,7 +8,7 @@ import type * as Runtime from './runtime.ts'
 ;(globalThis as {__DEV__?: boolean}).__DEV__ = false
 const {createRuntime} = (await import('./runtime.ts')) as typeof Runtime
 
-type Config = {globalError?: Error; runtimeStats?: unknown; loggedIn: boolean; dispatch: {setGlobalError: (e?: unknown) => void; other: () => void}}
+type Config = {globalError?: Error; loggedIn: boolean; dispatch: {setGlobalError: (e?: unknown) => void; other: () => void}}
 
 // a zustand store: setState merges, or replaces with `replace`
 const configStore = () => {
@@ -57,14 +57,4 @@ test('global-error keeps its error up when the app clears it, as desktop does af
   assert.equal(api.state, original)
   api.state.dispatch.setGlobalError()
   assert.equal(api.state.globalError, undefined)
-})
-
-test('runtime-stats merges its stats into the config store', () => {
-  const {api, replaced} = configStore()
-  const rt = runtimeWith(api)
-  rt.fixtures.begin('runtime-stats', {})
-  assert.ok(api.state.runtimeStats)
-  assert.equal(api.state.loggedIn, true)
-  assert.deepEqual(replaced, [false])
-  rt.fixtures.end()
 })
