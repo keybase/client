@@ -35,12 +35,14 @@ type LayoutProps = {
 // strip holds the status column and header buttons wherever it appears, so every screen keeps it.
 const androidEdges = {bottom: true} as const
 const probeEdges = {left: true, right: true} as const
-const noSideInsets = {left: 0, right: 0}
 type LayoutEvent = {nativeEvent: {layout: {width: number; x: number}}}
 const ScreenWrapper = ({children, isTabScreen}: {children: React.ReactNode; isTabScreen: boolean}) => {
   const styles = useStyles()
-  const [screenWidth, setScreenWidth] = React.useState(0)
-  const [probe, setProbe] = React.useState({width: 0, x: 0})
+  // the two measurements live in refs: a screen re-renders only when its strips change, which on a
+  // screen with none is never
+  const screenWidth = React.useRef(0)
+  const probe = React.useRef({width: 0, x: 0})
+  const [sideInsets, setSideInsets] = React.useState(Kb.noSideInsets)
   if (isAndroid) {
     return (
       <RNScreensSafeAreaView edges={androidEdges} style={styles.tabScreen}>
@@ -48,15 +50,22 @@ const ScreenWrapper = ({children, isTabScreen}: {children: React.ReactNode; isTa
       </RNScreensSafeAreaView>
     )
   }
-  const onScreenLayout = (e: LayoutEvent) => setScreenWidth(e.nativeEvent.layout.width)
+  const update = () => {
+    const {width, x} = probe.current
+    if (screenWidth.current <= 0 || width <= 0) return
+    const left = isTabScreen ? x : 0
+    const right = Math.max(0, screenWidth.current - x - width)
+    setSideInsets(was => (was.left === left && was.right === right ? was : left || right ? {left, right} : Kb.noSideInsets))
+  }
+  const onScreenLayout = (e: LayoutEvent) => {
+    screenWidth.current = e.nativeEvent.layout.width
+    update()
+  }
   const onProbeLayout = (e: LayoutEvent) => {
     const {width, x} = e.nativeEvent.layout
-    setProbe(p => (p.width === width && p.x === x ? p : {width, x}))
+    probe.current = {width, x}
+    update()
   }
-  const measured = screenWidth > 0 && probe.width > 0
-  const left = measured && isTabScreen ? probe.x : 0
-  const right = measured ? Math.max(0, screenWidth - probe.x - probe.width) : 0
-  const sideInsets = left || right ? {left, right} : noSideInsets
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen} onLayout={onScreenLayout}>
       <RNScreensSafeAreaView

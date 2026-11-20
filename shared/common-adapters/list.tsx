@@ -123,7 +123,7 @@ const NativeList = function List<T>({ref, ...p}: Props<T>) {
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}
-        contentContainerStyle={withSideInsets(p.style as never, sideInsets)}
+        contentContainerStyle={withSideInsets(Styles.castStyleNative(p.style), sideInsets)}
       />
     </View>
   )

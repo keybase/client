@@ -72,7 +72,7 @@ const SmallTeam = (p: Props) => {
   const participantOne = teamDisplayName ? '' : participants[0] ?? ''
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
   const className = Kb.Styles.classNames('small-row', {selected: isSelected})
-  // only a split inbox selects a row
+  // iPad's rows always take their background; elsewhere only a selected row (a split inbox's) does
   const containerStyle = Kb.Styles.isTablet || isSelected
     ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
     : styles.container
