@@ -17,7 +17,7 @@ import {requireCurrentAttempt} from './attempt.ts'
 import {FILES_APP, groupContainer, openLink, preflightUdid, seedFolderPath} from './device.ts'
 import {labelHas, sourceElements, sourceRect} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
-import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
+import {corpusCellOf, corpusCellOfKind, corpusCells, corpusCellsAnyKindOrder, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
 import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
 import {typeInFilter} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
@@ -212,7 +212,15 @@ const holdThenTap = async (rect: () => Promise<Rect>, item: 'Copy' | 'Share', wh
 // its sort: the run is found by its dates, so the sort is never changed). Bound: the grid 20 overrun
 // by one read 2, the hold 20 = 42.
 const photoMenu = async (name: LibraryName, item: 'Copy' | 'Share') => {
-  const cellNow = async () => corpusCellOf(corpusCells(libraryCells(sourceElements(await browser.getPageSource()))), name).rect
+  const cellNow = async () => {
+    const cells = libraryCells(sourceElements(await browser.getPageSource()))
+    // iOS 27's Photos draws a date's videos first (picker-lib.ts): the grid's own order where it shows
+    try {
+      return corpusCellOf(corpusCells(cells), name).rect
+    } catch {
+      return corpusCellOfKind(corpusCellsAnyKindOrder(cells), name).rect
+    }
+  }
   await waitFor('the corpus in the Photos library', cellNow, {interval: 1_000, timeout: 20_000})
   await holdThenTap(cellNow, item, 'the corpus photo')
 }
@@ -275,12 +283,13 @@ export const safariTextSheet = (url: string, label: string) => async () => {
     {interval: 1_500, timeout: 10_000}
   )
   await selectAll.click()
-  // the edit menu now holds Cut, Copy, Paste and Replace, with a chevron (Forward) that opens the full
-  // list, where Share sits; Forward is tapped once, only while that short menu is up
+  // the edit menu now holds Cut, Copy, Paste and Replace, with a chevron that opens the full list, where
+  // Share sits; the chevron is tapped once, only while that short menu is up. iOS 26 draws the items as
+  // menu items and names the chevron Forward (Safari's toolbar button of that label is ForwardButton);
+  // iOS 27 draws them as buttons and names it Next Page.
   const share = pred('(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND label == "Share…"')
-  const shortMenu = pred('type == "XCUIElementTypeMenuItem" AND label == "Cut"')
-  // the menu's own chevron is named Forward; Safari's toolbar button of that label is ForwardButton
-  const forward = pred('type == "XCUIElementTypeButton" AND name == "Forward" AND label == "Forward"')
+  const shortMenu = pred('(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND label == "Cut"')
+  const forward = pred('type == "XCUIElementTypeButton" AND ((name == "Forward" AND label == "Forward") OR name == "Next Page")')
   let opened = false
   await waitFor(
     "the edit menu's Share",
@@ -305,7 +314,8 @@ export const safariTextSheet = (url: string, label: string) => async () => {
 export const mapsSheet = (lat: number, lon: number, place: string) => async () => {
   if (!/^[A-Za-z0-9_-]{1,120}$/.test(place)) throw new Error('a Maps place is not a stamped marker')
   const link = `maps://?ll=${lat},${lon}&q=${encodeURIComponent(place)}`
-  const share = pred('name == "CardButtonTypeShare"')
+  // iOS 26 names the place card's share CardButtonTypeShare, iOS 27 Share
+  const share = pred('name == "CardButtonTypeShare" OR (type == "XCUIElementTypeButton" AND name == "Share")')
   const named = pred(`label CONTAINS "${place}"`)
   let reopenAt = 0
   await waitFor(
