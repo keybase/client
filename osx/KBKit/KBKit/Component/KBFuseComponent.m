@@ -1,5 +1,5 @@
 //
-//  KBFuseInstall.m
+//  KBFuseComponent.m
 //  Keybase
 //
 //  Created by Gabriel on 5/11/15.
@@ -8,15 +8,12 @@
 
 #import "KBFuseComponent.h"
 
-#import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
-#import "KBFormatter.h"
 #import "KBTask.h"
+
 #import "KBDefines.h"
 
 @interface KBFuseComponent ()
-@property KBDebugPropertiesView *infoView;
-@property KBSemVersion *version;
 @property KBHelperTool *helperTool;
 @property KBRFuseStatus *fuseStatus;
 @property NSString *servicePath;
@@ -27,24 +24,11 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 @implementation KBFuseComponent
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Fuse" info:@"Extensions for KBFS" image:[NSImage imageNamed:@"Fuse.icns"]])) {
+  if ((self = [self initWithConfig:config name:@"Fuse"])) {
     _servicePath = servicePath;
     _helperTool = helperTool;
   }
   return self;
-}
-
-- (NSView *)componentView {
-  [self componentDidUpdate];
-  return _infoView;
-}
-
-- (void)componentDidUpdate {
-  GHODictionary *info = [GHODictionary dictionary];
-  GHODictionary *statusInfo = [self.componentStatus statusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
-  [_infoView setProperties:info];
 }
 
 + (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
@@ -83,7 +67,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)refreshFuseComponent:(void (^)(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
+  [KBFuseComponent status:[self.config serviceBinPath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
     self.fuseStatus = fuseStatus;
     if (error) {
@@ -110,15 +94,8 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
       self.componentStatus = componentStatus;
     }
-
-    [self componentDidUpdate];
     completion(self.fuseStatus, self.componentStatus);
   }];
-}
-
-- (KBInstallRuntimeStatus)runtimeStatus {
-  if (!self.fuseStatus) return KBInstallRuntimeStatusNone;
-  return self.fuseStatus.kextStarted ? KBInstallRuntimeStatusStarted : KBInstallRuntimeStatusStopped;
 }
 
 - (BOOL)hasKBFuseMounts:(KBRFuseStatus *)fuseStatus {
@@ -217,16 +194,6 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)loadKext:(KBCompletion)completion {
   [self.helperTool.helper sendRequest:@"kextLoad" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
-    completion(error);
-  }];
-}
-
-- (void)start:(KBCompletion)completion {
-  [self loadKext:completion];
-}
-
-- (void)stop:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kextUnload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

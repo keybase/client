@@ -11,12 +11,9 @@
 #include "cmp.h"
 #import "MPDefines.h"
 
-#import <GHODictionary/GHODictionary.h>
-
 @interface MPMessagePackReader ()
 @property NSData *data;
 @property size_t index;
-@property MPMessagePackReaderOptions options;
 @end
 
 @implementation MPMessagePackReader
@@ -24,13 +21,6 @@
 - (instancetype)initWithData:(NSData *)data {
   if ((self = [super init])) {
     _data = data;
-  }
-  return self;
-}
-
-- (instancetype)initWithData:(NSData *)data options:(MPMessagePackReaderOptions)options {
-  if ((self = [self initWithData:data])) {
-    _options = options;
   }
   return self;
 }
@@ -166,12 +156,7 @@
 - (NSMutableDictionary *)readDictionaryFromContext:(cmp_ctx_t *)context length:(uint32_t)length error:(NSError **)error {
   NSUInteger capacity = length < 1000 ? length : 1000;
 
-  id dict = nil;
-  if ((_options & MPMessagePackReaderOptionsUseOrderedDictionary) == MPMessagePackReaderOptionsUseOrderedDictionary) {
-    dict = [[GHODictionary alloc] initWithCapacity:capacity];
-  } else {
-    dict = [NSMutableDictionary dictionaryWithCapacity:capacity];
-  }
+  NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:capacity];
   
   for (NSInteger i = 0; i < length; i++) {
     id key = [self readFromContext:context error:error];
@@ -220,18 +205,13 @@ static size_t mp_writer(cmp_ctx_t *ctx, const void *data, size_t count) {
 }
 
 + (id)readData:(NSData *)data error:(NSError **)error {
-  return [self readData:data options:0 error:error];
-}
-
-+ (id)readData:(NSData *)data options:(MPMessagePackReaderOptions)options error:(NSError **)error {
-  MPMessagePackReader *messagePackReader = [[MPMessagePackReader alloc] initWithData:data options:options];
+  MPMessagePackReader *messagePackReader = [[MPMessagePackReader alloc] initWithData:data];
   id obj = [messagePackReader readObject:error];
-  
+
   if (!obj && error && !*error) {
     *error = [NSError errorWithDomain:@"MPMessagePack" code:299 userInfo:@{NSLocalizedDescriptionKey: @"Unable to read object"}];
     return nil;
   }
-  
   return obj;
 }
 

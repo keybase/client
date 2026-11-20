@@ -121,33 +121,6 @@
   }
 }
 
-+ (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion {
-  KBTask *task = [[KBTask alloc] initWithCommand:command args:args timeout:timeout completion:^(NSError *error, NSData *outData, NSData *errData) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    if (!outData) {
-      completion(KBMakeError(KBErrorCodeGeneric, @"No data for launchd status"), nil);
-      return;
-    }
-
-    id value = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
-    if (error) {
-      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
-      completion(error, nil);
-      return;
-    }
-    if (!value) {
-      completion(KBMakeError(KBErrorCodeGeneric, @"Invalid JSON"), nil);
-      return;
-    }
-
-    completion(nil, value);
-  }];
-  [task execute];
-}
-
 @end
 
 @implementation KBTaskReader

@@ -8,42 +8,31 @@
 
 #import "KBHelperTool.h"
 
-#import "KBDebugPropertiesView.h"
-#import "KBPrivilegedTask.h"
-
-#import <ObjectiveSugar/ObjectiveSugar.h>
 #import <ServiceManagement/ServiceManagement.h>
 
 #import "KBSemVersion.h"
-#import "KBFormatter.h"
 
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
 @interface KBHelperTool () <MPLog>
-@property KBDebugPropertiesView *infoView;
 @property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBHelperTool
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
-  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
+  if ((self = [self initWithConfig:config name:@"Privileged Helper"])) {
 
   }
   return self;
 }
 
-- (NSView *)componentView {
-  [self componentDidUpdate];
-  return _infoView;
-}
-
 - (KBSemVersion *)bundleVersion {
-  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:nil];
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"]];
 }
 
 + (MPXPCClient *)helper {
-  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
   client.retryMaxAttempts = 4;
   client.retryDelay = 0.5;
   client.timeout = 60.0;
@@ -58,15 +47,6 @@
   return _helper;
 }
 
-- (void)componentDidUpdate {
-  GHODictionary *info = [GHODictionary dictionary];
-  GHODictionary *statusInfo = [self.componentStatus statusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
-  [_infoView setProperties:info];
-}
-
 - (void)log:(MPLogLevel)level format:(NSString *)format, ... {
   va_list args;
   va_start(args, format);
@@ -74,34 +54,9 @@
   va_end(args);
 }
 
-- (void)doInstallAlert:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion {
-  if ([runningVersion.version length] == 0) {
-    // No need to show anything if the user is explicitly choosing to install
-    // and just clicked on something.
-    return;
-  }
-
-  NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
-  NSString *infoText = @"";
-
-  BOOL multiUser = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]];
-  BOOL activeDirectory = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]];
-  BOOL bigSurFuse = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.47"]];
-
-  if (multiUser) {
-    alertText = @"New Keybase feature: multiple users in macOS";
-    // Use a division slash instead of a regular / to avoid weird line breaks.
-    infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
-  } else if (activeDirectory) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
-  } else if (bigSurFuse) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains a new version of macFuse which adds KBFS support for Big Sur and M1 devices.\n\nYou may need to enter your password for this update. A system reboot may also be needed.";
-  } else {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
-  }
+- (void)showHelperUpdateAlert {
+  NSString *alertText = @"Keybase helper update";
+  NSString *infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
   [alert setInformativeText:infoText];
@@ -123,7 +78,7 @@
   KBSemVersion *bundleVersion = [self bundleVersion];
   info[@"Bundle Version"] = [bundleVersion description];
 
-  if (![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
+  if (![self exists]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
     completion(self.componentStatus);
     return;
@@ -132,14 +87,12 @@
   [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionReinstall info:info error:nil];
-      // If we couldn't run this, just act like it is a very old version running that we don't know how to
-      // talk to so we can still run checks on the bundle version
-      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0" build:nil];
-      [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+      // The running helper is too old to answer (or not running), so it gets reinstalled.
+      [self showHelperUpdateAlert];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
-      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
+      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"")];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       DDLogInfo(@"Running Version: %@", runningVersion);
       if ([bundleVersion isGreaterThan:runningVersion]) {
@@ -150,7 +103,8 @@
         } else {
           if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-          [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+          // No alert when the running helper reported no version.
+          if ([runningVersion.version length] > 0) [self showHelperUpdateAlert];
           completion(self.componentStatus);
         }
       } else {
@@ -200,7 +154,7 @@
   OSStatus authResult = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
   if (authResult != errAuthorizationSuccess) {
     if (error) {
-      *error = [NSError errorWithDomain:@"keybase.Helper" code:authResult userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Error copying rights: %@", @(authResult)], NSLocalizedRecoveryOptionsErrorKey: @[@"Quit"]}];
+      *error = [NSError errorWithDomain:@"keybase.Helper" code:authResult userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Error copying rights: %@", @(authResult)]}];
     }
     return nil;
   }
@@ -263,24 +217,5 @@
     completion(nil);
   }
 }
-
-/*
-- (BOOL)uninstallPrivilegedServiceWithName:(NSString *)name error:(NSError **)error {
-  AuthorizationRef authRef = [self authorization:error];
-  if (!authRef) {
-    return NO;
-  }
-  CFErrorRef cerror = NULL;
-  BOOL success = SMJobRemove(kSMDomainSystemLaunchd, (__bridge CFStringRef)(name), authRef, true, &cerror);
-  AuthorizationFree(authRef, kAuthorizationFlagDefaults);
-
-  if (!success) {
-    if (error) *error = (NSError *)CFBridgingRelease(cerror);
-    return NO;
-  } else {
-    return YES;
-  }
-}
- */
 
 @end

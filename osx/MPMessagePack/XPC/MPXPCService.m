@@ -1,5 +1,5 @@
 //
-//  MPMessagePackXPC.m
+//  MPXPCService.m
 //  MPMessagePack
 //
 //  Created by Gabriel on 5/5/15.
@@ -9,13 +9,9 @@
 #import "MPXPCService.h"
 
 #import "NSData+MPMessagePack.h"
-#import "NSArray+MPMessagePack.h"
+#import "MPMessagePackWriter.h"
 #import "MPXPCProtocol.h"
 #import "MPDefines.h"
-
-@interface MPXPCService () <NSXPCListenerDelegate>
-@property xpc_connection_t connection;
-@end
 
 // This is a private macOS API.
 void xpc_connection_get_audit_token(xpc_connection_t, audit_token_t*);
@@ -36,10 +32,6 @@ void MPSysLog(NSString *msg, ...) {
 }
 
 @implementation MPXPCService
-
-- (void)listen:(xpc_connection_t)service {
-  [self listen:service codeRequirement:nil];
-}
 
 - (void)listen:(xpc_connection_t)service codeRequirement:(NSString *)codeRequirement {
   xpc_connection_set_event_handler(service, ^(xpc_object_t connection) {
@@ -106,11 +98,11 @@ void MPSysLog(NSString *msg, ...) {
         if (error) {
           NSDictionary *errorDict = @{@"code": @(error.code), @"desc": error.localizedDescription};
           NSArray *response = @[@(1), messageId, errorDict, NSNull.null];
-          NSData *dataResponse = [response mp_messagePack];
+          NSData *dataResponse = [MPMessagePackWriter writeObject:response error:nil];
           completion(nil, dataResponse);
         } else {
           NSArray *response = @[@(1), messageId, NSNull.null, (value ? value : NSNull.null)];
-          NSData *dataResponse = [response mp_messagePack];
+          NSData *dataResponse = [MPMessagePackWriter writeObject:response error:nil];
           completion(nil, dataResponse);
         }
       }];

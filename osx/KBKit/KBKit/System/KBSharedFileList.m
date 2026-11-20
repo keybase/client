@@ -11,49 +11,6 @@
 
 @implementation KBSharedFileList
 
-+ (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/foundItems, NSInteger firstPosition))completion {
-  [self findItemForName:nil URL:URL type:kLSSharedFileListSessionLoginItems completion:completion];
-}
-
-+ (NSArray *)itemsForType:(CFStringRef)type {
-  LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
-  if (!fileListRef) return nil;
-
-  UInt32 seed = 0U;
-  CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
-  NSArray *items = CFBridgingRelease(itemsRef);
-  CFRelease(fileListRef);
-  return items;
-}
-
-+ (NSArray *)debugItemsForType:(CFStringRef)type {
-  LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
-  if (!fileListRef) return nil;
-  UInt32 seed = 0U;
-  CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
-  NSMutableArray *info = [NSMutableArray array];
-  for (id item in (__bridge NSArray *)itemsRef) {
-    LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)item;
-    CFStringRef displayNameRef = LSSharedFileListItemCopyDisplayName(itemRef);
-
-    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
-    CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, NULL);
-    if (URLRef == NULL) {
-      DDLogDebug(@"Trying to resolve URL for %@", itemRef);
-      OSStatus err = LSSharedFileListItemResolve(itemRef, resolutionFlags, &URLRef, NULL);
-      if (err != noErr || URLRef == NULL) {
-        DDLogError(@"No URL for %@", itemRef);
-      }
-    }
-    [info addObject:[NSString stringWithFormat:@"Name: %@, URL: %@ (%@)", displayNameRef, URLRef, itemRef]];
-    if (URLRef != NULL) CFRelease(URLRef);
-    if (displayNameRef != NULL) CFRelease(displayNameRef);
-  }
-  CFRelease(itemsRef);
-  CFRelease(fileListRef);
-  return info;
-}
-
 + (void)findItemForName:(NSString *)name URL:(NSURL *)URL type:(CFStringRef)type completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems, NSInteger firstPosition))completion {
   LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
   if (!fileListRef) return;
@@ -159,14 +116,6 @@
 
   if (error) *error = bError;
   return changed;
-}
-
-+ (BOOL)isEnabledForURL:(NSURL *)URL type:(CFStringRef)type {
-  __block BOOL found;
-  [self findItemForName:nil URL:URL type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems, NSInteger firstPosition) {
-    found = ([matchedItems count] > 0);
-  }];
-  return found;
 }
 
 + (NSInteger)firstPositionForURL:(NSURL *)URL type:(CFStringRef)type {

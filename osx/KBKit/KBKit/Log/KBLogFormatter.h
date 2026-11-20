@@ -13,8 +13,3 @@
 @interface KBLogFormatter : NSObject <DDLogFormatter>
 @end
 
-@interface KBLogPlainFormatter : NSObject <DDLogFormatter>
-@end
-
-@interface KBLogConsoleFormatter : NSObject <DDLogFormatter>
-@end

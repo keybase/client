@@ -21,18 +21,11 @@ FOUNDATION_EXPORT const unsigned char MPMessagePackVersionString[];
 #import <MPMessagePack/MPMessagePackReader.h>
 
 #import <MPMessagePack/MPLog.h>
-#import <MPMessagePack/MPMessagePackClient.h>
-#import <MPMessagePack/MPMessagePackServer.h>
 #import <MPMessagePack/MPRPCProtocol.h>
 
-#import <MPMessagePack/NSDictionary+MPMessagePack.h>
-#import <MPMessagePack/NSArray+MPMessagePack.h>
 #import <MPMessagePack/NSData+MPMessagePack.h>
 
-#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
 #import <MPMessagePack/MPXPCProtocol.h>
 #import <MPMessagePack/MPXPCService.h>
 #import <MPMessagePack/MPXPCClient.h>
-#endif
-
 

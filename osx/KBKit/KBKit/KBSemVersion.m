@@ -40,20 +40,11 @@
   v.version = version;
   v.build = build;
 
-
   NSArray *versionSplit = [version split:@"."];
   v.major = versionSplit.count > 0 ? [versionSplit[0] integerValue] : 0;
   v.minor = versionSplit.count > 1 ? [versionSplit[1] integerValue] : 0;
   v.patch = versionSplit.count > 2 ? [versionSplit[2] integerValue] : 0;
 
-  return v;
-}
-
-+ (instancetype)version:(NSString *)version build:(NSString *)build {
-  KBSemVersion *v = [self version:version];
-  build = [build strip];
-  if ([build isEqualToString:@""]) build = nil;
-  v.build = build;
   return v;
 }
 
@@ -75,10 +66,6 @@
 
 - (BOOL)isLessThan:(KBSemVersion *)v {
   return [self compare:v] == NSOrderedAscending;
-}
-
-- (BOOL)isOrderedSame:(KBSemVersion *)v {
-  return [self compare:v] == NSOrderedSame;
 }
 
 - (BOOL)isGreaterThan:(KBSemVersion *)v {

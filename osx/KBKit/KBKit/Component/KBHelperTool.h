@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBComponent.h"
 #import "KBInstallable.h"
 #import <MPMessagePack/MPXPCClient.h>
 
@@ -18,7 +17,6 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
-+ (MPXPCClient *)helper;
 - (BOOL)exists;
 
 @end

@@ -9,8 +9,6 @@
 #import <Foundation/Foundation.h>
 
 #import "KBEnvConfig.h"
-#import "KBService.h"
-#import "KBFSService.h"
 #import "KBFuseComponent.h"
 #import "KBCommandLine.h"
 
@@ -18,18 +16,10 @@
 
 @property (readonly) KBHelperTool *helperTool;
 @property (readonly) KBEnvConfig *config;
-@property (readonly) KBService *service;
-@property (readonly) KBFSService *kbfs;
 @property (readonly) KBFuseComponent *fuse;
 @property (readonly) KBCommandLine *cli;
 @property (readonly) NSArray */*of KBInstallable*/installables;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;
-
-- (NSArray *)componentsForControlPanel;
-
-- (NSString *)debugInstallables;
-
-- (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error;
 
 @end

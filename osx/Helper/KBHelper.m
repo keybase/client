@@ -34,7 +34,7 @@
     return EXIT_FAILURE;
   }
 
-  NSString *codeRequirement = @"anchor apple generic and (identifier \"keybase.Installer2\" or identifier \"keybase.Keybase\") and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")";
+  NSString *codeRequirement = @"anchor apple generic and identifier \"keybase.Installer2\" and certificate leaf[subject.OU] = \"99229SGT5K\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */)";
 
   @try {
     KBHelper *helper = [[KBHelper alloc] init];
@@ -57,15 +57,6 @@
   }
 }
 
-- (NSString *)checkKextID:(NSString *)kextID {
-  NSString * const kbfuseKextID = @"com.github.kbfuse.filesystems.kbfuse";
-  NSString * const fuse3KextID = @"com.github.osxfuse.filesystems.osxfuse";
-  
-  if ([kextID isEqualToString:kbfuseKextID]) return kbfuseKextID;
-  if ([kextID isEqualToString:fuse3KextID]) return fuse3KextID;
-  return nil;
-}
-
 - (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId remote:(xpc_connection_t)remote completion:(void (^)(NSError *error, id value))completion {
   NSDictionary *args = [params count] == 1 ? params[0] : @{};
 
@@ -86,15 +77,6 @@
     [self version:completion];
   } else if ([method isEqualToString:@"kextLoad"]) {
     [KBKext loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kextUnload"]) {
-    // For some reason passing through args[@"kextID"] causes the helper to crash on kextUnload only.
-    // TODO: Figure out why. (Maybe string has to be const?)
-    NSString *kextID = [self checkKextID:args[@"kextID"]];
-    if (kextID) {
-      [KBKext unloadKextID:kextID completion:completion];
-    } else {
-      completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
-    }
   } else if ([method isEqualToString:@"kextInstall"]) {
     [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kextUninstall"]) {
@@ -120,11 +102,6 @@
   }
 }
 
-- (BOOL)_checkRemote:(xpc_connection_t)remote inGroup:(char *)group {
-  uid_t uid = xpc_connection_get_euid(remote);
-  return [self _checkUID:uid inGroup:group];
-}
-
 - (BOOL)_checkUID:(uid_t )uid inGroup:(char *)group {
   char getpwuid_buf[1024];
   char getgrnam_buf[8192];
@@ -135,7 +112,7 @@
   struct passwd *pwentryp;
   int tmp = getpwuid_r(uid, &pwentry, getpwuid_buf, sizeof(getpwuid_buf), &pwentryp);
   if (tmp != 0 || pwentryp == NULL) {
-    KBLog(@"Failed to get PW entry for uid %@", uid);
+    KBLog(@"Failed to get PW entry for uid %u", uid);
     return NO;
   }
   struct group wanted_group;
@@ -239,31 +216,8 @@
   [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:completion];
 }
 
-
 - (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
   return [KBFSUtils copyToTemporary:bin name:name fileType:NSFileTypeRegular error:error];
-}
-
-- (void)checkKeybaseResource:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
-
-    SecStaticCodeRef staticCode = NULL;
-    CFURLRef url = (__bridge CFURLRef)bin;
-    SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
-    SecRequirementRef keybaseRequirement = NULL;
-    // This requirement string is taken from Installer/Info.plist.
-
-    if (identifier == nil) {
-      identifier = @"";
-    }
-    NSString *nsRequirement = [NSString stringWithFormat:@"anchor apple generic %@ and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")", identifier];
-
-    SecRequirementCreateWithString((__bridge CFStringRef)nsRequirement,kSecCSDefaultFlags, &keybaseRequirement);
-    OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, (kSecCSDefaultFlags | kSecCSStrictValidate | kSecCSCheckNestedCode | kSecCSCheckAllArchitectures | kSecCSEnforceRevocationChecks), keybaseRequirement, NULL);
-    if (codeCheckResult != errSecSuccess) {
-      *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
-    }
-    if (staticCode) CFRelease(staticCode);
-    if (keybaseRequirement) CFRelease(keybaseRequirement);
 }
 
 - (void)checkRedirectorBinary:(NSURL *)bin error:(NSError **)error {
@@ -374,14 +328,6 @@
   return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
 }
 
-- (BOOL)isRegularFile:(NSString *)linkPath {
-  return [KBFSUtils checkFile:linkPath isType:NSFileTypeRegular];
-}
-
-- (BOOL)isDirectory:(NSString *)linkPath {
-  return [KBFSUtils checkFile:linkPath isType:NSFileTypeDirectory];
-}
-
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {
     return nil;
@@ -445,7 +391,6 @@
       KBLog(@"Not allowing creation of symlink %@ -> %@ since it's not in %@", linkPath, path, neededPrefix);
     }
   }
-
 
   // If we don't have a /usr/local/bin then fall back to /etc/paths.d.
   // Terminal will load /etc/profile, which uses /usr/libexec/path_helper which loads paths from /etc/paths.d.

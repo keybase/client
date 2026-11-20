@@ -20,8 +20,5 @@ DerivedData
 #CocoaPods
 Pods
 
-Install/build/*
-Install/bin
 osxfuse
 macfuse
-*.bottle.tar.gz

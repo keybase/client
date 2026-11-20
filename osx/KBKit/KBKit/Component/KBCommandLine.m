@@ -8,6 +8,8 @@
 
 #import "KBCommandLine.h"
 
+#import "KBFSUtils.h"
+
 @interface KBCommandLine ()
 @property KBHelperTool *helperTool;
 @property NSString *servicePath;
@@ -16,7 +18,7 @@
 @implementation KBCommandLine
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line" image:nil])) {
+  if ((self = [self initWithConfig:config name:@"CLI"])) {
     _helperTool = helperTool;
     _servicePath = servicePath;
   }
@@ -31,11 +33,6 @@
 
   if ([KBFSUtils checkIfPathIsFishy:self.servicePath]) {
     completion(KBMakeWarning(@"Rejecting fishy service path: %@", self.servicePath));
-    return;
-  }
-
-  if (![self.config isInApplications:self.servicePath]) {
-    completion(KBMakeWarning(@"Command line install is not supported from this location: %@", self.servicePath));
     return;
   }
 
@@ -117,28 +114,13 @@
   }];
 }
 
-- (BOOL)linkExists:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
-}
-
-- (NSString *)resolveLinkPath:(NSString *)linkPath {
-  if (![self linkExists:linkPath]) {
-    return nil;
-  }
-  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
-}
-
 // Check if we're linked properly at /usr/local/bin
 - (BOOL)linkedToServicePath {
   NSString *linkDir = @"/usr/local/bin";
   NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
   NSString *shouldResolveToPath = [NSString stringWithFormat:@"%@/%@", self.servicePath, self.config.serviceBinName];
   if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
-    NSString *resolved = [self resolveLinkPath:linkPath];
+    NSString *resolved = [KBFSUtils resolveLinkPath:linkPath];
     DDLogInfo(@"Link resolved to path: %@ <=> %@", resolved, shouldResolveToPath);
     if ([resolved isEqualToString:shouldResolveToPath]) {
       return YES;

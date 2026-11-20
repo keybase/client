@@ -16,11 +16,6 @@
 
 @implementation KBKext
 
-+ (NSDictionary *)kextInfo:(NSString *)label {
-  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], NULL);
-  return kexts[label];
-}
-
 + (BOOL)isKextLoaded:(NSString *)label {
   NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
   return [kexts[label][@"OSBundleStarted"] boolValue];
@@ -96,7 +91,6 @@
   }];
 }
 
-
 + (NSNumber *)permissionsForPath:(NSString *)path {
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
   if (!fileAttributes) return nil;
@@ -169,16 +163,6 @@
   return YES;
 }
 
-+ (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
-  [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
-    if (error) {
-      completion(error, @(0));
-      return;
-    }
-    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
-  }];
-}
-
 + (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {
   KBLog(@"Loading kextID: %@ (%@)", kextID, path);
   OSReturn status = KextManagerLoadKextWithIdentifier((__bridge CFStringRef)(kextID), (__bridge CFArrayRef)@[[NSURL fileURLWithPath:path]]);
@@ -188,14 +172,6 @@
   } else {
     completion(nil, nil);
   }
-}
-
-+ (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion {
-  NSParameterAssert(kextID);
-  KBLog(@"Unload kextID: %@ (%@)", kextID);
-  NSError *error = nil;
-  [self unloadKextID:kextID error:&error];
-  completion(error, nil);
 }
 
 + (BOOL)unloadKextID:(NSString *)kextID error:(NSError **)error {
@@ -212,28 +188,26 @@
   KBLog(@"Unload kext status: %@", @(status));
   
   if (status == kOSKextReturnNotPrivileged) {
-    // macOS 11 has a bug in KextManagerUnloadKextWithIdentifier that returns
-    // kOSKextReturnNotPrivileged (-603947004) even if it's already running as
-    // root. So have a fallback where we delegate to kmutil.
-    if (@available(macOS 11, *)) {
-      KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier. Since we are on macOS 11, will fallback to kmutil.");
-      NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
-      if (error != nil) {
-        *error = KBMakeError(KBHelperErrorKext,
-                             @"KextManager failed to run kmutil: %@", *error);
-        return NO;
-      }
-      
-      [task waitUntilExit];
-      int status = [task terminationStatus];
-      
-      if (status != 0) {
-        *error = KBMakeError(KBHelperErrorKext,
-                             @"KextManager spawned kmutil exited with non-zero status: %d", status);
-        return NO;
-      }
-      return YES;
+    // Since macOS 11, KextManagerUnloadKextWithIdentifier can return
+    // kOSKextReturnNotPrivileged (-603947004) even when running as root,
+    // so fall back to kmutil.
+    KBLog(@"Got kOSKextReturnNotPrivileged from KextManagerUnloadKextWithIdentifier, falling back to kmutil.");
+    NSTask* task = [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/kmutil"] arguments:@[@"unload", @"-b", kextID] error:error terminationHandler:Nil];
+    if (!task) {
+      if (error) *error = KBMakeError(KBHelperErrorKext,
+                                      @"KextManager failed to run kmutil: %@", *error);
+      return NO;
     }
+    
+    [task waitUntilExit];
+    int status = [task terminationStatus];
+    
+    if (status != 0) {
+      if (error) *error = KBMakeError(KBHelperErrorKext,
+                                      @"KextManager spawned kmutil exited with non-zero status: %d", status);
+      return NO;
+    }
+    return YES;
   }
   
   if (status != kOSReturnSuccess) {

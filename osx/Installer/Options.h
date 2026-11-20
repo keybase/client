@@ -19,16 +19,10 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionHelper = 1 << 3,
   UninstallOptionCLI = 1 << 4,
   UninstallOptionRedirector = 1 << 5,
-
-  // Uninstall all (except for app and redirector)
-  UninstallOptionAll = UninstallOptionMountDir | UninstallOptionFuse | UninstallOptionCLI | UninstallOptionHelper,
 };
 
 @interface Options : NSObject
 
-@property (readonly) NSString *appPath;
-@property (readonly) NSString *runMode;
-@property (readonly) NSString *sourcePath;
 @property (readonly) UninstallOptions uninstallOptions;
 
 - (instancetype)initWithSettings:(GBSettings *)settings;

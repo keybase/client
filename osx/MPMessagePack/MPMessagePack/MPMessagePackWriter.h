@@ -8,17 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_OPTIONS (NSInteger, MPMessagePackWriterOptions) {
-  MPMessagePackWriterOptionsNone = 0,
-  MPMessagePackWriterOptionsSortDictionaryKeys = 1 << 0,
-};
-
 @interface MPMessagePackWriter : NSObject
 
-- (NSMutableData *)writeObject:(id)obj options:(MPMessagePackWriterOptions)options error:(NSError **)error;
+- (NSMutableData *)writeObject:(id)obj error:(NSError **)error;
 
 + (NSMutableData *)writeObject:(id)obj error:(NSError **)error;
-
-+ (NSMutableData *)writeObject:(id)obj options:(MPMessagePackWriterOptions)options error:(NSError **)error;
 
 @end

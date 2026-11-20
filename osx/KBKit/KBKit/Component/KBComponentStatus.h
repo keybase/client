@@ -1,5 +1,5 @@
 //
-//  KBComponent.h
+//  KBComponentStatus.h
 //  Keybase
 //
 //  Created by Gabriel on 5/13/15.
@@ -9,11 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import <GHODictionary/GHODictionary.h>
-#import "KBRPC.h"
-#import "KBSemVersion.h"
+#import "KBDefines.h"
+#import "KBRModels.h"
 
 NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);
-NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 
 @interface KBComponentStatus : NSObject
 
@@ -22,20 +21,12 @@ NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 @property (readonly) KBRInstallAction installAction;
 @property (readonly) GHODictionary *info;
 
-@property (readonly) NSString *label;
-
 + (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error;
-
-+ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion info:(GHODictionary *)info;
-
-+ (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus;
 
 + (instancetype)componentStatusWithError:(NSError *)error;
 
 - (BOOL)needsInstallOrUpgrade;
 
 - (NSString *)statusDescription:(NSString *)delimeter;
-
-- (GHODictionary *)statusInfo;
 
 @end

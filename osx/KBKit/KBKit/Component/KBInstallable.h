@@ -9,53 +9,33 @@
 #import <Foundation/Foundation.h>
 
 #import <KBKit/KBEnvConfig.h>
-#import <KBKit/KBComponent.h>
+#import <KBKit/KBDefines.h>
 #import <KBKit/KBComponentStatus.h>
-
-typedef NS_ENUM (NSInteger, KBInstallRuntimeStatus) {
-  KBInstallRuntimeStatusNone,
-  KBInstallRuntimeStatusStarted,
-  KBInstallRuntimeStatusStopped,
-};
 
 // Default timeout for running (external) install (or status) commands
 extern const NSTimeInterval KBDefaultTaskTimeout;
 
-typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
+typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus);
 
-@interface KBInstallable : KBComponent
+@interface KBInstallable : NSObject
+
+@property (readonly) NSString *name;
 
 @property (readonly) KBEnvConfig *config;
 
 @property (nonatomic) KBComponentStatus *componentStatus;
 @property NSError *error;
 
-@property (getter=isInstallDisabled) BOOL installDisabled;
-
-- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info image:(NSImage *)image;
-
-// Called when component updated
-- (void)componentDidUpdate;
-
-- (BOOL)isInstallDisabled;
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name;
 
 - (void)install:(KBCompletion)completion;
 - (void)uninstall:(KBCompletion)completion;
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion;
 
-- (void)start:(KBCompletion)completion;
-- (void)stop:(KBCompletion)completion;
-
-- (KBInstallRuntimeStatus)runtimeStatus;
-
 - (NSArray *)installDescription:(NSString *)delimeter;
 - (NSArray *)statusDescription:(NSString *)delimeter;
-- (NSString *)action;
 
-+ (NSError *)checkForStatusErrorFromResponse:(id)response;
-
-- (BOOL)isInstalled;
-
-+ (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings;
+// Combines the installables' errors, skipping warnings.
++ (NSError *)combineErrors:(NSArray *)installables;
 
 @end

@@ -1,5 +1,5 @@
 //
-//  MPMessagePackXPC.h
+//  MPXPCService.h
 //  MPMessagePack
 //
 //  Created by Gabriel on 5/5/15.
@@ -11,8 +11,6 @@
 #import <xpc/xpc.h>
 
 @interface MPXPCService : NSObject
-
-- (void)listen:(xpc_connection_t)service;
 
 - (void)listen:(xpc_connection_t)service codeRequirement:(NSString *)codeRequirement;
 

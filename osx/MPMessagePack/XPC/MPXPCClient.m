@@ -9,16 +9,13 @@
 #import "MPXPCClient.h"
 
 #import "MPDefines.h"
-#import "NSArray+MPMessagePack.h"
 #import "NSData+MPMessagePack.h"
 #import "MPXPCProtocol.h"
 #import "MPRPCProtocol.h"
 
-
 @interface MPXPCClient ()
 @property NSString *serviceName;
 @property BOOL privileged;
-@property MPMessagePackReaderOptions readOptions;
 
 @property xpc_connection_t connection;
 @property NSInteger messageId;
@@ -27,15 +24,10 @@
 @implementation MPXPCClient
 
 - (instancetype)initWithServiceName:(NSString *)serviceName privileged:(BOOL)privileged {
-  return [self initWithServiceName:serviceName privileged:privileged readOptions:0];
-}
-
-- (instancetype)initWithServiceName:(NSString *)serviceName privileged:(BOOL)privileged readOptions:(MPMessagePackReaderOptions)readOptions {
   if ((self = [super init])) {
     _serviceName = serviceName;
     _privileged = privileged;
     _retryMaxAttempts = 1; // No retry by default (only 1 attempt is made)
-    _readOptions = readOptions;
   }
   return self;
 }
@@ -77,14 +69,6 @@
   return YES;
 }
 
-- (void)close {
-  [self.logDelegate log:MPLogLevelInfo format:@"Closing connection"];
-  if (_connection) {
-    xpc_connection_cancel(_connection);
-    _connection = nil;
-  }
-}
-
 - (void)sendRequest:(NSString *)method params:(NSArray *)params completion:(void (^)(NSError *error, id value))completion {
   __block BOOL replied = NO;
   static NSInteger requestId = 0;
@@ -97,15 +81,10 @@
     });
   }
   NSUInteger rid = requestId++;
-  //[self.logDelegate log:MPLogLevelVerbose format:@"Request start (%@)", @(rid)];
   [self _sendRequest:method params:params attempt:1 maxAttempts:_retryMaxAttempts retryDelay:_retryDelay requestId:rid completion:^(NSError *error, id value) {
-    if (replied) {
-      //[self.logDelegate log:MPLogLevelVerbose format:@"Ignoring event, we already completed (%@)", @(requestId)];
-      return;
-    }
+    if (replied) return;
 
     replied = YES;
-    //[self.logDelegate log:MPLogLevelVerbose format:@"Request completion (%@)", @(rid)];
     completion(error, value);
   }];
 }
@@ -143,8 +122,6 @@
     completion(MPMakeError(MPXPCErrorCodeInvalidConnection, @"No connection"), nil);
     return;
   }
-
-  //[self.logDelegate log:MPLogLevelVerbose format:@"Sending request (%@)", @(requestId)];
   xpc_connection_send_message_with_reply(_connection, message, dispatch_get_main_queue(), ^(xpc_object_t event) {
     if (xpc_get_type(event) == XPC_TYPE_ERROR) {
       const char *description = xpc_dictionary_get_string(event, "XPCErrorDescription");
@@ -165,7 +142,7 @@
       const void *buffer = xpc_dictionary_get_data(event, "data", &length);
       NSData *dataResponse = [NSData dataWithBytes:buffer length:length];
 
-      id response = [dataResponse mp_array:self.readOptions error:&error];
+      id response = [dataResponse mp_array:&error];
 
       if (!response) {
         completion(error, nil);
