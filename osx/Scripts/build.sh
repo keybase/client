@@ -5,9 +5,9 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
-app_name=${APP_NAME:-}
-scheme=${SCHEME:-}
-plist=${PLIST:-}
+app_name=${APP_NAME:?APP_NAME must be set (see build_installer.sh)}
+scheme=${SCHEME:?SCHEME must be set (see build_installer.sh)}
+plist=${PLIST:?PLIST must be set (see build_installer.sh)}
 
 build_dest=$dir/build
 mkdir -p $build_dest

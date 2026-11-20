@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import <GHODictionary/GHODictionary.h>
 #import "KBDefines.h"
 #import "KBRModels.h"
 
@@ -19,9 +18,10 @@ NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);
 @property (readonly) NSError *error;
 @property (readonly) KBRInstallStatus installStatus;
 @property (readonly) KBRInstallAction installAction;
-@property (readonly) GHODictionary *info;
+// "Key: value" lines, in display order.
+@property (readonly, copy) NSArray<NSString *> *info;
 
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error;
++ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(NSArray<NSString *> *)info error:(NSError *)error;
 
 + (instancetype)componentStatusWithError:(NSError *)error;
 

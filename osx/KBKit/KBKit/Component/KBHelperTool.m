@@ -74,9 +74,9 @@
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  GHODictionary *info = [GHODictionary dictionary];
+  NSMutableArray<NSString *> *info = [NSMutableArray array];
   KBSemVersion *bundleVersion = [self bundleVersion];
-  info[@"Bundle Version"] = [bundleVersion description];
+  if (bundleVersion) [info addObject:NSStringWithFormat(@"Bundle Version: %@", bundleVersion)];
 
   if (![self exists]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
@@ -93,7 +93,7 @@
     } else {
       DDLogDebug(@"Helper version: %@", versions);
       KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"")];
-      if (runningVersion) info[@"Version"] = [runningVersion description];
+      if (runningVersion) [info addObject:NSStringWithFormat(@"Version: %@", runningVersion)];
       DDLogInfo(@"Running Version: %@", runningVersion);
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if ([self isCriticalUpdate:runningVersion]) {
@@ -101,7 +101,6 @@
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionUpgrade info:info error:KBMakeError(KBErrorCodeFuseCriticalUpdate, @"FUSE critical update")];
           completion(self.componentStatus);
         } else {
-          if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
           self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
           // No alert when the running helper reported no version.
           if ([runningVersion.version length] > 0) [self showHelperUpdateAlert];

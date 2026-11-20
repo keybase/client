@@ -37,5 +37,4 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
 #define KBIsWarning(ERR) ((ERR.code == KBErrorCodeWarning))
 
 #define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
-#define KBIfBlank(s, dv) ((!s || [s isEqualToString:@""]) ? dv : s)
 
