@@ -9,6 +9,7 @@ import {
   CHAT_INBOX_UNREAD_SHORTCUT,
 } from '../../shared/test-ids.ts'
 import {labelHas, type SourceElement} from './page-source-lib.ts'
+import {shownAttrs} from './shown-lib.ts'
 
 // Whether an inbox row's accessibility label is the row of `name`. A small conversation's row reads
 // "<name>, <time>, <snippet>" (after the pin's glyph when pinned), so the name is its whole first field (a name holding ", " spans
@@ -161,14 +162,14 @@ export const inboxIn = (els: ReadonlyArray<SourceElement>) => {
 // document order. Undefined when no sheet is visible.
 export const sheetItemLabels = (els: ReadonlyArray<SourceElement>): Array<string> | undefined => {
   const app = els.find(e => e.type === 'XCUIElementTypeApplication')
-  const sheet = els.find(e => e.attrs['label'] === 'Bottom Sheet' && e.attrs['visible'] === 'true')
+  const sheet = els.find(e => e.attrs['label'] === 'Bottom Sheet' && shownAttrs(e.attrs))
   const span = sheet && spanOf(sheet.attrs)
   if (!span) return undefined
   const bottom = Math.min(span.bottom, app ? Number(app.attrs['height']) || Infinity : Infinity)
   const out: Array<string> = []
   for (const {attrs, type} of els) {
     const label = attrs['label']
-    if (type !== 'XCUIElementTypeOther' || !label || label === 'Bottom Sheet' || attrs['visible'] !== 'true') continue
+    if (type !== 'XCUIElementTypeOther' || !label || label === 'Bottom Sheet' || !shownAttrs(attrs)) continue
     const s = spanOf(attrs)
     if (!s) continue
     const mid = (s.top + s.bottom) / 2

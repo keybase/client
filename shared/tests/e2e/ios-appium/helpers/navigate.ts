@@ -9,6 +9,7 @@ import {dragToClear} from '../gate/clear-row-lib'
 import {ANY_NATIVE_BACK, expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
+import {elementShown, SHOWN, shownNow} from '../gate/shown-lib.ts'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
 // present — a settings row below the fold still "exists" in the tree). Swiping
@@ -47,7 +48,7 @@ export async function scrollToTestID(id: string, maxSwipes = 8): Promise<void> {
     await androidScrollIntoView(`new UiSelector().resourceId("${id}")`)
     return
   }
-  await scrollUpUntil(async () => el(id).isDisplayed().catch(() => false), maxSwipes)
+  await scrollUpUntil(async () => shownNow(el(id)), maxSwipes)
 }
 
 export async function scrollDownToText(text: string, maxSwipes = 8): Promise<void> {
@@ -55,7 +56,7 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
     await androidScrollIntoView(`new UiSelector().textContains("${text}")`)
     return
   }
-  await scrollUpUntil(async () => byText(text).isDisplayed().catch(() => false), maxSwipes)
+  await scrollUpUntil(async () => shownNow(byText(text)), maxSwipes)
 }
 
 // Tap a settings-root row by its label, scrolling it into view first: Android's
@@ -152,7 +153,8 @@ export const HEADER_CANCEL = '-ios class chain:**/XCUIElementTypeNavigationBar/*
 // A visible modal header button. Exact labels on buttons only: a tab root shows none of these,
 // while message snippets and feed text can contain the words.
 // The app's custom back button and a native bar's back by their ids, too, in the same search.
-const NOT_A_TAB_ROOT_PRED = `-ios predicate string:name IN {"${T.COMMON_BACK_BUTTON}", "BackButton"} OR (type == "XCUIElementTypeButton" AND label IN {"Cancel", "Done", "Close", "Back"} AND visible == 1)`
+const NOT_A_TAB_ROOT_PRED = () =>
+  `-ios predicate string:name IN {"${T.COMMON_BACK_BUTTON}", "BackButton"} OR (type == "XCUIElementTypeButton" AND label IN {"Cancel", "Done", "Close", "Back"} AND ${SHOWN()})`
 
 // True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
 // it stays visible inside pushed stack screens, so also require that no back
@@ -183,7 +185,7 @@ export async function atTabs(): Promise<boolean> {
   // One search for what the router does not hold: a sheet or popup drawn outside navigation (the
   // tab bar stays in the tree under it) shows a header or back button, and a pushed screen still
   // sliding away keeps its back button for a moment.
-  return (await browser.$$(NOT_A_TAB_ROOT_PRED).length) === 0
+  return (await browser.$$(NOT_A_TAB_ROOT_PRED()).length) === 0
 }
 
 const TAB_ROOT_BODY = `const NT = kbModule('constants/nav-tree.tsx')
@@ -219,7 +221,7 @@ export async function dismissKeyboard(): Promise<void> {
 async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Promise<boolean> {
   // a bar's back drawn in an iPhone Duo's side column is in no navigation bar, and the bar's
   // leftmost button is then something else (the login screen's Create account)
-  const side = browser.$(ANY_NATIVE_BACK)
+  const side = browser.$(ANY_NATIVE_BACK())
   if (await side.isExisting()) {
     beforeTap?.()
     await side.click().catch(() => {})
@@ -228,7 +230,7 @@ async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Prom
   const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
   let leftmost: {el: (typeof btns)[number]; x: number} | undefined
   for (const b of btns) {
-    if (!(await b.isDisplayed().catch(() => false))) continue
+    if (!(await elementShown(b))) continue
     const {x} = await b.getLocation().catch(() => ({x: Number.POSITIVE_INFINITY}))
     if (!leftmost || x < leftmost.x) leftmost = {el: b, x}
   }
@@ -249,10 +251,10 @@ async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Prom
 // swipe. Try each, re-checking for the tab bar, until we're home.
 // One predicate for any modal/sheet dismiss control (Done/Close/Cancel), any
 // element type — cheaper than three separate searches.
-// visible == 1: hidden nav-stack screens and keyboard toolbars can carry their
+// SHOWN(): hidden nav-stack screens and keyboard toolbars can carry their
 // own Done/Close/Cancel — clicking one is a silent no-op that loops forever.
-const DISMISS_PRED =
-  '-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND visible == 1'
+const DISMISS_PRED = () =>
+  `-ios predicate string:(label CONTAINS "Done" OR name CONTAINS "Done" OR label CONTAINS "Close" OR name CONTAINS "Close" OR label CONTAINS "Cancel" OR name CONTAINS "Cancel") AND ${SHOWN()}`
 
 // Wait for a tapped control to take effect — return as soon as the tab bar
 // appears OR the control we clicked is gone (the screen transitioned). No fixed
@@ -417,12 +419,12 @@ export const barButton = async () => {
         .$$(`-ios class chain:**/XCUIElementTypeNavigationBar/XCUIElementTypeButton[\`label == "${label}"\`]`)
         .getElements()) {
         const y = (await e.getLocation().catch(() => undefined))?.y ?? -1
-        found.push({e, visible: (await e.getAttribute('visible').catch(() => null)) === 'true', y})
+        found.push({e, visible: await elementShown(e), y})
       }
     }
     return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
   }
-  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back'])) ?? (await browser.$$(ANY_NATIVE_BACK).getElements())[0]
+  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back'])) ?? (await browser.$$(ANY_NATIVE_BACK()).getElements())[0]
 }
 
 // A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no
@@ -498,8 +500,8 @@ async function escapeHops(alive: () => void): Promise<void> {
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
     // so its Done/Close/Cancel must win.
-    if ((await browser.$$(DISMISS_PRED).length) > 0) {
-      const ctrl = browser.$$(DISMISS_PRED)[0]!
+    if ((await browser.$$(DISMISS_PRED()).length) > 0) {
+      const ctrl = browser.$$(DISMISS_PRED())[0]!
       if (debug) console.log(`  escapeToTabs[${i}]: dismissing "${await ctrl.getAttribute('label').catch(() => '?')}"`)
       alive()
       await ctrl.click().catch(() => {})

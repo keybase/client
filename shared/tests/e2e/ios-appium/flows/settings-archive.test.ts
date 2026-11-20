@@ -332,7 +332,7 @@ describe('settings archive', function () {
     // the button's label holds its icon's glyph too
     const backup = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label CONTAINS "Backup channel" AND visible == 1')
     await dragUntilOnScreen('Backup channel', backup)
-    await (await elementWithLabelPart(BUTTON_ELEMENTS, 'Backup channel', "the info panel's Backup channel")).click()
+    await (await elementWithLabelPart(BUTTON_ELEMENTS(), 'Backup channel', "the info panel's Backup channel")).click()
     await expectScreen('the backup modal for the self conversation', 'archiveModal', p => p['type'] === 'chatID' && p['conversationIDKey'] === convID)
     await expectPhoneModal()
     await step('The backup modal for the self conversation')

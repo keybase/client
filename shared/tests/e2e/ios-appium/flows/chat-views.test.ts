@@ -356,7 +356,7 @@ describe('chat views', function () {
     await expectScreen("the second account's bot page", 'chatInstallBot', p => p['botUsername'] === data.secondUser)
     await el(T.CHAT_BOT_INSTALL).waitForExist({timeout: 10_000})
     for (const label of ['Review', 'Install', 'Edit settings', 'Uninstall']) {
-      check(!(await browser.$(`${BUTTON_ELEMENTS} AND label == ${JSON.stringify(label)}`).isExisting()), `a member's bot page offers ${label}`)
+      check(!(await browser.$(`${BUTTON_ELEMENTS()} AND label == ${JSON.stringify(label)}`).isExisting()), `a member's bot page offers ${label}`)
     }
     const role = await mainRpc<number>('chat.1.local.getTeamRoleInConversation', {convID: convIDBytes(scratch()), username: data.secondUser})
     check(role > 0 && !BOT_ROLES.includes(role), 'the host does not read the second account as a member, not a bot')

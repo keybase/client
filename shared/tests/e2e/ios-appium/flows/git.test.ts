@@ -138,7 +138,7 @@ describe('git', function () {
           await (y > height / 2 ? drag(height * 0.75, height * 0.25) : drag(height * 0.25, height * 0.75))
           return undefined
         }
-        const shown = (await browser.$$(TEXTS).getElements()).length
+        const shown = (await browser.$$(TEXTS()).getElements()).length
         const signature = String(shown)
         if (signature === before) towardEnd = !towardEnd
         before = signature

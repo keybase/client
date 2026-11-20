@@ -45,6 +45,7 @@ import {
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
+import {SHOWN} from '../gate/shown-lib.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -798,7 +799,7 @@ export const tapNotifyRadio = async (group: NotifyGroup, choice: NotifyChoice) =
       // the clickable and its label's text (reported twice) both lie in the box: the innermost counts
       const inBox: Array<{e: WebdriverIO.Element; rect: {height: number; width: number; x: number; y: number}}> = []
       const seen: Array<string> = []
-      for (const e of await browser.$$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}" AND visible == 1`).getElements()) {
+      for (const e of await browser.$$(`-ios predicate string:label == "${NOTIFY_LABELS[choice]}" AND ${SHOWN()}`).getElements()) {
         const at = await e.getLocation().catch(() => undefined)
         const size = await e.getSize().catch(() => undefined)
         if (!at || !size) continue
@@ -1003,7 +1004,7 @@ export const openMessageMenu = async (text: string) => {
 // The row showing `text` in the thread list (rows expose their text as their accessibility name;
 // the reply bar and the composer can quote the same text), and its middle in window points.
 export const rowElement = (text: string) =>
-  browser.$(`~${T.CHAT_MESSAGE_LIST}`).$(`-ios predicate string:name BEGINSWITH ${JSON.stringify(text)} AND visible == 1`)
+  browser.$(`~${T.CHAT_MESSAGE_LIST}`).$(`-ios predicate string:name BEGINSWITH ${JSON.stringify(text)} AND ${SHOWN()}`)
 
 export const rowCentre = async (text: string) => {
   const row = rowElement(text)
@@ -1129,7 +1130,7 @@ export const openInboxRowMenu = async (name: string, convID: string) => {
 // The search filter on screen (common-adapters/search-filter.tsx: the inbox filter, the forward,
 // channel, member and bot pickers). Its box is one accessible element on iOS, so the text field in it
 // is not in the tree: its text goes in through the focused field.
-export const searchFilter = () => browser.$(`-ios predicate string:name == "${T.SEARCH_FILTER}" AND visible == 1`)
+export const searchFilter = () => browser.$(`-ios predicate string:name == "${T.SEARCH_FILTER}" AND ${SHOWN()}`)
 
 // Types `text` into whatever input has the keyboard's focus, as key presses (WDA types them through
 // the keyboard). The error says what was typed into, never the text: it can hold an account name.
@@ -1163,12 +1164,12 @@ export const typeInSearchFilter = async (text: string) => {
 
 // The search bar's parts are its siblings in the accessibility tree, not its children.
 const searchInput = () =>
-  browser.$('-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search..." AND visible == 1')
+  browser.$(`-ios predicate string:type == "XCUIElementTypeTextField" AND placeholderValue == "Search..." AND ${SHOWN()}`)
 
 // An item in the conversation header's native menu (the "More" button).
 const headerMenuItem = (label: string) =>
   browser.$(
-    `-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeOther") AND label == ${JSON.stringify(label)} AND visible == 1`
+    `-ios predicate string:(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeOther") AND label == ${JSON.stringify(label)} AND ${SHOWN()}`
   )
 
 // Opens `item` from the conversation header's menu, and waits for `opened` to say it took.
@@ -1202,7 +1203,7 @@ export const openThreadSearch = async () => openHeaderMenuItem('Search', async (
 
 const counterText = async () => {
   const counter = browser.$(
-    '-ios predicate string:type == "XCUIElementTypeStaticText" AND (label == "No results" OR label MATCHES "\\\\d+ of \\\\d+") AND visible == 1'
+    `-ios predicate string:type == "XCUIElementTypeStaticText" AND (label == "No results" OR label MATCHES "\\\\d+ of \\\\d+") AND ${SHOWN()}`
   )
   return (await counter.isExisting()) ? counter.getText() : undefined
 }
@@ -1276,7 +1277,7 @@ export const searchAgain = async () => {
 // A tap can only put the keyboard away (seen live after a drag): Cancel is tapped again while the
 // search bar and its Cancel are both still up. Bound: two tries of the tap and 2.5s = 5s.
 export const closeSearch = async () => {
-  const cancel = browser.$('-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Cancel" AND visible == 1')
+  const cancel = browser.$(`-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Cancel" AND ${SHOWN()}`)
   for (let tap = 1; ; tap++) {
     await cancel.click()
     const closed = await el(T.CHAT_THREAD_SEARCH)
@@ -1360,7 +1361,7 @@ export const showsText = async (id: string, text: string) => {
   if (!(await box.isExisting())) return false
   const {x, y} = await box.getLocation()
   const {height, width} = await box.getSize()
-  const found = await browser.$$(`-ios predicate string:label CONTAINS ${JSON.stringify(text)} AND visible == 1`).getElements()
+  const found = await browser.$$(`-ios predicate string:label CONTAINS ${JSON.stringify(text)} AND ${SHOWN()}`).getElements()
   for (const e of found) {
     const at = await e.getLocation().catch(() => undefined)
     if (at && at.x >= x - 1 && at.x <= x + width && at.y >= y - 1 && at.y <= y + height) return true
@@ -1419,7 +1420,7 @@ export const videoFullscreenButton = async (title: string, ordinal: number) => {
 // Closes the conversation's info panel, a modal sheet, with its header's Done (a back swipe from the
 // left edge does not close a sheet), and waits for it to go. Bound: 3 tries of the tap and 5s = 16s.
 export const closeInfoPanel = async () => {
-  const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
+  const done = `-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND ${SHOWN()}`
   for (let i = 0; i < 3; i++) {
     if (!(await el(T.CHAT_INFO_PANEL).isExisting())) return
     await browser.$(done).click().catch(() => {})
