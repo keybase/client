@@ -29,6 +29,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {callsSince, currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {tapBack} from '../gate/screens'
+import {threadRoute} from '../gate/thread-route.ts'
 import {manualEdge, step} from '../gate/step'
 import {
   accountChangedSeq,
@@ -152,6 +153,12 @@ describe('chat data', function () {
       })
       await step('Each send, the three-line one too, settled at the end')
 
+      // an iPhone Duo unfolded shows the thread beside the inbox, with no back
+      if (threadRoute() === 'chatRoot') {
+        await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000, timeoutMsg: 'the inbox is not beside the DM'})
+        await step('The inbox beside the DM', {screenshot: false})
+        return
+      }
       check(await tapBack(), 'the DM has no back button')
       await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000, timeoutMsg: 'back did not return to the inbox'})
       check((await visibleConversation()) === null, 'a conversation is still the visible screen after back')

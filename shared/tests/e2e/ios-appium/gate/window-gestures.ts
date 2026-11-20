@@ -36,6 +36,23 @@ const sendGestures = async (orig: PerformActions, sources: Array<ActionSource>) 
   return undefined
 }
 
+// An element's click as a tap at its middle, given relative to itself: XCUITest's own click misses
+// some controls there (an inbox tab, a suggestion row, an edit's Cancel).
+async function tapElementMiddle(this: WebdriverIO.Element) {
+  const r = await browser.getElementRect(this.elementId)
+  await browser.execute('mobile: tap', {elementId: this.elementId, x: Math.round(r.width / 2), y: Math.round(r.height / 2)})
+}
+
+// From now on in this session, an element's click is tapElementMiddle.
+export const sendClicksAsElementTaps = () => {
+  const overwrite = browser.overwriteCommand.bind(browser) as unknown as (
+    name: string,
+    fn: (this: WebdriverIO.Element) => Promise<void>,
+    options: {attachToElement: boolean}
+  ) => void
+  overwrite('click', tapElementMiddle, {attachToElement: true})
+}
+
 // From now on in this session, performActions sends one pointer's actions as window gestures.
 export const sendPointerActionsAsWindowGestures = () => {
   const overwrite = browser.overwriteCommand.bind(browser) as unknown as (
