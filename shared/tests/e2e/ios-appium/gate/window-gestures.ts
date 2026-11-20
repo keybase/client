@@ -37,8 +37,10 @@ const sendGestures = async (orig: PerformActions, sources: Array<ActionSource>) 
 }
 
 // An element's click as a tap at its middle, given relative to itself: XCUITest's own click misses
-// some controls there (an inbox tab, a suggestion row, an edit's Cancel).
-async function tapElementMiddle(this: WebdriverIO.Element) {
+// some controls there (an inbox tab, a suggestion row, an edit's Cancel). An element not found goes to
+// the click itself, which waits for it and throws as it does.
+async function tapElementMiddle(this: WebdriverIO.Element, click: () => Promise<void>) {
+  if (!this.elementId) return click()
   const r = await browser.getElementRect(this.elementId)
   await browser.execute('mobile: tap', {elementId: this.elementId, x: Math.round(r.width / 2), y: Math.round(r.height / 2)})
 }
@@ -47,7 +49,7 @@ async function tapElementMiddle(this: WebdriverIO.Element) {
 export const sendClicksAsElementTaps = () => {
   const overwrite = browser.overwriteCommand.bind(browser) as unknown as (
     name: string,
-    fn: (this: WebdriverIO.Element) => Promise<void>,
+    fn: (this: WebdriverIO.Element, click: () => Promise<void>) => Promise<void>,
     options: {attachToElement: boolean}
   ) => void
   overwrite('click', tapElementMiddle, {attachToElement: true})

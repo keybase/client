@@ -30,11 +30,8 @@ import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
-import {goBackUntilGone} from '../helpers/navigate'
+import {closeAttachmentFullscreen, goBackUntilGone} from '../helpers/navigate'
 import {readsFrames} from '../gate/shown-lib.ts'
-
-// the fullscreen view's header Close
-const FULLSCREEN_CLOSE = '-ios predicate string:type == "XCUIElementTypeStaticText" AND label == "Close"'
 
 describe('chat attachments', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -82,7 +79,7 @@ describe('chat attachments', function () {
   })
 
   // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 19,
-  // keyboard 5, the back 10, gone 5 = 39.
+  // keyboard 5, closeFullscreen 15 = 39.
   afterEach(async function () {
     this.timeout(40_000)
     await withCleanup(closeMessageMenu, [
@@ -121,17 +118,10 @@ describe('chat attachments', function () {
 
   // Taps `button` and checks the fullscreen view that opens is the attachment's, then goes back.
   // Closes the fullscreen view and waits for it to go: back, or where back is no gesture the view takes
-  // (an iPhone Duo unfolded, where a pointer at the screen's edge touches nothing) its header's Close.
-  // A tap on the view toggles the header, and a faded header's Close is not in the tree, so the view is
-  // tapped until Close shows. Bound: the back 10 (or three taps and 2s reads, the Close 1), gone 5 = 15.
+  // (an iPhone Duo unfolded) closeAttachmentFullscreen. Bound: the back 10, gone 5 = 15.
   const closeFullscreen = async () => {
-    if (readsFrames()) {
-      for (let i = 0; i < 3 && !(await browser.$(FULLSCREEN_CLOSE).isExisting()); i++) {
-        await el(T.CHAT_ATTACHMENT_FULLSCREEN).click()
-        await browser.$(FULLSCREEN_CLOSE).waitForExist({timeout: 2_000}).catch(() => {})
-      }
-      await browser.$(FULLSCREEN_CLOSE).click()
-    } else await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
+    if (readsFrames()) return closeAttachmentFullscreen()
+    await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
     await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
   }
 

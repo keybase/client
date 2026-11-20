@@ -9,7 +9,7 @@ import {dragToClear} from '../gate/clear-row-lib'
 import {ANY_NATIVE_BACK, expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
-import {elementShown, shownNow} from '../gate/shown-lib.ts'
+import {elementShown, readsFrames, shownNow} from '../gate/shown-lib.ts'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
 // present — a settings row below the fold still "exists" in the tree). Swiping
@@ -451,6 +451,18 @@ async function dismissModalByBar(alive: () => void): Promise<boolean> {
   )
 }
 
+// Closes the fullscreen attachment view where back is no gesture it takes: an iPhone Duo unfolded, where
+// a pointer at the screen's edge touches nothing, a tap on the view fades its header (and Close) out of
+// the tree, and a video's view takes the taps itself. As cleanup, not the flow under test, it is popped
+// through the app's router, only while it is the route on top. Bound: the eval 10, gone 5 = 15.
+export const closeAttachmentFullscreen = async () => {
+  await jsEval<boolean>(`const r = kbModule('constants/router.tsx')
+    if ((r.getVisibleScreen() || {}).name !== 'chatAttachmentFullscreen') return false
+    r.navigateUp()
+    return true`)
+  await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
+}
+
 // Bound: 30s, a hard deadline (no step starts after it), so a slow inspector read or a run of hops
 // cannot outlast the sums that count it as 30.
 const ESCAPE_MS = 30_000
@@ -497,6 +509,11 @@ async function escapeHops(alive: () => void): Promise<void> {
     // Past the first few hops something is off — narrate each step so a stall
     // is diagnosable from the console instead of looking like a silent hang.
     const debug = i >= 3
+    if (readsFrames() && (await el(T.CHAT_ATTACHMENT_FULLSCREEN).isExisting())) {
+      alive()
+      await closeAttachmentFullscreen()
+      continue
+    }
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
     // so its Done/Close/Cancel must win.
