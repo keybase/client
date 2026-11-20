@@ -27,18 +27,24 @@ func TestReporterKBPKIServerWriteRefusal(t *testing.T) {
 		notifyBuffer:   make(chan *keybase1.FSNotification, 1),
 	}
 
-	for _, err := range []error{
-		kbfsblock.ServerErrorNoPermission{},
-		kbfsmd.ServerErrorWriteAccess{},
+	for _, tc := range []struct {
+		err       error
+		discarded bool
+	}{
+		{kbfsblock.ServerErrorNoPermission{}, false},
+		{kbfsmd.ServerErrorWriteAccess{}, false},
+		{WritesDiscardedError{kbfsblock.ServerErrorNoPermission{}}, true},
 	} {
-		r.ReportErr(ctx, "alice", tlf.Public, WriteMode, errors.WithStack(err))
+		r.ReportErr(ctx, "alice", tlf.Public, WriteMode, errors.WithStack(tc.err))
 		select {
 		case n := <-r.notifyBuffer:
 			require.Equal(t, keybase1.FSErrorType_ACCESS_DENIED, n.ErrorType)
 			require.Equal(t, "/keybase/public/alice", n.Filename)
 			require.Equal(t, errorModeWrite, n.Params[errorParamMode])
+			_, discarded := n.Params[errorParamDiscarded]
+			require.Equal(t, tc.discarded, discarded, "%T", tc.err)
 		default:
-			require.FailNow(t, "no notification", "%T", err)
+			require.FailNow(t, "no notification", "%T", tc.err)
 		}
 	}
 }

@@ -205,6 +205,11 @@ type ServerErrorNoPermission struct {
 	Msg string
 }
 
+// PublicWritesDisabledMsg is the ServerErrorNoPermission message the
+// bserver sends when it refuses a write because public folder writes are
+// disabled.
+const PublicWritesDisabledMsg = "public folder writes are disabled"
+
 // ToStatus implements the ExportableError interface for ServerErrorBlockArchived
 func (e ServerErrorNoPermission) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorNoPermission

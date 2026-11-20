@@ -2208,6 +2208,14 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }
 
+func (fs *KBFSOpsStandard) onTLFWriteRefused(tlfID tlf.ID,
+	tlfName tlf.CanonicalName, refusal error,
+) {
+	ops := fs.getOps(context.Background(),
+		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
+	ops.onTLFWriteRefused(tlfName, refusal) // folderBranchOps makes a goroutine
+}
+
 func (fs *KBFSOpsStandard) startInitEdit() (
 	ctx context.Context, cancel context.CancelFunc,
 	reqChan <-chan struct{}, doneChan chan<- struct{},
