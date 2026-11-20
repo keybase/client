@@ -33,7 +33,7 @@ import {iosFlowProject} from './theme'
 import {approveKeybaseLinks} from './helpers/sim-links.mts'
 import {formFactorMismatch, readFormFactor, restartSimulator, screenshotDisplayOf} from './helpers/form-factor.mts'
 import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor} from './helpers/split-view.mts'
-import {recordFrameShown} from './gate/shown-lib.ts'
+import {FIND_COMMANDS, notePresented, readsFrames, recordFrameShown, shownFind} from './gate/shown-lib.ts'
 
 // KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
 // run. The run's form factor (iphone, duo-folded, duo-split-left, …) is set in onPrepare and handed to
@@ -54,6 +54,7 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 const commandStarts: Array<{name: string; site: string; start: number}> = []
 let testStart = 0
+let readingPresented = false
 
 // started in onPrepare: every value the env file's secrets held during the run
 let secretWatch: SecretWatch | undefined
@@ -130,14 +131,25 @@ export const config: WebdriverIO.Config = {
     if (!posture) return
     const got = await applyPosture(udid, device, posture)
     if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)
+    // unfolded or split, the base screens' elements read visible=false: "shown" is read off frames
     if (got !== 'duo-folded') recordFrameShown(await browser.getWindowRect())
     const display = screenshotDisplayOf(udid)
     if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
   },
   // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
   // the same name (commands nest, and a Promise.all runs several at once)
-  beforeCommand: (name: string) => {
+  // On a run that reads "shown" off frames, each find first reads whether a modal is up (for
+  // transformRequest's shownFind); that read's own find is not read for.
+  beforeCommand: async (name: string) => {
     if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
+    if (readsFrames() && !readingPresented && FIND_COMMANDS.includes(name)) {
+      readingPresented = true
+      await notePresented()
+        .catch(() => {})
+        .finally(() => {
+          readingPresented = false
+        })
+    }
   },
   afterCommand: (name: string) => {
     if (!timingOn()) return
@@ -202,9 +214,14 @@ export const config: WebdriverIO.Config = {
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async
   // context, before sending it: a test body that is over is refused here. A request already sent, its
   // connection retries included, still completes.
+  // On a run that reads "shown" off frames, a find that asks for `visible == 1` is sent as shownFind
+  // reads it (gate/shown-lib.ts).
   transformRequest: requestOptions => {
     requireCurrentAttempt()
-    return requestOptions
+    if (!readsFrames() || typeof requestOptions.body !== 'string' || !requestOptions.body.includes('visible == 1')) return requestOptions
+    const body = JSON.parse(requestOptions.body) as Record<string, unknown>
+    if (typeof body['using'] !== 'string' || typeof body['value'] !== 'string') return requestOptions
+    return {...requestOptions, body: JSON.stringify({...body, ...shownFind(body['using'], body['value'])})}
   },
   onComplete: (exitCode: number) => {
     try {

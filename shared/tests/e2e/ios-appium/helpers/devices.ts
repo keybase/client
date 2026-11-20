@@ -7,10 +7,10 @@ import type {E2EEnv} from '../../accounts/env'
 import {requireRevocableFromPhone, waitServiceRevoked} from '../../shared/devices.ts'
 import * as T from '../../shared/test-ids'
 import {step} from '../gate/step'
-import {shownNow} from '../gate/shown-lib.ts'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled, maskingName} from './elements'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from './navigate'
+import {shownNow} from '../gate/shown-lib.ts'
 
 // A device the helpers find by its exact name. A paper key's name is the first two words of its
 // phrase, so it never goes into an error: it is passed with the label errors use instead, and any

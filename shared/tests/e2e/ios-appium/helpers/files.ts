@@ -24,7 +24,7 @@ import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, pr
 import {waitFor} from './lifecycle'
 import {expectScreen} from '../gate/screens.ts'
 import {backUntil, goBack, openTabRoot} from './navigate'
-import {elementShown, SHOWN, shownAttrs} from '../gate/shown-lib.ts'
+import {elementShown} from '../gate/shown-lib.ts'
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -67,7 +67,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
     const screen = await screenRect()
     // one page source, not a call per row and attribute (a list of a hundred teams took seconds a read)
     const all = sourceElements(await browser.getPageSource()).filter(e => e.attrs['name'] === testID)
-    const candidates = pick(all, e => shownAttrs(e.attrs))
+    const candidates = pick(all, e => e.attrs['visible'] === 'true')
     // a Files row is taken wherever it is drawn in the files browser, reported visible or not (a
     // folder screen reports every element invisible); another list's row only among the candidates,
     // on screen
@@ -92,7 +92,7 @@ const drawnNamed = async (testID: string, name: string, within?: WebdriverIO.Ele
   const found: Array<DrawnRow> = []
   const labels: Array<string> = []
   const byID = `-ios predicate string:name == ${JSON.stringify(testID)}`
-  const shown = files ? [] : await within.$$(`${byID} AND ${SHOWN()}`).getElements()
+  const shown = files ? [] : await within.$$(`${byID} AND visible == 1`).getElements()
   for (const e of files || !shown.length ? await within.$$(byID).getElements() : shown) {
     const label = (await e.getAttribute('label').catch(() => null)) ?? ''
     labels.push(label)
@@ -294,7 +294,7 @@ const topScreenButtonLabelled = async (label: string, what: string) => {
   return found[inner[0]!]!.e
 }
 export const buttonLabelled = async (label: string, what: string) =>
-  labelledElement(BUTTON_ELEMENTS(), label, what).catch(async () => topScreenButtonLabelled(label, what))
+  labelledElement(BUTTON_ELEMENTS, label, what).catch(async () => topScreenButtonLabelled(label, what))
 
 // Clicks the button `button()` finds until `done()` says the click took: a click while the keyboard is
 // up only closes the keyboard (and XCUITest reports the keyboard shown or not unreliably, so it is not
@@ -325,20 +325,23 @@ export const tapButton = async (label: string, what: string) => {
 // bottom-right corner (a tap takes whether XCUITest reports it visible or not, and puts the caret at
 // the text's end), what it holds deleted and `text` typed, all as key presses: never WDA's setValue or
 // clearValue, after which the app's process stays in hardware-keyboard mode and a later focus draws
-// no software keyboard until the app relaunches. Bound: the field 10, the typing 15 (the tap 1, its
-// 1s settle, the keys), the read 1 = 26.
+// no software keyboard until the app relaunches. A read-back that lost a key (fast key presses into a
+// field that re-renders on its first one drop one now and then) is deleted and typed again, twice at
+// most. Bound: the field 10, the tap 1 and its 1s settle, three of (the reads 2, the keys 5) = 33.
 export const fillField = async (field: () => ChainablePromiseElement, text: string, what: string) => {
   await field().waitForExist({timeout: 10_000})
   const rect = await frameOf(await field().getElement(), what)
   await tapFrame({height: 8, width: 8, x: rect.x + rect.width - 12, y: rect.y + rect.height - 12}, what)
   await browser.pause(1_000)
-  const held = (await field().getAttribute('value')) ?? ''
   const placeholder = (await field().getAttribute('placeholderValue')) ?? ''
-  const length = held === placeholder ? 0 : [...held].length
-  if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
-  await typeIntoFocused(what, text)
-  const got = await field().getAttribute('value')
-  if (got !== text) throw new Error(`${what} does not read what was typed`)
+  for (let i = 0; i < 3; i++) {
+    const held = (await field().getAttribute('value')) ?? ''
+    if (i && held === text) return
+    const length = held === placeholder ? 0 : [...held].length
+    if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
+    await typeIntoFocused(what, text)
+  }
+  if ((await field().getAttribute('value')) !== text) throw new Error(`${what} does not read what was typed`)
 }
 
 // Puts `text` in the field `fieldTestID` that XCUITest cannot see (the editing row of a new folder or

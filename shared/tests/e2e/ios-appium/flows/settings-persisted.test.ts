@@ -744,7 +744,7 @@ describe('settings persisted', function () {
       const lineRect = await rectOf(text)
       check(lineRect !== undefined, 'the developer line has no frame, so it cannot be seen clear of the buttons')
       for (const label of ['DB Nuke', 'Clear Logs']) {
-        const button = await labelledElement(BUTTON_ELEMENTS(), label, `the ${label} button`).catch(() => undefined)
+        const button = await labelledElement(BUTTON_ELEMENTS, label, `the ${label} button`).catch(() => undefined)
         check(label !== 'DB Nuke' || button !== undefined, 'the DB Nuke button is not drawn, so the developer line cannot be seen clear of it')
         if (!button) continue
         // a drawn button with no frame cannot be seen clear of the line

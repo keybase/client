@@ -7,7 +7,6 @@ import {appSnapshot, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToPeople} from '../helpers/navigate'
 import {guiValue} from './app-ask.ts'
 import {savedRouteIsPeople} from './links-push-lib.ts'
-import {SHOWN} from './shown-lib.ts'
 
 const TAPS = 5
 
@@ -18,11 +17,11 @@ const NATIVE_BACK = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIEle
 // A bar's back wherever it is drawn: an iPhone Duo's side column holds a bar's icon items, outside
 // the XCUIElementTypeNavigationBar. UIKit's own back keeps its identifier there, and the app's
 // (nativeBackHeaderItem, the recover-password screens') its label.
-export const ANY_NATIVE_BACK = () =>
-  `-ios class chain:**/XCUIElementTypeButton[\`(name == "BackButton" OR label == "Back") AND ${SHOWN()}\`]`
+export const ANY_NATIVE_BACK =
+  '-ios class chain:**/XCUIElementTypeButton[`(name == "BackButton" OR label == "Back") AND visible == 1`]'
 
 export const tapBack = async () => {
-  for (const back of [el('backButton'), browser.$(NATIVE_BACK), browser.$(ANY_NATIVE_BACK())]) {
+  for (const back of [el('backButton'), browser.$(NATIVE_BACK), browser.$(ANY_NATIVE_BACK)]) {
     if (await back.isExisting()) {
       await back.click().catch(() => {})
       return true
