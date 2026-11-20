@@ -523,12 +523,24 @@ export const openConversation = async (convID: string) => {
   await waitForThread(convID)
 }
 
+// A link that opens nothing names what the app shows instead: the route, and whether its conversation
+// is another or none.
 const openByLink = async (convID: string) => {
   openUrl(`keybase://convid/${convID}`)
-  await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
-    interval: 250,
-    timeout: 20_000,
-  })
+  try {
+    await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
+      interval: 250,
+      timeout: 20_000,
+    })
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    let shown = 'nothing the app could say'
+    try {
+      const {screen} = await appSnapshot()
+      shown = `${screen?.name ?? 'no screen'}, with ${screen?.params?.['conversationIDKey'] ? 'another conversation' : 'no conversation'}`
+    } catch {}
+    throw new Error(`the conversation never opened: the app shows ${shown}`, {cause: e})
+  }
 }
 
 // The inbox from its top to its end is ~8 pages on the test account (each drag ~3s, the app settling)
