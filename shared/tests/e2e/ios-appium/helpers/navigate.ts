@@ -9,7 +9,7 @@ import {dragToClear} from '../gate/clear-row-lib'
 import {ANY_NATIVE_BACK, expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
-import {elementShown, readsFrames, shownNow} from '../gate/shown-lib.ts'
+import {DIMMING, elementShown, readsFrames, shownNow} from '../gate/shown-lib.ts'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
 // present — a settings row below the fold still "exists" in the tree). Swiping
@@ -455,7 +455,7 @@ async function dismissModalByBar(alive: () => void): Promise<boolean> {
 // over UIKit's dimming view, which a tap outside the sheet dismisses: one tap at the window's left edge,
 // clear of the sheet. False when there is no such modal. Bound: the find 1, the tap 1, 1s.
 const dismissFormSheet = async () => {
-  if (!readsFrames() || !(await browser.$('-ios predicate string:name == "PopoverDismissRegion"').isExisting())) return false
+  if (!readsFrames() || !(await browser.$(`-ios predicate string:${DIMMING}`).isExisting())) return false
   const {height} = await browser.getWindowRect()
   await tapAt(20, height / 2)
   await browser.pause(1_000)

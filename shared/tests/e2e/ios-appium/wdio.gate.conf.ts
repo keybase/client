@@ -55,7 +55,6 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 const commandStarts: Array<{name: string; site: string; start: number}> = []
 let testStart = 0
-let readingPresented = false
 
 // started in onPrepare: every value the env file's secrets held during the run
 let secretWatch: SecretWatch | undefined
@@ -146,17 +145,11 @@ export const config: WebdriverIO.Config = {
   // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
   // the same name (commands nest, and a Promise.all runs several at once)
   // On a run that reads "shown" off frames, each find first reads whether a modal is up (for
-  // transformRequest's shownFind); that read's own find is not read for.
+  // transformRequest's shownFind); finds that start together share one read, and that read's own find
+  // is not read for (notePresented).
   beforeCommand: async (name: string) => {
     if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
-    if (readsFrames() && !readingPresented && FIND_COMMANDS.includes(name)) {
-      readingPresented = true
-      await notePresented()
-        .catch(() => {})
-        .finally(() => {
-          readingPresented = false
-        })
-    }
+    if (readsFrames() && FIND_COMMANDS.includes(name)) await notePresented()
   },
   afterCommand: (name: string) => {
     if (!timingOn()) return
