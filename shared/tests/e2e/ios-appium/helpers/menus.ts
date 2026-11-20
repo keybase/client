@@ -310,7 +310,8 @@ export const drawnLabels = async (): Promise<Array<string>> =>
     .map(e => e.attrs['label']!)
 // For a tap only, not a presence read: when XCUITest reports none of the matches visible (a modal
 // or sheet it reports invisible now and then), the one of them whose frame lies wholly on screen.
-export type DrawnOptions = {forTap?: boolean}
+// `inside`: only elements whose frame it takes (a pane of a split, apart from the one beside it).
+export type DrawnOptions = {forTap?: boolean; inside?: (r: Rect) => boolean}
 
 // The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
 // tappable row merges its texts into one label), read off one page source (a call per element on a
@@ -331,7 +332,7 @@ export const elementLabelledIn = async (types: ReadonlyArray<string>, label: str
 export const cardTitledIn = async (types: ReadonlyArray<string>, title: string, what: string, opts?: DrawnOptions) =>
   drawnElementIn(types, l => l === title || l.startsWith(`${title}, `), what, opts)
 
-const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string, {forTap = false}: DrawnOptions = {}) => {
+const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string, {forTap = false, inside}: DrawnOptions = {}) => {
   const source = await browser.getPageSource()
   const all = sourceElements(source)
     .filter(e => types.includes(e.type) && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' ')))
@@ -339,6 +340,7 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
       e,
       r: sourceRect(e.attrs),
     }))
+    .filter(({r}) => !inside || inside(r))
   const shown = all.filter(({e}) => e.attrs['visible'] === 'true')
   // a tap's fallback keeps to frames wholly on screen: a screen under the top one, and a list's rows
   // scrolled away, keep their elements in the tree

@@ -230,7 +230,7 @@ const openFolderHeaderSheet = async (item: 'More' | 'Upload', what: string) => {
     const tab = (await people.isExisting()) ? await rectOf(await people.getElement()) : undefined
     for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "More"').getElements()) {
       const rect = await rectOf(e)
-      if (rect && !(tab && rect.x === tab.x && rect.width === tab.width)) pills.push(rect)
+      if (rect && !(rect.x === tab?.x && rect.width === tab.width)) pills.push(rect)
     }
   }
   if (pills.length !== 1) throw new Error(`${pills.length} More buttons in the folder's header, not one`)

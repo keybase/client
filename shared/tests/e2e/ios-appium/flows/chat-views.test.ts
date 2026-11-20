@@ -67,6 +67,7 @@ import {expectCli, secondSender, textBodies, throwawayChannels} from '../helpers
 import {byText, el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, goBackUntilGone, navigateToChat} from '../helpers/navigate'
+import {threadRoute} from '../gate/thread-route.ts'
 
 // TeamRole in the protocol: a bot or a restricted bot
 const BOT_ROLES: ReadonlyArray<number> = [5, 6]
@@ -167,9 +168,15 @@ describe('chat views', function () {
     await openConversation(media())
     await openInfoPanel(T.CHAT_INFO_PANEL_MEMBERS_TAB)
     // the members tab lists the second account, by its name in memory
+    // beside a thread shown beside the inbox (an iPhone Duo unfolded) the inbox can list a DM with the
+    // second account too: only the panel's column, from its Members tab rightward, is read
+    const panelLeft = threadRoute() === 'chatRoot' ? (await el(T.CHAT_INFO_PANEL_MEMBERS_TAB).getLocation()).x : undefined
     await waitFor(
       'the second account among the members',
-      async () => elementWithLabelPartIn(NAMED_ELEMENT_TYPES, data.secondUser, "the second account's member row"),
+      async () =>
+        elementWithLabelPartIn(NAMED_ELEMENT_TYPES, data.secondUser, "the second account's member row", {
+          inside: r => panelLeft === undefined || r.x >= panelLeft,
+        }),
       {interval: 500, timeout: 15_000}
     )
     await step('Info panel: Members lists the channel members')
