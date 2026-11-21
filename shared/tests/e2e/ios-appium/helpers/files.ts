@@ -19,11 +19,12 @@ import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {jsEval} from '../gate/app-ask.ts'
 import {focusedFieldText, focusSecretField, setFieldText} from '../gate/secret-input.ts'
-import {isKeyboardUp, typeIntoFocused} from './chat'
+import {hideKeyboard, isKeyboardUp, typeIntoFocused} from './chat'
 import {BUTTON_ELEMENTS, dragBetween, frameOf, labelledElement, openMenuFrom, press, screenRect, tapElement, tapFrame} from './menus'
 import {waitFor} from './lifecycle'
 import {expectScreen} from '../gate/screens.ts'
 import {backUntil, goBack, openTabRoot} from './navigate'
+import {elementShown, readsFrames} from '../gate/shown-lib.ts'
 
 // The folder screen of `path`. Bound: 10s, plus one read 1.
 export const expectFolder = async (what: string, path: string) => expectScreen(what, 'fsBrowse', p => p['path'] === path)
@@ -222,6 +223,16 @@ const openFolderHeaderSheet = async (item: 'More' | 'Upload', what: string) => {
     const rect = await rectOf(e)
     if (rect) pills.push(rect)
   }
+  // an iPhone Duo draws the header's icon items in its side column, outside the bar: there the pill is
+  // the More that is not one of the floating tab bar's buttons (which line up with its People)
+  if (!pills.length) {
+    const people = await browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND name == "People"')
+    const tab = (await people.isExisting()) ? await rectOf(await people.getElement()) : undefined
+    for (const e of await browser.$$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "More"').getElements()) {
+      const rect = await rectOf(e)
+      if (rect && !(rect.x === tab?.x && rect.width === tab.width)) pills.push(rect)
+    }
+  }
   if (pills.length !== 1) throw new Error(`${pills.length} More buttons in the folder's header, not one`)
   const pillRect = pills[0]!
   // the menu's items report visible=false too
@@ -324,20 +335,26 @@ export const tapButton = async (label: string, what: string) => {
 // bottom-right corner (a tap takes whether XCUITest reports it visible or not, and puts the caret at
 // the text's end), what it holds deleted and `text` typed, all as key presses: never WDA's setValue or
 // clearValue, after which the app's process stays in hardware-keyboard mode and a later focus draws
-// no software keyboard until the app relaunches. Bound: the field 10, the typing 15 (the tap 1, its
-// 1s settle, the keys), the read 1 = 26.
+// no software keyboard until the app relaunches. A read-back that lost a key (fast key presses into a
+// field that re-renders on its first one drop one now and then) is deleted and typed again, twice at
+// most. Bound: the field 10, the keyboard's hide 5, the tap 1 and its 1s settle, three of (the reads 2, the keys 5) = 38.
 export const fillField = async (field: () => ChainablePromiseElement, text: string, what: string) => {
   await field().waitForExist({timeout: 10_000})
+  // an iPhone Duo's short screen puts a field below the one before it under the keyboard that field
+  // raised, where a tap lands on the keyboard: it is lowered first (and the field's frame read after)
+  if (readsFrames()) await hideKeyboard()
   const rect = await frameOf(await field().getElement(), what)
   await tapFrame({height: 8, width: 8, x: rect.x + rect.width - 12, y: rect.y + rect.height - 12}, what)
   await browser.pause(1_000)
-  const held = (await field().getAttribute('value')) ?? ''
   const placeholder = (await field().getAttribute('placeholderValue')) ?? ''
-  const length = held === placeholder ? 0 : [...held].length
-  if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
-  await typeIntoFocused(what, text)
-  const got = await field().getAttribute('value')
-  if (got !== text) throw new Error(`${what} does not read what was typed`)
+  for (let i = 0; i < 3; i++) {
+    const held = (await field().getAttribute('value')) ?? ''
+    if (i && held === text) return
+    const length = held === placeholder ? 0 : [...held].length
+    if (length) await typeIntoFocused(what, '\uE003'.repeat(length))
+    await typeIntoFocused(what, text)
+  }
+  if ((await field().getAttribute('value')) !== text) throw new Error(`${what} does not read what was typed`)
 }
 
 // Puts `text` in the field `fieldTestID` that XCUITest cannot see (the editing row of a new folder or
@@ -377,7 +394,7 @@ export const typeInFilter = async (text: string, what: string) => {
     // a filter of another tab's screen can be in the tree too: the visible one, else the newest
     const boxes = await browser.$$(`~${T.SEARCH_FILTER}`).getElements()
     let box = boxes.at(-1)!
-    for (const e of boxes) if ((await e.getAttribute('visible').catch(() => null)) === 'true') box = e
+    for (const e of boxes) if (await elementShown(e)) box = e
     await press(box, what)
   }
   try {

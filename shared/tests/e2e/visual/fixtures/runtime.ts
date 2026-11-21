@@ -27,7 +27,7 @@ import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from
 import type {FixtureContext, FixtureDef, RpcRule, StartedBy, StoreApi, StoreKey, Stores} from './def.ts'
 import type {CallLog, LoggedCall} from '../../shared/call-log.ts'
 import {chatThreadContent} from './chat-thread.ts'
-import {globalError, runtimeStats} from './debug.ts'
+import {globalError} from './debug.ts'
 import {deviceLastUsed} from './devices.ts'
 import {featuredBots} from './bots.ts'
 import {peopleFollowSuggestions} from './people.ts'
@@ -39,7 +39,6 @@ export const definitions: Readonly<Record<FixtureName, FixtureDef>> = {
   'featured-bots': featuredBots,
   'global-error': globalError,
   'people-follow-suggestions': peopleFollowSuggestions,
-  'runtime-stats': runtimeStats,
   'team-builder-recs': teamBuilderRecs,
 }
 

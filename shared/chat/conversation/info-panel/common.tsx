@@ -6,8 +6,9 @@ export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
 export const infoPanelWidthTablet = 350
 
-export function infoPanelWidth() {
-  if (Styles.isTablet) {
+// split: a mobile split chat shows the panel beside the thread
+export function infoPanelWidth(split: boolean) {
+  if (isMobile && split) {
     return infoPanelWidthTablet
   } else if (isMobile) {
     return infoPanelWidthPhone

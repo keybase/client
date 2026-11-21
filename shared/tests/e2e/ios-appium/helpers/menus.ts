@@ -1,9 +1,11 @@
 // Generic helpers for the iOS flows' bottom-sheet menus (FloatingMenu) and labelled elements: open a
 // sheet, read and pick its items, and find the one element whose label is a name, compared in memory
 // so the name never goes into a selector or an error.
+import {tapAt} from './elements'
+import {readsFrames} from '../gate/shown-lib.ts'
 import {waitFor} from './lifecycle'
 import {frameInside, innermost, rectOf, sheetItemLabels, type Rect} from '../gate/chat-lib.ts'
-import {deepestLabelledAtFrame, oneControlAtFrame} from '../gate/drawn-lib.ts'
+import {deepestLabelledAtFrame, oneControlAtFrame, positionAtFrame} from '../gate/drawn-lib.ts'
 import {framePredicate, labelHas, sourceElements, sourceRect} from '../gate/page-source-lib.ts'
 
 // The open menu sheets: one reported visible, or one whose top is on the screen's upper part, above
@@ -56,11 +58,14 @@ export const menuHas = async (label: string) => offers(await menuLabels(), label
 export const menuOffers = offers
 
 // Waits for the open sheet to leave the tree, then reads the screen under it positively (a navigation
-// or tab bar in the tree): an absence alone could be a read of an empty or failed tree. Rejects
-// (as waitForExist does) when the sheet stays. Bound: `timeout`, the bar read 1.
+// or tab bar in the tree, or the tab buttons of an iPhone Duo's floating tab bar, which a thread beside
+// the inbox has with no bar): an absence alone could be a read of an empty or failed tree. Rejects (as
+// waitForExist does) when the sheet stays. Bound: `timeout`, the bar read 1.
 export const waitForSheetGone = async (timeout: number) => {
   await (await menuSheet()).waitForExist({reverse: true, timeout})
-  const bars = await browser.$$('-ios predicate string:type == "XCUIElementTypeNavigationBar" OR type == "XCUIElementTypeTabBar"').length
+  const bars = await browser.$$(
+    '-ios predicate string:type == "XCUIElementTypeNavigationBar" OR type == "XCUIElementTypeTabBar" OR (type == "XCUIElementTypeButton" AND name IN {"People", "Chat", "Files", "Teams", "More"})'
+  ).length
   if (!bars) throw new Error('the menu sheet left, but no screen under it reads back')
 }
 
@@ -108,7 +113,7 @@ const sheetItem = async (label: string) => {
 const tapSheetItem = async (item: {e: WebdriverIO.Element; visible: boolean}) => {
   if (item.visible) return item.e.click()
   const r = await frameOf(item.e, 'a sheet item')
-  return browser.execute('mobile: tap', {x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
+  return tapAt(r.x + r.width / 2, r.y + r.height / 2)
 }
 
 // Taps the open sheet's item `label` once, for an item whose sheet stays up after it. Bound: the read
@@ -215,11 +220,18 @@ export const frameOf = async (e: WebdriverIO.Element, what: string) => {
 // Taps the middle of `rect`, only when it lies wholly on screen. Bound: the window read and the tap 1.
 export const tapFrame = async (rect: Rect, what: string) => {
   check(frameInside(rect, await screenRect()), `${what} is not wholly on screen: not tapping`)
-  await browser.execute('mobile: tap', {x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2)})
+  await tapAt(rect.x + rect.width / 2, rect.y + rect.height / 2)
 }
 
-// Taps `e` at its own frame. Bound: its frame read and the tap 1.
-export const tapElement = async (e: WebdriverIO.Element, what: string) => tapFrame(await frameOf(e, what), what)
+// Taps the middle of `e`, addressed to `e` itself, only when its frame lies wholly on screen. Neither a
+// click nor a tap at its frame's screen point is enough: with xcuitest driver 13 a click on a control
+// in a modal (the add-members wizard's role dropdown) can open nothing, and on an unfolded iPhone Duo a
+// screen point lands nowhere. Bound: its frame read, the window read and the tap 1.
+export const tapElement = async (e: WebdriverIO.Element, what: string) => {
+  const rect = await frameOf(e, what)
+  check(frameInside(rect, await screenRect()), `${what} is not wholly on screen: not tapping`)
+  await browser.execute('mobile: tap', {elementId: e.elementId, x: Math.round(rect.width / 2), y: Math.round(rect.height / 2)})
+}
 
 // Whether `e` is in the tree and its frame lies wholly on screen: what isDisplayed() would say if
 // XCUITest's `visible` could be trusted (it reads false now and then on a team page, a modal or a
@@ -235,13 +247,10 @@ export const onScreenID = async (id: string) => {
   return e ? onScreen(e) : false
 }
 
-// Clicks `e` when XCUITest reports it visible, else taps it at its own frame: a screen's elements can
-// read visible=false (a folder screen always, a team page, a modal or a sheet now and then), and a
-// click on such a box taps nothing. Bound: the reads 1, the tap 1.
-export const press = async (e: WebdriverIO.Element, what: string) => {
-  if ((await e.getAttribute('visible').catch(() => null)) === 'true') await e.click()
-  else await tapElement(e, what)
-}
+// Taps `e` (tapElement): a click can tap nothing, on a box XCUITest reads visible=false (a folder
+// screen always, a team page, a modal or a sheet now and then) and on some visible controls in a
+// modal. Bound: tapElement 1.
+export const press = async (e: WebdriverIO.Element, what: string) => tapElement(e, what)
 
 // What `selector` finds, or for a tap (`forTap`) elementsOrUnseen's read: a presence read never takes
 // an element XCUITest reports invisible.
@@ -302,7 +311,8 @@ export const drawnLabels = async (): Promise<Array<string>> =>
     .map(e => e.attrs['label']!)
 // For a tap only, not a presence read: when XCUITest reports none of the matches visible (a modal
 // or sheet it reports invisible now and then), the one of them whose frame lies wholly on screen.
-export type DrawnOptions = {forTap?: boolean}
+// `inside`: only elements whose frame it takes (a pane of a split, apart from the one beside it).
+export type DrawnOptions = {forTap?: boolean; inside?: (r: Rect) => boolean}
 
 // The one visible element of `types` whose label, split at its ", " joins, holds `name` as a part (a
 // tappable row merges its texts into one label), read off one page source (a call per element on a
@@ -323,7 +333,7 @@ export const elementLabelledIn = async (types: ReadonlyArray<string>, label: str
 export const cardTitledIn = async (types: ReadonlyArray<string>, title: string, what: string, opts?: DrawnOptions) =>
   drawnElementIn(types, l => l === title || l.startsWith(`${title}, `), what, opts)
 
-const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string, {forTap = false}: DrawnOptions = {}) => {
+const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: string) => boolean, what: string, {forTap = false, inside}: DrawnOptions = {}) => {
   const source = await browser.getPageSource()
   const all = sourceElements(source)
     .filter(e => types.includes(e.type) && matches((e.attrs['label'] ?? '').replace(/\u00a0/g, ' ')))
@@ -331,6 +341,7 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
       e,
       r: sourceRect(e.attrs),
     }))
+    .filter(({r}) => !inside || inside(r))
   const shown = all.filter(({e}) => e.attrs['visible'] === 'true')
   // a tap's fallback keeps to frames wholly on screen: a screen under the top one, and a list's rows
   // scrolled away, keep their elements in the tree
@@ -347,6 +358,14 @@ const drawnElementIn = async (types: ReadonlyArray<string>, matches: (label: str
   const type = found[i]!.e.type
   const visibleOnly = shown.length > 0
   const count = oneControlAtFrame(source, {matches, rect: r, type, visibleOnly}, what)
+  if (readsFrames()) {
+    const {position, total} = positionAtFrame(source, {matches, rect: r, type, visibleOnly})
+    const all = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}`).getElements()
+    const matching: Array<WebdriverIO.Element> = []
+    for (const e of all) if (matches(((await e.getAttribute('label').catch(() => null)) ?? '').replace(/\u00a0/g, ' '))) matching.push(e)
+    if (matching.length !== total || position < 0) throw new Error(`${matching.length} of ${what} at its frame, ${total} in the page source`)
+    return matching[position]!
+  }
   // the label is compared in memory, never put in the selector
   const visible = visibleOnly ? ' AND visible == 1' : ''
   const els = await browser.$$(`-ios predicate string:type == "${type}" AND ${framePredicate(r)}${visible}`).getElements()

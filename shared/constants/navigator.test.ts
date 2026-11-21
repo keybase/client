@@ -11,6 +11,7 @@ import {
   navUpToScreen,
   navigateAppend,
   navigateAppendOnceRootHas,
+  navigateToThread,
   navigateUp,
   popStack,
   setChatRootParams,
@@ -389,6 +390,39 @@ describe('setChatRootParams', () => {
     // in place, targeting the chat tab's own stack - not a reset of the tab navigator
     expect(nav.lastAction()).toMatchObject({target: stackKeyOf('chatRoot'), type: 'NAVIGATE'})
     expect(visible()).toMatchObject({key, name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
+  })
+
+  test('focuses the live chatRoot, closing a modal over the tabs', () => {
+    nav = installNavigation({
+      rootState: makeRootState({above: [{name: 'chatNewChat'}], tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}]}),
+    })
+
+    setChatRootParams({conversationIDKey: 'NEW' as never})
+
+    expect(visible()).toMatchObject({name: 'chatRoot', params: {conversationIDKey: 'NEW'}})
+  })
+
+  test("the split's own pick of a thread leaves a share screen over the tabs up", () => {
+    nav = installNavigation({
+      rootState: makeRootState({above: [{name: 'incomingShareNew'}], tabStack: [{name: 'chatRoot'}]}),
+    })
+
+    navigateToThread('01020304' as never, 'findNewestConversationFromLayout')
+
+    expect(visible()?.name).toBe('incomingShareNew')
+  })
+
+  test('without focus, sets the params under a modal over the tabs and leaves it up', () => {
+    nav = installNavigation({
+      rootState: makeRootState({above: [{name: 'chatNewChat'}], tabStack: [{name: 'chatRoot', params: {conversationIDKey: 'OLD'}}]}),
+    })
+
+    setChatRootParams({conversationIDKey: 'NEW' as never}, {focus: false})
+
+    expect(nav.lastAction()).toMatchObject({type: 'SET_PARAMS'})
+    expect(visible()?.name).toBe('chatNewChat')
+    const chat = nav.getRootState()?.routes?.[0]?.state?.routes.find(r => r.name === Tabs.chatTab)
+    expect(chat?.state?.routes[0]?.params).toMatchObject({conversationIDKey: 'NEW'})
   })
 
   test('dispatches nothing when chatRoot already carries those params', () => {

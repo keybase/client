@@ -12,7 +12,8 @@ import * as NavTree from './nav-tree'
 import {DEBUG_NAV} from './nav-debug'
 import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
-import {isSplit, threadRouteName} from './chat/layout'
+import {isChatSplit, threadRouteName} from './chat/layout'
+import type {ConversationInfoPanelTab} from '@/chat/conversation/thread-navigation'
 import {ignorePromise} from './utils'
 import {makeUUID} from '@/util/uuid'
 import * as Meta from './chat/meta'
@@ -467,8 +468,10 @@ export const previewConversation = (p: PreviewConversationParams) => {
   ignorePromise(previewConversationTeam())
 }
 
-export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
-  getNavigator().setChatRootParams(params)
+export const setChatRootParams = (
+  params: Partial<NonNullable<KBRootParamList['chatRoot']>>,
+  opts?: {focus?: boolean}
+): boolean => getNavigator().setChatRootParams(params, opts)
 
 export const pushInTab = (tab: Tabs.AppTab, screen: {name: RouteKeys; params?: Record<string, unknown>}): boolean =>
   getNavigator().pushInTab(tab, screen)
@@ -502,6 +505,8 @@ export const setThreadInputReplyTo = (
 
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
+  // false: select the thread under whatever is above the tabs (the split's own pick of a thread)
+  focus?: boolean
   threadSearch?: {query?: string}
 }
 
@@ -534,10 +539,96 @@ type NavigateToThreadReason =
   | 'misc'
   | 'teamMention'
 
+type OpenThreadParams = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  infoPanel?: {tab?: ConversationInfoPanelTab}
+  threadSearch?: {query?: string}
+}
+
+// A selection still waiting for the chat tab to mount; cancelled by any newer thread navigation or
+// layout change, which the user acted on after it
+let cancelPendingChatRootSelect: (() => void) | undefined
+const cancelChatRootSelect = () => {
+  cancelPendingChatRootSelect?.()
+  cancelPendingChatRootSelect = undefined
+}
+
+// The tab navigator under a pushed screen may not have reported its state yet, so the selection
+// waits for it (a few seconds at most), while chat is still split and the account the same
+const selectInChatRootOnceMounted = (params: OpenThreadParams) => {
+  cancelChatRootSelect()
+  if (setChatRootParams(params)) return
+  const username = useCurrentUserState.getState().username
+  const stop = () => {
+    clearTimeout(timer)
+    unsub()
+    if (cancelPendingChatRootSelect === stop) cancelPendingChatRootSelect = undefined
+  }
+  const timer = setTimeout(() => {
+    stop()
+    logger.warn('chat layout: the chat tab never mounted, the thread stays unselected')
+  }, 5000)
+  const unsub = getNavigator().addListener('state', () => {
+    if (!isChatSplit() || useCurrentUserState.getState().username !== username) {
+      stop()
+      return
+    }
+    if (setChatRootParams(params)) stop()
+  })
+  cancelPendingChatRootSelect = stop
+}
+
+// The chat layout of a phone that splits by width just changed (see constants/chat/layout): the
+// thread the user has open, and its info panel, move to the routes that show them in the new layout.
+// Split, both are chatRoot params; narrow, the thread is chatConversation pushed above the tabs and
+// the panel is chatInfoPanel over it. Only a thread on top (or under its own panel) moves: under
+// another modal, or a screen pushed over it, the user is looking at something else, which stays put.
+export const moveOpenThreadToLayout = (split: boolean) => {
+  cancelChatRootSelect()
+  const rs = getRootState()
+  if (split) {
+    const routes = rs?.routes ?? []
+    const top = routes.at(-1)
+    const panel = top?.name === 'chatInfoPanel' ? top : undefined
+    const thread = panel ? routes.at(-2) : top
+    if (thread?.name !== 'chatConversation' || (panel && routes.length !== 3)) return
+    const {conversationIDKey, threadSearch} = thread.params as OpenThreadParams
+    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
+    const panelParams = panel?.params as {conversationIDKey?: string; tab?: ConversationInfoPanelTab} | undefined
+    if (panelParams && panelParams.conversationIDKey !== conversationIDKey) return
+    logger.info(`chat layout: split, thread ${conversationIDKey} moves to chatRoot`)
+    if (panel) {
+      getNavigator().popStack()
+    } else {
+      getNavigator().navigateUp()
+    }
+    selectInChatRootOnceMounted({
+      conversationIDKey,
+      infoPanel: panelParams ? {tab: panelParams.tab} : undefined,
+      threadSearch,
+    })
+    return
+  }
+  const visible = NavTree.visibleScreen(rs, {includeModals: true})
+  if (visible?.name !== 'chatRoot') return
+  const {conversationIDKey, infoPanel, threadSearch} = visible.params as OpenThreadParams
+  if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) return
+  logger.info(`chat layout: narrow, thread ${conversationIDKey} moves to chatConversation`)
+  const nav = getNavigator()
+  // chatRoot (showing the inbox now) lets the thread go, or it would show it again the next time it
+  // splits; the thread pushes above the tabs, which keep their state
+  nav.setChatRootParams({conversationIDKey: undefined, infoPanel: undefined, threadSearch: undefined}, {focus: false})
+  nav.navigateAppend({name: 'chatConversation', params: {conversationIDKey, threadSearch}})
+  if (infoPanel) {
+    nav.navigateAppend({name: 'chatInfoPanel', params: {conversationIDKey, tab: infoPanel.tab}})
+  }
+}
+
 const navToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   navParams?: ThreadNavParams
 ): boolean => {
+  cancelChatRootSelect()
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
@@ -547,12 +638,12 @@ const navToThread = (
     threadSearch: navParams?.threadSearch,
   }
 
-  if (isSplit) {
-    // Desktop/tablet: reset the tab navigator state to switch to chatTab with chatRoot params.
+  if (isChatSplit()) {
+    // Split: reset the tab navigator state to switch to chatTab with chatRoot params.
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    return setChatRootParams(params)
+    return setChatRootParams(params, {focus: navParams?.focus})
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     return getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
@@ -581,7 +672,7 @@ export const navigateToThread = (
   const visibleConvo = params?.conversationIDKey
   const visibleRouteName = visible?.name
 
-  if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
+  if (visibleRouteName !== threadRouteName() && reason === 'findNewestConversation') {
     return
   }
 
@@ -598,10 +689,11 @@ export const navigateToThread = (
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
   const navParams = {
     createConversationError,
+    focus: reason !== 'findNewestConversationFromLayout',
     threadSearch,
   }
   let navigated: boolean
-  if (isSplit) {
+  if (isChatSplit()) {
     navigated = navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
     navigated = navToThread(conversationIDKey, navParams)
@@ -613,7 +705,7 @@ export const navigateToThread = (
     // {conversationIDKey} from router-v2/linking.tsx's makeChatConversationState, would defeat
     // that check and let a same-conversation call push a second thread screen.
     const replace =
-      visibleRouteName === threadRouteName &&
+      visibleRouteName === threadRouteName() &&
       (!T.Chat.isValidConversationIDKey(visibleConvo ?? '') || visibleConvo === conversationIDKey)
     const modalPath = getModalStack()
     if (modalPath.length > 0) {
@@ -636,7 +728,7 @@ export const navigateToThread = (
       // merge.
       navigated = getNavigator().setRouteParams(visible?.key, params)
     } else {
-      navigated = navigateAppend({name: threadRouteName, params})
+      navigated = navigateAppend({name: threadRouteName(), params})
     }
   }
 

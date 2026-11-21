@@ -1,14 +1,15 @@
 import type {ChainablePromiseElement} from 'webdriverio'
 import * as T from '../../shared/test-ids'
-import {byText, el, els, waitForTestID, tab} from './elements'
+import {byText, el, els, escapePredicate, tapAt, waitForTestID, tab} from './elements'
 import {fiberPrelude} from './fiber-prelude'
 import {jsEval, waitFor} from './lifecycle'
 import {underDeadline} from '../../shared/deadline.ts'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {dragToClear} from '../gate/clear-row-lib'
-import {expectScreen, visibleScreen} from '../gate/screens.ts'
+import {ANY_NATIVE_BACK, expectScreen, visibleScreen} from '../gate/screens.ts'
 import {retriedNavigation} from '../gate/step.ts'
 import {HEADER_BAND, measuredButtonAmong, onScreen, type Rect} from '../gate/header-button-lib'
+import {DIMMING, elementShown, readsFrames, shownNow} from '../gate/shown-lib.ts'
 
 // Swipe up in the LEFT pane until the element is on-screen (DISPLAYED, not just
 // present — a settings row below the fold still "exists" in the tree). Swiping
@@ -47,7 +48,7 @@ export async function scrollToTestID(id: string, maxSwipes = 8): Promise<void> {
     await androidScrollIntoView(`new UiSelector().resourceId("${id}")`)
     return
   }
-  await scrollUpUntil(async () => el(id).isDisplayed().catch(() => false), maxSwipes)
+  await scrollUpUntil(async () => shownNow(el(id)), maxSwipes)
 }
 
 export async function scrollDownToText(text: string, maxSwipes = 8): Promise<void> {
@@ -55,7 +56,7 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
     await androidScrollIntoView(`new UiSelector().textContains("${text}")`)
     return
   }
-  await scrollUpUntil(async () => byText(text).isDisplayed().catch(() => false), maxSwipes)
+  await scrollUpUntil(async () => shownNow(byText(text)), maxSwipes)
 }
 
 // Tap a settings-root row by its label, scrolling it into view first: Android's
@@ -65,8 +66,16 @@ export async function scrollDownToText(text: string, maxSwipes = 8): Promise<voi
 // tap 1, plus clearOfTabBar 29 on iOS = 55.
 export async function tapSettingsRow(text: string): Promise<void> {
   await scrollDownToText(text)
-  if (!browser.isAndroid) await clearOfTabBar(() => byText(text), `the "${text}" row`)
-  await byText(text).click()
+  if (browser.isAndroid) {
+    await byText(text).click()
+    return
+  }
+  // a split (iPhone Duo, iPad) shows the selected page beside the list, and its bar's title holds the
+  // same text: the row itself is the box whose merged label holds it
+  const rowSel = `-ios predicate string:type == "XCUIElementTypeOther" AND label CONTAINS "${escapePredicate(text)}"`
+  const find = (await browser.$(rowSel).isExisting()) ? () => browser.$(rowSel) : () => byText(text)
+  await clearOfTabBar(find, `the "${text}" row`)
+  await find().click()
 }
 
 const PAN_OVERSHOOT = 60
@@ -89,6 +98,9 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
     let bottom = height
     for (const b of bars) {
       const r = await browser.getElementRect(b.elementId)
+      // only a bar over the row's column can cover it: an iPhone Duo's tab bar is a column beside
+      // the content, and a split's other pane has its own nav bar
+      if (r.x >= row.x + row.width || r.x + r.width <= row.x) continue
       // a bar in the lower half is the tab bar; one in the upper half is the nav bar
       if (r.y > height / 2) bottom = Math.min(bottom, r.y)
       else top = Math.max(top, r.y + r.height)
@@ -107,7 +119,7 @@ const rowAndBand = async (find: () => ChainablePromiseElement, height: number) =
 // element counts as a check with no drag. Worst case (s): the window read 2, then four checks of 6
 // (rowAndBand) and three drags of 1 = 29.
 export async function clearOfTabBar(find: () => ChainablePromiseElement, what: string): Promise<void> {
-  const {height, width} = await browser.getWindowRect()
+  const {height} = await browser.getWindowRect()
   let stale = false
   for (let i = 0; i <= 3; i++) {
     const read = await rowAndBand(find, height)
@@ -119,7 +131,8 @@ export async function clearOfTabBar(find: () => ChainablePromiseElement, what: s
     // A move this short reads as a tap on the row under the finger (live: it opened Advanced), so the
     // touch goes PAN_OVERSHOOT past the target first, and comes back to it before lifting: the list
     // pans, and comes to rest dy from where it was.
-    const x = Math.round(width * 0.15)
+    // inside the row's own column: an iPhone Duo's split puts another pane beside it
+    const x = Math.round(read.row.x + read.row.width * 0.15)
     const from = Math.round(height / 2 - dy / 2)
     const past = from + dy + Math.sign(dy) * PAN_OVERSHOOT
     await browser
@@ -206,10 +219,18 @@ export async function dismissKeyboard(): Promise<void> {
 // because its loop re-checks atTabs and self-corrects a mis-tap.
 // `beforeTap` runs right before the tap (escapeToTabs' deadline check).
 async function tapNavBack(requireLeftEdge = false, beforeTap?: () => void): Promise<boolean> {
+  // a bar's back drawn in an iPhone Duo's side column is in no navigation bar, and the bar's
+  // leftmost button is then something else (the login screen's Create account)
+  const side = browser.$(ANY_NATIVE_BACK)
+  if (await side.isExisting()) {
+    beforeTap?.()
+    await side.click().catch(() => {})
+    return true
+  }
   const btns = await browser.$$('//XCUIElementTypeNavigationBar//XCUIElementTypeButton').getElements()
   let leftmost: {el: (typeof btns)[number]; x: number} | undefined
   for (const b of btns) {
-    if (!(await b.isDisplayed().catch(() => false))) continue
+    if (!(await elementShown(b))) continue
     const {x} = await b.getLocation().catch(() => ({x: Number.POSITIVE_INFINITY}))
     if (!leftmost || x < leftmost.x) leftmost = {el: b, x}
   }
@@ -398,12 +419,12 @@ export const barButton = async () => {
         .$$(`-ios class chain:**/XCUIElementTypeNavigationBar/XCUIElementTypeButton[\`label == "${label}"\`]`)
         .getElements()) {
         const y = (await e.getLocation().catch(() => undefined))?.y ?? -1
-        found.push({e, visible: (await e.getAttribute('visible').catch(() => null)) === 'true', y})
+        found.push({e, visible: await elementShown(e), y})
       }
     }
     return (found.find(f => f.visible) ?? [...found].sort((p, q) => q.y - p.y)[0])?.e
   }
-  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back']))
+  return (await pick(['Cancel', 'Close'])) ?? (await pick(['Back'])) ?? (await browser.$$(ANY_NATIVE_BACK).getElements())[0]
 }
 
 // A modal whose bar buttons XCUITest reports invisible (the add-members wizard's steps) has no
@@ -428,6 +449,29 @@ async function dismissModalByBar(alive: () => void): Promise<boolean> {
       return false
     }
   )
+}
+
+// Where a pointer at the screen's edge touches nothing (an iPhone Duo unfolded) a modal is a form sheet
+// over UIKit's dimming view, which a tap outside the sheet dismisses: one tap at the window's left edge,
+// clear of the sheet. False when there is no such modal. Bound: the find 1, the tap 1, 1s.
+const dismissFormSheet = async () => {
+  if (!readsFrames() || !(await browser.$(`-ios predicate string:${DIMMING}`).isExisting())) return false
+  const {height} = await browser.getWindowRect()
+  await tapAt(20, height / 2)
+  await browser.pause(1_000)
+  return true
+}
+
+// Closes the fullscreen attachment view where back is no gesture it takes: an iPhone Duo unfolded, where
+// a pointer at the screen's edge touches nothing, a tap on the view fades its header (and Close) out of
+// the tree, and a video's view takes the taps itself. As cleanup, not the flow under test, it is popped
+// through the app's router, only while it is the route on top. Bound: the eval 10, gone 5 = 15.
+export const closeAttachmentFullscreen = async () => {
+  await jsEval<boolean>(`const r = kbModule('constants/router.tsx')
+    if ((r.getVisibleScreen() || {}).name !== 'chatAttachmentFullscreen') return false
+    r.navigateUp()
+    return true`)
+  await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
 }
 
 // Bound: 30s, a hard deadline (no step starts after it), so a slow inspector read or a run of hops
@@ -476,6 +520,11 @@ async function escapeHops(alive: () => void): Promise<void> {
     // Past the first few hops something is off — narrate each step so a stall
     // is diagnosable from the console instead of looking like a silent hang.
     const debug = i >= 3
+    if (readsFrames() && (await el(T.CHAT_ATTACHMENT_FULLSCREEN).isExisting())) {
+      alive()
+      await closeAttachmentFullscreen()
+      continue
+    }
     // Dismiss a modal/sheet FIRST (e.g. the crypto output modal). A modal can
     // also have a back button, and tapping back on it is a no-op that loops —
     // so its Done/Close/Cancel must win.
@@ -518,6 +567,7 @@ async function escapeHops(alive: () => void): Promise<void> {
       await browser.waitUntil(async () => atTabs(), {timeout: 1500, interval: 80}).catch(() => {})
       continue
     }
+    if (await dismissFormSheet()) continue
     // No back button visible — try the iOS pop gesture (swipe from left edge).
     const {width, height} = await browser.getWindowRect()
     alive()
@@ -564,6 +614,7 @@ export async function goBack(): Promise<void> {
   // 16.4). Guard to a true left-edge chevron so the iPad split conversation
   // pane's mid-screen nav button isn't mistaken for back.
   if (await tapNavBack(true)) return
+  if (await dismissFormSheet()) return
   const {width, height} = await browser.getWindowRect()
   await browser
     .action('pointer')

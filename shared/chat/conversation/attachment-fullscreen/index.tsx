@@ -299,6 +299,9 @@ const NativeFullscreen = (p: Props) => {
 
   const {width: windowWidth} = useSafeAreaFrame()
   const needDiff = windowWidth / 3
+  // the route lets the media run under the side strips; the controls stay clear of them
+  const windowInsets = Kb.useWindowInsets()
+  const sidePadding = {paddingLeft: windowInsets?.left ?? 0, paddingRight: windowInsets?.right ?? 0}
   const initialTouch = React.useRef(-1)
   const maxTouchesRef = React.useRef(0)
   const onTouchStart = (e: GestureResponderEvent) => {
@@ -381,7 +384,12 @@ const NativeFullscreen = (p: Props) => {
       <ShowToastAfterSaving transferState={message.transferState} />
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
       <Animated.View style={[styles.animated, {opacity: fadeAnim ?? 1}]}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.headerWrapper}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          fullHeight={true}
+          style={Kb.Styles.collapseStyles([styles.headerWrapper, sidePadding])}
+        >
           <Kb.Text type="Body" onClick={onClose} style={styles.close}>
             Close
           </Kb.Text>
@@ -393,7 +401,7 @@ const NativeFullscreen = (p: Props) => {
       <Kb.IconButton
         disabled={!hasMessageID}
         icon="iconfont-ellipsis"
-        style={styles.headerFooter}
+        style={Kb.Styles.collapseStyles([styles.headerFooter, {marginLeft: sidePadding.paddingLeft}])}
         onClick={hasMessageID ? showPopup : undefined}
       />
       {popup}

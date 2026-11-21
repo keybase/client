@@ -24,6 +24,9 @@ export type FlowReportPlatform = {
   // The variant a project runs (e.g. dark), or undefined for the plain run. A variant suffixes the card's
   // key and label and never takes a known-failures verdict. Without it cards are keyed by spec only.
   variantOf?: (projectName: string) => string | undefined
+  // The device a card's run variant ran on (e.g. iPhone Duo Folded), for the report's device filter.
+  // Read from the variant when the report is built, so cards stored before it existed get one too.
+  deviceOf?: (variant: string | undefined) => string
   // names the command that produces the results, e.g. 'yarn test:e2e:desktop'
   runHint: string
 }
@@ -308,7 +311,8 @@ function saveBaseline(p: FlowReportPlatform, cards: CardData[]) {
 // The stored flow and tour cards, each section marking its newest run's cards
 const storeSections = (p: FlowReportPlatform, store: CardStore): Array<Section> => {
   const sections: Array<Section> = []
-  if (store.flows.length) sections.push({cards: withLatest(store.flows.map(c => withDiff(p, c)))})
+  const withDevice = (c: StoredCard): StoredCard => (p.deviceOf ? {...c, device: p.deviceOf(c.variant)} : c)
+  if (store.flows.length) sections.push({cards: withLatest(store.flows.map(c => withDevice(withDiff(p, c))))})
   if (store.tour.length) sections.push({cards: withLatest(store.tour), header: `Visual tour (render) · ${store.tour.length} entries`})
   return sections
 }

@@ -101,3 +101,7 @@ export const requirePicked = (
     if (p.sha256 !== w?.sha256) throw new Error(`picked file ${i + 1} is not the corpus's ${w?.name ?? '?'}`)
   })
 }
+
+// The Photos app's library on iOS 27 draws a date's items newest-added first: the corpus in the reverse
+// of the order it was added (LIBRARY_GRID_ORDER, which iOS 26.5's Photos and the photo picker draw).
+export const LIBRARY_GRID_ORDER_REVERSED: ReadonlyArray<LibraryName> = [...LIBRARY_GRID_ORDER].reverse()

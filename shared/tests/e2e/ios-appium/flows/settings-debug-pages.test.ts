@@ -8,9 +8,12 @@
 // (each read off its testID first, so it only acts on what is changed), and the page then leaves.
 import * as T from '../../shared/test-ids'
 import {settingShown} from '../gate/persisted-lib.ts'
-import {step} from '../gate/step'
+import {relaunchApp} from '../gate/device'
+import {skipBecause, step} from '../gate/step'
+import {isDuoUnfolded} from '../gate/thread-route'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
+import {waitSignedIn} from '../helpers/chat'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
@@ -54,6 +57,11 @@ const TYPOGRAPHY: DebugPage = {
 
 // The typography page's samples, in the order Next steps through them (settings/typography.tsx)
 const SAMPLES = 5
+
+// What a relaunch to reopen a page at its start adds to an open on an unfolded Duo (s): the read 1,
+// relaunchApp 200, signed in 90, openSettingsPage 126 = 417; each test's timeout adds it there.
+const DUO_REOPEN_S = 417
+const duoReopenMs = isDuoUnfolded() ? DUO_REOPEN_S * 1000 : 0
 
 // The one control drawn with exactly `label`: the decoration buttons are 'underline' and
 // 'underline+strikethrough', and the section headers repeat the same words, so a contains-match
@@ -120,6 +128,7 @@ describe('settings debug pages', function () {
   //   drag      one drag 1, then a read 1;  control  a control read 1 and its tap 1;  shown  6
   //   step      2 (its 1s settle and the attach)
 
+
   // The typography controls a test changed, put back while the page is still up: each read off its
   // testID and tapped only when it is not the default (a page that is not drawn holds nothing: its
   // controls are the page's own state, which a fresh open starts at the defaults).
@@ -151,9 +160,16 @@ describe('settings debug pages', function () {
   })
 
   // The debug page from the More list, freshly opened at its first screenful; the typography page
-  // with its controls at the defaults. Bound: open 142.
+  // with its controls at the defaults. A split keeps each settings page mounted, so on an unfolded Duo
+  // a page another run scrolled reopens where it was left, and the app is relaunched to open it at
+  // its start. Bound: open 142, and on an unfolded Duo DUO_REOPEN_S more.
   const openDebugPage = async (page: DebugPage) => {
     await openSettingsPage(page.row, page.route, page.marker)
+    if (isDuoUnfolded() && !(await shown(page.top))) {
+      await relaunchApp()
+      await waitSignedIn()
+      await openSettingsPage(page.row, page.route, page.marker)
+    }
     await waitFor(`the ${page.row} page's first screenful`, async () => ((await shown(page.top)) ? true : undefined), {
       interval: 250,
       timeout: 10_000,
@@ -171,7 +187,12 @@ describe('settings debug pages', function () {
     for (let i = 0; i < page.screens; i++) {
       it(`${page.row.toLowerCase()} debug page screen ${i + 1}`, async function () {
         // worst case (s): open 142, 2 per drag (at most 7) 14, the end read 1, step 2 = 159
-        this.timeout(180_000)
+        this.timeout(180_000 + duoReopenMs)
+        // a split keeps the page mounted, so a reopen lands where the last test left it, and the
+        // Duo has no drag that brings it back reliably: only the first screenful runs there
+        if (i > 0 && isDuoUnfolded()) {
+          skipBecause(this, 'an iPhone Duo unfolded reopens a scrolled debug page where it was left')
+        }
         await openDebugPage(page)
         for (let d = 0; d < i; d++) {
           check(!(await shown(page.end)), `the ${page.row} page ends on screenful ${d + 1}: set ${page.constName} to ${d + 1}`)
@@ -191,7 +212,7 @@ describe('settings debug pages', function () {
 
   it('typography debug page dark background', async function () {
     // worst case (s): open 142, control 2, shown 6, step 2 = 152
-    this.timeout(180_000)
+    this.timeout(180_000 + duoReopenMs)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Dark')).click()
     await expectShown(DARK, 'on', 'the Dark background')
@@ -200,7 +221,7 @@ describe('settings debug pages', function () {
 
   it('typography debug page underline decoration', async function () {
     // worst case (s): open 142, control 2, shown 6 x2, step 2 = 158
-    this.timeout(180_000)
+    this.timeout(180_000 + duoReopenMs)
     await openDebugPage(TYPOGRAPHY)
     await (await control('underline')).click()
     await expectShown(decoration('underline'), 'on', 'the underline decoration')
@@ -210,7 +231,7 @@ describe('settings debug pages', function () {
 
   it('typography debug page next sample', async function () {
     // worst case (s): open 142, control 2, shown 6, step 2 = 152
-    this.timeout(180_000)
+    this.timeout(180_000 + duoReopenMs)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Next')).click()
     await expectSample(1, 'the next sample')

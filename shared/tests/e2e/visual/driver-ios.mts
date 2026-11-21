@@ -10,6 +10,8 @@ import {fileURLToPath} from 'url'
 import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, pidFromLaunchctl, udidForName} from '../ios-appium/helpers/app.ts'
+import {screenshotDisplayOf, simctlScreenshot, touchInner} from '../ios-appium/helpers/form-factor.mts'
+import type {StoreTarget} from './store.mts'
 import {evalInPage, inspectorPageFor, lostInspectorPage, retryFor, whileLost} from '../shared/metro-eval.ts'
 import {
   fixDate,
@@ -108,6 +110,24 @@ const SCROLL_ATTEMPTS = 4
 const TARGET_QUIET_MS = 300
 // Longer than a Pressable's 500ms long press delay.
 const LONG_PRESS_S = 1
+
+// Why a capture would not be the app's screen: system UI (Control Center, Notification Center, an
+// alert) is over it, which deactivates the app's scene. Seen on the folded iPhone Duo, where a press
+// under the status column at the right edge opened Control Center.
+export const systemUiOverApp = (appState: string | undefined): string | undefined =>
+  appState && appState !== 'active' ? `system UI is over the app (its AppState is ${appState}), so the screen is not the app's` : undefined
+
+// The Duo's inner screen: XCUITest's presses land on the outer screen, and in Split View it cannot
+// see the app's window, so a long-press there goes through duo-sim.m at this screen point: the target's
+// centre in the app's window, plus where that window starts (the right half, in Split View right)
+const innerTargets: ReadonlyArray<StoreTarget> = ['ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
+export const innerPressPoint = (
+  box: {bottom: number; left: number; right: number; top: number},
+  o: {target: StoreTarget; windowWidth: number; screenWidth: number}
+) => ({
+  x: (box.left + box.right) / 2 + (o.target === 'ios-duo-split-right' ? o.screenWidth - o.windowWidth : 0),
+  y: (box.top + box.bottom) / 2,
+})
 
 // How a capture that left the app broken (`why`) is first tried: a reload runs through the
 // app's inspector page, so without one only a relaunch can help.
@@ -310,7 +330,7 @@ const ROUTER = `const r = kbModule('constants/router.tsx');`
 // The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
 // and placements of coverage/visible.ts: screenPlacement says whether a view is in the focused
 // screen, a hidden one (a hidden tab, a screen under the top one), or outside every screen (the
-// overlays and sheets drawn over the navigator: the global error bar, runtime stats, popups).
+// overlays and sheets drawn over the navigator: the global error bar, popups).
 const FIBERS = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
@@ -457,8 +477,9 @@ export const STILL_VIDEOS = `${FIBERS}
 const HOP_TAB = 'tabs.settingsTab'
 const HOP_TAB_ALT = 'tabs.peopleTab'
 
-export async function openIos(opts: {device: string}): Promise<IosSession> {
-  const {device} = opts
+// `target`: the store target the session captures for (an iPhone Duo's posture)
+export async function openIos(opts: {device: string; target?: StoreTarget}): Promise<IosSession> {
+  const {device, target} = opts
   const udid = udidForName(device)
   const port = appiumPort()
   const appium = await startAppium(port)
@@ -751,6 +772,20 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         if (!(await waitForTarget(s.testID))) throw new Error(`longPress ${s.testID}: not all of it shows; scroll it into view first`)
         const box = await appEval<{bottom: number; left: number; right: number; top: number} | null>(targetBox(s.testID), `measuring ${s.testID}`)
         if (!box) throw new Error(`longPress ${s.testID}: it went before it could be pressed`)
+        if (target && innerTargets.includes(target)) {
+          const dims = await appEval<{screen: number; window: number}>(
+            `const m = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
+             const D = m.default ?? m
+             return {screen: D.get('screen').width, window: D.get('window').width}`,
+            'reading the window size'
+          )
+          const p = innerPressPoint(box, {screenWidth: dims.screen, target, windowWidth: dims.window})
+          touchInner(udid, [
+            {...p, ms: 0},
+            {...p, ms: LONG_PRESS_S * 1000},
+          ])
+          return
+        }
         const at = {x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2}
         await withDeadline(browser.execute('mobile: touchAndHold', {...at, duration: LONG_PRESS_S}), SETUP_MS, `long pressing ${s.testID}`)
         return
@@ -758,8 +793,15 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
 
-  const screenshot = async () =>
-    Buffer.from(await withDeadline(browser.takeScreenshot(), EVAL_MS, 'taking a screenshot'), 'base64')
+  // Appium's screenshot is always a Duo's outer screen, so a Duo is captured through simctl, on the
+  // screen lit at the first capture (the run's posture is applied after the session opens)
+  let duoDisplay: number | undefined | null = null
+  const screenshot = async () => {
+    if (duoDisplay === null) duoDisplay = screenshotDisplayOf(udid)
+    return duoDisplay === undefined
+      ? Buffer.from(await withDeadline(browser.takeScreenshot(), EVAL_MS, 'taking a screenshot'), 'base64')
+      : withDeadline(simctlScreenshot(udid, duoDisplay), EVAL_MS, 'taking a screenshot')
+  }
 
   // Screenshot pixels per window point.
   let scale: number | undefined
@@ -947,6 +989,24 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const takeRecorder = async (startedIn: string) =>
     takePhoneRecorder(async <R,>(b: string) => appEval<R>(b, 'taking the route and RPC recording'), startedIn)
 
+  const appStateNow = async () =>
+    appEval<string>(
+      `const m = kbModule('node_modules/react-native/Libraries/AppState/AppState.js')
+       return (m.default ?? m).currentState`,
+      'reading the AppState'
+    )
+  // Closes system UI left over the app (an earlier entry's touch may have opened it) with an upward
+  // swipe from the bottom edge, so it covers no later entry
+  const dismissSystemUi = async () => {
+    const {height, width} = await browser.getWindowRect()
+    const x = Math.round(width / 2)
+    await withDeadline(
+      browser.action('pointer').move({x, y: height - 5}).down().move({duration: 300, x, y: Math.round(height * 0.2)}).up().perform(),
+      SETUP_MS,
+      'closing system UI over the app'
+    )
+  }
+
   const captureOnce = async (
     entry: TourEntry,
     opts: {record?: boolean} | undefined
@@ -958,6 +1018,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     let result: Capture
     try {
       if (!prepared) throw new Error('capture called before prepare')
+      if (systemUiOverApp(await appStateNow())) await dismissSystemUi()
       await fixture.assertNoneActive()
       const {tab} = entry.nav
       await toTabRoot(tab)
@@ -1009,6 +1070,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         'blurring the focused input'
       )
       await appEval(STILL_VIDEOS, 'pausing videos on their first frame')
+      const covered = systemUiOverApp(await appStateNow())
+      if (covered) throw new Error(covered)
       const settled = await settle(async () => {
         png = await screenshot()
         return png

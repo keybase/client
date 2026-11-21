@@ -202,7 +202,7 @@ test('an account-targeted intent survives the store reset an account switch perf
   unsubscribe()
 })
 
-// This suite loads as desktop, so isSplit is true: the open conversation is chatRoot's param in
+// This suite loads as desktop, so chatAlwaysSplit is true: the open conversation is chatRoot's param in
 // the chat tab (intent-consumption-phone.test.ts covers the phone shape).
 const chatTabState = (conversationIDKey: string) => ({
   index: 0,

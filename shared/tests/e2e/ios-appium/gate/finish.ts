@@ -6,6 +6,7 @@ import {recorders} from './recording.ts'
 import {appLogTail, takeErrors} from './errors.ts'
 import {failureCapture, SCREENSHOT_WITHHELD} from './secret-screen.ts'
 import {uncaughtErrors} from './step-lib.ts'
+import {screenPng} from './screen.ts'
 
 export type TestResult = {passed: boolean; skipped?: boolean; duration: number; error?: Error}
 
@@ -19,7 +20,7 @@ export const finishAttempt = async (result: TestResult) => {
   // none while a secret is on screen (secret-screen.ts): the note says why there is none
   const capture = failureCapture(failed)
   if (capture === 'screenshot') {
-    const png = await browser.takeScreenshot().catch(() => undefined)
+    const png = await screenPng().catch(() => undefined)
     if (png) attempt.addAttachment('screenshot', 'image/png', Buffer.from(png, 'base64'))
   } else if (capture === 'withheld') {
     attempt.addAttachment('screenshot-withheld', 'text/plain', SCREENSHOT_WITHHELD)

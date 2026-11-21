@@ -3,8 +3,10 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
+import {useRoute} from '@react-navigation/native'
 import type * as T from '@/constants/types'
-import {navigateToInbox} from '@/constants/router'
+import {getTab, getVisibleScreen, navigateToInbox} from '@/constants/router'
+import * as Tabs from '@/constants/tabs'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
@@ -23,6 +25,9 @@ type Props = {
 
 const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props) => {
   const styles = useStyles()
+  // a mobile split chat shows the panel beside the thread; a narrow phone pushes it as its own route
+  const asRoute = useRoute().name === 'chatInfoPanel'
+  const paneled = isMobile && !asRoute
   const conversationIDKey = _conversationIDKey ?? Chat.noConversationIDKey
   const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -36,12 +41,20 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
   const insets = Kb.useSafeAreaInsets()
 
   const hideInfoPanel = React.useEffectEvent(() => {
+    // An iPhone Duo folding or unfolding moved the panel to the other layout's place for it
+    // (moveOpenThreadToLayout); hiding here would close the moved panel.
+    if (asRoute === Chat.isChatSplit()) return
+    // Unmounted because another tab took over (a backup's "See progress" opening Settings), or another
+    // conversation now shows (a link opened one): there is no panel of this conversation on screen to
+    // close, and the hide would put this conversation back (and, in a split, reset the tabs onto chat).
+    if (getTab() !== Tabs.chatTab) return
+    const shown = getVisibleScreen()?.params as {conversationIDKey?: unknown} | undefined
+    if (shown?.conversationIDKey !== undefined && shown.conversationIDKey !== conversationIDKey) return
     showConversationInfoPanel(conversationIDKey, false, undefined)
   })
   React.useEffect(() => {
     return () => {
-      // Only call showInfoPanel(false) on mobile where the panel is a separate route.
-      // On desktop the panel is inline and this cleanup fires during StrictMode
+      // Only on mobile: on desktop the panel is inline and this cleanup fires during StrictMode
       // double-effect, which immediately hides the panel.
       if (isMobile) {
         hideInfoPanel()
@@ -148,12 +161,12 @@ const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props)
     default:
       sectionList = null
   }
-  if (Kb.Styles.isTablet) {
+  if (paneled) {
     // Use a View to make the left border.
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.containerOuterTablet}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.containerBorder}></Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.containerPaneled}>
           {sectionList}
         </Kb.Box2>
       </Kb.Box2>
@@ -190,16 +203,18 @@ const useStyles = Kb.Styles.createStyleHook(
           borderLeft: `1px solid ${theme.black_10}`,
           width: infoPanelWidthElectron,
         },
-        isTablet: {
-          paddingTop: Kb.Styles.globalMargins.small,
-          width: infoPanelWidthTablet,
-        },
       }),
       containerBorder: {
         backgroundColor: theme.black_10,
         width: tabletContainerBorderSize,
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
+      containerPaneled: {
+        alignItems: 'stretch',
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.small,
+        width: infoPanelWidthTablet,
+      },
       tab: {
         justifyContent: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,

@@ -149,6 +149,10 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		ConvID: convID,
 		MsgID:  msgID,
 	})
+	// no server, no URL: the query alone would read as a relative path
+	if url == "" {
+		return ""
+	}
 	url += fmt.Sprintf("&prev=%v&noanim=%v&isemoji=%v", preview, noAnim, isEmoji)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url

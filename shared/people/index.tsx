@@ -24,6 +24,8 @@ type Props = {
   myUsername: string
 }
 type WrapProps = {waiting: boolean} & Props
+// the page scrolls under the screen's side strips; each row pads its content clear of them
+type SidePadding = {paddingLeft: number; paddingRight: number}
 
 const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
   switch (item.type) {
@@ -78,8 +80,8 @@ const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: P
 const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signupEmail: string) =>
   item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !signupEmail
 
-function EmailVerificationBanner(props: {signupEmail: string}) {
-  const {signupEmail} = props
+function EmailVerificationBanner(props: {signupEmail: string; sideInsets: SidePadding}) {
+  const {signupEmail, sideInsets} = props
   React.useEffect(
     () => () => {
       if (signupEmail) {
@@ -94,18 +96,23 @@ function EmailVerificationBanner(props: {signupEmail: string}) {
   }
 
   if (signupEmail === C.noEmail) {
-    return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
+    return (
+      <Kb.Banner color="green" style={sideInsets}>
+        Welcome to Keybase!
+      </Kb.Banner>
+    )
   }
   return (
-    <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
+    <Kb.Banner color="green" style={sideInsets}>{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
   )
 }
 
 function ResentEmailVerificationBanner(props: {
   resentEmail: string
   setResentEmail: (email: string) => void
+  sideInsets: SidePadding
 }) {
-  const {resentEmail, setResentEmail} = props
+  const {resentEmail, setResentEmail, sideInsets} = props
   React.useEffect(
     () => () => {
       if (resentEmail) {
@@ -120,7 +127,7 @@ function ResentEmailVerificationBanner(props: {
   }
 
   return (
-    <Kb.Banner color="yellow">
+    <Kb.Banner color="yellow" style={sideInsets}>
       <Kb.BannerParagraph
         bannerColor="yellow"
         content={`Check your inbox! A verification link was sent to ${resentEmail}.`}
@@ -130,12 +137,18 @@ function ResentEmailVerificationBanner(props: {
 }
 
 function PeoplePageList(props: Props) {
+  const {left, right} = Kb.useScreenSideInsets()
+  const sideInsets = {paddingLeft: left, paddingRight: right}
   const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true} testID={TestIDs.PEOPLE_FEED}>
-      <EmailVerificationBanner signupEmail={props.signupEmail} />
-      <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
+      <EmailVerificationBanner signupEmail={props.signupEmail} sideInsets={sideInsets} />
+      <ResentEmailVerificationBanner
+        resentEmail={props.resentEmail}
+        setResentEmail={props.setResentEmail}
+        sideInsets={sideInsets}
+      />
       {visibleNewItems.map((item): React.ReactNode => renderPeopleItem(item, props))}
       <FollowSuggestions suggestions={props.followSuggestions} />
       {props.oldItems.map((item): React.ReactNode => renderPeopleItem(item, props))}
@@ -157,7 +170,7 @@ function People(props: WrapProps) {
     C.ignorePromise(refresh().finally(() => setPulled(false)))
   }
   return (
-    <Kb.ScrollView style={styles.container} refreshing={pulled} onRefresh={onRefresh}>
+    <Kb.ScrollView style={styles.container} refreshing={pulled} onRefresh={onRefresh} noSideInsets={true}>
       {!isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
       <PeoplePageList {...rest} />
     </Kb.ScrollView>

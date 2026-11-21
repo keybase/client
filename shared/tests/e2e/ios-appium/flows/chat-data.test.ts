@@ -29,6 +29,7 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {callsSince, currentCallSeq, uiCallsSince, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {tapBack} from '../gate/screens'
+import {threadRoute} from '../gate/thread-route.ts'
 import {manualEdge, step} from '../gate/step'
 import {
   accountChangedSeq,
@@ -152,6 +153,12 @@ describe('chat data', function () {
       })
       await step('Each send, the three-line one too, settled at the end')
 
+      // an iPhone Duo unfolded shows the thread beside the inbox, with no back
+      if (threadRoute() === 'chatRoot') {
+        await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000, timeoutMsg: 'the inbox is not beside the DM'})
+        await step('The inbox beside the DM', {screenshot: false})
+        return
+      }
       check(await tapBack(), 'the DM has no back button')
       await el(T.CHAT_INBOX_LIST).waitForExist({timeout: 10_000, timeoutMsg: 'back did not return to the inbox'})
       check((await visibleConversation()) === null, 'a conversation is still the visible screen after back')
@@ -628,6 +635,12 @@ describe('chat data', function () {
       // worst case (s): channel 240, peer 70, the first send 90 (retried 30, then one send 60), second
       // 425, its body (open 100, the inbox 15, step 2, leave 60, the 5s watch 6, step 2) 185 = 1010
       this.timeout(1_030_000)
+      // an iPhone Duo unfolded shows the thread beside the inbox, with a selection that moves as a
+      // desktop's does: there is no phone thread to keep open
+      if (threadRoute() === 'chatRoot') {
+        console.log("[ios gate] skipped: a split chat's selection moves as a desktop's, so a phone's open thread is not under test")
+        this.skip()
+      }
       const {convID, topicName} = await createThrowawayChannel('dsel')
       created.push(topicName)
       // the peer's inbox may not list a channel this new yet: its first send waits until it does

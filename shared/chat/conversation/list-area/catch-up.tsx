@@ -122,8 +122,13 @@ export const CatchUp = (p: {onClick: () => void}) => {
   const {onClick} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
+  const {right} = Kb.useScreenSideInsets()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} pointerEvents="box-none">
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([styles.container, right ? {right: right + Kb.Styles.globalMargins.tiny} : null])}
+      pointerEvents="box-none"
+    >
       <Kb.ClickableBox
         asButton={true}
         direction="horizontal"

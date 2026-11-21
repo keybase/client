@@ -205,7 +205,7 @@ export const CryptoOutputActionsBar = ({
       ) : (
         <Kb.ButtonBar
           direction="row"
-          align={Kb.Styles.isTablet ? 'center' : 'flex-start'}
+          align={isMobile ? 'center' : 'flex-start'}
           style={styles.buttonBar}
         >
           {canReplyInChat && state.outputSigned && state.outputSenderUsername ? (

@@ -1,7 +1,5 @@
 import {execFileSync} from 'child_process'
 import {maskedRunError} from '../gate/run-errors-lib.ts'
-import {existsSync} from 'fs'
-import * as path from 'path'
 
 // A synchronous child blocks the event loop, so mocha's per-test timeout can never fire while it
 // runs: every one needs its own deadline. simctl, for one, can wait forever on an Xcode
@@ -79,21 +77,6 @@ export function requireSmokeUser(): string {
   return u
 }
 
-// Xcode 27 replaced Simulator.app with DeviceHub.app. With a simulator running and no
-// Simulator.app window, the xcuitest driver (appium-ios-simulator run()) shuts the simulator
-// down and tries to open Simulator.app to show it, which fails the session. isHeadless makes it
-// accept the booted simulator as is instead. It must stay off wherever Simulator.app exists: in
-// headless mode the driver kills the Simulator.app window and reboots the device without one.
-// It never touches DeviceHub, which the runners open, so the window stays up either way.
-function hasSimulatorApp(): boolean {
-  try {
-    const developerDir = runSync('xcode-select', ['-p'], 30_000).trim()
-    return existsSync(path.join(developerDir, 'Applications', 'Simulator.app'))
-  } catch {
-    return true
-  }
-}
-
 interface IosCapsOpts {
   wdaLocalPort?: number
 }
@@ -107,7 +90,8 @@ export function iosCapabilities(udid: string, opts: IosCapsOpts = {}) {
     'appium:bundleId': 'keybase.ios',
     'appium:noReset': true,
     'appium:newCommandTimeout': 120,
-    ...(hasSimulatorApp() ? {} : {'appium:isHeadless': true}),
+    // never isHeadless: the driver (appium-ios-simulator 8+) knows Xcode 27's DeviceHub, and in headless
+    // mode it quits DeviceHub, the window a person watches the run in
     'appium:wdaLaunchTimeout': 120000,
     // Speed up session init / commands: don't wait for app quiescence on launch
     // and skip device log capture.

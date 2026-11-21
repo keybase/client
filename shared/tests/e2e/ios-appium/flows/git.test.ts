@@ -24,6 +24,7 @@ import {settingShown} from '../gate/persisted-lib.ts'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {retriedNavigation, step} from '../gate/step'
 import {closeMessageMenu, hideKeyboard} from '../helpers/chat'
+import {readsFrames} from '../gate/shown-lib.ts'
 import {el, waitForTestID} from '../helpers/elements'
 import {drag, fillField, pressTestID, tapButton} from '../helpers/files'
 import {expectScreen} from '../gate/screens'
@@ -161,7 +162,10 @@ describe('git', function () {
   // 5s = 16.
   const notifyOff = async (base: string) => {
     await el(T.settingTestID(base, true)).waitForExist({timeout: 10_000})
-    await el(T.settingTestID(base, true)).click()
+    // an iPhone Duo's short screen puts the switch under the keyboard the name field raised
+    if (readsFrames()) await hideKeyboard()
+    // a click on the switch in the delete modal can tap nothing (xcuitest driver 13)
+    await press(await el(T.settingTestID(base, true)).getElement(), 'the Notify the team switch')
     await el(T.settingTestID(base, false)).waitForExist({timeout: 5_000})
   }
 

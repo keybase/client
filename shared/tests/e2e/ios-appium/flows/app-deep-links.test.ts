@@ -29,9 +29,16 @@ import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {throwawayChannels} from '../helpers/chat-host'
 import {expectTeamPage, masked} from '../helpers/teams'
+import {threadRoute} from '../gate/thread-route.ts'
 
-// the texts of the navigation bar, where a conversation's header draws its channel's name
-const HEADER_TEXTS = '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeStaticText'
+// The texts of the open thread's header, and how it names a team channel: its native bar reads
+// "#<channel>"; where the thread shows beside the inbox (an iPhone Duo unfolded) the split's own
+// header, along the top of the window, reads "<team>#<channel>".
+const HEADER_TEXTS = () =>
+  threadRoute() === 'chatRoot'
+    ? '-ios predicate string:type == "XCUIElementTypeStaticText" AND rect.y < 60'
+    : '-ios class chain:**/XCUIElementTypeNavigationBar/**/XCUIElementTypeStaticText'
+const headerChannelName = (team: string, topic: string) => (threadRoute() === 'chatRoot' ? `${team}#${topic}` : `#${topic}`)
 
 // a uid that is no account's: a link, unlike a tapped notification, never acts on one
 const OTHER_UID = '00000000000000000000000000000019'
@@ -74,7 +81,7 @@ describe('app deep links', function () {
     openLink(`keybase://chat/${team}#${topicName}`)
     await conversationOpened('the conversation the channel link opened', convID)
     // the name compared in memory, never put into a selector or an error
-    await waitFor('the channel name in the header', async () => labelledElement(HEADER_TEXTS, `#${topicName}`, 'the channel name in the header'), {
+    await waitFor('the channel name in the header', async () => labelledElement(HEADER_TEXTS(), headerChannelName(team, topicName), 'the channel name in the header'), {
       interval: 250,
       timeout: 10_000,
     })
@@ -157,7 +164,7 @@ describe('app deep links', function () {
     // the new runtime's first recording: up on the conversation as it started, People never shown
     const rec = attemptRecording()
     await rec.checkpoint()
-    check(launchedInto(rec.recordings.at(-1), 'chatConversation'), 'the launched app did not come up on the conversation the link named')
+    check(launchedInto(rec.recordings.at(-1), threadRoute()), 'the launched app did not come up on the conversation the link named')
     creditSurface('deep-link')
     creditSurface('relaunch')
     await step('The link launched the app into the conversation', {card: true})

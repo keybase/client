@@ -57,6 +57,7 @@ import {
   tapTeamsCard,
   textShown,
 } from '../helpers/teams'
+import {threadRoute} from '../gate/thread-route.ts'
 
 type Params = Record<string, unknown>
 
@@ -292,7 +293,7 @@ describe('teams second account', function () {
       await el(T.CHAT_BLOCK_BUTTONS).waitForExist({timeout: 30_000})
       await textShown(`${smokeUser} added you to this team.`, "the invitation's adder")
       await step('The invitation to block the adder')
-      await expectScreen("the subteam's conversation", 'chatConversation', onConversation)
+      await expectScreen("the subteam's conversation", threadRoute(), onConversation)
       const seq = await currentCallSeq()
       await pressTestID(T.CHAT_BLOCK_BUTTONS_DISMISS, 'the block buttons dismiss')
       await waitForUiCall('the dismiss to go out', seq, 'keybase.1.user.dismissBlockButtons')

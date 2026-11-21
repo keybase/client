@@ -6,11 +6,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import type {Page} from '@playwright/test'
-import {mainServiceLog} from '@/tests/e2e/accounts/env'
 import {KBFS_START_COMMAND} from '@/tests/e2e/shared/gate/processes'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
-import {expectPersists, reloadKeepingCoverage} from '@/tests/e2e/electron/helpers/persisted'
+import {expectPersists} from '@/tests/e2e/electron/helpers/persisted'
 import {
   clickCheckbox,
   isChecked,
@@ -415,70 +414,6 @@ test('Advanced > lockdown mode', async ({page}, testInfo) => {
         if (!(await lockdown())) return
         await mainRpc('keybase.1.account.setLockdownMode', {enabled: false, sessionID: 0})
         expect(await lockdown(), 'lockdown mode after the restore').toBe(false)
-      },
-    ]
-  )
-})
-
-// The developer controls show after the warning line is clicked this many times (settings/advanced.tsx).
-const developerClicks = 7
-
-// Whether the service is sending runtime stats: while on it logs an update every 4s
-// (go/runtimestats/stats.go), and the service has no call that says.
-const lastStatsUpdate = () => {
-  const fd = fs.openSync(mainServiceLog(), 'r')
-  try {
-    const size = fs.fstatSync(fd).size
-    const len = Math.min(size, 4 * 1024 * 1024)
-    const buf = Buffer.alloc(len)
-    fs.readSync(fd, buf, 0, len, size - len)
-    const line = buf
-      .toString('utf8')
-      .split('\n')
-      .findLast(l => l.includes('RuntimeStats.Runner: update'))
-    return line ? Date.parse(line.slice(0, line.indexOf(' '))) : 0
-  } finally {
-    fs.closeSync(fd)
-  }
-}
-const statsRunning = () => Date.now() - lastStatsUpdate() < 6_000
-
-test('Advanced > runtime stats overlay shows, then hides', async ({page}, testInfo) => {
-  const overlay = page.getByTestId(T.RUNTIME_STATS)
-  await expect(overlay, 'no runtime stats overlay before the flow').toHaveCount(0)
-  await withCleanup(
-    async () => {
-      await openAdvanced(page)
-      const warning = settingsPage(page, T.SETTINGS_ADVANCED).getByText("Please don't do anything below here unless instructed to by a developer.", {exact: true})
-      for (let i = 0; i < developerClicks; i++) await warning.click()
-      const button = settingsPage(page, T.SETTINGS_ADVANCED).getByText('Toggle Runtime Stats', {exact: true})
-      await button.click()
-      await expect.poll(statsRunning, {message: 'the service sends runtime stats', timeout: 20_000}).toBe(true)
-      await expect(overlay, 'the runtime stats overlay').toBeVisible({timeout: 20_000})
-      await step(page, testInfo, 'runtime stats shown', {card: true})
-      await button.click()
-      await expect(overlay, 'the runtime stats overlay after the second toggle').toHaveCount(0, {timeout: 20_000})
-      // a renderer that went blank also has no overlay
-      await expect(page.getByTestId(T.NAV_TAB_CHAT), 'the app still renders after the overlay hides').toBeVisible()
-      await step(page, testInfo, 'runtime stats hidden')
-    },
-    [
-      async () => {
-        // stats turned off a moment ago still show a recent update until it ages out
-        const stopped = async () =>
-          expect
-            .poll(statsRunning, {intervals: [500], timeout: 10_000})
-            .toBe(false)
-            .then(() => true)
-            .catch(() => false)
-        if (await stopped()) return
-        await mainRpc('keybase.1.config.toggleRuntimeStats', {})
-        expect(await stopped(), 'the service stopped sending runtime stats after the restore').toBe(true)
-      },
-      async () => {
-        if (await page.getByTestId(T.NAV_TAB_CHAT).isVisible()) return
-        // a renderer that died under the overlay is reloaded so the next test meets the app
-        await reloadKeepingCoverage(page)
       },
     ]
   )

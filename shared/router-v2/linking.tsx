@@ -1,7 +1,7 @@
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
-import {isSplit} from '@/constants/chat/layout'
+import {isChatSplit, tabStacksHoldEveryRoute} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -23,8 +23,8 @@ export {emitDeepLink, normalizeUrl} from './deep-link-emitter'
 
 // Build state for navigating to a chat conversation
 export const makeChatConversationState = (conversationIDKey: string): NavTree.PartialNavState =>
-  isSplit
-    ? // Tablet/desktop: chatRoot with conversationIDKey param (split view)
+  isChatSplit()
+    ? // Split view (desktop, tablet, a wide phone): chatRoot with conversationIDKey param
       NavTree.tabState(Tabs.chatTab, [{name: 'chatRoot', params: {conversationIDKey}}])
     : // Phone: tabs at root, conversation pushed above them
       NavTree.pushedAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey}})
@@ -47,7 +47,7 @@ const focusedRoute = (s?: NavRouteState) => s?.routes?.[s.index ?? s.routes.leng
 // the split layout shows it as chatRoot's param inside the chat tab, with nothing above loggedIn.
 const openConversationIDKey = (navState?: NavRouteState) => {
   const top = navState?.routes?.at(-1)
-  if (!isSplit) {
+  if (!isChatSplit()) {
     return top?.name === 'chatConversation' ? top.params?.conversationIDKey : undefined
   }
   if (top?.name !== 'loggedIn') return undefined
@@ -170,7 +170,7 @@ const customGetStateFromPath = (
       if (!isMobile) {
         return NavTree.tabState(Tabs.devicesTab)
       }
-      if (isSplit) {
+      if (tabStacksHoldEveryRoute) {
         // Tablet: the Settings tab stack holds every settings route, so devices pushes
         // above the tab root, inside that stack.
         return NavTree.tabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
@@ -186,7 +186,7 @@ const customGetStateFromPath = (
       try {
         const decoded = decodeURIComponent(cleanPath)
         const path = `/keybase/${decoded}`
-        if (isSplit) {
+        if (tabStacksHoldEveryRoute) {
           // Tablet: push the folder above the Files tab root, inside the tab stack.
           return NavTree.tabState(Tabs.fsTab, [{name: 'fsRoot'}, {name: 'fsBrowse', params: {path}}])
         }

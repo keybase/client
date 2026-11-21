@@ -35,6 +35,9 @@ const dismissBlockButtons = (rpc: ChatThreadRpc, teamID: T.RPCGen.TeamID) => {
 const BlockButtons = () => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
+  // the dismiss stays clear of the right strip (an iPhone Duo's status column), where it would sit
+  // under the status indicators
+  const {right} = Kb.useScreenSideInsets()
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
   const rpc = useThreadRpc()
@@ -139,7 +142,7 @@ const BlockButtons = () => {
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
         <Kb.Icon
-          style={styles.dismissIcon}
+          style={right ? Kb.Styles.collapseStyles([styles.dismissIcon, {right: Kb.Styles.globalMargins.small + right}]) : styles.dismissIcon}
           type="iconfont-close"
           color={theme.black_20}
           onClick={onDismiss}

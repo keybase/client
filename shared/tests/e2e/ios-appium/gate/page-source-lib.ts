@@ -1,6 +1,8 @@
 // The elements of an Appium (XCUITest) page source, in document order, with their attributes
 // decoded. Pure: one page source read replaces a WebDriver call per element and attribute.
 
+import {readsFrames, sourceVisible} from './shown-lib.ts'
+
 export type SourceElement = {attrs: Record<string, string>; type: string}
 
 const entities: Record<string, string> = {amp: '&', apos: "'", gt: '>', lt: '<', quot: '"'}
@@ -17,8 +19,20 @@ const attrsOf = (tag: string) => {
   return out
 }
 
-export const sourceElements = (source: string): Array<SourceElement> =>
-  [...source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>/g)].map(m => ({attrs: attrsOf(m[0]), type: m[1] ?? ''}))
+// Each element's `visible` reads what "shown" means on the run (shown-lib.ts' sourceVisible).
+export const sourceElements = (source: string): Array<SourceElement> => {
+  const els = [...source.matchAll(/<(XCUIElementType[A-Za-z]+) [^>]*>/g)].map(m => ({attrs: attrsOf(m[0]), type: m[1] ?? ''}))
+  if (!readsFrames()) return els
+  const visible = sourceVisible(
+    source,
+    els.map(e => ({rect: sourceRect(e.attrs), type: e.type, visible: e.attrs['visible']})),
+    () => sourceParents(source)
+  )
+  return els.map((e, i) => {
+    const v = visible[i]
+    return v === e.attrs['visible'] || v === undefined ? e : {...e, attrs: {...e.attrs, visible: v}}
+  })
+}
 
 // Each of sourceElements' elements' parent, as an index into them (-1: none), read off the same tags.
 export const sourceParents = (source: string): Array<number> => {

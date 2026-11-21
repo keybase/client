@@ -49,6 +49,7 @@ import {
   showsText,
   storedMessage,
   suggestionRows,
+  tapSendUntil,
   typeInComposer,
   typeIntoFocused,
   unreadCount,
@@ -209,8 +210,8 @@ describe('chat composer', function () {
   describe('drafts', () => {
     it('a draft survives a conversation switch and an app relaunch', async function () {
       // worst case (s): read 110, reset 46, type 15, step 2, open 100, draft 142, step 2, open 100,
-      // composer 5, open 100, draft 142, relaunch 200, signed in 90, draft 142, step 2, open 100,
-      // composer 5, step 2 = 1305; the margin covers a slow relaunch
+      // composer 5, open 100, draft 142, relaunch 200, signed in 90, open 100, draft 142, step 2,
+      // open 100, composer 5, step 2 = 1405; the margin covers a slow relaunch
       this.timeout(1500_000)
       await openDirectRead()
       await resetComposer()
@@ -229,6 +230,9 @@ describe('chat composer', function () {
       await expectDirectDraft(draft)
       await relaunchApp()
       await waitSignedIn()
+      // read from another conversation on every form factor, so the DM row is never the selected
+      // one (which shows no draft): a relaunched split selects the newest small conversation, the DM
+      await openScratch()
       await expectDirectDraft(draft)
       creditSurface('relaunch')
       await step("After a relaunch the DM's inbox row still shows the draft", {screenshot: false})
@@ -266,14 +270,15 @@ describe('chat composer', function () {
     })
 
     it('typing straight after a send is not erased', async function () {
-      // worst case (s): read 110, reset 46, type 15, the tap 1, the typing 5, row 15, the pause 1,
-      // composer 5, cli 80, step 2 = 280
+      // worst case (s): read 110, reset 46, type 15, the send 14, the typing 5, row 15, the pause 1,
+      // composer 5, cli 80, step 2 = 293
       this.timeout(300_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-quick')
       await typeInComposer(text)
-      await el(T.CHAT_SEND_BUTTON).click()
+      // read every 100ms, so what is typed next comes straight after the send
+      await tapSendUntil(async () => (await composerText()) === '', 100)
       await el(T.CHAT_INPUT).addValue('next')
       await waitForRow(text)
       // the sent row has landed and the list has settled; what was typed after the send is all there

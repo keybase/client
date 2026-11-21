@@ -12,14 +12,18 @@ export type Props = {
 
 const FollowSuggestions = (props: Props) => {
   const styles = useStyles()
+  // the list scrolls under the screen's side strips and pads its content clear of them
+  const {left} = Kb.useScreenSideInsets()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Text type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.text, {marginLeft: styles.text.marginLeft + left}])}>
         Consider following...
       </Kb.Text>
       <Kb.ScrollView
         {...horizontalScrollProps}
         contentContainerStyle={styles.scrollViewContainer}
+        // the content already pads clear of the side strips; iOS would inset it by them again
+        contentInsetAdjustmentBehavior="never"
         testID={TestIDs.PEOPLE_FOLLOW_SUGGESTIONS}
       >
         {props.suggestions.map(suggestion => (

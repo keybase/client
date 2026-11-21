@@ -10,8 +10,8 @@ import {createHash} from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import type {ChainablePromiseElement} from 'webdriverio'
-import {byText, clearFieldByKeys, el, els, fieldText, pasteFromMenu, waitForTestID} from './elements'
-import {appSnapshot, openUrl, waitFor} from './lifecycle'
+import {byText, clearFieldByKeys, el, els, fieldText, holdAt, pasteFromMenu, tapAt, waitForTestID} from './elements'
+import {appSnapshot, openUrl, selfConversationID, waitFor} from './lifecycle'
 import {check, menuSheet, openSheets, openSheetWith, waitForSheetGone} from './menus'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 import {fiberPrelude} from './fiber-prelude'
@@ -45,6 +45,7 @@ import {
 import {sourceElements} from '../gate/page-source-lib.ts'
 import {loadE2EAccounts} from '../../accounts/env'
 import {relaunchApp} from '../gate/device.ts'
+import {threadRoute} from '../gate/thread-route.ts'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -482,7 +483,7 @@ export const flickThread = async (dy: number) => {
 // Taps the status bar, which asks the list to scroll to its top (for this inverted list, its end).
 export const tapStatusBar = async () => {
   const {width} = await browser.getWindowRect()
-  await browser.execute('mobile: tap', {x: Math.round(width / 2), y: 8})
+  await tapAt(width / 2, 8)
 }
 
 // -- conversations ------------------------------------------------------------------------------
@@ -490,7 +491,7 @@ export const tapStatusBar = async () => {
 // The conversation the visible screen shows once a chat thread is pushed, or undefined before then.
 const openedConversation = async () => {
   const {screen} = await appSnapshot()
-  const id = screen?.name === 'chatConversation' ? screen.params?.['conversationIDKey'] : undefined
+  const id = screen?.name === threadRoute() ? screen.params?.['conversationIDKey'] : undefined
   return typeof id === 'string' ? id : undefined
 }
 
@@ -511,12 +512,35 @@ export const openConversation = async (convID: string) => {
   await hideKeyboard()
   await escapeToTabs()
   await navigateToChat()
-  openUrl(`keybase://convid/${convID}`)
-  await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
-    interval: 250,
-    timeout: 20_000,
-  })
+  // the thread beside the inbox (an iPhone Duo unfolded) stays mounted at the tab root, so opening it
+  // again would keep it where an earlier test left it: another conversation (the smoke account's own)
+  // opens first, and this one then mounts afresh, as a phone's pushed thread does
+  if (threadRoute() === 'chatRoot' && (await openedConversation()) === convID) {
+    const self = await selfConversationID(loadE2EAccounts().smokeUser)
+    if (self !== convID) await openByLink(self)
+  }
+  await openByLink(convID)
   await waitForThread(convID)
+}
+
+// A link that opens nothing names what the app shows instead: the route, and whether its conversation
+// is another or none.
+const openByLink = async (convID: string) => {
+  openUrl(`keybase://convid/${convID}`)
+  try {
+    await waitFor('the conversation to open', async () => ((await openedConversation()) === convID ? true : undefined), {
+      interval: 250,
+      timeout: 20_000,
+    })
+  } catch (e) {
+    if (isAttemptOver(e)) throw e
+    let shown = 'nothing the app could say'
+    try {
+      const {screen} = await appSnapshot()
+      shown = `${screen?.name ?? 'no screen'}, with ${screen?.params?.['conversationIDKey'] ? 'another conversation' : 'no conversation'}`
+    } catch {}
+    throw new Error(`the conversation never opened: the app shows ${shown}`, {cause: e})
+  }
 }
 
 // The inbox from its top to its end is ~8 pages on the test account (each drag ~3s, the app settling)
@@ -645,6 +669,10 @@ const seekInbox = async (
       // as at the end: one still drag may be a tap or a settling list, two in a row cannot move it
       stillShifts = shifted.signature === drawn.signature ? stillShifts + 1 : 0
       if (stillShifts >= INBOX_END_STILL_DRAGS) {
+        // the list cannot move further (an item at the top of an inbox at its start, as an iPhone
+        // Duo's inbox column draws its first row flush with the band): one wholly inside the band,
+        // with no margin, is in view
+        if (whollyInBand(span, band, 0)) return elementOfItem(drawn.items[at]!)
         throw new Error(`the inbox item asked for cannot be brought wholly into view: ${stillShifts} drags to move it changed nothing (${last})`)
       }
       drawn = shifted
@@ -930,29 +958,33 @@ export const suggestionRows = async () => {
   return Promise.all(found.map(async e => ({e, words: ((await e.getAttribute('label')) ?? '').split(/[ ,]+/).filter(w => !!w)})))
 }
 
-// Sends `text` through the composer's send button and returns the ordinal of its row.
-// A Send tap right after the typing has now and then not taken: the text stayed in the composer and
-// nothing was sent. Send is tapped a second time only when the first sent nothing (no row with the
-// text, the composer not emptied), read again right before the second tap since the first can land
-// after its 3s of reads, so nothing is sent twice. Bound 25: the typing 5, the button 5, the first
-// tap (the tap 1, 3s of reads) 4, the second (a read 1, the tap 1, 3s of reads) 5, the row 6.
-export const sendMessage = async (text: string) => {
-  await typeInComposer(text)
+// Taps Send until `took` reads true. A Send tap right after the typing has now and then not taken:
+// the text stayed in the composer and nothing was sent. Send is tapped a second time only when the
+// first sent nothing, read again right before the second tap since the first can land after its 3s
+// of reads, so nothing is sent twice. Bound 14: the button 5, the first tap (the tap 1, 3s of reads)
+// 4, the second (a read 1, the tap 1, 3s of reads) 5.
+export const tapSendUntil = async (took: () => Promise<boolean>, interval = 250) => {
   await waitForTestID(T.CHAT_SEND_BUTTON, 5_000)
-  const took = async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === ''
   for (let i = 0; ; i++) {
-    if (i > 0 && (await took())) break
+    if (i > 0 && (await took())) return
     await el(T.CHAT_SEND_BUTTON).click()
-    const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval: 250, timeout: 3_000}).catch(
+    const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval, timeout: 3_000}).catch(
       (e: unknown) => {
         if (isAttemptOver(e)) throw e
         return false
       }
     )
-    if (sent) break
+    if (sent) return
     if (i === 1) throw new Error('two taps on Send sent nothing: the text is still in the composer')
-    console.log('sendMessage: the first Send tap sent nothing; tapping it again')
+    console.log('the first Send tap sent nothing; tapping it again')
   }
+}
+
+// Sends `text` through the composer's send button and returns the ordinal of its row: the send took
+// once its row shows or the composer empties. Bound 25: the typing 5, tapSendUntil 14, the row 6.
+export const sendMessage = async (text: string) => {
+  await typeInComposer(text)
+  await tapSendUntil(async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === '')
   return waitForRow(text, 6_000)
 }
 
@@ -996,7 +1028,7 @@ export const hideKeyboard = async () =>
 export const openMessageMenu = async (text: string) => {
   await openSheetWith(`the menu of the message "${text}"`, async () => {
     const {x, y} = await rowCentre(text)
-    await browser.execute('mobile: touchAndHold', {duration: 0.8, x, y})
+    await holdAt(x, y, 0.8)
   })
 }
 
@@ -1027,11 +1059,12 @@ const openSheetFrames = async () => {
   }
 }
 
-// The window's safe-area top: the status bar's height, as WDA reports it. Bound: 1.
+// The window's safe-area top: the status bar's height, as WDA reports it. 0 is a real answer on an
+// unfolded iPhone Duo, whose clock is in its side column. Bound: 1.
 const safeAreaTop = async () => {
   const info = await browser.execute('mobile: deviceScreenInfo')
   const h = (info as {statusBarSize?: {height?: number}} | undefined)?.statusBarSize?.height
-  if (typeof h !== 'number' || !(h > 0)) throw new Error('no status bar height from the device: not tapping')
+  if (typeof h !== 'number' || h < 0) throw new Error('no status bar height from the device: not tapping')
   return h
 }
 
@@ -1066,7 +1099,7 @@ export const closeMessageMenu = async () =>
       }
       if (close) {
         alive()
-        await browser.execute('mobile: tap', {x: Math.round(close.x), y: Math.round(close.y)})
+        await tapAt(close.x, close.y)
         break
       }
       if (drags >= 2) throw new Error('the menu sheet shows no Close on screen and too little backdrop above it: not tapping inside the sheet')
@@ -1174,12 +1207,27 @@ const headerMenuItem = (label: string) =>
 // Each tap waits for its effect before the next: the menu closes as soon as its item is tapped but
 // what it opens can take longer to show, and a More tapped in that gap reopens the menu over it (seen
 // live: thread search open under the header menu). Bound: 15s.
-export const openHeaderMenuItem = async (item: string, opened: () => Promise<boolean>) => {
+export const openHeaderMenuItem = async (item: 'Info' | 'Search', opened: () => Promise<boolean>) => {
   await hideKeyboard()
   const settle = async (what: string, done: () => Promise<boolean>) =>
     waitFor(what, async () => ((await done()) ? true : undefined), {interval: 250, timeout: 3_000}).catch((e: unknown) => {
       if (isAttemptOver(e)) throw e
     })
+  // the thread beside the inbox (an iPhone Duo unfolded) has its own header, with a button for each
+  if (threadRoute() === 'chatRoot') {
+    const button = item === 'Search' ? T.CHAT_HEADER_SEARCH_BUTTON : T.CHAT_HEADER_INFO_BUTTON
+    await waitFor(
+      `${item} to open from the header`,
+      async () => {
+        if (await opened()) return true
+        await el(button).click().catch(() => {})
+        await settle(`${item} to open`, opened)
+        return undefined
+      },
+      {interval: 250, timeout: 15_000}
+    )
+    return
+  }
   await waitFor(
     `${item} to open from the header menu`,
     async () => {
@@ -1415,20 +1463,28 @@ export const videoFullscreenButton = async (title: string, ordinal: number) => {
   return elementInRow(`~${T.CHAT_VIDEO_FULLSCREEN}`, ordinal, "the video's fullscreen button")
 }
 
-// Closes the conversation's info panel, a modal sheet, with its header's Done (a back swipe from the
-// left edge does not close a sheet), and waits for it to go. Bound: 3 tries of the tap and 5s = 16s.
+// The conversation's info panel, or its parts: beside a thread shown beside the inbox (an iPhone Duo
+// unfolded) its own box is not in the tree, only what it holds (its tabs, its menu button).
+const INFO_PANEL = `-ios predicate string:name == "${T.CHAT_INFO_PANEL}" OR name BEGINSWITH "${T.CHAT_INFO_PANEL}-"`
+export const infoPanelShown = async () => browser.$(INFO_PANEL).isExisting()
+
+// Closes the conversation's info panel and waits for it to go: a phone's modal sheet with its header's
+// Done (a back swipe from the left edge does not close a sheet), the panel beside a thread shown beside
+// the inbox with the header's info button, which toggles it. Bound: 3 tries of the tap and 5s = 16s.
 export const closeInfoPanel = async () => {
   const done = '-ios predicate string:type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1'
   for (let i = 0; i < 3; i++) {
-    if (!(await el(T.CHAT_INFO_PANEL).isExisting())) return
-    await browser.$(done).click().catch(() => {})
-    const gone = await el(T.CHAT_INFO_PANEL)
+    if (!(await infoPanelShown())) return
+    if (threadRoute() === 'chatRoot') await el(T.CHAT_HEADER_INFO_BUTTON).click().catch(() => {})
+    else await browser.$(done).click().catch(() => {})
+    const gone = await browser
+      .$(INFO_PANEL)
       .waitForExist({reverse: true, timeout: 5_000})
       .then(() => true)
       .catch(() => false)
     if (gone) return
   }
-  throw new Error('the info panel did not close from its Done button')
+  throw new Error('the info panel did not close')
 }
 
 // Drags the thread until the loaded row at `ordinal` sits wholly in the reader's view, and returns
@@ -1560,7 +1616,7 @@ export const tapTextIn = async (element: WebdriverIO.Element, ordinal: number, t
     throw new Error(`the "${text}" text is not wholly inside its element on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
   console.log(`  tapTextIn: "${text}" at ${JSON.stringify(frame)} in its element ${JSON.stringify({...at, ...size})}`)
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
 }
 
 // Presses the inline pressable text `text` (a link drawn inside a message's text, such as a failed
@@ -1670,7 +1726,7 @@ export const tapControlIn = async (
   if (!frameInside(frame, {...at, ...size}, window)) {
     throw new Error(`${what} is not wholly inside its row on screen: ${JSON.stringify(frame)} in ${JSON.stringify({...at, ...size})}`)
   }
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
 }
 
 // Taps the labelled switch (Kb.Switch, e.g. the block modal's "Block <name>") at its own frame, and
@@ -1747,7 +1803,7 @@ export const tapSwitchLabelled = async (label: string, anchor: WebdriverIO.Eleme
   }
   const before = await switchOn()
   if (!before.length || before.some(o => o !== before[0])) throw new Error(`the switch reads ${JSON.stringify(before)}`)
-  await browser.execute('mobile: tap', {x: Math.round(frame.x + frame.width / 2), y: Math.round(frame.y + frame.height / 2)})
+  await tapAt(frame.x + frame.width / 2, frame.y + frame.height / 2)
   // an unmounted switch reads no value, which is not a turn
   await waitFor(
     'the switch to turn',
@@ -1950,7 +2006,7 @@ export const giphyGalleryShown = async () =>
 // Opens the visible conversation's info panel from the header's More menu and, given one, a tab of
 // it (its testID). Bound: the header menu 15, the tab 5 and its taps 5 = 25.
 export const openInfoPanel = async (tab?: string) => {
-  await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+  await openHeaderMenuItem('Info', infoPanelShown)
   if (tab === undefined) return
   await el(tab).waitForExist({timeout: 5_000})
   // a tap while the panel still comes up can do nothing (seen live): tapped again until the panel's
@@ -1983,30 +2039,39 @@ const infoPanelTabSelected = async (tab: string) =>
     return false
   `)
 
-// Drags the screen's scrolling content up until `target` sits on screen, with room above the bottom
+// Drags the screen's scrolling content until `target` sits on screen, with room above the bottom
 // edge for a tap, as a person scrolls a settings list to an item below the fold; or, at the content's
-// end (a drag no longer moves it), wholly on screen. Bound: `timeout`.
+// end (a drag no longer moves it), wholly on screen. A target in the tree but scrolled off the top
+// is dragged back down to: a split's settings page stays mounted, so it reopens where it was left.
+// A target not in the tree is only ever looked for toward the end. Bound: `timeout`.
 export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
   let lastY: number | undefined
+  // the drag goes down the target's own column once it is in the tree: beside a thread (an iPhone
+  // Duo's info panel) the window's middle is another pane
+  let column: number | undefined
+  let above = false
   return waitFor(
     `${what} on screen`,
     async () => {
       const e = target()
       if (await e.isExisting()) {
-        const {y} = await e.getLocation()
-        const {height} = await e.getSize()
+        const {x, y} = await e.getLocation()
+        const {height, width: w} = await e.getSize()
         const {height: window} = await browser.getWindowRect()
         if (y > 0 && y + height / 2 < window - 80) return true
         if (lastY !== undefined && Math.abs(lastY - y) < 1 && y > 0 && y + height <= window) return true
         lastY = y
+        column = x + w / 2
+        above = y <= 0
       }
       const {height, width} = await browser.getWindowRect()
-      const x = Math.round(width / 2)
+      const x = Math.round(column ?? width / 2)
+      const [from, to] = above ? [0.3, 0.7] : [0.7, 0.3]
       await browser
         .action('pointer', {parameters: {pointerType: 'touch'}})
-        .move({x, y: Math.round(height * 0.7)})
+        .move({x, y: Math.round(height * from)})
         .down()
-        .move({duration: 400, x, y: Math.round(height * 0.3)})
+        .move({duration: 400, x, y: Math.round(height * to)})
         .pause(200)
         .up()
         .perform()

@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import {RefreshControl, ScrollView as NativeScrollView} from 'react-native'
 import type {ScrollViewProps, ScrollViewInstance, RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
+import {noSideInsets as zeroSideInsets, useScreenSideInsets, withSideInsets} from './screen-side-insets'
 
 export type ScrollViewRef = {
   scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
@@ -49,7 +50,10 @@ type Props = {
   onTouchStart?: (e: GestureResponderEvent) => void
   onTouchEnd?: (e: GestureResponderEvent) => void
   testID?: string
+  // the content runs under the screen's side strips: its rows clear them themselves
+  noSideInsets?: boolean
 }
+
 
 type DivScrollable = {
   scrollTo: (opts: {left?: number; top?: number}) => void
@@ -58,7 +62,9 @@ type DivScrollable = {
 
 function ScrollView(props: Props) {
   const styles = useStyles()
-  const {ref: outerRef, onRefresh, refreshing, ...rest} = props
+  const {ref: outerRef, onRefresh, refreshing, noSideInsets, ...rest} = props
+  const screenSideInsets = useScreenSideInsets()
+  const sideInsets = noSideInsets ? zeroSideInsets : screenSideInsets
 
   const divRef = React.useRef<DivScrollable | null>(null)
   const innerRef = React.useRef<ScrollViewInstance | null>(null)
@@ -110,6 +116,7 @@ function ScrollView(props: Props) {
       ref={innerRef}
       {...nativeProps}
       refreshControl={refreshControl}
+      contentContainerStyle={withSideInsets(nativeProps.contentContainerStyle, sideInsets)}
       contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overScrollMode="never"

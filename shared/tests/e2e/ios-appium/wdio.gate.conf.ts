@@ -30,8 +30,19 @@ import {
 } from '../shared/gate/secret-scan'
 import {harnessSite, timed, timingOn, writeTiming} from '../shared/gate/timing.ts'
 import {iosFlowProject} from './theme'
+import {approveKeybaseLinks} from './helpers/sim-links.mts'
+import {formFactorMismatch, readFormFactor, restartSimulator, screenshotDisplayOf} from './helpers/form-factor.mts'
+import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor} from './helpers/split-view.mts'
+import {sendClicksAsElementTaps, sendPointerActionsAsWindowGestures} from './gate/window-gestures.ts'
+import {FIND_COMMANDS, notePresented, readsFrames, recordFrameShown, shownFind} from './gate/shown-lib.ts'
 
-const PROJECT = iosFlowProject()
+// KB_IOS_POSTURE=folded|unfolded|split-left|split-right puts an iPhone Duo in that posture before the
+// run. The run's form factor (iphone, duo-folded, duo-split-left, …) is set in onPrepare and handed to
+// the workers as KB_IOS_FORM_FACTOR; it names the run's project, so the report keeps each form factor's
+// cards apart.
+const posture = parseAnyPosture(process.env['KB_IOS_POSTURE'])
+const device = process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
+const runFormFactor = () => process.env['KB_IOS_FORM_FACTOR'] ?? 'iphone'
 
 // The xcuitest driver is installed under ~/.appium; the appium service spawns
 // its own appium process, so point it at that home or it won't find the driver.
@@ -65,7 +76,7 @@ const scanResults = () => {
 
 const writeResults = (exitCode: number) => {
   const attempts = readAttempts()
-  const report = buildPwReport(attempts, PROJECT)
+  const report = buildPwReport(attempts, iosFlowProject(runFormFactor()))
   report.errors.push(...readRunErrors())
   // a hook or worker failure leaves no failed attempt behind it
   if (exitCode !== 0 && !attempts.some(a => a.status === 'failed')) {
@@ -94,6 +105,15 @@ export const config: WebdriverIO.Config = {
     // a results.json never mixes runs
     fs.rmSync(iosReportDir(), {force: true, recursive: true})
     secretWatch = watchEnvSecrets()
+    approveKeybaseLinks(udid)
+    // the run's form factor comes from its posture: WebDriverAgent's launch (in the worker, after
+    // this) folds a Duo, so the worker applies the posture once its session is open
+    const found = readFormFactor(udid)
+    if (found.startsWith('duo-') && !posture) throw new Error('an iPhone Duo run needs KB_IOS_POSTURE (folded, unfolded, split-left or split-right)')
+    // a Split View run starts from a restarted simulator (an earlier split leaves its pair behind)
+    if (posture?.startsWith('split-')) restartSimulator(udid)
+    // the workers start after this, with this env
+    process.env['KB_IOS_FORM_FACTOR'] = posture ? postureFormFactor(posture) : found
     // the flows record the names of the paper keys and the invite links they make, for the scan
     process.env[SCAN_PAPER_KEY_NAMES_VAR] = '1'
     process.env[SCAN_INVITE_LINKS_VAR] = '1'
@@ -102,15 +122,34 @@ export const config: WebdriverIO.Config = {
   // is kept on the attempt's recorder for afterTest to report. The account was checked before this
   // (gate/hooks.ts).
   // what the app-hang watch counts: WebDriver requests that got a successful answer
-  before: () => {
+  // the posture is applied here, once the session (and WebDriverAgent's launch, which folds a Duo) is
+  // up; a Duo is then captured on its lit screen
+  before: async () => {
     browser.on('result', (event: {command?: string; result?: unknown}) => {
       noteProtocolResult(event)
     })
+    if (!posture) return
+    const got = await applyPosture(udid, device, posture)
+    if (got !== runFormFactor()) throw new Error(`KB_IOS_POSTURE=${posture} left the device ${got}, not ${runFormFactor()}`)
+    // unfolded or split, the base screens' elements read visible=false: "shown" is read off frames
+    if (got !== 'duo-folded') {
+      recordFrameShown(await browser.getWindowRect())
+      // and a W3C pointer there touches nothing, and an element's click misses now and then: pointer
+      // actions go as window-relative gestures, clicks as taps relative to the element
+      sendPointerActionsAsWindowGestures()
+      sendClicksAsElementTaps()
+    }
+    const display = screenshotDisplayOf(udid)
+    if (display !== undefined) process.env['KB_IOS_SCREEN'] = `${udid}:${display}`
   },
   // timing (shared/gate/timing.ts): each WebDriver command, its end paired with the latest start of
   // the same name (commands nest, and a Promise.all runs several at once)
-  beforeCommand: (name: string) => {
+  // On a run that reads "shown" off frames, each find first reads whether a modal is up (for
+  // transformRequest's shownFind); finds that start together share one read, and that read's own find
+  // is not read for (notePresented).
+  beforeCommand: async (name: string) => {
     if (timingOn()) commandStarts.push({name, site: harnessSite(), start: Date.now()})
+    if (readsFrames() && FIND_COMMANDS.includes(name)) await notePresented()
   },
   afterCommand: (name: string) => {
     if (!timingOn()) return
@@ -123,6 +162,25 @@ export const config: WebdriverIO.Config = {
     testStart = Date.now()
     const rec: Recorder = {}
     recorders.set(attemptToken(), rec)
+    // only a Duo can change form factor mid-run: its hinge (an Appium session's launch can move it), or
+    // (split) an app relaunch ends Split View. It is put back once; one still moved fails the attempt.
+    if (runFormFactor().startsWith('duo-')) {
+      const moved = async () =>
+        formFactorMismatch(runFormFactor(), readFormFactor(udid)) ??
+        (runFormFactor().startsWith('duo-split-') && !(await appIsSplit(device))
+          ? `the app left Split View during the run (an app relaunch ends it); this run is ${runFormFactor()}`
+          : undefined)
+      try {
+        let why = await moved()
+        if (why && posture) {
+          await applyPosture(udid, device, posture)
+          why = await moved()
+        }
+        if (why) rec.error = why
+      } catch (e) {
+        rec.error = `reading or restoring the device's form factor: ${message(e)}`
+      }
+    }
     await escapeToTabs().catch((e: unknown) => {
       rec.error = `resetting to the tab root: ${message(e)}`
     })
@@ -156,9 +214,14 @@ export const config: WebdriverIO.Config = {
   // Every wdio command (browser or element) builds its WebDriver request here once, in its caller's async
   // context, before sending it: a test body that is over is refused here. A request already sent, its
   // connection retries included, still completes.
+  // On a run that reads "shown" off frames, a find that asks for `visible == 1` is sent as shownFind
+  // reads it (gate/shown-lib.ts).
   transformRequest: requestOptions => {
     requireCurrentAttempt()
-    return requestOptions
+    if (!readsFrames() || typeof requestOptions.body !== 'string' || !requestOptions.body.includes('visible == 1')) return requestOptions
+    const body = JSON.parse(requestOptions.body) as Record<string, unknown>
+    if (typeof body['using'] !== 'string' || typeof body['value'] !== 'string') return requestOptions
+    return {...requestOptions, body: JSON.stringify({...body, ...shownFind(body['using'], body['value'])})}
   },
   onComplete: (exitCode: number) => {
     try {

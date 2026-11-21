@@ -81,7 +81,6 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyFeaturedBots.featuredBotsUpdate' |
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' |
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged' |
-  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate' |
   'keybase.1.NotifyService.HTTPSrvInfoUpdate' |
   'keybase.1.NotifyService.handleKeybaseLink' |
   'keybase.1.NotifyService.shutdown' |

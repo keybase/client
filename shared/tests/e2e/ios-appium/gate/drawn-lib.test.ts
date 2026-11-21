@@ -1,4 +1,4 @@
-import {deepestLabelledAtFrame, dragsToward, oneControlAtFrame, steerOffset} from './drawn-lib'
+import {deepestLabelledAtFrame, dragsToward, oneControlAtFrame, positionAtFrame, steerOffset} from './drawn-lib'
 import {sourceParents} from './page-source-lib'
 
 const screen = {height: 800, width: 400, x: 0, y: 0}
@@ -100,5 +100,25 @@ describe('deepestLabelledAtFrame', () => {
   test('another count than the page source read (the tree moved) throws', () => {
     expect(() => deepestLabelledAtFrame(['Skip', 'Skip', 'Skip'], skip, 2, 'the Skip')).toThrow('3 of the Skip at its frame, 2 in the page source')
     expect(() => deepestLabelledAtFrame(['Back', null], skip, 1, 'the Skip')).toThrow('0 of the Skip at its frame, 1 in the page source')
+  })
+})
+
+describe('positionAtFrame', () => {
+  const at = {height: 20, width: 100, x: 10, y: 30}
+  const text = (label: string, visible: boolean, kids = '') =>
+    `<XCUIElementTypeStaticText type="XCUIElementTypeStaticText" label="${label}" visible="${visible}" x="10" y="30" width="100" height="20">${kids}</XCUIElementTypeStaticText>`
+  const opts = (visibleOnly: boolean) => ({matches: (l: string) => l === 'Allow', rect: at, type: 'XCUIElementTypeStaticText', visibleOnly})
+
+  test('the deepest shown match, by its place among every match at the frame', () => {
+    const source = text('Allow', false) + text('Other', true) + text('Allow', true) + text('Allow', false)
+    expect(positionAtFrame(source, opts(true))).toEqual({position: 1, total: 3})
+  })
+
+  test('the deepest match when shown ones are not asked for', () => {
+    expect(positionAtFrame(text('Allow', false) + text('Allow', false), opts(false))).toEqual({position: 1, total: 2})
+  })
+
+  test('no shown match is no position', () => {
+    expect(positionAtFrame(text('Allow', false), opts(true))).toEqual({position: -1, total: 1})
   })
 })

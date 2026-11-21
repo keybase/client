@@ -1,7 +1,8 @@
-// Just for desktop and tablet, we show inbox and conversation side by side
+// Desktop, iPad and a phone wide enough (an unfolded iPhone Duo) show the inbox and conversation side by side
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import {infoPanelWidth} from './conversation/info-panel/common'
 import * as NavTree from '@/constants/nav-tree'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -23,8 +24,13 @@ type Props = InboxAndConversationProps & {
   leftPane: React.ReactNode
 }
 
+
 export function InboxAndConversationShell(props: Props) {
   const styles = useStyles()
+  // each pane clears only the screen edge it touches
+  const {left, right} = Kb.useScreenSideInsets()
+  const leftPaneInsets = {left, right: 0}
+  const conversationInsets = {left: 0, right}
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
@@ -56,13 +62,22 @@ export function InboxAndConversationShell(props: Props) {
   return (
     <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-        {props.leftPane}
+        <Kb.ScreenSideInsetsContext value={leftPaneInsets}>{props.leftPane}</Kb.ScreenSideInsetsContext>
         <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.conversation}>
-          <Conversation {...props} conversationIDKey={conversationIDKey} />
+          <Kb.ScreenSideInsetsContext value={conversationInsets}>
+            <Conversation {...props} conversationIDKey={conversationIDKey} />
+          </Kb.ScreenSideInsetsContext>
         </Kb.Box2>
         {infoPanel ? (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+          // the panel clears the right strip itself, so its lists keep their full width
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
+            style={Kb.Styles.collapseStyles([styles.infoPanel, {paddingRight: right, width: infoPanelWidth(true) + right}])}
+          >
+            <Kb.ScreenSideInsetsContext value={Kb.noSideInsets}>
+              <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+            </Kb.ScreenSideInsetsContext>
           </Kb.Box2>
         ) : null}
       </Kb.Box2>
@@ -82,7 +97,6 @@ const useStyles = Kb.Styles.createStyleHook(
         position: 'absolute',
         right: 0,
         top: 0,
-        width: C.isTablet ? 350 : 320,
       },
     }) as const
 )
