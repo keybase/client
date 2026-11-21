@@ -28,19 +28,13 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {step} from '../gate/step'
+import {skipBecause, step} from '../gate/step'
 import {isDuoUnfolded} from '../gate/thread-route'
 import {catchUpPill, centreOffset, centreTolerance, clearComposer, closeInfoPanel, closeSearch, dragThread, editCancel, expectAtEnd, expectCentred, flickThread, hideKeyboard, infoPanelShown, isAtEnd, isKeyboardUp, jumpToRecentButton, newestGap, openConversation, openHeaderMenuItem, openMessageMenu, openThreadSearch, ordinalsWithText, pickAnchor, readThread, requireThread, resetComposer, rowOf, rowText, sampleThreadWhile, sampleTop, searchAgain, searchFor, searchOpen, sendMessage, summary, tapStatusBar, threadListPrelude, type ThreadReading, type ThreadSample, type Viewport, viewport, waitForKeyboard, waitForRow, waitForThreadStable, wholly} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {jsEval, waitFor} from '../helpers/lifecycle'
-
-// Skips the running test, logging why for the gate's log.
-const skipBecause = (test: Mocha.Context, reason: string) => {
-  console.log(`[ios gate] skipped: ${reason}`)
-  test.skip()
-}
 
 describe('chat scroll', function () {
   // no retries: a retry would let an intermittent race pass
@@ -465,7 +459,7 @@ describe('chat scroll', function () {
       const after = await waitForThreadStable()
       const v = await viewport(after)
       const tops = samples.map(s => sampleTop(s, ordinal))
-      const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i]! - before.top) > stillTolerance)
+      const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i] - before.top) > stillTolerance)
       const most = Math.max(0, ...tops.map(top => (top === undefined ? 0 : Math.abs(top - before.top))))
       console.log(
         `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`

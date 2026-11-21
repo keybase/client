@@ -73,3 +73,9 @@ export async function retriedNavigation(
   }
   if (tries > 1) currentAttempt().annotate('retried', `${what}: ${tries} tries`)
 }
+
+// Skips the running test, logging why for the gate's log.
+export const skipBecause = (test: Mocha.Context, reason: string) => {
+  console.log(`[ios gate] skipped: ${reason}`)
+  test.skip()
+}
