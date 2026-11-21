@@ -958,49 +958,34 @@ export const suggestionRows = async () => {
   return Promise.all(found.map(async e => ({e, words: ((await e.getAttribute('label')) ?? '').split(/[ ,]+/).filter(w => !!w)})))
 }
 
-// Sends `text` through the composer's send button and returns the ordinal of its row.
-// A Send tap right after the typing has now and then not taken: the text stayed in the composer and
-// nothing was sent. Send is tapped a second time only when the first sent nothing (no row with the
-// text, the composer not emptied), read again right before the second tap since the first can land
-// after its 3s of reads, so nothing is sent twice. Bound 25: the typing 5, the button 5, the first
-// tap (the tap 1, 3s of reads) 4, the second (a read 1, the tap 1, 3s of reads) 5, the row 6.
-export const sendMessage = async (text: string) => {
-  await typeInComposer(text)
+// Taps Send until `took` reads true. A Send tap right after the typing has now and then not taken:
+// the text stayed in the composer and nothing was sent. Send is tapped a second time only when the
+// first sent nothing, read again right before the second tap since the first can land after its 3s
+// of reads, so nothing is sent twice. Bound 14: the button 5, the first tap (the tap 1, 3s of reads)
+// 4, the second (a read 1, the tap 1, 3s of reads) 5.
+export const tapSendUntil = async (took: () => Promise<boolean>, interval = 250) => {
   await waitForTestID(T.CHAT_SEND_BUTTON, 5_000)
-  const took = async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === ''
   for (let i = 0; ; i++) {
-    if (i > 0 && (await took())) break
+    if (i > 0 && (await took())) return
     await el(T.CHAT_SEND_BUTTON).click()
-    const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval: 250, timeout: 3_000}).catch(
+    const sent = await waitFor('the send to take', async () => ((await took()) ? true : undefined), {interval, timeout: 3_000}).catch(
       (e: unknown) => {
         if (isAttemptOver(e)) throw e
         return false
       }
     )
-    if (sent) break
+    if (sent) return
     if (i === 1) throw new Error('two taps on Send sent nothing: the text is still in the composer')
-    console.log('sendMessage: the first Send tap sent nothing; tapping it again')
+    console.log('the first Send tap sent nothing; tapping it again')
   }
-  return waitForRow(text, 6_000)
 }
 
-// Taps Send until the composer empties, as sendMessage does, since a first tap sometimes sends nothing;
-// returns as soon as it reads empty, so what is typed next comes straight after the send. Bound: two
-// taps of 1 and their 3s waits = 8.
-export const tapSendUntilEmpty = async () => {
-  for (let i = 0; i < 2; i++) {
-    await el(T.CHAT_SEND_BUTTON).click()
-    const emptied = await waitFor('the send to take', async () => ((await composerText()) === '' ? true : undefined), {
-      interval: 100,
-      timeout: 3_000,
-    }).catch((e: unknown) => {
-      if (isAttemptOver(e)) throw e
-      return false
-    })
-    if (emptied) return
-    console.log('tapSendUntilEmpty: the first Send tap sent nothing; tapping it again')
-  }
-  throw new Error('two taps on Send sent nothing: the text is still in the composer')
+// Sends `text` through the composer's send button and returns the ordinal of its row: the send took
+// once its row shows or the composer empties. Bound 25: the typing 5, tapSendUntil 14, the row 6.
+export const sendMessage = async (text: string) => {
+  await typeInComposer(text)
+  await tapSendUntil(async () => (await ordinalsWithText(text)).length > 0 || (await composerText()) === '')
+  return waitForRow(text, 6_000)
 }
 
 export const isKeyboardUp = async () => browser.isKeyboardShown().catch(() => false)
@@ -2056,8 +2041,9 @@ const infoPanelTabSelected = async (tab: string) =>
 
 // Drags the screen's scrolling content until `target` sits on screen, with room above the bottom
 // edge for a tap, as a person scrolls a settings list to an item below the fold; or, at the content's
-// end (a drag no longer moves it), wholly on screen. A target scrolled off the top is dragged back
-// down to: a split's settings page stays mounted, so it reopens where it was left. Bound: `timeout`.
+// end (a drag no longer moves it), wholly on screen. A target in the tree but scrolled off the top
+// is dragged back down to: a split's settings page stays mounted, so it reopens where it was left.
+// A target not in the tree is only ever looked for toward the end. Bound: `timeout`.
 export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
   let lastY: number | undefined
   // the drag goes down the target's own column once it is in the tree: beside a thread (an iPhone

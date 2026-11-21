@@ -49,7 +49,7 @@ import {
   showsText,
   storedMessage,
   suggestionRows,
-  tapSendUntilEmpty,
+  tapSendUntil,
   typeInComposer,
   typeIntoFocused,
   unreadCount,
@@ -230,8 +230,8 @@ describe('chat composer', function () {
       await expectDirectDraft(draft)
       await relaunchApp()
       await waitSignedIn()
-      // a relaunched split selects the newest small conversation, the DM, and a selected row shows
-      // no draft
+      // read from another conversation on every form factor, so the DM row is never the selected
+      // one (which shows no draft): a relaunched split selects the newest small conversation, the DM
       await openScratch()
       await expectDirectDraft(draft)
       creditSurface('relaunch')
@@ -270,14 +270,15 @@ describe('chat composer', function () {
     })
 
     it('typing straight after a send is not erased', async function () {
-      // worst case (s): read 110, reset 46, type 15, the send 8, the typing 5, row 15, the pause 1,
-      // composer 5, cli 80, step 2 = 287
+      // worst case (s): read 110, reset 46, type 15, the send 14, the typing 5, row 15, the pause 1,
+      // composer 5, cli 80, step 2 = 293
       this.timeout(300_000)
       await openDirectRead()
       await resetComposer()
       const text = e2eMarker('composer-quick')
       await typeInComposer(text)
-      await tapSendUntilEmpty()
+      // read every 100ms, so what is typed next comes straight after the send
+      await tapSendUntil(async () => (await composerText()) === '', 100)
       await el(T.CHAT_INPUT).addValue('next')
       await waitForRow(text)
       // the sent row has landed and the list has settled; what was typed after the send is all there
