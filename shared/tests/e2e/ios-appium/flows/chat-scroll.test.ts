@@ -814,6 +814,7 @@ describe('chat scroll', function () {
     it('resting on the newest row of a window of history, the next page leaves the reader where they are', async function () {
       // worst case (s): open 100, search 106, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 305
       this.timeout(320_000)
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
       await openLong()
       const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
       await expectCentred(ordinal)

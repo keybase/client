@@ -1,6 +1,6 @@
 // Typography and Markdown are the dev-only debug pages (their More rows render under __DEV__, and the
-// gate runs a dev build): long scrolling catalogs, one test per screenful, each opening the page fresh
-// and scrolling to its own screenful. Every screenful test also checks the page still has exactly
+// gate runs a dev build): long scrolling catalogs, one test per screenful, each opening the page at its start
+// and scrolling to its own screenful. Every screenful test (but on an unfolded Duo) also checks the page still has exactly
 // the count below: the page's last line is drawn on its last screenful and on no screenful before it,
 // so a page that grows or shrinks fails and says which count to set. The typography controls (the
 // Dark background, a decoration, the next sample) change every sample row below them, so each
@@ -9,15 +9,20 @@
 import * as T from '../../shared/test-ids'
 import {settingShown} from '../gate/persisted-lib.ts'
 import {step} from '../gate/step'
+import {isDuoUnfolded} from '../gate/thread-route'
 import {el} from '../helpers/elements'
 import {waitFor} from '../helpers/lifecycle'
 import {check, labelledElement} from '../helpers/menus'
 import {escapeToTabs} from '../helpers/navigate'
 import {openSettingsPage} from '../helpers/settings'
 
-// Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window.
-const MARKDOWN_SCREENS = 10
-const TYPOGRAPHY_SCREENS = 6
+// Screenfuls of each page on the gate's phone, as the desktop gate counts them for its window. An
+// unfolded Duo draws the page in a shorter pane beside the settings list, so it takes more. A drag
+// there cannot hold still before it lifts, so its travel varies and the count is only about right:
+// the Duo checks neither where the page ends nor that it does.
+const MARKDOWN_SCREENS = isDuoUnfolded() ? 13 : 10
+const TYPOGRAPHY_SCREENS = isDuoUnfolded() ? 7 : 6
+const CHECKS_COUNT = !isDuoUnfolded()
 
 type DebugPage = {
   // the More list row, the page's route and testID
@@ -74,15 +79,16 @@ const TO_Y = 0.18
 const DRAG_MS = 600
 const HOLD_MS = 250
 
-// One drag toward the page's end. Bound: the drag 1.
-const dragTowardEnd = async () => {
+// One drag toward the page's end, or its start. Bound: the drag 1.
+const dragToward = async (toEnd: boolean) => {
   const {width, height} = await browser.getWindowRect()
   const x = Math.round(width * CONTENT_X)
+  const [from, to] = toEnd ? [FROM_Y, TO_Y] : [TO_Y, FROM_Y]
   await browser
     .action('pointer')
-    .move({x, y: Math.round(height * FROM_Y)})
+    .move({x, y: Math.round(height * from)})
     .down()
-    .move({duration: DRAG_MS, x, y: Math.round(height * TO_Y)})
+    .move({duration: DRAG_MS, x, y: Math.round(height * to)})
     .pause(HOLD_MS)
     .up()
     .perform()
@@ -115,8 +121,9 @@ const expectSample = async (want: number, what: string) =>
 
 describe('settings debug pages', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
-  //   open      openDebugPage 142 (escapeToTabs 30, the More tab 20, the row 54 and its tap 1, the
-  //             screen 11, its marker 10, the top line 10 and its read 1, the controls 5)
+  //   open      openDebugPage 166 (escapeToTabs 30, the More tab 20, the row 54 and its tap 1, the
+  //             screen 11, its marker 10, the drags back 24, the top line 10 and its read 1, the
+  //             controls 5)
   //   drag      one drag 1, then a read 1;  control  a control read 1 and its tap 1;  shown  6
   //   step      2 (its 1s settle and the attach)
 
@@ -150,10 +157,13 @@ describe('settings debug pages', function () {
     await escapeToTabs()
   })
 
-  // The debug page from the More list, freshly opened at its first screenful; the typography page
-  // with its controls at the defaults. Bound: open 142.
+  // The debug page from the More list, at its first screenful; the typography page with its controls
+  // at the defaults. A split's settings page stays mounted, so it reopens where the last test left it
+  // and is dragged back to its start. Bound: openSettingsPage 126, the drags back 2 per screenful (at
+  // most 12) 24, the top line 10 and its read 1, the controls 5 = 166.
   const openDebugPage = async (page: DebugPage) => {
     await openSettingsPage(page.row, page.route, page.marker)
+    for (let d = 0; d < page.screens - 1 && !(await shown(page.top)); d++) await dragToward(false)
     await waitFor(`the ${page.row} page's first screenful`, async () => ((await shown(page.top)) ? true : undefined), {
       interval: 250,
       timeout: 10_000,
@@ -165,22 +175,26 @@ describe('settings debug pages', function () {
   }
 
   // Screenful `index` (from 0): `index` drags from the top, with the page's last line drawn there
-  // only on its last screenful. Bound: open 142, a drag 1 and its read 1 per screenful, the end read
+  // only on its last screenful. Bound: open 166, a drag 1 and its read 1 per screenful, the end read
   // 1, step 2.
   const screenTests = (page: DebugPage) => {
     for (let i = 0; i < page.screens; i++) {
       it(`${page.row.toLowerCase()} debug page screen ${i + 1}`, async function () {
-        // worst case (s): open 142, 2 per drag (at most 7) 14, the end read 1, step 2 = 159
-        this.timeout(180_000)
+        // worst case (s): open 166, 2 per drag (at most 12) 24, the end read 1, step 2 = 193
+        this.timeout(200_000)
         await openDebugPage(page)
         for (let d = 0; d < i; d++) {
-          check(!(await shown(page.end)), `the ${page.row} page ends on screenful ${d + 1}: set ${page.constName} to ${d + 1}`)
-          await dragTowardEnd()
+          if (CHECKS_COUNT) {
+            check(!(await shown(page.end)), `the ${page.row} page ends on screenful ${d + 1}: set ${page.constName} to ${d + 1}`)
+          }
+          await dragToward(true)
         }
-        const last = i === page.screens - 1
-        const atEnd = await shown(page.end)
-        if (last) check(atEnd, `the ${page.row} page goes on past screenful ${page.screens}: set ${page.constName} to its count`)
-        else check(!atEnd, `the ${page.row} page ends on screenful ${i + 1}: set ${page.constName} to ${i + 1}`)
+        if (CHECKS_COUNT) {
+          const last = i === page.screens - 1
+          const atEnd = await shown(page.end)
+          if (last) check(atEnd, `the ${page.row} page goes on past screenful ${page.screens}: set ${page.constName} to its count`)
+          else check(!atEnd, `the ${page.row} page ends on screenful ${i + 1}: set ${page.constName} to ${i + 1}`)
+        }
         await step(`${page.row} debug page screen ${i + 1}`, {card: true})
       })
     }
@@ -190,7 +204,7 @@ describe('settings debug pages', function () {
   screenTests(TYPOGRAPHY)
 
   it('typography debug page dark background', async function () {
-    // worst case (s): open 142, control 2, shown 6, step 2 = 152
+    // worst case (s): open 166, control 2, shown 6, step 2 = 176
     this.timeout(180_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Dark')).click()
@@ -199,8 +213,8 @@ describe('settings debug pages', function () {
   })
 
   it('typography debug page underline decoration', async function () {
-    // worst case (s): open 142, control 2, shown 6 x2, step 2 = 158
-    this.timeout(180_000)
+    // worst case (s): open 166, control 2, shown 6 x2, step 2 = 182
+    this.timeout(200_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('underline')).click()
     await expectShown(decoration('underline'), 'on', 'the underline decoration')
@@ -209,7 +223,7 @@ describe('settings debug pages', function () {
   })
 
   it('typography debug page next sample', async function () {
-    // worst case (s): open 142, control 2, shown 6, step 2 = 152
+    // worst case (s): open 166, control 2, shown 6, step 2 = 176
     this.timeout(180_000)
     await openDebugPage(TYPOGRAPHY)
     await (await control('Next')).click()

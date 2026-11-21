@@ -984,6 +984,25 @@ export const sendMessage = async (text: string) => {
   return waitForRow(text, 6_000)
 }
 
+// Taps Send until the composer empties, as sendMessage does, since a first tap sometimes sends nothing;
+// returns as soon as it reads empty, so what is typed next comes straight after the send. Bound: two
+// taps of 1 and their 3s waits = 8.
+export const tapSendUntilEmpty = async () => {
+  for (let i = 0; i < 2; i++) {
+    await el(T.CHAT_SEND_BUTTON).click()
+    const emptied = await waitFor('the send to take', async () => ((await composerText()) === '' ? true : undefined), {
+      interval: 100,
+      timeout: 3_000,
+    }).catch((e: unknown) => {
+      if (isAttemptOver(e)) throw e
+      return false
+    })
+    if (emptied) return
+    console.log('tapSendUntilEmpty: the first Send tap sent nothing; tapping it again')
+  }
+  throw new Error('two taps on Send sent nothing: the text is still in the composer')
+}
+
 export const isKeyboardUp = async () => browser.isKeyboardShown().catch(() => false)
 
 // Waits for the keyboard to be up as the app sees it: WDA reports it as soon as an input takes focus,
@@ -2035,14 +2054,16 @@ const infoPanelTabSelected = async (tab: string) =>
     return false
   `)
 
-// Drags the screen's scrolling content up until `target` sits on screen, with room above the bottom
+// Drags the screen's scrolling content until `target` sits on screen, with room above the bottom
 // edge for a tap, as a person scrolls a settings list to an item below the fold; or, at the content's
-// end (a drag no longer moves it), wholly on screen. Bound: `timeout`.
+// end (a drag no longer moves it), wholly on screen. A target scrolled off the top is dragged back
+// down to: a split's settings page stays mounted, so it reopens where it was left. Bound: `timeout`.
 export const dragUntilOnScreen = async (what: string, target: () => ChainablePromiseElement, timeout = 20_000) => {
   let lastY: number | undefined
   // the drag goes down the target's own column once it is in the tree: beside a thread (an iPhone
   // Duo's info panel) the window's middle is another pane
   let column: number | undefined
+  let above = false
   return waitFor(
     `${what} on screen`,
     async () => {
@@ -2055,14 +2076,16 @@ export const dragUntilOnScreen = async (what: string, target: () => ChainablePro
         if (lastY !== undefined && Math.abs(lastY - y) < 1 && y > 0 && y + height <= window) return true
         lastY = y
         column = x + w / 2
+        above = y <= 0
       }
       const {height, width} = await browser.getWindowRect()
       const x = Math.round(column ?? width / 2)
+      const [from, to] = above ? [0.3, 0.7] : [0.7, 0.3]
       await browser
         .action('pointer', {parameters: {pointerType: 'touch'}})
-        .move({x, y: Math.round(height * 0.7)})
+        .move({x, y: Math.round(height * from)})
         .down()
-        .move({duration: 400, x, y: Math.round(height * 0.3)})
+        .move({duration: 400, x, y: Math.round(height * to)})
         .pause(200)
         .up()
         .perform()
