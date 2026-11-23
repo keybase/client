@@ -1543,7 +1543,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.23.1):
+  - react-native-keyboard-controller (1.24.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1557,7 +1557,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.23.1)
+    - react-native-keyboard-controller/common (= 1.24.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1567,7 +1567,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.23.1):
+  - react-native-keyboard-controller/common (1.24.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2100,7 +2100,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNCPicker (2.11.4):
+  - RNCPicker (2.13.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2148,7 +2148,7 @@ PODS:
     - ReactNativeDependencies
     - RNWorklets (>= 0.8.0)
     - Yoga
-  - RNReanimated (4.7.1):
+  - RNReanimated (4.8.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2171,37 +2171,12 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNReanimated/apple (= 4.7.1)
-    - RNReanimated/common (= 4.7.1)
-    - RNReanimated/view (= 4.7.1)
+    - RNReanimated/apple (= 4.8.0)
+    - RNReanimated/common (= 4.8.0)
+    - RNReanimated/view (= 4.8.0)
     - RNWorklets
     - Yoga
-  - RNReanimated/apple (4.7.1):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-bridging
-    - React-Core
-    - React-Core-prebuilt
-    - React-cxxstableapi
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - RNWorklets
-    - Yoga
-  - RNReanimated/common (4.7.1):
+  - RNReanimated/apple (4.8.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2226,7 +2201,32 @@ PODS:
     - ReactNativeDependencies
     - RNWorklets
     - Yoga
-  - RNReanimated/view (4.7.1):
+  - RNReanimated/common (4.8.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-cxxstableapi
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - Yoga
+  - RNReanimated/view (4.8.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2300,7 +2300,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNWorklets (0.13.1):
+  - RNWorklets (0.14.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2323,10 +2323,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNWorklets/apple (= 0.13.1)
-    - RNWorklets/common (= 0.13.1)
+    - RNWorklets/apple (= 0.14.0)
+    - RNWorklets/common (= 0.14.0)
     - Yoga
-  - RNWorklets/apple (0.13.1):
+  - RNWorklets/apple (0.14.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2350,7 +2350,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNWorklets/common (0.13.1):
+  - RNWorklets/common (0.14.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2894,7 +2894,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: c5df4b7fe2553c25d419b99c586179ab77594b5b
   React-mutationobservernativemodule: b85faf3c54644c0ef2c758cd8c4e6ce16fb1f8ae
   react-native-kb: 4f05411ae1f4a96b38b0f48ed35c39fa9c048323
-  react-native-keyboard-controller: 15175159bd24e0da325bcbf559de79d2cf149dea
+  react-native-keyboard-controller: dd21c5674298a000d060e70909cb6984404bc582
   react-native-safe-area-context: f54c903d3a8c8ddd602e85d4e5bcfe9944de85bc
   react-native-webview: 8f00424aca54fdfbe9d1a14e8b7126ea1c12dbcf
   React-NativeModulesApple: 8cfb2f308f48c48068c96b932e7f0e4297c23342
@@ -2935,11 +2935,11 @@ SPEC CHECKSUMS:
   ReactCommon: b63ce798b898ed77c6cfdeb80b18080161f52ed5
   ReactNativeDependencies: a5164c3ebbe90d992022b5d9cbabbf770a6d7d05
   ReactNavigation: 97806a099123371425d41bf4b66d5c2f052e7001
-  RNCPicker: b6ac9cc3e312efce83820d74657bfa208f535fc9
+  RNCPicker: c2f25cf2ca0de585475d0551fff12c158a7c12f3
   RNGestureHandler: e11840399a9e42f90b6a69699a5b232bddb417d5
-  RNReanimated: 5c641cc430b7255eae87c8039204eb0f816ea1b8
+  RNReanimated: 64471e205ecc0f9d37a3666367b41dd49dccb196
   RNScreens: fdca179295dcb421672af2a9e2979a9cebeda720
-  RNWorklets: 786dc9aa5df4c1d0d2e93213feaab0d5f1e68a22
+  RNWorklets: bd3d2d93e570be07c10ab4dbde5be479cd22d132
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
