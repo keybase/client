@@ -105,7 +105,6 @@ type idCmdIdentifyUI struct {
 	Username         string                     `json:"username"`
 	LastTrack        *idCmdIdentifyUILastTrack  `json:"lastTrack"`
 	Cryptocurrencies []keybase1.Cryptocurrency  `json:"cryptocurrencies"`
-	Stellar          *keybase1.StellarAccount   `json:"stellar"`
 	IdentifyKey      *keybase1.IdentifyKey      `json:"identifyKey"`
 	Proofs           []idCmdIdentifyUIProofPair `json:"proofs"`
 }
@@ -185,11 +184,6 @@ func (ui *idCmdIdentifyUI) FinishWebProofCheck(_ libkb.MetaContext, p keybase1.R
 
 func (ui *idCmdIdentifyUI) DisplayCryptocurrency(_ libkb.MetaContext, l keybase1.Cryptocurrency) error {
 	ui.Cryptocurrencies = append(ui.Cryptocurrencies, l)
-	return nil
-}
-
-func (ui *idCmdIdentifyUI) DisplayStellarAccount(_ libkb.MetaContext, l keybase1.StellarAccount) error {
-	ui.Stellar = &l
 	return nil
 }
 

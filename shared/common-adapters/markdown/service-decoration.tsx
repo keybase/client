@@ -7,7 +7,6 @@ import Channel from './channel'
 import KbfsPath from '@/fs/common/kbfs-path'
 import MaybeMention from './maybe-mention'
 import Mention from '../mention'
-import PaymentStatus from '../../chat/payments/status'
 import Text from '@/common-adapters/text'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {useClickURL} from '@/common-adapters/text-url'
@@ -140,29 +139,8 @@ const ServiceDecoration = (p: Props) => {
     return null
   }
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
-    let paymentID: T.Wallets.PaymentID | undefined
-    let error: string | undefined
-    if (
-      parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.sent &&
-      parsed.payment.result.sent
-    ) {
-      paymentID = parsed.payment.result.sent
-    } else if (
-      parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.error &&
-      parsed.payment.result.error
-    ) {
-      error = parsed.payment.result.error
-    } else {
-      error = 'unknown text decoration'
-    }
-    return (
-      <PaymentStatus
-        paymentID={paymentID}
-        error={error}
-        text={parsed.payment.paymentText}
-        allowFontScaling={allowFontScaling}
-      />
-    )
+    // Stellar payments are no longer supported: a payment decoration shows the text it was sent with
+    return <>{parsed.payment.paymentText}</>
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {
     return (
       <Mention

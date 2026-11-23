@@ -9,7 +9,6 @@ import {noConversationIDKey} from '@/constants/types/chat/common'
 import invert from 'lodash/invert'
 
 const noString = new HiddenString('')
-type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 
 const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {
   [K in T.RPCStellar.PaymentStatus]: keyof typeof T.RPCStellar.PaymentStatus
@@ -85,22 +84,6 @@ export const getMessageID = (m: T.RPCChat.UIMessage) => {
     default:
       return null
   }
-}
-
-export const getPaymentMessageInfo = (
-  accountsInfoMap: AccountsInfoMap,
-  message: T.Chat.MessageSendPayment | T.Chat.MessageText
-): T.Chat.ChatPaymentInfo | undefined => {
-  const maybePaymentInfo = accountsInfoMap.get(message.id)
-  if (!maybePaymentInfo) {
-    return message.paymentInfo
-  }
-  if (maybePaymentInfo.type === 'paymentInfo') {
-    return maybePaymentInfo
-  }
-  throw new Error(
-    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
-  )
 }
 
 // Map service message types to our message types.
@@ -1389,14 +1372,10 @@ export const upgradeMessage = (
   return m
 }
 
-export const shouldShowPopup = (
-  accountsInfoMap?: AccountsInfoMap,
-  message?: T.Chat.Message
-) => {
+export const shouldShowPopup = (message?: T.Chat.Message) => {
   switch (message?.type) {
     case 'text':
     case 'attachment':
-    case 'requestPayment':
     case 'setDescription':
     case 'pin':
     case 'systemAddedToTeam':
@@ -1413,13 +1392,6 @@ export const shouldShowPopup = (
       return true
     case 'setChannelname':
       return message.newChannelname !== 'general'
-    case 'sendPayment': {
-      const paymentInfo = accountsInfoMap && getPaymentMessageInfo(accountsInfoMap, message)
-      if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.status)) {
-        return false
-      }
-      return true
-    }
     default:
       return false
   }

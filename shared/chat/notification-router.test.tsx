@@ -403,8 +403,6 @@ describe('decodeChatNotification', () => {
   })
 
   test.each([
-    ['chat.1.NotifyChat.ChatRequestInfo', {convID: rpcConvID(convA)}, 'requestInfo'],
-    ['chat.1.NotifyChat.ChatPaymentInfo', {convID: rpcConvID(convA)}, 'paymentInfo'],
     ['chat.1.NotifyChat.ChatPromptUnfurl', {convID: rpcConvID(convA)}, 'promptUnfurl'],
     ['chat.1.NotifyChat.ChatAttachmentDownloadProgress', {convID: rpcConvID(convA)}, 'attachmentDownloadProgress'],
     ['chat.1.NotifyChat.ChatAttachmentUploadProgress', {convID: rpcConvID(convA)}, 'attachmentUploadProgress'],

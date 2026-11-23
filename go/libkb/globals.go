@@ -91,7 +91,6 @@ type GlobalContext struct {
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
-	stellar                Stellar            // Stellar related ops
 	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
 	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
 	teamEKBoxStorage       TeamEKBoxStorage   // Store team ephemeral key boxes
@@ -299,7 +298,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.TeamRoleMapManager = newNullTeamRoleMapManager()
 	g.teamAuditor = newNullTeamAuditor()
 	g.teamBoxAuditor = newNullTeamBoxAuditor()
-	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
@@ -450,13 +448,6 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	p = "ui.shownMonsterPushPrompt"
 	if uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p); isSet {
 		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	p = "stellar.lastSentXLM"
-	if stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p); isSet {
-		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -716,12 +707,6 @@ func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
 	return g.teamBoxAuditor
 }
 
-func (g *GlobalContext) GetStellar() Stellar {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
-	return g.stellar
-}
-
 func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -790,10 +775,6 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 
 func (g *GlobalContext) GetParamProofStore() MerkleStore {
 	return g.paramProofStore
-}
-
-func (g *GlobalContext) GetExternalURLStore() MerkleStore {
-	return g.externalURLStore
 }
 
 // to implement ProofContext
@@ -1355,12 +1336,6 @@ func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
 	g.teamBoxAuditor = a
 }
 
-func (g *GlobalContext) SetStellar(s Stellar) {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	g.stellar = s
-}
-
 func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
@@ -1383,11 +1358,6 @@ func (g *GlobalContext) SetTeambotEKBoxStorage(s TeamEKBoxStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teambotEKBoxStorage = s
-}
-
-func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserArgWithMetaContext(NewMetaContextBackground(g)).WithUID(uid).WithPublicKeyOptional()
-	return LoadUser(arg)
 }
 
 func (g *GlobalContext) BustLocalUserCache(ctx context.Context, u keybase1.UID) {

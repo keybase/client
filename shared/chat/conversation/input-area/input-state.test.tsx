@@ -175,35 +175,6 @@ const mockPostText = () => {
     | undefined
 }
 
-// the service takes each post as text carrying a stellar payment, and the user backs out of it:
-// it tells the GUI's session the payment was canceled before it answers
-const cancelStellarOnPost = () => {
-  fake.answer(postText, async (params: {sessionID: number}) => {
-    await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: params.sessionID})
-    return posted
-  })
-}
-
-// holds each post; the test plays the service: cancel() reports the stellar payment backed out of
-// on the post's session, then answers the post
-const holdPostText = () => {
-  const held = fake.hold(postText)
-  return {
-    cancel: async () => {
-      const call = held.at(-1)
-      if (!call) throw new Error('no post held')
-      // the cancel restores the composer's text on a turn the push's own answer may or may
-      // not have reached yet, so the whole exchange runs inside act
-      await act(async () => {
-        await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID: call.params.sessionID as number})
-        call.reply(posted)
-        await flushPromises()
-      })
-    },
-    held,
-  }
-}
-
 const answerPreviews = (answer: () => FakeAnswer) => fake.answer(unfurlPreview, answer)
 
 // The real navigation tree every provider here renders in, as the route its thread is on: the
@@ -508,20 +479,6 @@ test('sendComposerText sends reply context and clears transient composer state',
   expect((await getLastPost())?.replyTo).toBe(replyMessageID)
 })
 
-test('sendComposerText restores text when a stellar flow is canceled', async () => {
-  const post = holdPostText()
-  const {composerInput, result} = renderInput()
-
-  act(() => {
-    result.current.dispatch.sendComposerText('restore me')
-  })
-  await act(flushPromises)
-  expect(post.held).toHaveLength(1)
-  await post.cancel()
-
-  expect(composerInput.text).toBe('restore me')
-})
-
 test('sendComposerText edits the selected message and clears edit state', async () => {
   const editOrdinal = T.Chat.numberToOrdinal(901)
   const editMessageID = T.Chat.numberToMessageID(901)
@@ -768,37 +725,6 @@ test('no preview is fetched while editing', async () => {
   } finally {
     jest.useRealTimers()
   }
-})
-
-test('a canceled stellar send restores the dismissed unfurl urls for the resend', async () => {
-  // the composer clears its dismissals before the send resolves, so a cancel has to put
-  // the snapshot back or the restored text re-unfurls what the user dismissed
-  cancelStellarOnPost()
-  const {result} = renderInput()
-
-  act(() => {
-    result.current.dispatch.sendComposerText('hi http://a.com', {dismissed: ['http://a.com'], failed: []})
-  })
-  // the cancel puts the text back into the input
-  await act(flushPromises)
-
-  expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
-})
-
-test('a canceled stellar send leaves a failed preview unrecorded as a dismissal', async () => {
-  // a failure is re-derived by the next fetch, a dismissal never is, so restoring one as
-  // the other would keep the url suppressed even after it starts scraping again
-  cancelStellarOnPost()
-  const {result} = renderInput()
-
-  act(() => {
-    result.current.dispatch.sendComposerText('hi http://wsj.com', {dismissed: [], failed: ['http://wsj.com']})
-  })
-  // the cancel puts the text back into the input
-  await act(flushPromises)
-
-  expect(useUnfurlPreviewState.getState().dismissed.get(convID)).toBeUndefined()
-  expect(getSuppressedURLs(convID)).toEqual([])
 })
 
 test('a send suppresses what failed to preview as well as what was dismissed', async () => {
@@ -1469,22 +1395,6 @@ describe('the composer text', () => {
     } finally {
       jest.useRealTimers()
     }
-  })
-
-  test('a canceled stellar send puts the text back into the input', async () => {
-    const post = holdPostText()
-    let handles: InputHandles | undefined
-    renderComposerWithProbe(h => (handles = h))
-
-    act(() => {
-      handles?.input.dispatch.sendComposerText('+1xlm@testuser')
-    })
-    await act(flushPromises)
-    expect(post.held).toHaveLength(1)
-    expect(mockInput.text).toBe('')
-    await post.cancel()
-
-    expect(mockInput.text).toBe('+1xlm@testuser')
   })
 
   // the mobile send queue collapses the expanded input only after a send

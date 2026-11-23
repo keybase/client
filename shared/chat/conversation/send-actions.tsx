@@ -6,7 +6,7 @@ import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './client-prev'
 import {getExplodingModeFromConfig} from './thread-load'
 import {getChatRpc, type ChatThreadRpc, type PostTextParams} from './chat-rpc'
-import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
+import {removeDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
   useConversationThreadActions,
@@ -14,28 +14,16 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 
-type SendTextParams = Omit<PostTextParams, 'onStellarCanceled'> & {
-  onRestoreText?: (text: string) => void
+type SendTextParams = PostTextParams & {
   onSent?: () => void
 }
 
 const sendText = (rpc: ChatThreadRpc, p: SendTextParams) => {
   const f = async () => {
-    const {onRestoreText, onSent, ...params} = p
-    // a canceled stellar confirm resolves the rpc normally but posts nothing, so it is
-    // not a send and must not be treated as one
-    const sendState = {stellarCanceled: false}
+    const {onSent, ...params} = p
     try {
-      await rpc.postText({
-        ...params,
-        onStellarCanceled: () => {
-          sendState.stellarCanceled = true
-          onRestoreText?.(p.text)
-        },
-      })
-      if (!sendState.stellarCanceled) {
-        onSent?.()
-      }
+      await rpc.postText(params)
+      onSent?.()
       logger.info('success')
     } catch {
       logger.info('error')
@@ -131,7 +119,6 @@ export const useConversationSendActions = () => {
     text: string,
     context?: {
       editingOrdinal?: T.Chat.Ordinal
-      onRestoreText?: (text: string) => void
       replyToOrdinal?: T.Chat.Ordinal
       unfurlSuppress?: SuppressSnapshot
     }
@@ -151,17 +138,10 @@ export const useConversationSendActions = () => {
     // nothing to do with it
     const snapshot = context?.unfurlSuppress ?? {dismissed: [], failed: []}
     const unfurlSuppress = suppressedURLsOf(snapshot)
-    const onRestoreText = context?.onRestoreText
     sendText(rpc, {
       clientPrev: getClientPrev(),
       conversationIDKey,
       ephemeralLifetime: threadStore.getState().explodingMode,
-      onRestoreText: onRestoreText
-        ? (restored: string) => {
-            restoreDismissals(conversationIDKey, snapshot.dismissed)
-            onRestoreText(restored)
-          }
-        : undefined,
       onSent: () => {
         // the dismissals only: a failure is never in `dismissed`, and the url may have been
         // dismissed afresh while this send was in flight

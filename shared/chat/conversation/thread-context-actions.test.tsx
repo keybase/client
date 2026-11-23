@@ -1099,17 +1099,6 @@ describe('store writes', () => {
     expect(state().typing.size).toBe(0)
   })
 
-  test('payment and request info land in their maps', () => {
-    const {h, state} = renderThread()
-    const payment = {paymentID: 'p1'} as unknown as T.Chat.ChatPaymentInfo
-    const request = {amount: '1'} as unknown as T.Chat.ChatRequestInfo
-    act(() => h().actions.receivePaymentInfo(T.Chat.numberToMessageID(10), payment))
-    act(() => h().actions.receiveRequestInfo(T.Chat.numberToMessageID(11), request))
-    expect(state().accountsInfoMap.get(T.Chat.numberToMessageID(10))).toEqual(payment)
-    expect(state().accountsInfoMap.get(T.Chat.numberToMessageID(11))).toEqual(request)
-    expect(state().paymentStatusMap.get('p1')).toEqual(payment)
-  })
-
   test('unfurl prompts collect domains per message and clear one at a time', () => {
     const {h, state} = renderThread()
     const id = T.Chat.numberToMessageID(10)

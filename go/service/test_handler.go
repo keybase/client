@@ -5,10 +5,10 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	airdrop "github.com/keybase/client/go/stellar/airdrop"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -50,9 +50,7 @@ func (t TestHandler) Panic(_ context.Context, message string) error {
 }
 
 func (t TestHandler) TestAirdropReg(ctx context.Context) error {
-	mctx := libkb.NewMetaContext(ctx, t.G()).WithLogTag("ADREG")
-	cli := airdrop.NewClient()
-	return cli.Register(mctx)
+	return errors.New("airdrop registration was removed")
 }
 
 func (t TestHandler) Echo(ctx context.Context, arg keybase1.Generic) (keybase1.Generic, error) {

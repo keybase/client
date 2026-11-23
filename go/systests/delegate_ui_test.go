@@ -126,10 +126,6 @@ func (d *delegateUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryp
 	return d.checkStarted()
 }
 
-func (d *delegateUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
-	return d.checkStarted()
-}
-
 func (d *delegateUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return d.checkStarted()
 }

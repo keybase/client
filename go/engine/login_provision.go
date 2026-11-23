@@ -136,9 +136,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	// check to make sure local files stored correctly
 	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
-	// initialize a stellar wallet for the user if they don't already have one.
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
-	m.G().GetStellar().CreateWalletSoft(context.Background())
 
 	return nil
 }

@@ -2932,7 +2932,6 @@ export type SocialAssertionService = string
 export type StartProofResult = {readonly sigID: SigID,}
 export type StartStatus = {readonly log: string,}
 export type Status = {readonly code: number,readonly name: string,readonly desc: string,readonly fields?: ReadonlyArray<StringKVPair> | null,}
-export type StellarAccount = {readonly accountID: string,readonly federationAddress: string,readonly sigID: SigID,readonly hidden: boolean,}
 export type Stream = {readonly fd: number,}
 export type StringKVPair = {readonly key: string,readonly value: string,}
 export type SubteamListEntry = {readonly name: TeamName,readonly teamID: TeamID,readonly memberCount: number,}
@@ -3462,7 +3461,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.identifyUi.finishWebProofCheck'
 // 'keybase.1.identifyUi.finishSocialProofCheck'
 // 'keybase.1.identifyUi.displayCryptocurrency'
-// 'keybase.1.identifyUi.displayStellarAccount'
 // 'keybase.1.identifyUi.reportTrackToken'
 // 'keybase.1.identifyUi.displayUserCard'
 // 'keybase.1.identifyUi.confirm'

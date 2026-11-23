@@ -79,22 +79,6 @@ func (r DummyChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearch
 	return nil
 }
 
-func (r DummyChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
-	return true, nil
-}
-
-func (r DummyChatUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
-	return nil
-}
-
-func (r DummyChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
-	return true, nil
-}
-
-func (r DummyChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
-	return nil
-}
-
 func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
 	return nil
 }

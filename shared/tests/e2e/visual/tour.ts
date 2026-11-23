@@ -316,8 +316,6 @@ const fixtureEntries: Array<TourEntry> = [
   threadContentEntry('media', scrollTo(T.CHAT_MAP_UNFURL), T.CHAT_MAP_UNFURL),
   // coin flips: dealt hands, a long shuffle, and one still collecting commitments
   threadContentEntry('flips', scrollTo(T.CHAT_COINFLIP), T.CHAT_COINFLIP),
-  // a payment and an inline payment
-  threadContentEntry('payments', scrollTo(T.CHAT_PAYMENT), T.CHAT_PAYMENT),
   // who took part in a finished flip, on hover (desktop)
   {
     ...threadContentEntry('flip-participants', scrollTo(T.CHAT_COINFLIP_PARTICIPANTS), T.CHAT_COINFLIP_PARTICIPANT_LIST, [

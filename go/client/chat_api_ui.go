@@ -1,8 +1,6 @@
 package client
 
 import (
-	"context"
-
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -30,10 +28,6 @@ func NewChatAPIUI(opts ...func(*ChatAPIUI)) *ChatAPIUI {
 		o(c)
 	}
 	return c
-}
-
-func (u *ChatAPIUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
-	return u.allowStellarPayments, nil
 }
 
 func (u *ChatAPIUI) SetAllowStellarPayments(enabled bool) {

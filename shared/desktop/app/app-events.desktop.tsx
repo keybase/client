@@ -16,7 +16,7 @@ const isPathSaltpack = (p: string) =>
   p.endsWith('.signed.saltpack') || p.endsWith('.encrypted.saltpack')
 
 export const isRelevantDeepLink = (x: string) => {
-  return x.startsWith('web+stellar:') || x.startsWith('keybase://')
+  return x.startsWith('keybase://')
 }
 
 export const isValidSaltpackFilePath = (p: string) => {

@@ -189,8 +189,6 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	// For instance, setup gregor and friends...
 	m.G().CallLoginHooks(m)
 
-	m.G().GetStellar().CreateWalletSoft(m.Ctx())
-
 	return nil
 }
 

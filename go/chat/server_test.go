@@ -34,7 +34,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/gregor"
 	grutils "github.com/keybase/client/go/gregor/utils"
@@ -475,7 +474,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.AttachmentUploader = types.DummyAttachmentUploader{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
-	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
@@ -6900,178 +6898,6 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 		BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
 	}, res)
-}
-
-type mockStellar struct {
-	libkb.Stellar
-	specFn func([]libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error)
-}
-
-func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
-	for _, p := range payments {
-		res = append(res, libkb.MiniChatPaymentResult{
-			Username:  p.Username,
-			PaymentID: stellar1.PaymentID("AHHH"),
-			Error:     nil,
-		})
-	}
-	return res, nil
-}
-
-func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
-	return m.specFn(payments)
-}
-
-func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
-	return false, false
-}
-
-type xlmDeclineChatUI struct {
-	*kbtest.ChatUI
-}
-
-func (c *xlmDeclineChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
-	c.StellarDataConfirm <- summary
-	return false, nil
-}
-
-func TestChatSrvStellarUI(t *testing.T) {
-	useRemoteMock = false
-	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestChatSrvStellarUI", 3)
-	defer ctc.cleanup()
-	users := ctc.users()
-
-	delay := 2 * time.Second
-	// uid := users[0].User.GetUID().ToBytes()
-	listener := newServerChatListener()
-	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
-	tc := ctc.world.Tcs[users[0].Username]
-	ui := kbtest.NewChatUI()
-	declineUI := &xlmDeclineChatUI{ChatUI: ui}
-	ctx := ctc.as(t, users[0]).startCtx
-	ctc.as(t, users[0]).h.mockChatUI = ui
-	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
-	mst := &mockStellar{}
-	tc.G.SetStellar(mst)
-	tc.ChatG.StellarSender = wallet.NewSender(tc.Context())
-	specSuccess := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
-		res = new(libkb.MiniChatPaymentSummary)
-		res.XLMTotal = "10 XLM"
-		res.DisplayTotal = "10 USD"
-		for _, p := range payments {
-			res.Specs = append(res.Specs, libkb.MiniChatPaymentSpec{
-				Username:  p.Username,
-				XLMAmount: p.Amount + " XLM",
-			})
-		}
-		return res, nil
-	}
-	specFail := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
-		return res, errors.New("failed")
-	}
-	successCase := func(expectError bool) {
-		mst.specFn = specSuccess
-		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx,
-			chat1.PostTextNonblockArg{
-				ConversationID: conv.Id,
-				TlfName:        conv.TlfName,
-				Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
-			})
-		if expectError {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-		select {
-		case <-ui.StellarShowConfirm:
-		case <-time.After(delay):
-			require.Fail(t, "no confirm")
-		}
-		select {
-		case data := <-ui.StellarDataConfirm:
-			require.Len(t, data.Payments, 2)
-			require.Equal(t, "10 XLM", data.XlmTotal)
-			require.Equal(t, "1 XLM", data.Payments[0].XlmAmount)
-			require.Equal(t, "5 XLM", data.Payments[1].XlmAmount)
-			require.Equal(t, users[1].Username, data.Payments[0].Username)
-			require.Equal(t, users[2].Username, data.Payments[1].Username)
-		case <-time.After(delay):
-			require.Fail(t, "no confirm")
-		}
-		select {
-		case <-ui.StellarDone:
-		case <-time.After(delay):
-			require.Fail(t, "no done")
-		}
-		if !expectError {
-			consumeNewPendingMsg(t, listener)
-			select {
-			case msg := <-listener.newMessageLocal:
-				require.True(t, msg.Message.IsValid())
-				require.Len(t, msg.Message.Valid().AtMentions, 2)
-			case <-time.After(delay):
-				require.Fail(t, "no local msg")
-			}
-			select {
-			case msg := <-listener.newMessageRemote:
-				require.True(t, msg.Message.IsValid())
-				require.Len(t, msg.Message.Valid().AtMentions, 2)
-			case <-time.After(delay):
-				require.Fail(t, "no remote msg")
-			}
-		}
-	}
-	t.Logf("success accept")
-	successCase(false)
-	t.Logf("success decline")
-	ctc.as(t, users[0]).h.mockChatUI = declineUI
-	successCase(true)
-	ctc.as(t, users[0]).h.mockChatUI = ui
-
-	t.Logf("fail")
-	mst.specFn = specFail
-	_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
-		ConversationID: conv.Id,
-		TlfName:        conv.TlfName,
-		Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
-	})
-	require.Error(t, err)
-	select {
-	case <-ui.StellarShowConfirm:
-	case <-time.After(delay):
-		require.Fail(t, "no confirm")
-	}
-	select {
-	case <-ui.StellarDataConfirm:
-		require.Fail(t, "no confirm")
-	default:
-	}
-	select {
-	case <-ui.StellarDataError:
-	case <-time.After(delay):
-		require.Fail(t, "no error")
-	}
-	select {
-	case <-ui.StellarDone:
-	case <-time.After(delay):
-		require.Fail(t, "no done")
-	}
-
-	t.Logf("no payments")
-	_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
-		ConversationID: conv.Id,
-		TlfName:        conv.TlfName,
-		Body:           "pay me back",
-	})
-	require.NoError(t, err)
-	select {
-	case <-ui.StellarShowConfirm:
-		require.Fail(t, "confirm")
-	default:
-	}
-	consumeNewPendingMsg(t, listener)
 }
 
 func TestChatSrvEphemeralPolicy(t *testing.T) {

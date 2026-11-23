@@ -320,11 +320,6 @@ func (i *UIAdapter) DisplayCryptocurrency(mctx libkb.MetaContext, cc keybase1.Cr
 	return nil
 }
 
-func (i *UIAdapter) DisplayStellarAccount(mctx libkb.MetaContext, s keybase1.StellarAccount) error {
-	i.plumbStellarAccount(mctx, s)
-	return nil
-}
-
 func (i *UIAdapter) DisplayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) error {
 	if key.BreaksTracking {
 		i.session.SetTrackBroken()
@@ -497,28 +492,6 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 		SiteIconFull:         libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeFull, 64),
 		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, key, libkb.ProofIconTypeFullDarkmode, 64),
 		ProofURL:             i.makeSigchainViewURL(mctx, crypto.SigID),
-	})
-}
-
-func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.StellarAccount) {
-	color := i.getColorForValid(i.iFollowThem)
-	if str.Hidden {
-		color = keybase1.Identify3RowColor_GRAY
-	}
-	i.updateRow(mctx, keybase1.Identify3Row{
-		Key:                  "stellar",
-		Value:                str.FederationAddress,
-		Priority:             i.priority("stellar"),
-		State:                keybase1.Identify3RowState_VALID,
-		Color:                color,
-		SigID:                str.SigID,
-		Ctime:                0,
-		SiteURL:              i.makeSigchainViewURL(mctx, str.SigID),
-		SiteIcon:             libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeSmall, 16),
-		SiteIconDarkmode:     libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeSmallDarkmode, 16),
-		SiteIconFull:         libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeFull, 64),
-		SiteIconFullDarkmode: libkb.MakeProofIcons(mctx, "stellar", libkb.ProofIconTypeFullDarkmode, 64),
-		ProofURL:             i.makeSigchainViewURL(mctx, str.SigID),
 	})
 }
 

@@ -1,5 +1,5 @@
 // Chat thread content the account's sealed conversations don't hold: messages the gate can't make
-// through the CLI (exploding, audio, payments, a map unfurl, coin flips in each phase, a system
+// through the CLI (exploding, audio, a map unfurl, coin flips in each phase, a system
 // add, a journey card, custom emoji and mention decorations, a bot's and a revoked device's
 // messages), plus what the service only pushes (an unfurl prompt, coin flip statuses, the unread
 // line; not typing, whose indicator animates without end). The thread replies of the entry's
@@ -43,44 +43,6 @@ type Media = {valid: Valid; asset: Asset}
 // add to the team, is deletable).
 const editable = new Set<T.RPCChat.MessageType>([1, 2])
 const deleteable = new Set<T.RPCChat.MessageType>([1, 2, 11, 17])
-
-const payment = (ctx: FixtureContext, paymentID: string): T.RPCChat.UIPaymentInfo => ({
-  accountID: null,
-  amountDescription: '1 XLM',
-  delta: 2, // decrease: the account sent it
-  fromUsername: str(ctx, 'username'),
-  issuerDescription: 'Stellar Lumens',
-  note: 'For the visual gate',
-  paymentID,
-  showCancel: false,
-  sourceAmount: '',
-  sourceAsset: {
-    authEndpoint: '',
-    code: '',
-    depositButtonText: '',
-    depositReqAuth: false,
-    desc: '',
-    infoUrl: '',
-    infoUrlText: '',
-    issuer: '',
-    issuerName: '',
-    showDepositButton: false,
-    showWithdrawButton: false,
-    transferServer: '',
-    type: 'native',
-    useSep24: false,
-    verifiedDomain: '',
-    withdrawButtonText: '',
-    withdrawReqAuth: false,
-    withdrawType: '',
-  },
-  status: 3, // completed
-  statusDescription: 'completed',
-  statusDetail: '',
-  toUsername: str(ctx, 'secondUser'),
-  worth: '$0.10',
-  worthAtSendTime: '$0.10',
-})
 
 // The thread's messages after the real ones, oldest first. `base` is the account's oldest message
 // in the thread, whose sender fields the synthetic ones copy; `media` the thread's oldest image.
@@ -150,7 +112,6 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Media): Array<UIMess
     teamname: team,
   }
   const path = `/keybase/private/${me}`
-  const paymentText = `+1XLM@${second}`
   return [
     valid(0, {
       bodySummary: '',
@@ -220,25 +181,6 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Media): Array<UIMess
     flip(9, 'vg-flip-hands', '/flip cards 3 ann,ben'),
     flip(10, 'vg-flip-shuffle', '/flip a,b,c,d,e,f,g'),
     flip(11, 'vg-flip-commitment', '/flip'),
-    valid(12, {
-      bodySummary: '',
-      messageBody: {messageType: 14, sendpayment: {paymentID: 'vg-payment-1'}},
-      paymentInfos: [payment(ctx, 'vg-payment-1')],
-    }),
-    text(13, `Paid ${paymentText}`, {
-      decoratedTextBody: `Paid ${decorate({payment: {paymentText, result: {resultTyp: 0, sent: 'vg-payment-2'}, username: second}, typ: 0})}`,
-      messageBody: {
-        messageType: 1,
-        text: {
-          body: `Paid ${paymentText}`,
-          emojis: null,
-          payments: [{paymentText, result: {resultTyp: 0, sent: 'vg-payment-2'}, username: second}],
-          teamMentions: null,
-          userMentions: null,
-        },
-      },
-      paymentInfos: [payment(ctx, 'vg-payment-2')],
-    }),
   ]
 }
 

@@ -322,7 +322,6 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.Unfurler = types.DummyUnfurler{}
 	g.AttachmentUploader = types.DummyAttachmentUploader{}
 	g.StellarLoader = types.DummyStellarLoader{}
-	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.JourneyCardManager = NewJourneyCardManager(g, getRI)
 	g.BotCommandManager = types.DummyBotCommandManager{}

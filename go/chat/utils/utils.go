@@ -1926,17 +1926,11 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 	if len(body) == 0 {
 		return nil
 	}
-	var payments []chat1.TextPayment
-	switch typ {
-	case chat1.MessageType_TEXT:
-		payments = msgBody.Text().Payments
-	case chat1.MessageType_SYSTEM:
+	if typ == chat1.MessageType_SYSTEM {
 		body = systemMsgPresentText(ctx, uid, msg)
 	}
 
 	body = PresentDecoratedTextNoMentions(ctx, body)
-	// Payments
-	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 	// Emojis
 	body = g.EmojiSource.Decorate(ctx, body, uid, typ, msg.Emojis)
 	// Mentions

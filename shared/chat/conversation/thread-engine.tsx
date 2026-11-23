@@ -254,30 +254,6 @@ export const applyThreadNotification = (
     case 'ephemeralPurge':
       applyEphemeralPurgeToThread(notification.ephemeralPurge, threadActions)
       return
-    case 'requestInfo': {
-      const {info, msgID} = notification
-      const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
-      if (!requestInfo) {
-        logger.error(
-          `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-        )
-        return
-      }
-      threadActions.receiveRequestInfo(T.Chat.numberToMessageID(msgID), requestInfo)
-      return
-    }
-    case 'paymentInfo': {
-      const {info, msgID} = notification
-      const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
-      if (!paymentInfo) {
-        logger.error(
-          `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-        )
-        return
-      }
-      threadActions.receivePaymentInfo(T.Chat.numberToMessageID(msgID), paymentInfo)
-      return
-    }
     case 'promptUnfurl':
       threadActions.showUnfurlPrompt(T.Chat.numberToMessageID(notification.msgID), notification.domain)
       return

@@ -61,10 +61,6 @@ func (b *LoopbackIdentifyUI) DisplayCryptocurrency(m libkb.MetaContext, c keybas
 	return nil
 }
 
-func (b *LoopbackIdentifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
-	return nil
-}
-
 func (b *LoopbackIdentifyUI) DisplayKey(m libkb.MetaContext, k keybase1.IdentifyKey) error {
 	b.Lock()
 	defer b.Unlock()

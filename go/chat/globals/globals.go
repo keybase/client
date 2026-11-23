@@ -17,27 +17,25 @@ var (
 )
 
 type ChatContext struct {
-	CtxFactory           types.ContextFactory      // source of verified user info and crypt keys
-	InboxSource          types.InboxSource         // source of remote inbox entries for chat
-	ConvSource           types.ConversationSource  // source of remote message bodies for chat
-	MessageDeliverer     types.MessageDeliverer    // background message delivery service
-	ServerCacheVersions  types.ServerCacheVersions // server side versions for chat caches
-	RegexpSearcher       types.RegexpSearcher      // For searching chat messages in a conversation via regexp
-	Indexer              types.Indexer             // For searching chat messages in the entire inbox
-	Syncer               types.Syncer              // For syncing inbox with server
-	FetchRetrier         types.FetchRetrier        // For retrying failed fetch requests
-	ConvLoader           types.ConvLoader          // background conversation loader
-	PushHandler          types.PushHandler         // for handling push notifications from chat server
-	TeamChannelSource    types.TeamChannelSource   // source of all channels in a team
-	AttachmentURLSrv     types.AttachmentURLSrv    // source of URLs for loading attachments
-	EphemeralPurger      types.EphemeralPurger     // triggers background purges of ephemeral chats
-	ActivityNotifier     types.ActivityNotifier    // notify clients of chat of new activity
-	AttachmentUploader   types.AttachmentUploader  // upload attachments
-	NativeVideoHelper    types.NativeVideoHelper   // connection to native for doing things with video
-	ShareIntentDonator   types.ShareIntentDonator  // donate share sheet suggestions (iOS only)
-	StellarLoader        types.StellarLoader       // stellar payment/request loader
-	StellarSender        types.StellarSender       // stellar in-chat payment sender
-	StellarPushHandler   types.OobmHandler
+	CtxFactory           types.ContextFactory             // source of verified user info and crypt keys
+	InboxSource          types.InboxSource                // source of remote inbox entries for chat
+	ConvSource           types.ConversationSource         // source of remote message bodies for chat
+	MessageDeliverer     types.MessageDeliverer           // background message delivery service
+	ServerCacheVersions  types.ServerCacheVersions        // server side versions for chat caches
+	RegexpSearcher       types.RegexpSearcher             // For searching chat messages in a conversation via regexp
+	Indexer              types.Indexer                    // For searching chat messages in the entire inbox
+	Syncer               types.Syncer                     // For syncing inbox with server
+	FetchRetrier         types.FetchRetrier               // For retrying failed fetch requests
+	ConvLoader           types.ConvLoader                 // background conversation loader
+	PushHandler          types.PushHandler                // for handling push notifications from chat server
+	TeamChannelSource    types.TeamChannelSource          // source of all channels in a team
+	AttachmentURLSrv     types.AttachmentURLSrv           // source of URLs for loading attachments
+	EphemeralPurger      types.EphemeralPurger            // triggers background purges of ephemeral chats
+	ActivityNotifier     types.ActivityNotifier           // notify clients of chat of new activity
+	AttachmentUploader   types.AttachmentUploader         // upload attachments
+	NativeVideoHelper    types.NativeVideoHelper          // connection to native for doing things with video
+	ShareIntentDonator   types.ShareIntentDonator         // donate share sheet suggestions (iOS only)
+	StellarLoader        types.StellarLoader              // stellar payment/request loader
 	Unfurler             types.Unfurler                   // unfurl messages with URLs
 	CommandsSource       types.ConversationCommandsSource // source for / commands for conversations
 	CoinFlipManager      types.CoinFlipManager            // manage /flip games
@@ -84,8 +82,6 @@ func (c *ChatContext) Describe() string {
   NativeVideoHelper: %v,
   ShareIntentDonator: %v,
   StellarLoader: %v,
-  StellarSender: %v,
-  StellarPushHandler: %v,
   Unfurler: %v,
   CommandsSource: %v,
   CoinFlipManager: %v,
@@ -120,8 +116,6 @@ func (c *ChatContext) Describe() string {
 		c.NativeVideoHelper != nil,
 		c.ShareIntentDonator != nil,
 		c.StellarLoader != nil,
-		c.StellarSender != nil,
-		c.StellarPushHandler != nil,
 		c.Unfurler != nil,
 		c.CommandsSource != nil,
 		c.CoinFlipManager != nil,

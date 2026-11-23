@@ -537,11 +537,6 @@ func (a AppStatusError) Error() string {
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
 }
 
-func (a AppStatusError) WithDesc(desc string) AppStatusError {
-	a.Desc = desc
-	return a
-}
-
 func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	var ase AppStatusError
 	return errors.As(err, &ase) && ase.Code == int(code)
@@ -931,10 +926,6 @@ func (d DecryptWrongReceiverError) Error() string {
 
 type DecryptOpenError struct {
 	What string
-}
-
-func NewDecryptOpenError(what string) DecryptOpenError {
-	return DecryptOpenError{What: what}
 }
 
 func (d DecryptOpenError) Error() string {
@@ -2721,11 +2712,6 @@ func (e OfflineError) Error() string {
 }
 
 // =============================================================================
-
-type VerboseError interface {
-	Error() string
-	Verbose() string
-}
 
 type InvalidStellarAccountIDError struct {
 	details string

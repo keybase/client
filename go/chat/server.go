@@ -811,14 +811,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, nil
 	}
 
-	// Run Stellar UI on any payments in the body
-	if !arg.SkipInChatPayments {
-		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-			return res, err
-		}
-	}
-
 	var prepareOpts chat1.SenderPrepareOptions
 	prepareOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
@@ -878,58 +870,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 		parg.Msg.SupersedesOutboxID = arg.Target.OutboxID
 	}
 	return h.PostLocalNonblock(ctx, parg)
-}
-
-func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, msgBody chat1.MessageBody, replyTo *chat1.MessageID,
-) (res chat1.MessageBody, err error) {
-	defer h.Trace(ctx, &err, "runStellarSendUI")()
-	ui := h.getChatUI(sessionID)
-	bodyTyp, err := msgBody.MessageType()
-	if err != nil || bodyTyp != chat1.MessageType_TEXT {
-		return msgBody, nil
-	}
-	body := msgBody.Text().Body
-	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body, replyTo)
-	if len(parsedPayments) == 0 {
-		h.Debug(ctx, "runStellarSendUI: no payments")
-		return msgBody, nil
-	}
-	h.Debug(ctx, "runStellarSendUI: payments found, showing confirm screen")
-	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
-		return res, err
-	}
-	defer func() {
-		_ = ui.ChatStellarDone(ctx, err != nil)
-	}()
-	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
-	if err != nil {
-		if err := libkb.ExportErrorAsStatus(h.G().GlobalContext, err); err != nil {
-			_, _ = ui.ChatStellarDataError(ctx, *err)
-		} else {
-			h.Debug(ctx, "error exported to nothing") // should never happen
-		}
-		return res, err
-	}
-	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")
-	accepted, err := ui.ChatStellarDataConfirm(ctx, uiSummary)
-	if err != nil {
-		return res, err
-	}
-	if !accepted {
-		return res, errors.New("Payment message declined")
-	}
-	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
-	payments, err := h.G().StellarSender.SendPayments(ctx, convID, toSend)
-	if err != nil {
-		// Send regardless here
-		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
-		return msgBody, nil
-	}
-	newBody := msgBody.Text().DeepCopy()
-	newBody.Body = body
-	newBody.Payments = payments
-	return chat1.NewMessageBodyWithText(newBody), nil
 }
 
 var quickReactionPattern = regexp.MustCompile(`(?:^\+:)([^\s]+)(?::)$`)
@@ -1187,15 +1127,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody, arg.ReplyTo); handled {
 		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
 		return res, nil
-	}
-
-	if !arg.SkipInChatPayments {
-		// Determine if the messages contains any Stellar payments, and execute
-		// them if so
-		if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-			arg.Msg.MessageBody, arg.ReplyTo); err != nil {
-			return res, err
-		}
 	}
 
 	// Create non block sender
@@ -4024,8 +3955,7 @@ func (h *Server) ForwardMessage(ctx context.Context, arg chat1.ForwardMessageArg
 				},
 				MessageBody: mvalid.MessageBody.DeepCopy(),
 			},
-			IdentifyBehavior:   arg.IdentifyBehavior,
-			SkipInChatPayments: true,
+			IdentifyBehavior: arg.IdentifyBehavior,
 		})
 	}
 }
@@ -4100,8 +4030,7 @@ func (h *Server) ForwardMessageNonblock(ctx context.Context, arg chat1.ForwardMe
 				},
 				MessageBody: mvalid.MessageBody.DeepCopy(),
 			},
-			IdentifyBehavior:   arg.IdentifyBehavior,
-			SkipInChatPayments: true,
+			IdentifyBehavior: arg.IdentifyBehavior,
 		})
 	}
 }

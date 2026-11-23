@@ -46,10 +46,6 @@ type PrioritySlot struct {
 	shutdown bool
 }
 
-func NewPriority() *PrioritySlot {
-	return &PrioritySlot{}
-}
-
 // Use derives a new context.
 // Whichever of the argument and the incumbent are lower priority is canceled.
 // In a tie the incumbent is canceled.

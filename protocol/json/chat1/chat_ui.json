@@ -1595,59 +1595,6 @@
     },
     {
       "type": "record",
-      "name": "UIChatPayment",
-      "fields": [
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "fullName"
-        },
-        {
-          "type": "string",
-          "name": "xlmAmount"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "error"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "displayAmount"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UIChatPaymentSummary",
-      "fields": [
-        {
-          "type": "string",
-          "name": "xlmTotal"
-        },
-        {
-          "type": "string",
-          "name": "displayTotal"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UIChatPayment"
-          },
-          "name": "payments"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "GiphySearchResult",
       "fields": [
         {
@@ -2315,54 +2262,6 @@
         }
       ],
       "response": "boolean"
-    },
-    "chatStellarShowConfirm": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
-    "chatStellarDataConfirm": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "summary",
-          "type": "UIChatPaymentSummary"
-        }
-      ],
-      "response": "boolean"
-    },
-    "chatStellarDataError": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "error",
-          "type": "keybase1.Status"
-        }
-      ],
-      "response": "boolean"
-    },
-    "chatStellarDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "canceled",
-          "type": "boolean"
-        }
-      ],
-      "response": null
     },
     "chatGiphySearchResults": {
       "request": [

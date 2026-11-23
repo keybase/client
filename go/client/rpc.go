@@ -414,15 +414,6 @@ func GetTeamSearchClient(g *libkb.GlobalContext) (cli keybase1.TeamSearchClient,
 	return cli, nil
 }
 
-func GetTestClient(g *libkb.GlobalContext) (cli keybase1.TestClient, err error) {
-	rcli, _, err := GetRPCClientWithContext(g)
-	if err != nil {
-		return cli, err
-	}
-	cli = keybase1.TestClient{Cli: rcli}
-	return cli, nil
-}
-
 func GetKVStoreClient(g *libkb.GlobalContext) (cli keybase1.KvstoreClient, err error) {
 	rcli, _, err := GetRPCClientWithContext(g)
 	if err != nil {

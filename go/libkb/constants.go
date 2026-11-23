@@ -65,12 +65,6 @@ var GregorServerLookup = map[RunMode]string{
 	ProductionRunMode: ProductionGregorServerURI,
 }
 
-var MpackAPIServerLookup = map[RunMode]string{
-	DevelRunMode:      DevelMpackAPIServerURI,
-	StagingRunMode:    StagingMpackAPIServerURI,
-	ProductionRunMode: ProductionMpackAPIServerURI,
-}
-
 const (
 	ConfigFile           = "config.json"
 	SessionFile          = "session.json"
@@ -665,7 +659,6 @@ const (
 )
 
 // Not a DeriveReason because it is not used in the same way.
-const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PUK-Sbox-NaCl-DH-1"
 
 // FirstProdMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.

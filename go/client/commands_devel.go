@@ -30,7 +30,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamDebug(cl, g),
 		NewCmdContacts(cl, g),
 		NewCmdPeopleSearch(cl, g),
-		newCmdTestAirdropReg(cl, g),
 		newCmdTestCrypto(cl, g),
 	}
 }
@@ -53,14 +52,6 @@ func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.Global
 		NewCmdAccountReset(cl, g),
 		NewCmdAccountResetStart(cl, g),
 		NewCmdAccountResetTimeTravel(cl, g),
-	}
-}
-
-func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return []cli.Command{
-		// newCmdWalletDump(cl, g),
-		// newCmdWalletHandleURI(cl, g),
-		// newCmdWalletInit(cl, g),
 	}
 }
 

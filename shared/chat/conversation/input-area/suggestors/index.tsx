@@ -52,14 +52,13 @@ const markerSources = {
   commands: '(?:!|/)',
   emoji: '\\+?:',
   // 'users' is for @user, @team, and @team#channel
-  users: '(?:\\+\\d+(?:\\.\\d+)?[a-zA-Z]{3,12}@|@)', // normal mentions and ones in a stellar send
+  users: '@',
 } as const
 
 const suggestorToMarker = {
   channels: markerSources.channels,
   commands: new RegExp(`^${markerSources.commands}`),
   emoji: new RegExp(`^${markerSources.emoji}`),
-  // deliberately unanchored: a stellar send puts the marker mid-word
   users: new RegExp(markerSources.users),
 } as const
 

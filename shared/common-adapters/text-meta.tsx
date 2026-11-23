@@ -27,7 +27,6 @@ export const useNegativeColors = Styles.createThemedHook((theme): {[K in TextTyp
   BodySmallSemiboldPrimaryLink: theme.white,
   BodySmallSemiboldSecondaryLink: theme.white,
   BodySmallSuccess: theme.white,
-  BodySmallWallet: theme.white,
   BodyTiny: theme.white,
   BodyTinyBold: theme.white,
   BodyTinyExtrabold: theme.white,
@@ -198,12 +197,6 @@ export const useTypeStyles = Styles.createStyleHook(theme => ({
   BodySmallSuccess: {
     ...Styles.globalStyles.fontRegular,
     color: theme.greenDark,
-    fontSize: 15,
-    lineHeight: 19,
-  },
-  BodySmallWallet: {
-    ...Styles.globalStyles.fontRegular,
-    color: theme.purpleDark,
     fontSize: 15,
     lineHeight: 19,
   },

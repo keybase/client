@@ -29,9 +29,6 @@ func (c chatNullIdentifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cr
 	return nil
 }
 
-func (c chatNullIdentifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
-	return nil
-}
 func (c chatNullIdentifyUI) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error { return nil }
 func (c chatNullIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil

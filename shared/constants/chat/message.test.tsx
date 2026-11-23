@@ -5,14 +5,12 @@ import {
   getMapUnfurl,
   hasUnfurlableLink,
   isSpecialMention,
-  makeChatPaymentInfo,
   makeMessageSystemText,
   messageAttachmentTransferStateToProgressLabel,
   shouldShowPopup,
   upgradeMessage,
   getMessageID,
   getMessageRenderType,
-  getPaymentMessageInfo,
   getReactionOrder,
   isImageViewable,
   isMessageWithReactions,
@@ -20,7 +18,6 @@ import {
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessagePlaceholder,
-  makeMessageSendPayment,
   makeMessageText,
   parseUIMessagesJSON,
   reactionMapToReactions,
@@ -234,31 +231,6 @@ describe('payments', () => {
     expect(res?.accountID).toBe('acctID')
     expect(res?.note.stringValue()).toBe('a note')
     expect(res?.type).toBe('paymentInfo')
-  })
-
-  test('getPaymentMessageInfo prefers the accounts map, falls back to the message', () => {
-    const message = makeMessageSendPayment({
-      id: T.Chat.numberToMessageID(3),
-      paymentInfo: undefined,
-    })
-    expect(getPaymentMessageInfo(new Map(), message)).toBeUndefined()
-
-    const info = uiPaymentInfoToChatPaymentInfo([paymentInfo()])!
-    expect(getPaymentMessageInfo(new Map([[T.Chat.numberToMessageID(3), info]]), message)).toBe(info)
-  })
-
-  test('getPaymentMessageInfo throws when the map holds a request info', () => {
-    const message = makeMessageSendPayment({id: T.Chat.numberToMessageID(3)})
-    const requestInfo = uiRequestInfoToChatRequestInfo({
-      amount: '1',
-      amountDescription: '1 XLM',
-      currency: 'USD',
-      status: T.RPCStellar.RequestStatus.ok,
-      worthAtRequestTime: '$1',
-    })!
-    expect(() =>
-      getPaymentMessageInfo(new Map([[T.Chat.numberToMessageID(3), requestInfo]]), message)
-    ).toThrow()
   })
 })
 
@@ -809,49 +781,27 @@ describe('upgradeMessage', () => {
 
 describe('shouldShowPopup', () => {
   test('there is no menu without a message', () => {
-    expect(shouldShowPopup(undefined, undefined)).toBe(false)
+    expect(shouldShowPopup(undefined)).toBe(false)
   })
 
   test('normal messages get a menu', () => {
-    expect(shouldShowPopup(undefined, makeMessageText({conversationIDKey}))).toBe(true)
-    expect(shouldShowPopup(undefined, makeMessageAttachment({conversationIDKey}))).toBe(true)
-    expect(shouldShowPopup(undefined, makeMessageSystemText({conversationIDKey}))).toBe(true)
+    expect(shouldShowPopup(makeMessageText({conversationIDKey}))).toBe(true)
+    expect(shouldShowPopup(makeMessageAttachment({conversationIDKey}))).toBe(true)
+    expect(shouldShowPopup(makeMessageSystemText({conversationIDKey}))).toBe(true)
   })
 
   test('bookkeeping messages do not', () => {
-    expect(shouldShowPopup(undefined, makeMessageDeleted({conversationIDKey}))).toBe(false)
-    expect(shouldShowPopup(undefined, makeMessagePlaceholder({conversationIDKey}))).toBe(false)
+    expect(shouldShowPopup(makeMessageDeleted({conversationIDKey}))).toBe(false)
+    expect(shouldShowPopup(makeMessagePlaceholder({conversationIDKey}))).toBe(false)
   })
 
   test('renaming to general is suppressed, other renames are not', () => {
     const rename = (newChannelname: string) =>
       ({newChannelname, type: 'setChannelname'}) as T.Chat.MessageSetChannelname
-    expect(shouldShowPopup(undefined, rename('random'))).toBe(true)
-    expect(shouldShowPopup(undefined, rename('general'))).toBe(false)
+    expect(shouldShowPopup(rename('random'))).toBe(true)
+    expect(shouldShowPopup(rename('general'))).toBe(false)
   })
 
-  describe('payments', () => {
-    const payment = (status: T.Chat.ChatPaymentInfo['status']) =>
-      makeChatPaymentInfo({status})
-    const message = makeMessageSendPayment({conversationIDKey, id: T.Chat.numberToMessageID(3)})
-    const mapWith = (status: T.Chat.ChatPaymentInfo['status']) =>
-      new Map([[T.Chat.numberToMessageID(3), payment(status)]])
-
-    test('completed payments get a menu', () => {
-      expect(shouldShowPopup(mapWith('completed'), message)).toBe(true)
-    })
-
-    test('unsettled payments do not', () => {
-      expect(shouldShowPopup(mapWith('claimable'), message)).toBe(false)
-      expect(shouldShowPopup(mapWith('pending'), message)).toBe(false)
-      expect(shouldShowPopup(mapWith('canceled'), message)).toBe(false)
-    })
-
-    test('a payment we know nothing about does not', () => {
-      expect(shouldShowPopup(undefined, message)).toBe(false)
-      expect(shouldShowPopup(new Map(), message)).toBe(false)
-    })
-  })
 })
 
 test('isSpecialMention knows the broadcast mentions', () => {

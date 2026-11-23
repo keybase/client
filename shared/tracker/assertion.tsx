@@ -8,7 +8,6 @@ import {SiteIcon} from '@/profile/generic/site-icon'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
-import {copyToClipboard} from '@/util/storeless-actions'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
@@ -17,7 +16,6 @@ type OwnProps = {
   isSuggestion?: boolean
   notAUser?: boolean
   onRefresh: () => void
-  stellarHidden?: boolean
   username: string
 }
 
@@ -25,21 +23,13 @@ const Assertion = (ownProps: OwnProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const isYours = useCurrentUserState(s => ownProps.username === s.username)
-  const {assertion, isSuggestion = false, notAUser = false, onRefresh, stellarHidden = false} = ownProps
+  const {assertion, isSuggestion = false, notAUser = false, onRefresh} = ownProps
   const {color, metas: _metas, proofURL, sigID, siteIcon} = assertion
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} =
     assertion
-  const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
   const navigateAppend = C.Router2.navigateAppend
   const _onCreateProof = () => navigateAppend({name: 'profileProofsList', params: {platform: type}})
-  const onHideStellar = (hidden: boolean) => {
-    hideStellar(
-      [{args: [{key: 'hidden', value: hidden ? '1' : '0'}], endpoint: 'stellar/hidden'}, C.waitingKeyTracker],
-      () => {},
-      () => {}
-    )
-  }
   const onRecheck = () => {
     recheckProof(
       [{sigID}, C.waitingKeyProfile],
@@ -80,18 +70,11 @@ const Assertion = (ownProps: OwnProps) => {
     if (!isYours || isSuggestion) {
       return {}
     }
-    const onRevoke =
-      type === 'stellar'
-        ? {
-            danger: true,
-            onClick: () => onHideStellar(!stellarHidden),
-            title: `${stellarHidden ? 'Show' : 'Hide'} Stellar address on profile`,
-          }
-        : {
-            danger: true,
-            onClick: _onRevoke,
-            title: type === 'pgp' ? 'Drop' : 'Revoke',
-          }
+    const onRevoke = {
+      danger: true,
+      onClick: _onRevoke,
+      title: type === 'pgp' ? 'Drop' : 'Revoke',
+    }
 
     if (metas.find(m => m.label === 'unreachable')) {
       return {
@@ -308,52 +291,6 @@ const stateToValueTextStyle = (state: T.Tracker.AssertionState, styles: ReturnTy
   }
 }
 
-const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
-  const styles = useStyles()
-  const theme = Kb.Styles.useTheme()
-  const {value, color} = p
-  const onCopyAddress = () => {
-    copyToClipboard(value)
-  }
-
-  const menuItems: Kb.MenuItems = [{onClick: onCopyAddress, title: 'Copy address'}]
-
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    return (
-      <Kb.FloatingMenu
-        attachTo={attachTo}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={hidePopup}
-        visible={true}
-        position="bottom center"
-      />
-    )
-  }
-  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-
-  const label = (
-    <Kb.Text
-      type="BodyPrimaryLink"
-      onClick={isMobile ? undefined : showPopup}
-      tooltip={popup ? undefined : 'Stellar Federation Address'}
-      style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color, theme)}])}
-    >
-      {value}
-    </Kb.Text>
-  )
-
-  return isMobile ? (
-    label
-  ) : (
-    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.tooltip}>
-      {label}
-      {popup}
-    </Kb.Box2>
-  )
-}
-
 const Value = (p: {
   isSuggestion?: boolean
   type: string
@@ -366,44 +303,39 @@ const Value = (p: {
 }) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  let content: React.JSX.Element | null
-  if (p.type === 'stellar' && !p.isSuggestion) {
-    content = <StellarValue value={p.value} color={p.color} />
-  } else {
-    let str = p.value
-    let style: Kb.Styles.StylesCrossPlatform = styles.username
+  let str = p.value
+  let style: Kb.Styles.StylesCrossPlatform = styles.username
 
-    if (!p.isSuggestion) {
-      switch (p.type) {
-        case 'pgp': {
-          const last = p.value.substring(p.value.length - 16).toUpperCase()
-          str = `${last.substring(0, 4)} ${last.substring(4, 8)} ${last.substring(8, 12)} ${last.substring(
-            12,
-            16
-          )}`
-          break
-        }
-        case 'btc': // fallthrough
-        case 'zcash':
-          style = styles.crypto
-          break
+  if (!p.isSuggestion) {
+    switch (p.type) {
+      case 'pgp': {
+        const last = p.value.substring(p.value.length - 16).toUpperCase()
+        str = `${last.substring(0, 4)} ${last.substring(4, 8)} ${last.substring(8, 12)} ${last.substring(
+          12,
+          16
+        )}`
+        break
       }
+      case 'btc': // fallthrough
+      case 'zcash':
+        style = styles.crypto
+        break
     }
-
-    content = (
-      <Kb.Text
-        type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
-        onClick={p.onCreateProof || p.onShowSite}
-        style={Kb.Styles.collapseStyles([
-          style,
-          stateToValueTextStyle(p.state, styles),
-          {color: assertionColorToTextColor(p.color, theme)},
-        ])}
-      >
-        {str}
-      </Kb.Text>
-    )
   }
+
+  const content = (
+    <Kb.Text
+      type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
+      onClick={p.onCreateProof || p.onShowSite}
+      style={Kb.Styles.collapseStyles([
+        style,
+        stateToValueTextStyle(p.state, styles),
+        {color: assertionColorToTextColor(p.color, theme)},
+      ])}
+    >
+      {str}
+    </Kb.Text>
+  )
 
   return content
 }
@@ -496,7 +428,6 @@ const useStyles = Kb.Styles.createStyleHook(
       textAssertion: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
       }),
-      tooltip: Kb.Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
       username: Kb.Styles.platformStyles({
         common: {letterSpacing: 0.2},
         isElectron: {wordBreak: 'break-all'},

@@ -734,7 +734,4 @@ func (h *UserHandler) cleanupAfterBlockChange(mctx libkb.MetaContext, uids []key
 			mctx.Debug("cleanupAfterBlockChange CardCache delete error for %s: %s", uid, err)
 		}
 	}
-
-	mctx.Debug("refreshing wallet state after block change")
-	mctx.G().GetStellar().Refresh(mctx, "user block change")
 }

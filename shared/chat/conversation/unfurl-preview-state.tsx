@@ -26,7 +26,6 @@ export const useUnfurlPreviewState = Z.createZustand<State>('unfurl-preview', se
   dismissed: new Map(),
   failed: new Map(),
   dispatch: {
-    // also the restore path after a canceled send: both mean "these urls are suppressed"
     dismiss: (conversationIDKey, urls) => {
       if (!urls.length) return
       set(s => {
@@ -87,12 +86,6 @@ export const suppressedURLsOf = (snapshot: SuppressSnapshot) => [
 // whole-conversation clear so a dismissal made while that send was in flight survives
 export const removeDismissals = (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => {
   useUnfurlPreviewState.getState().dispatch.remove(conversationIDKey, urls)
-}
-
-// put back what a send took when that send never posted, so the composer the user gets
-// back still has those urls dismissed
-export const restoreDismissals = (conversationIDKey: T.Chat.ConversationIDKey, urls: ReadonlyArray<string>) => {
-  useUnfurlPreviewState.getState().dispatch.dismiss(conversationIDKey, urls)
 }
 
 // a send during this window (paste a link, hit enter) suppresses nothing, so the message

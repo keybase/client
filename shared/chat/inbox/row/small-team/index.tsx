@@ -445,12 +445,6 @@ const SnippetContent = (p: {
     case T.RPCChat.SnippetDecoration.fileAttachment:
       decorationNode = <SnippetDecorationIcon type="iconfont-file-solid" color={defaultIconColor} />
       break
-    case T.RPCChat.SnippetDecoration.stellarReceived:
-      decorationNode = <SnippetDecorationIcon type="iconfont-stellar-request" color={defaultIconColor} />
-      break
-    case T.RPCChat.SnippetDecoration.stellarSent:
-      decorationNode = <SnippetDecorationIcon type="iconfont-stellar-send" color={defaultIconColor} />
-      break
     case T.RPCChat.SnippetDecoration.pinnedMessage:
       decorationNode = <SnippetDecorationIcon type="iconfont-pin-solid" color={defaultIconColor} />
       break

@@ -474,15 +474,6 @@ type StellarLoader interface {
 	LoadRequest(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }
 
-type StellarSender interface {
-	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		body string, replyTo *chat1.MessageID) []ParsedStellarPayment
-	DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
-	DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string
-	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
-}
-
 type ConvConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data any) error
 	PutToKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, data any) error

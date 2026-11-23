@@ -5,7 +5,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type NullChatUI struct{}
@@ -47,16 +46,6 @@ func (u NullChatUI) ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHi
 
 func (u NullChatUI) ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error { return nil }
 
-func (u NullChatUI) ChatStellarShowConfirm(context.Context) error { return nil }
-
-func (u NullChatUI) ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error) {
-	return false, nil
-}
-
-func (u NullChatUI) ChatStellarDataError(context.Context, keybase1.Status) (bool, error) {
-	return false, nil
-}
-func (u NullChatUI) ChatStellarDone(context.Context, bool) error { return nil }
 func (u NullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 	results chat1.GiphySearchResults,
 ) error {

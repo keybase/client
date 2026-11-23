@@ -1,62 +1,9 @@
 package stellar1
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"time"
 )
-
-const (
-	KeybaseTransactionIDLen       = 16
-	KeybaseTransactionIDSuffix    = 0x30
-	KeybaseTransactionIDSuffixHex = "30"
-
-	KeybaseRequestIDLen       = 16
-	KeybaseRequestIDSuffix    = 0x31
-	KeybaseRequestIDSuffixHex = "31"
-)
-
-const (
-	PushAutoClaim           = "stellar.autoclaim"
-	PushPaymentStatus       = "stellar.payment_status"
-	PushPaymentNotification = "stellar.payment_notification"
-	PushRequestStatus       = "stellar.request_status"
-	PushAccountChange       = "stellar.account_change"
-)
-
-const (
-	AirdropQualified   = "qualified"
-	AirdropUnqualified = "unqualified"
-	AirdropAccepted    = "accepted"
-)
-
-func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
-	if len(s) != hex.EncodedLen(KeybaseTransactionIDLen) {
-		return "", fmt.Errorf("bad KeybaseTransactionID %q: must be %d bytes long", s, KeybaseTransactionIDLen)
-	}
-	suffix := s[len(s)-2:]
-	if suffix != KeybaseTransactionIDSuffixHex {
-		return "", fmt.Errorf("bad KeybaseTransactionID %q: must end in 0x%x", s, KeybaseTransactionIDSuffix)
-	}
-	return KeybaseTransactionID(s), nil
-}
-
-func (k KeybaseTransactionID) String() string {
-	return string(k)
-}
-
-func (k KeybaseTransactionID) Eq(b KeybaseTransactionID) bool {
-	return k == b
-}
-
-func (k KeybaseTransactionID) IsNil() bool {
-	return len(k) == 0
-}
-
-func TransactionIDFromPaymentID(p PaymentID) TransactionID {
-	return TransactionID(p)
-}
 
 func (t TransactionID) String() string {
 	return string(t)
@@ -66,43 +13,12 @@ func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
 }
 
-func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {
-	if len(s) != hex.EncodedLen(KeybaseRequestIDLen) {
-		return "", fmt.Errorf("bad KeybaseRequestID %q: must be %d bytes long", s, KeybaseRequestIDLen)
-	}
-	suffix := s[len(s)-2:]
-	if suffix != KeybaseRequestIDSuffixHex {
-		return "", fmt.Errorf("bad KeybaseRequestID %q: must end in 0x%x", s, KeybaseRequestIDSuffix)
-	}
-	return KeybaseRequestID(s), nil
-}
-
 func (k KeybaseRequestID) String() string {
 	return string(k)
 }
 
 func (k KeybaseRequestID) Eq(b KeybaseRequestID) bool {
 	return k == b
-}
-
-func ToTimeMs(t time.Time) TimeMs {
-	// the result of calling UnixNano on the zero Time is undefined.
-	// https://golang.org/pkg/time/#Time.UnixNano
-	if t.IsZero() {
-		return 0
-	}
-	return TimeMs(t.UnixNano() / 1000000)
-}
-
-func FromTimeMs(t TimeMs) time.Time {
-	if t == 0 {
-		return time.Time{}
-	}
-	return time.Unix(0, int64(t)*1000000)
-}
-
-func (t TimeMs) Time() time.Time {
-	return FromTimeMs(t)
 }
 
 func (a AccountID) String() string {
@@ -115,13 +31,6 @@ func (a AccountID) Eq(b AccountID) bool {
 
 func (a AccountID) IsNil() bool {
 	return len(a) == 0
-}
-
-func (a AccountID) LossyAbbreviation() string {
-	if len(a) != 56 {
-		return "[invalid account id]"
-	}
-	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-4:])
 }
 
 func (s SecretKey) String() string {
@@ -183,15 +92,6 @@ func (r Bundle) CheckInvariants() error {
 	return nil
 }
 
-func (s Bundle) PrimaryAccount() (BundleEntry, error) {
-	for _, entry := range s.Accounts {
-		if entry.IsPrimary {
-			return entry, nil
-		}
-	}
-	return BundleEntry{}, errors.New("primary stellar account not found")
-}
-
 func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 	for _, entry := range s.Accounts {
 		if entry.AccountID == acctID {
@@ -199,10 +99,6 @@ func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 		}
 	}
 	return BundleEntry{}, errors.New("stellar account not found")
-}
-
-func (a Asset) SameAsset(b Asset) bool {
-	return a.Type == b.Type && a.Code == b.Code && a.Issuer == b.Issuer
 }
 
 func (a *Asset) IsNativeXLM() bool {
@@ -222,202 +118,14 @@ func (a Asset) String() string {
 	return fmt.Sprintf("%s/%s/%s", a.Type, a.Code, a.Issuer)
 }
 
-func AssetNative() Asset {
-	return Asset{
-		Type:   "native",
-		Code:   "",
-		Issuer: "",
-	}
-}
-
-func CreateNonNativeAssetType(code string) (string, error) {
-	if len(code) >= 1 && len(code) <= 4 {
-		return "credit_alphanum4", nil
-	} else if len(code) >= 5 && len(code) <= 12 {
-		return "credit_alphanum12", nil
-	} else {
-		return "", fmt.Errorf("Invalid asset code: %q", code)
-	}
-}
-
-func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
-	switch t {
-	case TransactionStatus_PENDING:
-		return PaymentStatus_PENDING
-	case TransactionStatus_SUCCESS:
-		return PaymentStatus_COMPLETED
-	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
-		return PaymentStatus_ERROR
-	default:
-		return PaymentStatus_UNKNOWN
-	}
-}
-
-func (t TransactionStatus) Details(errMsg string) (status, detail string) {
-	switch t {
-	case TransactionStatus_PENDING:
-		status = "pending"
-	case TransactionStatus_SUCCESS:
-		status = "completed"
-	case TransactionStatus_ERROR_TRANSIENT, TransactionStatus_ERROR_PERMANENT:
-		status = "error"
-		detail = errMsg
-	default:
-		status = "unknown"
-		detail = errMsg
-	}
-
-	return status, detail
-}
-
-func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
-	return &PaymentLocal{
-		Id:   NewPaymentID(txid),
-		Time: ctime,
-	}
-}
-
-func NewPaymentID(txid TransactionID) PaymentID {
-	return PaymentID(txid)
-}
-
 func (p PaymentID) String() string {
 	return string(p)
-}
-
-func (p *PaymentSummary) ToDetails() *PaymentDetails {
-	return &PaymentDetails{
-		Summary: *p,
-	}
-}
-
-func (p *PaymentSummary) TransactionID() (TransactionID, error) {
-	t, err := p.Typ()
-	if err != nil {
-		return "", err
-	}
-
-	switch t {
-	case PaymentSummaryType_STELLAR:
-		s := p.Stellar()
-		return s.TxID, nil
-	case PaymentSummaryType_DIRECT:
-		s := p.Direct()
-		return s.TxID, nil
-	case PaymentSummaryType_RELAY:
-		s := p.Relay()
-		return s.TxID, nil
-	}
-
-	return "", errors.New("unknown payment summary type")
-}
-
-func (p *PaymentSummary) TransactionStatus() (TransactionStatus, error) {
-	t, err := p.Typ()
-	if err != nil {
-		return TransactionStatus_NONE, err
-	}
-
-	switch t {
-	case PaymentSummaryType_STELLAR:
-		return TransactionStatus_SUCCESS, nil
-	case PaymentSummaryType_DIRECT:
-		return p.Direct().TxStatus, nil
-	case PaymentSummaryType_RELAY:
-		return p.Relay().TxStatus, nil
-	}
-
-	return TransactionStatus_NONE, errors.New("unknown payment summary type")
-}
-
-func (c *ClaimSummary) ToPaymentStatus() PaymentStatus {
-	txStatus := c.TxStatus.ToPaymentStatus()
-	switch txStatus {
-	case PaymentStatus_COMPLETED:
-		if c.Dir == RelayDirection_YANK {
-			return PaymentStatus_CANCELED
-		}
-	}
-	return txStatus
-}
-
-func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (res CurrencyLocal, ok bool) {
-	def, found := d.Currencies[code]
-	if found {
-		res = CurrencyLocal{
-			Description: fmt.Sprintf("%s (%s)", string(code), def.Symbol.Symbol),
-			Code:        code,
-			Symbol:      def.Symbol.Symbol,
-			Name:        def.Name,
-		}
-		ok = true
-	} else {
-		res = CurrencyLocal{
-			Code: code,
-		}
-		ok = false
-	}
-	return res, ok
 }
 
 func (c OutsideCurrencyCode) String() string {
 	return string(c)
 }
 
-func (b BuildPaymentID) String() string {
-	return string(b)
-}
-
-func (b BuildPaymentID) IsNil() bool {
-	return len(b) == 0
-}
-
-func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
-	return b == other
-}
-
-func NewChatConversationID(b []byte) *ChatConversationID {
-	cid := ChatConversationID(hex.EncodeToString(b))
-	return &cid
-}
-
-func (a *AccountDetails) SetDefaultDisplayCurrency() {
-	if a.DisplayCurrency == "" {
-		a.DisplayCurrency = "USD"
-	}
-}
-
-func (a AssetCode) String() string {
-	return string(a)
-}
-
-func (a AssetCode) Eq(other AssetCode) bool {
-	return a == other
-}
-
-func (a AssetCode) GetAssetType() string {
-	switch {
-	case len(a) >= 1 && len(a) <= 4:
-		return "credit_alphanum4"
-	case len(a) >= 5 && len(a) <= 12:
-		return "credit_alphanum12"
-	default:
-		// nil or invalid AssetCode.
-		return "asset_code_invalid"
-	}
-}
-
-// TypeString implements stellarnet.AssetBase.
 func (a Asset) TypeString() string {
 	return a.Type
-}
-
-// CodeString implements stellarnet.AssetBase.
-func (a Asset) CodeString() string {
-	return a.Code
-}
-
-// IssuerString implements stellarnet.AssetBase.
-func (a Asset) IssuerString() string {
-	return a.Issuer
 }

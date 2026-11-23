@@ -144,10 +144,6 @@ func (i *Identify2WithUIDTester) DisplayCryptocurrency(libkb.MetaContext, keybas
 	return nil
 }
 
-func (i *Identify2WithUIDTester) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
-	return nil
-}
-
 func (i *Identify2WithUIDTester) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error {
 	return nil
 }

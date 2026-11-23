@@ -184,34 +184,6 @@ func (c *DelegateChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSe
 	return nil
 }
 
-func (c *DelegateChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
-	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatStellarDataConfirm(ctx, arg)
-	}
-	return true, nil
-}
-
-func (c *DelegateChatUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
-	if chatUI := c.getChatUI(sessionID); chatUI != nil {
-		return (*chatUI).ChatStellarShowConfirm(ctx, sessionID)
-	}
-	return nil
-}
-
-func (c *DelegateChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
-	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatStellarDataError(ctx, arg)
-	}
-	return false, nil
-}
-
-func (c *DelegateChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
-	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatStellarDone(ctx, arg)
-	}
-	return nil
-}
-
 func (c *DelegateChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
 		return (*chatUI).ChatGiphySearchResults(ctx, arg)

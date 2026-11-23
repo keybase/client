@@ -24,8 +24,6 @@ export type PostTextParams = {
   conversationIDKey: T.Chat.ConversationIDKey
   // 0 is not exploding
   ephemeralLifetime: number
-  // the text carried a stellar payment and the user backed out of it; nothing was posted
-  onStellarCanceled?: () => void
   replyTo?: T.Chat.MessageID
   text: string
   tlfName: string
@@ -549,23 +547,7 @@ const serviceChatRpc: ChatThreadRpc = {
   },
   postText: async p => {
     await T.RPCChat.localPostTextNonblockRpcListener({
-      // chat never confirms a stellar payment inline: decline, and the service asks the user
-      customResponseIncomingCallMap: {
-        'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-          response.result(false)
-        },
-        'chat.1.chatUi.chatStellarDataError': (_, response) => {
-          response.result(false)
-        },
-      },
-      incomingCallMap: {
-        'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-          if (canceled) {
-            p.onStellarCanceled?.()
-          }
-        },
-        'chat.1.chatUi.chatStellarShowConfirm': () => {},
-      },
+      incomingCallMap: {},
       params: {
         ...ephemeralDataOf(p.ephemeralLifetime),
         body: p.text,

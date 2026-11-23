@@ -15,7 +15,6 @@ import {
   applyReactionUpdateToThread,
   applyThreadNotification,
 } from './thread-engine'
-import logger from '@/logger'
 import type {ConversationThreadActions, ConversationThreadState} from './thread-context'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -476,8 +475,6 @@ describe('applyThreadNotification', () => {
     ({
       ...makeActions(),
       completeAttachmentDownload: jest.fn(),
-      receivePaymentInfo: jest.fn(),
-      receiveRequestInfo: jest.fn(),
       setTyping: jest.fn(),
       showUnfurlPrompt: jest.fn(),
       updateAttachmentDownloadProgress: jest.fn(),
@@ -519,18 +516,6 @@ describe('applyThreadNotification', () => {
     const a = makeAllActions()
     applyThreadNotification(conversationIDKey, {domain: 'example.com', msgID: 3, type: 'promptUnfurl'}, asActions(a))
     expect(a.showUnfurlPrompt).toHaveBeenCalledWith(messageID(3), 'example.com')
-  })
-
-  test('a request with no usable info is logged and dropped', () => {
-    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    const a = makeAllActions()
-    applyThreadNotification(
-      conversationIDKey,
-      {info: {} as T.RPCChat.UIRequestInfo, msgID: 3, type: 'requestInfo'},
-      asActions(a)
-    )
-    expect(a.receiveRequestInfo).not.toHaveBeenCalled()
-    expect(error).toHaveBeenCalledWith(expect.stringContaining("got 'NotifyChat.ChatRequestInfo' with no valid"))
   })
 
   test('a failed message only errors the records for this thread', () => {

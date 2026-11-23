@@ -73,7 +73,7 @@ export const EXCLUSIONS: Exclusions = {
     'chat.1.local.setWelcomeMessage': 'dead: no call site in the app',
     'keybase.1.apiserver.Delete': 'mobile only: push token delete on logout (stores/push.tsx; desktop is a no-op)',
     'keybase.1.apiserver.Post':
-      'mobile push token upload (stores/push.tsx), and hiding a stellar address on a profile (tracker/assertion.tsx); payments are unsupported',
+      'mobile push token upload (stores/push.tsx)',
     'keybase.1.appState.updateMobileNetState': 'mobile only: the native platform listener (constants/init)',
     'keybase.1.config.logSend': 'manual-only: feedback-send',
     'keybase.1.config.startUpdateIfNeeded': 'manual-only: auto-update-installer',

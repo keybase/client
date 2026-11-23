@@ -2049,60 +2049,6 @@ func (o UIChatSearchBotHits) DeepCopy() UIChatSearchBotHits {
 	}
 }
 
-type UIChatPayment struct {
-	Username      string  `codec:"username" json:"username"`
-	FullName      string  `codec:"fullName" json:"fullName"`
-	XlmAmount     string  `codec:"xlmAmount" json:"xlmAmount"`
-	Error         *string `codec:"error,omitempty" json:"error,omitempty"`
-	DisplayAmount *string `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-}
-
-func (o UIChatPayment) DeepCopy() UIChatPayment {
-	return UIChatPayment{
-		Username:  o.Username,
-		FullName:  o.FullName,
-		XlmAmount: o.XlmAmount,
-		Error: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.Error),
-		DisplayAmount: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.DisplayAmount),
-	}
-}
-
-type UIChatPaymentSummary struct {
-	XlmTotal     string          `codec:"xlmTotal" json:"xlmTotal"`
-	DisplayTotal string          `codec:"displayTotal" json:"displayTotal"`
-	Payments     []UIChatPayment `codec:"payments" json:"payments"`
-}
-
-func (o UIChatPaymentSummary) DeepCopy() UIChatPaymentSummary {
-	return UIChatPaymentSummary{
-		XlmTotal:     o.XlmTotal,
-		DisplayTotal: o.DisplayTotal,
-		Payments: (func(x []UIChatPayment) []UIChatPayment {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIChatPayment, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Payments),
-	}
-}
-
 type GiphySearchResult struct {
 	TargetUrl           string `codec:"targetUrl" json:"targetUrl"`
 	PreferredPreviewUrl string `codec:"preferredPreviewUrl" json:"preferredPreviewUrl"`
@@ -3094,25 +3040,6 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
-type ChatStellarShowConfirmArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
-type ChatStellarDataConfirmArg struct {
-	SessionID int                  `codec:"sessionID" json:"sessionID"`
-	Summary   UIChatPaymentSummary `codec:"summary" json:"summary"`
-}
-
-type ChatStellarDataErrorArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Error     keybase1.Status `codec:"error" json:"error"`
-}
-
-type ChatStellarDoneArg struct {
-	SessionID int  `codec:"sessionID" json:"sessionID"`
-	Canceled  bool `codec:"canceled" json:"canceled"`
-}
-
 type ChatGiphySearchResultsArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
 	ConvID    ConvIDStr          `codec:"convID" json:"convID"`
@@ -3201,10 +3128,6 @@ type ChatUiInterface interface {
 	ChatSearchTeamHits(context.Context, ChatSearchTeamHitsArg) error
 	ChatSearchBotHits(context.Context, ChatSearchBotHitsArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
-	ChatStellarShowConfirm(context.Context, int) error
-	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
-	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
-	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
 	ChatGiphyToggleResultWindow(context.Context, ChatGiphyToggleResultWindowArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
@@ -3475,66 +3398,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.ChatConfirmChannelDelete(ctx, typedArgs[0])
-					return
-				},
-			},
-			"chatStellarShowConfirm": {
-				MakeArg: func() any {
-					var ret [1]ChatStellarShowConfirmArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					typedArgs, ok := args.(*[1]ChatStellarShowConfirmArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatStellarShowConfirmArg)(nil), args)
-						return
-					}
-					err = i.ChatStellarShowConfirm(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
-			"chatStellarDataConfirm": {
-				MakeArg: func() any {
-					var ret [1]ChatStellarDataConfirmArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					typedArgs, ok := args.(*[1]ChatStellarDataConfirmArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatStellarDataConfirmArg)(nil), args)
-						return
-					}
-					ret, err = i.ChatStellarDataConfirm(ctx, typedArgs[0])
-					return
-				},
-			},
-			"chatStellarDataError": {
-				MakeArg: func() any {
-					var ret [1]ChatStellarDataErrorArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					typedArgs, ok := args.(*[1]ChatStellarDataErrorArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatStellarDataErrorArg)(nil), args)
-						return
-					}
-					ret, err = i.ChatStellarDataError(ctx, typedArgs[0])
-					return
-				},
-			},
-			"chatStellarDone": {
-				MakeArg: func() any {
-					var ret [1]ChatStellarDoneArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					typedArgs, ok := args.(*[1]ChatStellarDoneArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatStellarDoneArg)(nil), args)
-						return
-					}
-					err = i.ChatStellarDone(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3809,27 +3672,6 @@ func (c ChatUiClient) ChatSearchBotHits(ctx context.Context, __arg ChatSearchBot
 
 func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []any{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []any{__arg}, nil, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatStellarDataConfirm(ctx context.Context, __arg ChatStellarDataConfirmArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataConfirm", []any{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []any{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

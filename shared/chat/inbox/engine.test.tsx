@@ -183,28 +183,6 @@ test('coin flips, unfurl prompts, payments and requests leave the inbox nothing 
       },
       type: 'chat.1.NotifyChat.ChatPromptUnfurl',
     },
-    {
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          info: {} as T.RPCChat.UIRequestInfo,
-          msgID: T.Chat.messageIDToNumber(msgID),
-          uid: new Uint8Array([1]),
-        },
-      },
-      type: 'chat.1.NotifyChat.ChatRequestInfo',
-    },
-    {
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          info: {} as T.RPCChat.UIPaymentInfo,
-          msgID: T.Chat.messageIDToNumber(msgID),
-          uid: new Uint8Array([1]),
-        },
-      },
-      type: 'chat.1.NotifyChat.ChatPaymentInfo',
-    },
   ].forEach(action => expect(inboxApplied(action as never)).toEqual({}))
 })
 

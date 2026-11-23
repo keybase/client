@@ -902,58 +902,6 @@ const cases: Array<Case> = [
   },
   {
     action: () =>
-      engineAction('chat.1.NotifyChat.ChatRequestInfo', {
-        convID: rpcConvID(convA),
-        info: {
-          amount: '1',
-          amountDescription: '1 USD',
-          asset: null,
-          currency: 'USD',
-          status: T.RPCStellar.RequestStatus.ok,
-          worthAtRequestTime: '$1.00',
-        },
-        msgID: 10,
-      }),
-    expected: {
-      A: ['thread:A:accountsInfoMap'],
-      'A+B': ['thread:A:accountsInfoMap'],
-      none: none,
-    },
-    name: 'ChatRequestInfo',
-  },
-  {
-    action: () =>
-      engineAction('chat.1.NotifyChat.ChatPaymentInfo', {
-        convID: rpcConvID(convA),
-        info: {
-          accountID: 'account-id',
-          amountDescription: '1 XLM',
-          delta: T.RPCStellar.BalanceDelta.none,
-          fromUsername: 'testuser',
-          issuerDescription: 'Lumens',
-          note: '',
-          paymentID: 'payment-1',
-          showCancel: false,
-          sourceAmount: '1',
-          sourceAsset: {code: 'XLM', issuer: '', issuerName: '', verifiedDomain: ''},
-          status: T.RPCStellar.PaymentStatus.completed,
-          statusDescription: 'Completed',
-          statusDetail: '',
-          toUsername: 'testuser-mac',
-          worth: '$1.00',
-          worthAtSendTime: '$1.00',
-        },
-        msgID: 10,
-      }),
-    expected: {
-      A: ['thread:A:accountsInfoMap,paymentStatusMap'],
-      'A+B': ['thread:A:accountsInfoMap,paymentStatusMap'],
-      none: none,
-    },
-    name: 'ChatPaymentInfo',
-  },
-  {
-    action: () =>
       engineAction('chat.1.chatUi.chatCoinFlipStatus', {
         statuses: [convA, convB, convA].map((id, i) => ({
           commitmentVisualization: '',

@@ -95,7 +95,6 @@ const _scoreAssertionKey = (a: string) => {
     case 'https': return 60
     case 'http': return 50
     case 'dns': return 40
-    case 'stellar': return 30
     case 'btc': return 20
     case 'zcash': return 10
     default: return 1
@@ -186,7 +185,9 @@ const Tracker = (props: Props) => {
   const theme = Kb.Styles.useTheme()
   const isDarkMode = useColorScheme() === 'dark'
 
-  const sortedAssertions = props.assertions ? [...props.assertions].sort(sortAssertions) : null
+  const sortedAssertions = props.assertions
+    ? [...props.assertions].filter(a => a.type !== 'stellar').sort(sortAssertions)
+    : null
 
   let backgroundColor: string
   if (['broken', 'error'].includes(props.state)) {
