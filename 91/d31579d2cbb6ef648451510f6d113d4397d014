@@ -1,0 +1,25 @@
+shared/constants/fs.tsx
+  s_b9b0f9190d830a::t_374381f624642e 599-602
+go/kbfs/libkbfs/kbfs_ops_test.go
+  s_b9b0f9190d830a::t_31146fa70dcea9 4952-4971
+shared/stores/tests/fs.test.ts
+  s_b9b0f9190d830a::t_31146fa70dcea9 136-167
+go/kbfs/libkbfs/kbfs_ops.go
+  s_b9b0f9190d830a::t_50b6ee3b8adfe6 1061-1066
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "91d31579d2cbb6ef648451510f6d113d4397d014",
+  "prompts": {},
+  "sessions": {
+    "s_b9b0f9190d830a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4edb3633-5872-4526-8361-4aebe1fbe12d",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
