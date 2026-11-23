@@ -12,7 +12,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-// Starts a search and lets it reach the service: every earlier search is cancelled first.
+// Starts a search and lets it reach the service.
 const startSearch = async () => {
   const fake = installFakeEngine()
   fake.answer('chat.1.local.cancelActiveInboxSearch', () => undefined)
@@ -22,7 +22,7 @@ const startSearch = async () => {
   await flush()
   expect(held).toHaveLength(1)
   const fail = (code: T.RPCGen.StatusCode, desc: string) => held[0]!.reply(fakeError(code, desc))
-  return {fail, result}
+  return {fake, fail, held, result}
 }
 
 test('an inbox search the service fails shows the text results as errored', async () => {
@@ -44,4 +44,18 @@ test.each([
   await flush()
 
   expect(result.current.searchInfo.textStatus).not.toBe('error')
+})
+
+// the service cancels the running inbox search itself when the next one starts
+test('each typed query goes straight to the service, with no cancel call before it', async () => {
+  const {fake, held, result} = await startSearch()
+  const cancels = () => fake.calls.filter(c => c.method === 'chat.1.local.cancelActiveInboxSearch').length
+  const cancelsBefore = cancels()
+
+  act(() => result.current.setQuery('a'))
+  act(() => result.current.setQuery('ab'))
+  await flush()
+
+  expect(held.map(h => (h.params as {query: string}).query)).toEqual(['', 'a', 'ab'])
+  expect(cancels()).toBe(cancelsBefore)
 })
