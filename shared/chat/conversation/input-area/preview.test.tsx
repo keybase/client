@@ -25,6 +25,7 @@ import Preview from './preview'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const joinConversation = 'chat.1.local.joinConversationByIDLocal'
+const refreshParticipants = 'chat.1.local.refreshParticipants'
 
 let fake: FakeEngine
 
@@ -64,13 +65,15 @@ test('the banner names the channel', () => {
   expect(screen.getByText('Would you like to join #general?')).toBeTruthy()
 })
 
-test('joining asks the service to join the channel', async () => {
+test('joining asks the service to join the channel, then to recompute its participants', async () => {
   fake.answer(joinConversation, () => ({}))
+  fake.answer(refreshParticipants, () => null)
   renderPreview()
   await click('Yes, join')
   const convID = T.Chat.keyToConversationID(conversationIDKey)
-  expect(fake.calls.map(c => c.method)).toEqual([joinConversation])
+  expect(fake.calls.map(c => c.method)).toEqual([joinConversation, refreshParticipants])
   expect(paramsOf(fake, joinConversation)).toEqual([{convID}])
+  expect(paramsOf(fake, refreshParticipants)).toEqual([{convID}])
 })
 
 test('declining leaves the channel', async () => {

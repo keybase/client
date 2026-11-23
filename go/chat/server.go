@@ -2378,6 +2378,19 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	return res, nil
 }
 
+// unsentSearchHits returns the hits whose message is not in sent yet, and adds them to it.
+func unsentSearchHits(sent map[chat1.MessageID]bool, hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit) {
+	for _, hit := range hits {
+		msgID := hit.HitMessage.GetMessageID()
+		if sent[msgID] {
+			continue
+		}
+		sent[msgID] = true
+		res = append(res, hit)
+	}
+	return res
+}
+
 func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2441,11 +2454,12 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		}
 		// A conversation-scoped search gets each hit once, as a ChatSearchHit, the same
 		// shape the delegated search streams. A conversation the indexer searches again
-		// after reindexing repeats its earlier hits.
+		// after reindexing repeats its earlier hits, and the ones it adds can be older than
+		// hits already sent, so the thread search orders hits by message id itself.
 		sent := make(map[chat1.MessageID]bool)
 		for searchHit := range hitUICh {
-			numHits += len(searchHit.Hits)
 			if opts.ConvID == nil {
+				numHits += len(searchHit.Hits)
 				select {
 				case <-ctx.Done():
 					return nil
@@ -2456,12 +2470,9 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				}
 				continue
 			}
-			for _, hit := range searchHit.Hits {
-				msgID := hit.HitMessage.GetMessageID()
-				if sent[msgID] {
-					continue
-				}
-				sent[msgID] = true
+			fresh := unsentSearchHits(sent, searchHit.Hits)
+			numHits += len(fresh)
+			for _, hit := range fresh {
 				select {
 				case <-ctx.Done():
 					return nil

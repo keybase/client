@@ -212,8 +212,15 @@ export function useInboxSearch(): InboxSearchController {
     (query: string) => {
       const searchID = ++activeSearchIDRef.current
       updateSearchInfo(prev => ({...prev, query}))
-      // starting a search cancels the previous one in the service
       const f = async () => {
+        try {
+          await cancelActiveInboxSearchRPC()
+        } catch {}
+
+        if (!isActiveSearch(searchID) || searchInfoRef.current.query !== query) {
+          return
+        }
+
         const teamType = (t: T.RPCChat.TeamType) => (t === T.RPCChat.TeamType.complex ? 'big' : 'small')
 
         const updateIfActive = (updater: SearchInfoUpdater) => {

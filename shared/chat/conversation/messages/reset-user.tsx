@@ -4,8 +4,11 @@ import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
 import {useConversationThreadID, useThreadMeta, useThreadRpc} from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import {getChatRpc, type ChatThreadRpc} from '../chat-rpc'
 
+// Letting a reset user back in puts them back in the conversation, and nothing
+// recomputes its participants on its own - see refreshConversationParticipants.
 // rpc: a thread screen's own (useThreadRpc)
 export const addTeamMemberAfterReset = async (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -13,6 +16,7 @@ export const addTeamMemberAfterReset = async (
   rpc: ChatThreadRpc = getChatRpc()
 ) => {
   await rpc.addTeamMemberAfterReset(conversationIDKey, username)
+  await refreshConversationParticipants([conversationIDKey])
 }
 
 const ResetUser = () => {

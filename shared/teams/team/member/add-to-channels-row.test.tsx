@@ -10,26 +10,32 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('joining a channel asks the service to join it', async () => {
+test('joining a channel refreshes its participants', async () => {
   jest.spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise').mockResolvedValue({} as never)
+  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await joinChannel(conversationIDKey)
 
   expect(T.RPCChat.localJoinConversationByIDLocalRpcPromise).toHaveBeenCalledWith({convID})
+  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
 })
 
-test('leaving a channel asks the service to leave it', async () => {
+test('leaving a channel refreshes its participants', async () => {
   jest.spyOn(T.RPCChat, 'localLeaveConversationLocalRpcPromise').mockResolvedValue({} as never)
+  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await leaveChannel(conversationIDKey)
 
   expect(T.RPCChat.localLeaveConversationLocalRpcPromise).toHaveBeenCalledWith({convID})
+  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
 })
 
-test('a failed join rejects with the service error', async () => {
+test('a failed join never claims the participants are fresh', async () => {
   jest
     .spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise')
     .mockRejectedValue(new Error('cannot join'))
+  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await expect(joinChannel(conversationIDKey)).rejects.toThrow('cannot join')
+  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
 })

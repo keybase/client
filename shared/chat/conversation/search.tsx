@@ -25,18 +25,16 @@ type SearchState = {
 }
 
 export const runSearchInbox = async (p: {
+  addHit: (message: T.Chat.Message) => void
   conversationIDKey: T.Chat.ConversationIDKey
   deviceName: string
   getLastOrdinal: () => T.Chat.Ordinal
   onDone: () => void
-  pendingHitsRef: {current: Array<T.Chat.Message>}
   query: string
-  scheduleFlush: () => void
   updateIfCurrent: (updater: (state: SearchState) => SearchState) => void
   username: string
 }) => {
-  const {conversationIDKey, deviceName, getLastOrdinal, onDone, query, username} = p
-  const {pendingHitsRef, scheduleFlush, updateIfCurrent} = p
+  const {addHit, conversationIDKey, deviceName, getLastOrdinal, onDone, query, updateIfCurrent, username} = p
   try {
     await searchInboxRPC({
       // Name, bot and index-progress results are for the inbox search, not a thread's
@@ -55,11 +53,9 @@ export const runSearchInbox = async (p: {
             getLastOrdinal,
             deviceName
           )
-          if (!message) {
-            return
+          if (message) {
+            addHit(message)
           }
-          pendingHitsRef.current.push(message)
-          scheduleFlush()
         },
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxStart': () => {
@@ -102,7 +98,6 @@ export const useCommon = (ownProps: CommonProps) => {
   const searchOrdinalRef = React.useRef(0)
   const hitsRef = React.useRef(messageHits)
   const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
   const lastOrdinal = useConversationThreadSelector(
     s => s.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   )
@@ -119,7 +114,6 @@ export const useCommon = (ownProps: CommonProps) => {
       clearTimeout(flushTimeoutRef.current)
       flushTimeoutRef.current = undefined
     }
-    pendingHitsRef.current = []
   })
 
   const startThreadSearchRequest = React.useEffectEvent((query: string, requestOrdinal: number) => {
@@ -129,28 +123,41 @@ export const useCommon = (ownProps: CommonProps) => {
 
     const {deviceName, username} = useCurrentUserState.getState()
     const getLastOrdinal = () => lastOrdinalRef.current
+    const isCurrent = () => searchOrdinalRef.current === requestOrdinal
     const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
-      if (searchOrdinalRef.current !== requestOrdinal) {
+      if (!isCurrent()) {
         return
       }
-      setSearchState(state => (searchOrdinalRef.current === requestOrdinal ? updater(state) : state))
+      setSearchState(state => (isCurrent() ? updater(state) : state))
     }
+    // this request's own buffer: a superseded search's late hits and its done can never
+    // flush, or drop, the hits of the search that replaced it
+    let pendingHits: Array<T.Chat.Message> = []
     const flushPendingHits = (statusOverride?: SearchState['status']) => {
+      if (!isCurrent()) {
+        return
+      }
       if (flushTimeoutRef.current) {
         clearTimeout(flushTimeoutRef.current)
         flushTimeoutRef.current = undefined
       }
-      const pendingHits = pendingHitsRef.current
-      pendingHitsRef.current = []
-      if (!pendingHits.length && statusOverride === undefined) {
+      const flushed = pendingHits
+      pendingHits = []
+      if (!flushed.length && statusOverride === undefined) {
         return
       }
       updateIfCurrent(state => ({
-        hits: pendingHits.length ? [...state.hits, ...pendingHits] : state.hits,
+        // newest first; a conversation the service searches again after reindexing can
+        // add hits older than ones already sent
+        hits: flushed.length ? [...state.hits, ...flushed].sort((a, b) => b.id - a.id) : state.hits,
         status: statusOverride ?? state.status,
       }))
     }
-    const scheduleFlush = () => {
+    const addHit = (message: T.Chat.Message) => {
+      if (!isCurrent()) {
+        return
+      }
+      pendingHits.push(message)
       if (flushTimeoutRef.current) {
         return
       }
@@ -164,13 +171,12 @@ export const useCommon = (ownProps: CommonProps) => {
 
     C.ignorePromise(
       runSearchInbox({
+        addHit,
         conversationIDKey,
         deviceName,
         getLastOrdinal,
         onDone,
-        pendingHitsRef,
         query,
-        scheduleFlush,
         updateIfCurrent,
         username,
       })

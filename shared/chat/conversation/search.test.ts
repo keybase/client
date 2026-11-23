@@ -201,8 +201,8 @@ describe('hit ingestion', () => {
   test('streamed hits are mapped down to author, summary and timestamp', async () => {
     const {result} = await mountSearching('needle')
     await deliverHits(
-      hitMessage(5, {bodySummary: 'first hit', ctime: 1000 as T.RPCGen.Gregor1.Time}),
-      hitMessage(6, {
+      hitMessage(6, {bodySummary: 'first hit', ctime: 1000 as T.RPCGen.Gregor1.Time}),
+      hitMessage(5, {
         bodySummary: 'second hit',
         ctime: 2000 as T.RPCGen.Gregor1.Time,
         senderUsername: 'testuser-mac',
@@ -322,12 +322,68 @@ describe('submitting', () => {
     expect(result.current.numHits).toBe(0)
     expect(result.current.status).toBe('inprogress')
   })
+
+  const submitWhileStreaming = async () => {
+    const rendered = await mountSearching('needle')
+    const stale = searches[0]!
+    act(() => rendered.result.current.onChangedText('haystack'))
+    act(() => rendered.result.current.submitSearch())
+    await flushIPC()
+    expect(searches).toHaveLength(2)
+    const current = searches[1]!
+    const hit = async (search: SearchCall, id: number) =>
+      pushTo(search, 'chat.1.chatUi.chatSearchHit', {searchHit: {hitMessage: hitMessage(id)}})
+    return {...rendered, current, hit, stale}
+  }
+
+  test('a superseded search hit landing after the current one never joins its results', async () => {
+    const {current, hit, result, stale} = await submitWhileStreaming()
+    await hit(current, 7)
+    await hit(stale, 5)
+    act(() => {
+      jest.advanceTimersByTime(20)
+    })
+    expect(result.current.numHits).toBe(1)
+    expect(result.current.center).toEqual(centeredOn(7))
+  })
+
+  test('a superseded search hit landing first never flushes away the current one', async () => {
+    const {current, hit, result, stale} = await submitWhileStreaming()
+    await hit(stale, 5)
+    await hit(current, 7)
+    act(() => {
+      jest.advanceTimersByTime(20)
+    })
+    expect(result.current.numHits).toBe(1)
+    expect(result.current.center).toEqual(centeredOn(7))
+  })
+
+  test('a superseded search finishing never drops the current one pending hits', async () => {
+    const {current, hit, result, stale} = await submitWhileStreaming()
+    await hit(current, 7)
+    await pushTo(stale, 'chat.1.chatUi.chatSearchDone', {})
+    await pushTo(current, 'chat.1.chatUi.chatSearchDone', {})
+    expect(result.current.numHits).toBe(1)
+    expect(result.current.status).toBe('done')
+  })
+})
+
+describe('ordering', () => {
+  // a conversation the service searches again after reindexing sends only the hits it
+  // had not sent, and those can be older than ones already shown
+  test('hits are kept newest first whatever order they arrive in', async () => {
+    const {result} = await mountSearching('needle')
+    await deliverHits(hitMessage(9, {bodySummary: 'nine'}), hitMessage(5, {bodySummary: 'five'}))
+    await deliverHits(hitMessage(7, {bodySummary: 'seven'}))
+    expect(result.current.hits.map(h => h.summary)).toEqual(['nine', 'seven', 'five'])
+  })
 })
 
 describe('navigation', () => {
+  // newest first, as the service sends them
   const mountWithHits = async (count: number) => {
     const rendered = await mountSearching('needle')
-    await deliverHits(...Array.from({length: count}, (_, i) => hitMessage(10 + i)))
+    await deliverHits(...Array.from({length: count}, (_, i) => hitMessage(10 + count - 1 - i)))
     await deliverDone()
     return rendered
   }
@@ -335,7 +391,7 @@ describe('navigation', () => {
   test('the first hit is auto-selected and centered', async () => {
     const {result} = await mountWithHits(3)
     expect(result.current.selectedIndex).toBe(0)
-    expect(result.current.center).toEqual(centeredOn(10))
+    expect(result.current.center).toEqual(centeredOn(12))
   })
 
   test('onUp walks forward through the hits and wraps at the end', async () => {
@@ -382,14 +438,14 @@ describe('navigation', () => {
     act(() => result.current.onUp())
     expect(result.current.center).toEqual(centeredOn(11))
     act(() => result.current.onDown())
-    expect(result.current.center).toEqual(centeredOn(10))
+    expect(result.current.center).toEqual(centeredOn(12))
   })
 
   test('selectResult jumps directly to an index', async () => {
     const {result} = await mountWithHits(3)
     act(() => result.current.selectResult(2))
     expect(result.current.selectedIndex).toBe(2)
-    expect(result.current.center).toEqual(centeredOn(12))
+    expect(result.current.center).toEqual(centeredOn(10))
   })
 
   test('selectResult out of range leaves the selection where it was', async () => {
@@ -398,30 +454,31 @@ describe('navigation', () => {
     act(() => result.current.selectResult(7))
     // a bogus index would surface as `8 of 2` and send the up/down walk adrift
     expect(result.current.selectedIndex).toBe(1)
-    expect(result.current.center).toEqual(centeredOn(11))
+    expect(result.current.center).toEqual(centeredOn(10))
   })
 
   test('onUp steps over a hit it cannot center on instead of wedging', async () => {
     const {result} = await mountSearching('needle')
-    // the middle hit has no usable id, so it can never be selected
-    await deliverHits(hitMessage(10), hitMessage(0), hitMessage(12))
+    // the last hit has no usable id, so it can never be selected
+    await deliverHits(hitMessage(12), hitMessage(10), hitMessage(0))
     await deliverDone()
     expect(result.current.numHits).toBe(3)
     expect(result.current.selectedIndex).toBe(0)
 
     act(() => result.current.onUp())
-    expect(result.current.selectedIndex).toBe(2)
-    expect(result.current.center).toEqual(centeredOn(12))
+    expect(result.current.selectedIndex).toBe(1)
+    expect(result.current.center).toEqual(centeredOn(10))
     act(() => result.current.onUp())
     expect(result.current.selectedIndex).toBe(0)
+    expect(result.current.center).toEqual(centeredOn(12))
   })
 
   test('onDown steps over a hit it cannot center on instead of wedging', async () => {
     const {result} = await mountSearching('needle')
-    await deliverHits(hitMessage(10), hitMessage(0), hitMessage(12))
+    await deliverHits(hitMessage(12), hitMessage(10), hitMessage(0))
     await deliverDone()
     act(() => result.current.onDown())
-    expect(result.current.selectedIndex).toBe(2)
+    expect(result.current.selectedIndex).toBe(1)
     act(() => result.current.onDown())
     expect(result.current.selectedIndex).toBe(0)
   })

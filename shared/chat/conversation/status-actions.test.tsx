@@ -21,6 +21,7 @@ const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]
 
 const convID = T.Chat.keyToConversationID(conversationIDKey)
 const join = 'chat.1.local.joinConversationByIDLocal'
+const refresh = 'chat.1.local.refreshParticipants'
 const setStatus = 'chat.1.local.SetConversationStatusLocal'
 
 let fake: FakeEngine
@@ -31,6 +32,7 @@ beforeEach(() => {
   useConfigState.setState({loggedIn: true})
   fake = installFakeEngine()
   fake.answer(join, () => undefined)
+  fake.answer(refresh, () => undefined)
   fake.answer(setStatus, () => ({}))
   // desktop: the conversation is selected in the chat root with its info panel open, and the user
   // has gone on to a profile from it
@@ -48,20 +50,22 @@ afterEach(() => {
 })
 
 describe('joinConversation', () => {
-  test('joining a conversation asks the service to join it', async () => {
+  test('joining a conversation refreshes its participants', async () => {
     joinConversation(conversationIDKey)
 
-    await waitFor(() => expect(fake.calls.map(c => c.method)).toEqual([join]))
+    await waitFor(() => expect(fake.calls.map(c => c.method)).toEqual([join, refresh]))
     expect(paramsOf(fake, join)).toEqual([{convID}])
+    expect(paramsOf(fake, refresh)).toEqual([{convID}])
   })
 
-  test('a failed join reaches the ignorePromise catch-all', async () => {
+  test('a failed join never claims the participants are fresh', async () => {
     fake.answer(join, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'cannot join'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
 
     joinConversation(conversationIDKey)
     await settle()
 
+    expect(paramsOf(fake, refresh)).toEqual([])
     // the failure is not handled here; it lands in ignorePromise's catch-all
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.objectContaining({desc: 'cannot join'}))
   })

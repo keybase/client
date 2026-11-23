@@ -33,6 +33,7 @@ import AddToChannel, {addMembersToChannel} from './add-to-channel'
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 const addToConversation = 'chat.1.local.bulkAddToConv'
+const refreshParticipants = 'chat.1.local.refreshParticipants'
 const convID = T.Chat.keyToConversationID(conversationIDKey)
 
 let fake: FakeEngine
@@ -47,19 +48,30 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('adding members sends them to the service', async () => {
+test('adding members refreshes the conversation participants', async () => {
   fake.answer(addToConversation, () => null)
+  fake.answer(refreshParticipants, () => null)
 
   await addMembersToChannel(conversationIDKey, ['testuser', 'testuser-mac'])
 
-  expect(fake.calls.map(c => c.method)).toEqual([addToConversation])
   expect(paramsOf(fake, addToConversation)).toEqual([{convID, usernames: ['testuser', 'testuser-mac']}])
+  expect(paramsOf(fake, refreshParticipants)).toEqual([{convID}])
+  // the refresh follows the add
+  expect(fake.calls.map(c => c.method)).toEqual([addToConversation, refreshParticipants])
 })
 
-test('a failed add rejects with the service error', async () => {
+test('a failed add never claims the participants are fresh', async () => {
   fake.answer(addToConversation, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
 
   await expect(addMembersToChannel(conversationIDKey, ['testuser'])).rejects.toMatchObject({desc: 'nope'})
+  expect(paramsOf(fake, refreshParticipants)).toEqual([])
+})
+
+test('a failed refresh does not fail the add', async () => {
+  fake.answer(addToConversation, () => null)
+  fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
+
+  await expect(addMembersToChannel(conversationIDKey, ['testuser'])).resolves.toBeUndefined()
 })
 
 describe('the add-to-channel modal', () => {
@@ -89,6 +101,7 @@ describe('the add-to-channel modal', () => {
 
   test('adding the ticked members sends them and closes the modal', async () => {
     fake.answer(addToConversation, () => null)
+    fake.answer(refreshParticipants, () => null)
     const nav = await renderModal()
 
     fireEvent.click(screen.getByText('testuser-mac'))

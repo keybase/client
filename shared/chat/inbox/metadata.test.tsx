@@ -67,9 +67,9 @@ const makeMeta = (over: Partial<T.Chat.ConversationMeta>): T.Chat.ConversationMe
   ...over,
 })
 
-// A membership change can't rely on this reload for fresh participants: the conversation
-// you are looking at is already trusted, so the reload is dropped here. The service
-// pushes the new participant list with the membership update instead.
+// Why every membership change has to ask for a participant refresh: the conversation
+// you are looking at is already trusted, so the ordinary reload is dropped here and
+// no fresh participants ever come back. See chat/inbox/refresh-participants.
 test('an ordinary reload of a trusted conversation never reaches the service', async () => {
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
   metasReceived([makeMeta({inboxVersion: 1, trustedState: 'trusted'})])

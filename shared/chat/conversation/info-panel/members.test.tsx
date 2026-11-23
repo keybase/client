@@ -49,11 +49,13 @@ const setConversation = (meta: T.Chat.ConversationMeta, all?: Array<string>) => 
 const answerMembers = (members: Array<T.RPCGen.TeamMemberDetails> = []) =>
   fake.answer(getTeamMembers, () => members)
 
-const teamChangedByID = () =>
+const noChanges = {keyRotated: false, membershipChanged: false, misc: false, renamed: false}
+
+const teamChangedByID = (changes = {...noChanges, membershipChanged: true}) =>
   ({
     payload: {
       params: {
-        changes: {keyRotated: false, membershipChanged: true, misc: false, renamed: false},
+        changes,
         implicitTeam: false,
         latestHiddenSeqno: 0,
         latestOffchainSeqno: 0,
@@ -97,8 +99,24 @@ test('an adhoc conversation has no team participants to refresh', async () => {
   expect(fake.calls).toEqual([])
 })
 
-// the service pushes the new participant list with the membership update itself
-test('a membership change in the team does not ask for participants again', async () => {
+test('a membership change in the team refreshes the open list', async () => {
+  setConversation(teamChannelMeta())
+  answerMembers()
+  fake.answer(refreshParticipants, () => null)
+  renderHook(() => useChannelMembers(conversationIDKey))
+  await flush()
+  expect(refreshes()).toHaveLength(1)
+
+  act(() => {
+    notifyEngineActionListeners(teamChangedByID())
+  })
+  await flush()
+
+  expect(refreshes()).toEqual([{convID}, {convID}])
+})
+
+// teamChangedByID also fires for every message in the team
+test('team activity that did not change membership does not refresh the open list', async () => {
   setConversation(teamChannelMeta())
   answerMembers()
   fake.answer(refreshParticipants, () => null)
@@ -106,11 +124,11 @@ test('a membership change in the team does not ask for participants again', asyn
   await flush()
 
   act(() => {
-    notifyEngineActionListeners(teamChangedByID())
+    notifyEngineActionListeners(teamChangedByID({...noChanges, misc: true}))
   })
   await flush()
 
-  expect(refreshes()).toEqual([{convID}])
+  expect(refreshes()).toHaveLength(1)
 })
 
 test('a re-render of the same channel does not re-ask for participants', async () => {
@@ -219,4 +237,22 @@ test('a failed participant refresh on open is swallowed: nothing logged, the lis
   expect(logInfo).not.toHaveBeenCalled()
   expect(logError).not.toHaveBeenCalled()
   expect(result.current.participantsItems.map(i => i.username)).toEqual(['testuser'])
+})
+
+test('a failed refresh after a membership change is logged at info and not surfaced', async () => {
+  setConversation(teamChannelMeta())
+  answerMembers()
+  fake.answer(refreshParticipants, () => null)
+  renderHook(() => useChannelMembers(conversationIDKey))
+  await flush()
+  fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
+  const logInfo = jest.spyOn(logger, 'info').mockImplementation(() => {})
+
+  act(() => {
+    notifyEngineActionListeners(teamChangedByID())
+  })
+  await flush()
+
+  expect(refreshes()).toEqual([{convID}, {convID}])
+  expect(logInfo).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${conversationIDKey}`)
 })

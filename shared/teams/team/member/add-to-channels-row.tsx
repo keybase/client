@@ -4,18 +4,23 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
+// Joining or leaving changes who is in the channel, and nothing recomputes its
+// participants on its own - see refreshConversationParticipants.
 export const joinChannel = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
     convID: T.Chat.keyToConversationID(conversationIDKey),
   })
+  await refreshConversationParticipants([conversationIDKey])
 }
 
 export const leaveChannel = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   await T.RPCChat.localLeaveConversationLocalRpcPromise({
     convID: T.Chat.keyToConversationID(conversationIDKey),
   })
+  await refreshConversationParticipants([conversationIDKey])
 }
 
 // horizontal padding shared with the header row in add-to-channels.tsx
