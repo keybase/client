@@ -1,9 +1,11 @@
 package chat
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -108,4 +110,52 @@ func TestChatSrvTeamChannelChangesNotifyTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	listener.requireChannelsChanged(t, teamID, "delete")
+}
+
+type blockingTeamChangedByIDListener struct {
+	libkb.NoopNotifyListener
+	release chan struct{}
+	done    chan struct{}
+}
+
+func (l *blockingTeamChangedByIDListener) TeamChangedByID(keybase1.TeamID, keybase1.Seqno, bool,
+	keybase1.TeamChangeSet, keybase1.Seqno, keybase1.TeamChangedSource,
+) {
+	<-l.release
+	close(l.done)
+}
+
+// The notice goes out from the outbox loop and chat RPCs, and delivery waits on
+// every team listener: a slow one must not hold the caller.
+func TestNotifyTeamChannelsChangedDoesNotBlock(t *testing.T) {
+	tc := libkb.SetupTest(t, "notifyTeamChannelsChanged", 0)
+	defer tc.Cleanup()
+	tc.G.ConnectionManager = libkb.NewConnectionManager()
+	tc.G.NotifyRouter = libkb.NewNotifyRouter(tc.G)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	listener := &blockingTeamChangedByIDListener{release: make(chan struct{}), done: make(chan struct{})}
+	g.NotifyRouter.AddListener(listener)
+
+	teamID := keybase1.MakeTestTeamID(1, false)
+	ctx, cancel := context.WithCancel(context.Background())
+	returned := make(chan struct{})
+	go func() {
+		notifyTeamChannelsChanged(ctx, g, chat1.ConversationMembersType_TEAM, chat1.TopicType_CHAT,
+			chat1.TLFID(teamID.ToBytes()))
+		close(returned)
+	}()
+	select {
+	case <-returned:
+	case <-time.After(10 * time.Second):
+		close(listener.release)
+		require.Fail(t, "notifyTeamChannelsChanged waited on a listener")
+	}
+	// the caller's context ending must not drop the notice
+	cancel()
+	close(listener.release)
+	select {
+	case <-listener.done:
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "the notice was never delivered")
+	}
 }

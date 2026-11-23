@@ -54,14 +54,23 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
+const teamChannelsNoticeDebounceMs = 1_000
+
+// Reload a team's channel list wherever it is shown, and mark it stale where it is not. A bulk
+// create or delete sends one notice per channel: the first reloads at once and the rest of the
+// burst reloads once, a second after the last of them.
+export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
+  const key = loadableTeamID(teamID)
+  if (key) {
+    reviveLoad(loadedTeamChannelsLoad, key, teamChannelsNoticeDebounceMs)
+  }
+}
+
 // Module scope, not per hook: a change that lands while no list is mounted must
 // still mark the shared entry stale, or a remount inside the stale window serves the
 // pre-change channels.
 subscribeToEngineAction('keybase.1.NotifyTeam.teamChangedByID', action => {
-  const teamID = loadableTeamID(action.payload.params.teamID)
-  if (teamID) {
-    reviveLoad(loadedTeamChannelsLoad, teamID)
-  }
+  invalidateTeamChannels(action.payload.params.teamID)
 })
 
 const teamChannelsRPCParams = (teamname: string) => ({

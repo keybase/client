@@ -517,9 +517,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			h.Debug(ctx, "NewConversationLocal: unable to post new channel system message: %v", err)
 		}
 	}
-	if created {
-		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
-	}
 
 	// If we have this conv hidden, then let's bring it back before returning
 	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
@@ -529,6 +526,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			h.Debug(ctx, "NewConversationLocal: unable to unhide conv: %s", err)
 			return res, err
 		}
+	}
+	if created {
+		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
 	}
 
 	return res, nil
@@ -1716,8 +1716,11 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
 	}
-	// read before the delete: the inbox marks the conversation deleted
-	conv, convErr := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	// Only the conversation knows its team, and the delete marks it deleted in
+	// the inbox, so read it first. Local only: a remote fallback would add a
+	// server round trip to every delete. The frontend drops the team's channel
+	// list after its own deletes, so a miss only costs other listeners the notice.
+	conv, convErr := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceLocalOnly)
 	if convErr != nil {
 		h.Debug(ctx, "DeleteConversationLocal: unable to read conv, not notifying team: %v", convErr)
 	}

@@ -911,7 +911,8 @@ var tlfIDToTeamID = newTlfIDToTeamIDMap()
 // notifyTeamChannelsChanged sends teamChangedByID after this device creates,
 // deletes, renames or re-describes a team channel: the team sigchain does not
 // change, so nothing else tells the team's listeners. No TeamChangeSet field
-// covers channels, so the change set is empty.
+// covers channels, so the change set is empty. Delivery waits on every team
+// listener, so it runs off the caller's path (the outbox loop, chat RPCs).
 func notifyTeamChannelsChanged(ctx context.Context, g *globals.Context,
 	membersType chat1.ConversationMembersType, topicType chat1.TopicType, tlfID chat1.TLFID,
 ) {
@@ -923,6 +924,6 @@ func notifyTeamChannelsChanged(ctx context.Context, g *globals.Context,
 		g.GetLog().CDebugf(ctx, "notifyTeamChannelsChanged: bad team ID %s: %v", tlfID, err)
 		return
 	}
-	g.NotifyRouter.HandleTeamChangedByID(ctx, teamID, 0, false, keybase1.TeamChangeSet{}, 0, 0,
-		keybase1.TeamChangedSource_LOCAL)
+	go g.NotifyRouter.HandleTeamChangedByID(context.WithoutCancel(ctx), teamID, 0, false,
+		keybase1.TeamChangeSet{}, 0, 0, keybase1.TeamChangedSource_LOCAL)
 }

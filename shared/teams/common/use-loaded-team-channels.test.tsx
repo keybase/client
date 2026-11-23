@@ -9,7 +9,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
-import {useLoadedTeamChannels} from './use-loaded-team-channels'
+import {invalidateTeamChannels, useLoadedTeamChannels} from './use-loaded-team-channels'
 
 const teamID = 'tid1' as T.Teams.TeamID
 const otherTeamID = 'tid2' as T.Teams.TeamID
@@ -49,6 +49,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetAllStores()
+  jest.useRealTimers()
 })
 
 const teamChangedByID = (id: T.Teams.TeamID) =>
@@ -114,4 +115,45 @@ test('a change while no list is mounted is picked up by the next mount', async (
 
   const {result} = await mountChannels()
   expect(channelNames(result.current.channels)).toEqual(['general', 'new'])
+})
+
+// a bulk create or delete sends a notice per channel, and the delete screen adds
+// its own: the burst reloads once at its start and once after it, not per notice
+test('a burst of changes to a team costs a load at its start and one after it', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
+  const {result} = await mountChannels()
+  const calls = channelsCalls()
+
+  channelnames = ['general', 'a']
+  await act(async () => {
+    notifyEngineActionListeners(teamChangedByID(teamID))
+    await flush()
+  })
+  expect(channelsCalls()).toBe(calls + 1)
+
+  for (const name of ['b', 'c', 'd']) {
+    channelnames = [...channelnames, name]
+    await act(async () => {
+      notifyEngineActionListeners(teamChangedByID(teamID))
+      await flush()
+    })
+  }
+  await act(async () => {
+    invalidateTeamChannels(teamID)
+    await flush()
+  })
+  expect(channelsCalls()).toBe(calls + 1)
+
+  await act(async () => {
+    jest.advanceTimersByTime(1000)
+    await flush()
+  })
+  expect(channelsCalls()).toBe(calls + 2)
+  expect(channelNames(result.current.channels)).toEqual(['a', 'b', 'c', 'd', 'general'])
+
+  await act(async () => {
+    jest.advanceTimersByTime(10_000)
+    await flush()
+  })
+  expect(channelsCalls()).toBe(calls + 2)
 })

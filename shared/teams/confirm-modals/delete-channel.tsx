@@ -6,6 +6,7 @@ import {useNavigation} from '@react-navigation/native'
 import {pluralize} from '@/util/string'
 import setRouteParamsIfPresent from './set-route-params-if-present'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {invalidateTeamChannels} from '@/teams/common/use-loaded-team-channels'
 
 type Props = {
   conversationIDKeys?: Array<T.Chat.ConversationIDKey>
@@ -19,6 +20,23 @@ const Header = () => (
     <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
   </>
 )
+
+const deleteChannels = async (
+  teamID: T.Teams.TeamID,
+  channelIDs: ReadonlyArray<T.Chat.ConversationIDKey>,
+  deleteChannel: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<void>
+) => {
+  try {
+    for (const channelID of channelIDs) {
+      await deleteChannel(channelID)
+    }
+  } finally {
+    // the service only sends its notice for a delete when its local inbox knows
+    // the channel's team, so do not rely on it alone; a failure part way through
+    // still deleted the channels before it
+    invalidateTeamChannels(teamID)
+  }
+}
 
 const DeleteChannel = (props: Props) => {
   const teamID = props.teamID
@@ -74,14 +92,12 @@ const DeleteChannel = (props: Props) => {
   )
   const onDelete = React.useCallback(() => {
     const f = async () => {
-      for (const channelID of channelIDs) {
-        await deleteChannel(channelID)
-      }
+      await deleteChannels(teamID, channelIDs, deleteChannel)
       setRouteParamsIfPresent(navigation, 'team', {selectedChannels: undefined})
       C.Router2.clearModals()
     }
     C.ignorePromise(f())
-  }, [channelIDs, deleteChannel, navigation])
+  }, [channelIDs, deleteChannel, navigation, teamID])
 
   return (
     <Kb.ConfirmModal
