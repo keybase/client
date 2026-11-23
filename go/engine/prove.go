@@ -440,6 +440,8 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 	if err = p.postProofToServer(m); err != nil {
 		return err
 	}
+	// the link is on the sigchain now, even if checking the proof below fails
+	defer m.G().UserChanged(m.Ctx(), p.me.GetUID())
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
 	stage("CheckProofText")
 	if err = p.checkProofText(m); err != nil {

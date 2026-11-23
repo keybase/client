@@ -166,6 +166,8 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+	// the link is on the sigchain now, even if the merkle check below fails
+	defer m.G().UserChanged(m.Ctx(), me.GetUID())
 
 	err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), claim.Seqno, linkID)
 	if err != nil {

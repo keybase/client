@@ -113,6 +113,8 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
+	// the link is on the sigchain now, even if the merkle check below fails
+	defer m.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return libkb.MerkleCheckPostedUserSig(m, me.GetUID(), proof.Seqno, linkID)
 }
