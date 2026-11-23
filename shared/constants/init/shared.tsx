@@ -655,15 +655,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break;
     }
     case "keybase.1.NotifyEmailAddress.emailAddressVerified":
-      {
-        const emailAddress = action.payload.params.emailAddress;
-        if (emailAddress) {
-          useSettingsEmailState
-            .getState()
-            .dispatch.notifyEmailVerified(emailAddress);
-        }
-        clearSignupEmail();
-      }
+      clearSignupEmail();
       break;
     case "keybase.1.NotifyPhoneNumber.phoneNumbersChanged": {
       const { list } = action.payload.params;

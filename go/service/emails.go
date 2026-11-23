@@ -135,7 +135,17 @@ func (r *emailsGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1
 	m.Debug("email.verified unmarshaled: %+v", msg)
 
 	r.G().NotifyRouter.HandleEmailAddressVerified(ctx, msg.Email)
+	r.notifyEmailList(m, "email.verified", msg.Email)
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *emailsGregorHandler) notifyEmailList(mctx libkb.MetaContext, category string, email keybase1.EmailAddress) {
+	emailList, err := emails.GetEmails(mctx)
+	if err != nil {
+		mctx.Error("Could not get current email list during %s: %s", category, err)
+		return
+	}
+	r.G().NotifyRouter.HandleEmailAddressChanged(mctx.Ctx(), emailList, category, email)
 }
 
 func (r *emailsGregorHandler) handleEmailChangedMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
@@ -148,12 +158,7 @@ func (r *emailsGregorHandler) handleEmailChangedMsg(ctx context.Context, cli gre
 	}
 	mctx.Debug("%s unmarshaled: %+v", category, msg)
 
-	emailList, err := emails.GetEmails(mctx)
-	if err != nil {
-		mctx.Error("Could not get current phone number list during handleEmailChangedMsg: %s", err)
-	} else {
-		r.G().NotifyRouter.HandleEmailAddressChanged(ctx, emailList, category, msg.Email)
-	}
+	r.notifyEmailList(mctx, category, msg.Email)
 	// Do not dismiss these notifications so other devices can see it and
 	// update their state as well.
 	return nil

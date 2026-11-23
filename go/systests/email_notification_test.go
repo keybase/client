@@ -58,6 +58,20 @@ func TestEmailVerificationNotifications(t *testing.T) {
 	bob.drainGregor()
 	expectedNotification := []keybase1.EmailAddress{keybase1.EmailAddress(email)}
 	require.Equal(t, expectedNotification, bobListener.verifiedEmails)
+
+	// it also sends the fresh list, so the UI does not patch its own copy
+	var verifiedChanges []mockEmailNotification
+	for _, n := range bobListener.changeNotifications {
+		if n.category == "email.verified" {
+			verifiedChanges = append(verifiedChanges, n)
+		}
+	}
+	require.Len(t, verifiedChanges, 1)
+	change := verifiedChanges[0]
+	require.EqualValues(t, email, change.email)
+	require.Len(t, change.list, 1)
+	require.EqualValues(t, email, change.list[0].Email)
+	require.True(t, change.list[0].IsVerified)
 }
 
 func TestEmailChangeNotifications(t *testing.T) {

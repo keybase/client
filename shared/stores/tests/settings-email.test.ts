@@ -7,7 +7,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('email change notifications populate the email map and verification updates the row', () => {
+test('email change notifications replace the email map', () => {
   useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged([
     {
       email: 'alice@example.com',
@@ -20,7 +20,15 @@ test('email change notifications populate the email map and verification updates
 
   expect(useSettingsEmailState.getState().emails.get('alice@example.com')?.isVerified).toBe(false)
 
-  useSettingsEmailState.getState().dispatch.notifyEmailVerified('alice@example.com')
+  useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged([
+    {
+      email: 'alice@example.com',
+      isPrimary: false,
+      isVerified: true,
+      lastVerifyEmailDate: 0,
+      visibility: 0,
+    } as any,
+  ])
 
   expect(useSettingsEmailState.getState().emails.get('alice@example.com')?.isVerified).toBe(true)
 })
