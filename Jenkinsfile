@@ -135,7 +135,8 @@ helpers.rootLinuxNode(env, {
   env.NODEVERSION = sh(returnStdout: true, script: 'node --version').trim()
   println "GOPATH: ${env.GOPATH} Go version: ${env.GOVERSION} Node version: ${env.NODEVERSION}"
 
-  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
+  // Pin to the stellar-sunset server image pushed by joshblum/stellar-sunset-server-ci-image.
+  def kbwebTag = 'stellar-sunset-server'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:8.0.35-debian"),
