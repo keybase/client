@@ -54,6 +54,32 @@ const ChatPDF = (props: Props) => {
     )
   }
 
+  // Android's WebView can't display a PDF, so the screen points at the header's share button,
+  // which hands the file to an app that can
+  if (isAndroid) {
+    return (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          centerChildren={true}
+          gap="small"
+          style={nativeStyles.noPreview}
+          testID={TestIDs.CHAT_PDF_VIEWER}
+        >
+          <Kb.ImageIcon type="icon-file-64" />
+          <Kb.Text type="BodySemibold" center={true}>
+            {title}
+          </Kb.Text>
+          <Kb.Text type="BodySmall" center={true}>
+            This PDF can&apos;t be previewed here. Use the share button to open it in another app.
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.ModalScreen>
+    )
+  }
+
   return (
     <Kb.ModalScreen scroll={false} padding="none">
       {url && !error ? (
@@ -84,6 +110,7 @@ const ChatPDF = (props: Props) => {
 }
 
 const useNativeStyles = Kb.Styles.createStyleHook(() => ({
+  noPreview: Kb.Styles.padding(Kb.Styles.globalMargins.large),
   progressContainer: {position: 'absolute'},
   webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},
 }))
