@@ -4605,6 +4605,10 @@
             "type": "array",
             "items": "ConversationID"
           }
+        },
+        {
+          "name": "force",
+          "type": "boolean"
         }
       ],
       "response": null

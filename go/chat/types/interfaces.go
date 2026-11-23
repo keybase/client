@@ -610,6 +610,7 @@ type UIInboxLoader interface {
 	UpdateLayoutFromSmallIncrease(ctx context.Context)
 	UpdateLayoutFromSmallReset(ctx context.Context)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
+	UnboxConvs(ctx context.Context, convIDs []chat1.ConversationID, force bool) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery, maxUnbox *int, skipUnverified bool) error
 }
 

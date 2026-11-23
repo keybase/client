@@ -756,6 +756,10 @@ func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Con
 	return nil
 }
 
+func (d DummyUIInboxLoader) UnboxConvs(ctx context.Context, convIDs []chat1.ConversationID, force bool) error {
+	return nil
+}
+
 func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation) {
 }
 

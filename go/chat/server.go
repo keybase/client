@@ -169,24 +169,15 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 	return nil
 }
 
-func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
+func (h *Server) RequestInboxUnbox(ctx context.Context, arg chat1.RequestInboxUnboxArg) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
-	ctx = globals.CtxAddLocalizerCancelable(ctx)
-	reqID := libkb.RandStringB64(3)
-	defer h.Trace(ctx, &err, "RequestInboxUnbox")()
+	defer h.Trace(ctx, &err, "RequestInboxUnbox: convs: %d force: %v", len(arg.ConvIDs), arg.Force)()
 	defer h.PerfTrace(ctx, &err, "RequestInboxUnbox")()
-	h.Debug(ctx, "RequestInboxUnbox[%s]: begin convs: %d", reqID, len(convIDs))
-	defer func() {
-		h.Debug(ctx, "RequestInboxUnbox[%s]: return err: %v", reqID, err)
-	}()
-	for _, convID := range convIDs {
+	for _, convID := range arg.ConvIDs {
 		h.GetPerfLog().CDebugf(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
 		h.Debug(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
 	}
-	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
-		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
-	}
-	return nil
+	return h.G().UIInboxLoader.UnboxConvs(ctx, arg.ConvIDs, arg.Force)
 }
 
 func (h *Server) RequestInboxSmallIncrease(ctx context.Context) (err error) {

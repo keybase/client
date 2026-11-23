@@ -818,7 +818,11 @@ protocol local {
     FORCE_1
   }
   void requestInboxLayout(InboxLayoutReselectMode reselectMode);
-  void requestInboxUnbox(array<ConversationID> convIDs);
+  // While the session lasts, every requested conv gets a chatInboxConversation or a chatInboxFailed.
+  // A conv already being unboxed is not unboxed again unless force is set: then it gets one more
+  // pass after the current one, so data that changed meanwhile is not answered only by a read from
+  // before the change.
+  void requestInboxUnbox(array<ConversationID> convIDs, boolean force);
   void requestInboxSmallIncrease();
   void requestInboxSmallReset();
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);

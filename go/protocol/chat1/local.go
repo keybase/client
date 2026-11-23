@@ -6890,6 +6890,7 @@ type RequestInboxLayoutArg struct {
 
 type RequestInboxUnboxArg struct {
 	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+	Force   bool             `codec:"force" json:"force"`
 }
 
 type RequestInboxSmallIncreaseArg struct {
@@ -7615,7 +7616,7 @@ type LocalInterface interface {
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	RequestInboxLayout(context.Context, InboxLayoutReselectMode) error
-	RequestInboxUnbox(context.Context, []ConversationID) error
+	RequestInboxUnbox(context.Context, RequestInboxUnboxArg) error
 	RequestInboxSmallIncrease(context.Context) error
 	RequestInboxSmallReset(context.Context) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
@@ -7850,7 +7851,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]RequestInboxUnboxArg)(nil), args)
 						return
 					}
-					err = i.RequestInboxUnbox(ctx, typedArgs[0].ConvIDs)
+					err = i.RequestInboxUnbox(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9743,8 +9744,7 @@ func (c LocalClient) RequestInboxLayout(ctx context.Context, reselectMode InboxL
 	return
 }
 
-func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
-	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
+func (c LocalClient) RequestInboxUnbox(ctx context.Context, __arg RequestInboxUnboxArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
