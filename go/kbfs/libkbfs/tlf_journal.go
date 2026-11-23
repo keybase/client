@@ -278,6 +278,9 @@ type tlfJournal struct {
 	needResumeCh      chan struct{}
 	needShutdownCh    chan struct{}
 	needBranchCheckCh chan struct{}
+	// unflushedPutCh tells an idle or paused background loop that
+	// unflushed bytes came in, so it starts republishing the status.
+	unflushedPutCh chan struct{}
 
 	// Track the ways in which the journal is paused.  We don't allow
 	// work to resume unless a resume has come in corresponding to
@@ -482,6 +485,7 @@ func makeTLFJournal(
 		needResumeCh:         make(chan struct{}, 1),
 		needShutdownCh:       make(chan struct{}, 1),
 		needBranchCheckCh:    make(chan struct{}, 1),
+		unflushedPutCh:       make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
 		finishSingleOpCh:     make(chan flushContext, 1),
 		singleOpFlushContext: defaultFlushContext(),
@@ -543,6 +547,11 @@ func makeTLFJournal(
 	return j, nil
 }
 
+// tlfJournalIdleStatusInterval is how often a journal that holds unflushed
+// bytes but isn't flushing them republishes its status: its endEstimate
+// moves with the clock then. It matches the GUI's old poll ceiling.
+var tlfJournalIdleStatusInterval = 4 * time.Second
+
 func (j *tlfJournal) signalWork() {
 	j.wg.Add(1)
 	select {
@@ -580,6 +589,24 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 	// Non-nil when a retry has been scheduled for the future.
 	var retryTimer *time.Timer
+	// Non-nil while idle or paused with unflushed bytes.
+	var statusTimer *time.Timer
+	stopStatusTimer := func() {
+		if statusTimer != nil {
+			statusTimer.Stop()
+			statusTimer = nil
+		}
+	}
+	// armStatusTimer returns the channel to wait on for the next status
+	// republish, or nil when nothing is unflushed.
+	armStatusTimer := func() <-chan time.Time {
+		stopStatusTimer()
+		if !j.hasUnflushedBytes() {
+			return nil
+		}
+		statusTimer = time.NewTimer(tlfJournalIdleStatusInterval)
+		return statusTimer.C
+	}
 	defer func() {
 		close(j.backgroundShutdownCh)
 		if j.bwDelegate != nil {
@@ -588,6 +615,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 		if retryTimer != nil {
 			retryTimer.Stop()
 		}
+		stopStatusTimer()
 	}()
 
 	// Below we have a state machine with three states:
@@ -628,7 +656,19 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.vlog.CLogf(
 				ctx, libkb.VLog1, "Waiting for the work signal for %s",
 				j.tlfID)
+			statusC := armStatusTimer()
+		idleWait:
 			select {
+			case <-statusC:
+				j.config.SubscriptionManagerPublisher().PublishChange(
+					keybase1.SubscriptionTopic_JOURNAL_STATUS)
+				statusC = armStatusTimer()
+				goto idleWait
+			case <-j.unflushedPutCh:
+				if statusTimer == nil {
+					statusC = armStatusTimer()
+				}
+				goto idleWait
 			case <-j.hasWorkCh:
 				j.vlog.CLogf(
 					ctx, libkb.VLog1, "Got work signal for %s", j.tlfID)
@@ -716,7 +756,19 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.log.CDebugf(
 				ctx, "Waiting to resume background work for %s",
 				j.tlfID)
+			statusC := armStatusTimer()
+		pausedWait:
 			select {
+			case <-statusC:
+				j.config.SubscriptionManagerPublisher().PublishChange(
+					keybase1.SubscriptionTopic_JOURNAL_STATUS)
+				statusC = armStatusTimer()
+				goto pausedWait
+			case <-j.unflushedPutCh:
+				if statusTimer == nil {
+					statusC = armStatusTimer()
+				}
+				goto pausedWait
 			case <-j.needResumeCh:
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
@@ -1990,6 +2042,11 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	return jStatus, nil
 }
 
+func (j *tlfJournal) hasUnflushedBytes() bool {
+	_, _, unflushedBytes, err := j.getByteCounts()
+	return err == nil && unflushedBytes > 0
+}
+
 func (j *tlfJournal) getByteCounts() (
 	storedBytes, storedFiles, unflushedBytes int64, err error,
 ) {
@@ -2273,6 +2330,12 @@ func (j *tlfJournal) putBlockData(
 		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
+	if putData {
+		select {
+		case j.unflushedPutCh <- struct{}{}:
+		default:
+		}
+	}
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,

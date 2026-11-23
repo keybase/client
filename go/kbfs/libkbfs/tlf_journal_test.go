@@ -2248,6 +2248,42 @@ func testTLFJournalPublishesJournalStatusWhileFlushOverdue(
 	require.NoError(t, <-flushErrCh)
 }
 
+// While flushing is paused with unflushed bytes, endEstimate moves with the
+// clock, so readers keep hearing about it until the journal empties.
+func TestTLFJournalPublishesJournalStatusWhilePaused(t *testing.T) {
+	oldInterval := tlfJournalIdleStatusInterval
+	tlfJournalIdleStatusInterval = 20 * time.Millisecond
+	defer func() { tlfJournalIdleStatusInterval = oldInterval }()
+
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(
+		t, kbfsmd.SegregatedKeyBundlesVer, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		ctx, tempdir, config, cancel, tlfJournal, delegate)
+
+	publisher := &recordingPublisher{}
+	config.subscriptionManagerPublisher = publisher
+	journalStatusCount := func() int {
+		return publisher.count(keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	require.Zero(t, journalStatusCount(), "an empty journal publishes nothing")
+
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
+	require.Eventually(t, func() bool {
+		return journalStatusCount() >= 4
+	}, 5*time.Second, 10*time.Millisecond)
+
+	_, _, _, err := tlfJournal.flushBlockEntries(
+		ctx, firstValidJournalOrdinal+1, kbfsmd.ID{})
+	require.NoError(t, err)
+	time.Sleep(100 * time.Millisecond)
+	afterFlush := journalStatusCount()
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, afterFlush, journalStatusCount(),
+		"a flushed journal stops publishing")
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testTLFJournalBasic,
