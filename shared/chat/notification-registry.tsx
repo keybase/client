@@ -53,7 +53,6 @@ export type ReloadTrigger =
   | {type: 'metadata'}
   // messages in the conversation changed: those listed, and with upTo every message below it
   | {type: 'messages'; messageIDs: ReadonlyArray<T.Chat.MessageID>; upTo?: T.Chat.MessageID}
-  | {type: 'attachmentDownloaded'; messageID: T.Chat.MessageID}
   // the service says the thread is out of date
   | {type: 'staleThread'}
 

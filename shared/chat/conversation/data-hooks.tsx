@@ -249,10 +249,8 @@ const useConversationMessagesAroundMessageID = (
     const shown = messages.find(message => message.id === messageID)
     const replyToID = shown?.type === 'text' ? shown.replyTo?.id : undefined
     if (
-      (trigger.type === 'messages' &&
-        (messagesTriggerConcerns(trigger, messageID) ||
-          (!!replyToID && messagesTriggerConcerns(trigger, replyToID)))) ||
-      (trigger.type === 'attachmentDownloaded' && trigger.messageID === messageID)
+      trigger.type === 'messages' &&
+      (messagesTriggerConcerns(trigger, messageID) || (!!replyToID && messagesTriggerConcerns(trigger, replyToID)))
     ) {
       reload()
     }

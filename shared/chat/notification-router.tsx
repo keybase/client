@@ -477,11 +477,7 @@ const stagesOf = (action: ChatNotification): Stages => {
     }
     case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
       const {convID, msgID} = action.payload.params
-      const id = T.Chat.conversationIDToKey(convID)
-      return {
-        reloads: () => one(id, {messageID: T.Chat.numberToMessageID(msgID), type: 'attachmentDownloaded'}),
-        thread: () => one(id, {msgID, type: 'attachmentDownloadComplete'}),
-      }
+      return {thread: () => one(T.Chat.conversationIDToKey(convID), {msgID, type: 'attachmentDownloadComplete'})}
     }
     case 'chat.1.NotifyChat.ChatAttachmentUploadStart': {
       const {convID, outboxID} = action.payload.params
