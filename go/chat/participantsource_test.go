@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -172,49 +173,109 @@ func TestParticipantsUnusableCacheRefreshesAndKeyErrorKeepsIt(t *testing.T) {
 	require.Equal(t, rawBefore, rawAfter)
 }
 
-// A join reaches the other members (and the joiner) only as a membership push; nothing
-// on those clients asks for the participant list again, so the push itself has to send it.
-func TestParticipantsPushedOnJoin(t *testing.T) {
+// countingParticipantsRemote counts the participant loads that reach the server.
+type countingParticipantsRemote struct {
+	chat1.RemoteInterface
+	refreshes *int32
+}
+
+func (r countingParticipantsRemote) RefreshParticipantsRemote(ctx context.Context,
+	arg chat1.RefreshParticipantsRemoteArg,
+) (chat1.RefreshParticipantsRemoteRes, error) {
+	atomic.AddInt32(r.refreshes, 1)
+	return r.RemoteInterface.RefreshParticipantsRemote(ctx, arg)
+}
+
+// Another member's join reaches this client only as a membership push. The push patches
+// the cached participant list and notifies it, and never asks the server for the list.
+func TestParticipantsPushedOnJoinWithoutServerCall(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestParticipantsPushedOnJoin", 2)
+	ctc := makeChatTestContext(t, "TestParticipantsPushedOnJoinWithoutServerCall", 2)
 	defer ctc.cleanup()
 
 	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, users[1])
 	topicName := "joinme"
 	channel := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, &topicName,
 		chat1.ConversationMembersType_TEAM, users[1])
+	uncachedName := "notcached"
+	uncached := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, &uncachedName,
+		chat1.ConversationMembersType_TEAM, users[1])
 
-	listeners := make([]*teamChannelParticipantsListener, len(users))
-	for i, u := range users {
-		listeners[i] = &teamChannelParticipantsListener{
-			participants: make(chan map[chat1.ConvIDStr][]chat1.UIParticipant, 100),
-		}
-		ctc.as(t, u).h.G().NotifyRouter.AddListener(listeners[i])
+	ps := tc.Context().ParticipantsSource.(*CachingParticipantSource)
+	// cache the list for one channel only, as an open members list would
+	before, err := ps.Get(ctx, uid, channel.Id, types.InboxSourceDataSourceAll)
+	require.NoError(t, err)
+	require.Len(t, before, 1)
+
+	var refreshes int32
+	ri := ps.ri
+	ps.ri = func() chat1.RemoteInterface {
+		return countingParticipantsRemote{RemoteInterface: ri(), refreshes: &refreshes}
+	}
+	listener := &teamChannelParticipantsListener{
+		participants: make(chan map[chat1.ConvIDStr][]chat1.UIParticipant, 100),
+	}
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+
+	for _, conv := range []chat1.ConversationInfoLocal{uncached, channel} {
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(
+			ctc.as(t, users[1]).startCtx, conv.Id)
+		require.NoError(t, err)
 	}
 
-	_, err := ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(
-		ctc.as(t, users[1]).startCtx, channel.Id)
-	require.NoError(t, err)
-
-	for i, listener := range listeners {
-		timeout := time.After(20 * time.Second)
-	wait:
-		for {
-			select {
-			case participants := <-listener.participants:
-				for _, p := range participants[channel.Id.ConvIDStr()] {
-					if p.Assertion == users[1].Username {
-						break wait
-					}
+	timeout := time.After(20 * time.Second)
+wait:
+	for {
+		select {
+		case participants := <-listener.participants:
+			_, ok := participants[uncached.Id.ConvIDStr()]
+			require.False(t, ok, "a conversation with no cached list gets no push")
+			for _, p := range participants[channel.Id.ConvIDStr()] {
+				if p.Assertion == users[1].Username {
+					break wait
 				}
-			case <-timeout:
-				require.FailNow(t, "no participant list with the joined user was pushed",
-					"listener for users[%d]", i)
 			}
+		case <-timeout:
+			require.FailNow(t, "no participant list with the joined user was pushed")
 		}
+	}
+	require.Zero(t, atomic.LoadInt32(&refreshes), "a membership push must not load participants from the server")
+
+	var stored partDiskStorage
+	found, err := ps.encryptedDB.Get(ctx, ps.dbKey(uid, channel.Id), &stored)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Len(t, stored.Uids, 2)
+	require.Empty(t, stored.Hash, "a patched list must not match the server's hash")
+	found, err = ps.encryptedDB.Get(ctx, ps.dbKey(uid, uncached.Id), &stored)
+	require.NoError(t, err)
+	require.False(t, found, "a membership push must not create a cached list")
+}
+
+func TestPatchParticipants(t *testing.T) {
+	a, b, c := gregor1.UID([]byte{1}), gregor1.UID([]byte{2}), gregor1.UID([]byte{3})
+	for _, tc := range []struct {
+		name            string
+		uids            []gregor1.UID
+		joined, removed []gregor1.UID
+		want            []gregor1.UID
+		changed         bool
+	}{
+		{"join appends", []gregor1.UID{a, b}, []gregor1.UID{c}, nil, []gregor1.UID{a, b, c}, true},
+		{"join of a member is a no-op", []gregor1.UID{a, b}, []gregor1.UID{b}, nil, []gregor1.UID{a, b}, false},
+		{"removal keeps the order of the rest", []gregor1.UID{a, b, c}, nil, []gregor1.UID{b}, []gregor1.UID{a, c}, true},
+		{"removal of a non-member is a no-op", []gregor1.UID{a}, nil, []gregor1.UID{c}, []gregor1.UID{a}, false},
+		{"join and removal together", []gregor1.UID{a, b}, []gregor1.UID{c}, []gregor1.UID{a}, []gregor1.UID{b, c}, true},
+	} {
+		got, changed := patchParticipants(tc.uids, tc.joined, tc.removed)
+		require.Equal(t, tc.want, got, tc.name)
+		require.Equal(t, tc.changed, changed, tc.name)
 	}
 }
 

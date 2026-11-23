@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"maps"
+	"slices"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -199,6 +200,76 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 			})
 		}
 	}(globals.BackgroundChatCtx(ctx, s.G()))
+}
+
+// patchParticipants drops removed and appends joined members, keeping the order of
+// the rest.
+func patchParticipants(uids, joined, removed []gregor1.UID) (res []gregor1.UID, changed bool) {
+	res = make([]gregor1.UID, 0, len(uids)+len(joined))
+	for _, u := range uids {
+		if slices.ContainsFunc(removed, u.Eq) {
+			changed = true
+			continue
+		}
+		res = append(res, u)
+	}
+	for _, u := range joined {
+		if !slices.ContainsFunc(res, u.Eq) {
+			res = append(res, u)
+			changed = true
+		}
+	}
+	return res, changed
+}
+
+// ApplyMembershipChange patches a conversation's cached participant list with a
+// membership push and notifies the new list, using only local data. A conversation
+// with no cached list is left alone: whoever shows it loads the list then. The
+// patched entry drops its hash so the next remote load always replaces it.
+func (s *CachingParticipantSource) ApplyMembershipChange(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, joined, removed []gregor1.UID,
+) {
+	defer s.Trace(ctx, nil, "ApplyMembershipChange")()
+	lock := s.locktab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
+
+	var local partDiskStorage
+	found, err := s.encryptedDB.GetOrDropUnusable(ctx, s.dbKey(uid, convID), &local)
+	if err != nil || !found {
+		return
+	}
+	uids, changed := patchParticipants(local.Uids, joined, removed)
+	if !changed {
+		return
+	}
+	if err := s.encryptedDB.Put(ctx, s.dbKey(uid, convID), partDiskStorage{Uids: uids}); err != nil {
+		s.Debug(ctx, "ApplyMembershipChange: failed to store participants: %s", err)
+		return
+	}
+
+	kuids := make([]keybase1.UID, 0, len(uids))
+	for _, u := range uids {
+		kuids = append(kuids, keybase1.UID(u.String()))
+	}
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, s.G(), kuids, time.Hour*24)
+	if err != nil {
+		s.Debug(ctx, "ApplyMembershipChange: failed to map uids: %s", err)
+		return
+	}
+	participants := make([]chat1.ConversationLocalParticipant, 0, len(rows))
+	for _, row := range rows {
+		// an unknown name would show as a blank member; the next load fills it in
+		if row.NormalizedUsername.IsNil() {
+			return
+		}
+		participants = append(participants, utils.UsernamePackageToParticipant(row))
+	}
+	s.notify(participantNotify{
+		uid: keybase1.UID(uid.String()),
+		parts: map[chat1.ConvIDStr][]chat1.UIParticipant{
+			convID.ConvIDStr(): utils.PresentConversationParticipantsLocal(ctx, participants),
+		},
+	})
 }
 
 func (s *CachingParticipantSource) GetParticipantsFromUids(

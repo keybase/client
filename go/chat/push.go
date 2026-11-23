@@ -955,30 +955,51 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
-// refreshParticipants pushes a fresh participant list for every conversation whose
-// membership changed. Nothing else recomputes the cached list.
+// refreshParticipants applies the joins and removals in a membership push to the
+// participant lists cached for those conversations, with no server call. Resets are
+// left out: whether a reset member stays in the list is the server's call, and the
+// next load of the list picks it up.
 func (g *PushHandler) refreshParticipants(ctx context.Context, uid gregor1.UID,
 	membersRes types.MembershipUpdateRes,
 ) {
-	seen := make(map[chat1.ConvIDStr]bool)
-	refresh := func(convID chat1.ConversationID, topicType chat1.TopicType) {
-		if topicType != chat1.TopicType_CHAT || seen[convID.ConvIDStr()] {
+	type change struct {
+		convID          chat1.ConversationID
+		joined, removed []gregor1.UID
+	}
+	var order []chat1.ConvIDStr
+	changes := make(map[chat1.ConvIDStr]*change)
+	add := func(convID chat1.ConversationID, topicType chat1.TopicType, member gregor1.UID, joined bool) {
+		if topicType != chat1.TopicType_CHAT {
 			return
 		}
-		seen[convID.ConvIDStr()] = true
-		g.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID,
-			types.InboxSourceDataSourceAll)
+		key := convID.ConvIDStr()
+		c, ok := changes[key]
+		if !ok {
+			c = &change{convID: convID}
+			changes[key] = c
+			order = append(order, key)
+		}
+		if joined {
+			c.joined = append(c.joined, member)
+		} else {
+			c.removed = append(c.removed, member)
+		}
 	}
 	for _, c := range membersRes.UserJoinedConvs {
-		refresh(c.GetConvID(), c.GetTopicType())
+		add(c.GetConvID(), c.GetTopicType(), uid, true)
 	}
-	for _, l := range [][]chat1.ConversationMember{
-		membersRes.UserRemovedConvs, membersRes.OthersJoinedConvs,
-		membersRes.OthersRemovedConvs, membersRes.OthersResetConvs,
-	} {
-		for _, cm := range l {
-			refresh(cm.ConvID, cm.TopicType)
-		}
+	for _, cm := range membersRes.OthersJoinedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, true)
+	}
+	for _, cm := range membersRes.UserRemovedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, false)
+	}
+	for _, cm := range membersRes.OthersRemovedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, false)
+	}
+	for _, key := range order {
+		c := changes[key]
+		g.G().ParticipantsSource.ApplyMembershipChange(ctx, uid, c.convID, c.joined, c.removed)
 	}
 }
 
