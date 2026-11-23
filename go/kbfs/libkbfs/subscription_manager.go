@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -110,6 +111,12 @@ type pathSubscription struct {
 	pathsToNotify   map[string]struct{}
 	limit           rate.Limit
 	debouncedNotify *debouncedNotify
+
+	// pendingTopics are the topics changed since the last notification.
+	// They are added under the manager's read lock, so they have their
+	// own.
+	pendingLock   sync.Mutex
+	pendingTopics map[keybase1.PathSubscriptionTopic]bool
 }
 
 type nonPathSubscription struct {
@@ -142,11 +149,9 @@ type subscriptionManager struct {
 	log      logger.Logger
 	notifier SubscriptionNotifier
 
-	onlineStatusTracker *onlineStatusTracker
-	subscribeLock       sync.Mutex
-	lock                sync.RWMutex
-	// TODO HOTPOT-416: add another layer here to reference by topics, and
-	// actually check topics in LocalChange and BatchChanges.
+	onlineStatusTracker             *onlineStatusTracker
+	subscribeLock                   sync.Mutex
+	lock                            sync.RWMutex
 	pathSubscriptions               map[pathSubscriptionRef]*pathSubscription
 	pathSubscriptionIDToRef         map[SubscriptionID]pathSubscriptionRef
 	nonPathSubscriptions            map[keybase1.SubscriptionTopic]*nonPathSubscription
@@ -268,11 +273,20 @@ func (sm *subscriptionManager) preparePathNotification(
 	if !ok {
 		return
 	}
-	sids = make([]SubscriptionID, 0, len(ps.subscriptionIDs))
+	ps.pendingLock.Lock()
+	pending := ps.pendingTopics
+	ps.pendingTopics = make(map[keybase1.PathSubscriptionTopic]bool)
+	ps.pendingLock.Unlock()
 	topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{})
 	for sid, topic := range ps.subscriptionIDs {
+		if !pending[topic] {
+			continue
+		}
 		sids = append(sids, sid)
 		topicsMap[topic] = struct{}{}
+	}
+	if len(sids) == 0 {
+		return nil, nil, nil
 	}
 	topics = make([]keybase1.PathSubscriptionTopic, 0, len(topicsMap))
 	for topic := range topicsMap {
@@ -359,6 +373,7 @@ func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 			limit:           limit,
 			debouncedNotify: sm.makePathSubscriptionDebouncedNotify(ref, limit),
 			pathsToNotify:   make(map[string]struct{}),
+			pendingTopics:   make(map[keybase1.PathSubscriptionTopic]bool),
 		}
 		sm.pathSubscriptions[ref] = ps
 	} else if ps.limit < limit {
@@ -616,21 +631,30 @@ func (sm *subscriptionManager) Unsubscribe(ctx context.Context, sid Subscription
 	}
 }
 
-func (sm *subscriptionManager) notifyRefLocked(ref pathSubscriptionRef) {
+func (sm *subscriptionManager) notifyRefLocked(
+	ref pathSubscriptionRef, topics ...keybase1.PathSubscriptionTopic,
+) {
 	ps, ok := sm.pathSubscriptions[ref]
 	if !ok {
 		return
 	}
+	ps.pendingLock.Lock()
+	for _, topic := range topics {
+		ps.pendingTopics[topic] = true
+	}
+	ps.pendingLock.Unlock()
 	// We are notify()-ing while holding a lock, but it's fine since the
 	// other side of the channel consumes it pretty fast, either by
 	// dropping deduplicated ones, or by doing the actual send in a
 	// separate goroutine.
-	//
-	// We are not differentiating topics here yet. TODO: do it.
 	ps.debouncedNotify.notify()
 }
 
-func (sm *subscriptionManager) nodeChangeLocked(node Node) {
+// nodeChangeLocked notifies node's subscriptions of nodeTopics, and its
+// parent's of CHILDREN, since the parent's listing carries node's stat.
+func (sm *subscriptionManager) nodeChangeLocked(
+	node Node, nodeTopics ...keybase1.PathSubscriptionTopic,
+) {
 	path, ok := node.GetPathPlaintextSansTlf()
 	if !ok {
 		return
@@ -640,15 +664,13 @@ func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 	sm.notifyRefLocked(pathSubscriptionRef{
 		folderBranch: node.GetFolderBranch(),
 		path:         cleanPath,
-	})
+	}, nodeTopics...)
 
-	// Do this for parent as well, so if "children" is subscribed on parent
-	// path, we'd trigger a notification too.
 	if parent, ok := getParentPath(cleanPath); ok {
 		sm.notifyRefLocked(pathSubscriptionRef{
 			folderBranch: node.GetFolderBranch(),
 			path:         parent,
-		})
+		}, keybase1.PathSubscriptionTopic_CHILDREN)
 	}
 }
 
@@ -659,16 +681,25 @@ func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 
-	// When sync status changes, trigger notification for all paths so they
-	// reload to get new prefetch status. This is unfortunate but it's
-	// non-trivial to actually build notification around individuall path's
-	// prefetch status. Since GUI doesnt' have that many path notifications,
-	// this should be fine.
-	//
-	// TODO: Build it.
+	// Prefetch status isn't tracked per path, so when the overall sync
+	// status changes, every path in a TLF that syncs (fully or partly)
+	// reloads its own stat and its children's. Prefetch status isn't
+	// shown for paths in other TLFs.
 	if topic == keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS {
-		for _, ps := range sm.pathSubscriptions {
-			ps.debouncedNotify.notify()
+		synced := make(map[tlf.ID]bool)
+		for ref := range sm.pathSubscriptions {
+			tlfID := ref.folderBranch.Tlf
+			isSynced, ok := synced[tlfID]
+			if !ok {
+				isSynced = sm.config.GetTlfSyncState(tlfID).Mode !=
+					keybase1.FolderSyncMode_DISABLED
+				synced[tlfID] = isSynced
+			}
+			if isSynced {
+				sm.notifyRefLocked(ref,
+					keybase1.PathSubscriptionTopic_STAT,
+					keybase1.PathSubscriptionTopic_CHILDREN)
+			}
 		}
 	}
 
@@ -685,8 +716,7 @@ func (sm *subscriptionManager) LocalChange(ctx context.Context,
 ) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	// TODO HOTPOT-416: check topics
-	sm.nodeChangeLocked(node)
+	sm.nodeChangeLocked(node, keybase1.PathSubscriptionTopic_STAT)
 }
 
 // BatchChanges implements the Observer interface.
@@ -695,9 +725,16 @@ func (sm *subscriptionManager) BatchChanges(ctx context.Context,
 ) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	// TODO HOTPOT-416: check topics
 	for _, change := range changes {
-		sm.nodeChangeLocked(change.Node)
+		// Only a file write leaves the node's own entries alone; a
+		// change with no details may be an invalidation of anything.
+		if len(change.FileUpdated) > 0 && len(change.DirUpdated) == 0 {
+			sm.nodeChangeLocked(change.Node, keybase1.PathSubscriptionTopic_STAT)
+			continue
+		}
+		sm.nodeChangeLocked(change.Node,
+			keybase1.PathSubscriptionTopic_STAT,
+			keybase1.PathSubscriptionTopic_CHILDREN)
 	}
 }
 

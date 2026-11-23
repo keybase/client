@@ -765,3 +765,117 @@ func TestSubscriptionManagerPollRegisterFailureRollsBack(t *testing.T) {
 	require.Zero(t, n)
 	require.False(t, smRegisteredOn(fbo, sm))
 }
+
+func makeSubscriptionTestTLF(t *testing.T, config Config) (
+	ctx context.Context, rootNode Node, fileNode Node,
+) {
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
+			t.Context(), func(c context.Context) context.Context {
+				return c
+			}))
+	require.NoError(t, err)
+	tlfHandle, err := GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err = config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlfHandle, data.MasterBranch)
+	require.NoError(t, err)
+	dirNode, _, err := config.KBFSOps().CreateDir(
+		ctx, rootNode, rootNode.ChildName("dir"))
+	require.NoError(t, err)
+	fileNode, _, err = config.KBFSOps().CreateFile(
+		ctx, dirNode, dirNode.ChildName("file"), false, NoExcl)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	return ctx, rootNode, fileNode
+}
+
+// A write to a file changes its parent's listing but not the parent itself,
+// so only the parent's CHILDREN subscriptions hear about it.
+func TestSubscriptionManagerReportsOnlyChangedTopics(t *testing.T) {
+	config, sm, notifier, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	ctx, rootNode, fileNode := makeSubscriptionTestTLF(t, config)
+
+	notified := make(chan struct{}, 10)
+	// The mock notifier fails the test on any other OnPathChange.
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		[]SubscriptionID{"sid2"}, "/keybase/private/jdoe/dir",
+		[]keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_CHILDREN,
+		}).Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+		[]keybase1.PathSubscriptionTopic,
+	) {
+		notified <- struct{}{}
+	}).MinTimes(1)
+	err := sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe/dir",
+		keybase1.PathSubscriptionTopic_STAT, nil)
+	require.NoError(t, err)
+	err = sm.SubscribePath(ctx, "sid2", "/keybase/private/jdoe/dir",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+
+	err = config.KBFSOps().Write(ctx, fileNode, []byte("hello"), 0)
+	require.NoError(t, err)
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	recvWithin(t, notified, "children notification")
+	sm.Unsubscribe(ctx, "sid1")
+	sm.Unsubscribe(ctx, "sid2")
+}
+
+// Prefetch progress only shows for paths in TLFs that sync, so the overall
+// sync status ticks (up to once a second while prefetching) leave other
+// paths alone.
+func TestSubscriptionManagerOverallSyncNotifiesSyncedTLFsOnly(t *testing.T) {
+	config, sm, notifier, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	// Syncing a TLF needs a disk block cache.
+	configLocal := config.(*ConfigLocal)
+	err := configLocal.EnableDiskLimiter(t.TempDir())
+	require.NoError(t, err)
+	err = configLocal.loadSyncedTlfsLocked()
+	require.NoError(t, err)
+	configLocal.diskCacheMode = DiskCacheModeLocal
+	err = configLocal.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+
+	ctx, rootNode, _ := makeSubscriptionTestTLF(t, config)
+	tlfID := rootNode.GetFolderBranch().Tlf
+
+	err = sm.SubscribePath(ctx, "sid1", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_STAT, nil)
+	require.NoError(t, err)
+	err = sm.SubscribePath(ctx, "sid2", "/keybase/private/jdoe",
+		keybase1.PathSubscriptionTopic_CHILDREN, nil)
+	require.NoError(t, err)
+
+	// The mock notifier fails the test on this OnPathChange.
+	config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS)
+	time.Sleep(200 * time.Millisecond)
+
+	notified := make(chan struct{}, 10)
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sliceMatcherNoOrder{[]SubscriptionID{"sid1", "sid2"}},
+		"/keybase/private/jdoe",
+		sliceMatcherNoOrder{[]keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+			keybase1.PathSubscriptionTopic_CHILDREN,
+		}}).Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+		[]keybase1.PathSubscriptionTopic,
+	) {
+		notified <- struct{}{}
+	}).MinTimes(1)
+	_, err = config.SetTlfSyncState(ctx, tlfID, FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
+	require.NoError(t, err)
+	config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS)
+	recvWithin(t, notified, "overall sync notification")
+	sm.Unsubscribe(ctx, "sid1")
+	sm.Unsubscribe(ctx, "sid2")
+}
