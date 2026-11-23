@@ -88,10 +88,6 @@ const useStyles = Kb.Styles.createStyleHook(
         isMobile: {
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
-        isTablet: {
-          alignItems: 'center',
-          width: '100%',
-        },
       }),
       container: {
         backgroundColor: theme.white,

@@ -118,9 +118,9 @@ function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
 // Only headerless->headered pushes hit it; header->header is fine, and modals present rather than
 // push so they may hide their bar freely. A pushed screen that wants no header must therefore keep
 // an EMPTY bar instead: see the RNS_EMPTY_BAR options on the tabs screen in router.tsx and the
-// `{headerShown: true, title: ''}` login route in login/routes.tsx.
+// iOS `{headerShown: true, title: ''}` login route in login/routes.tsx. Android has no such slide.
 const assertHeaderShown = (name: string, opts: NativeStackNavigationOptions, isModal: boolean) => {
-  if (!isMobile || isModal || opts.headerShown !== false) return
+  if (!isIOS || isModal || opts.headerShown !== false) return
   throw new Error(
     `Route '${name}' sets headerShown:false on a pushed screen. Pushing from it to a headered ` +
       `screen judders on iOS (react-native-screens#3773). Render an empty bar instead: ` +
