@@ -20,6 +20,7 @@ type CmdSimpleFSMove struct {
 	dest        keybase1.Path
 	interactive bool
 	force       bool
+	noglob      bool
 	opCanceler  *OpCanceler
 }
 
@@ -47,6 +48,10 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "f, force",
 				Usage: "force overwrite",
 			},
+			cli.BoolFlag{
+				Name:  "no-glob",
+				Usage: "Do not perform glob expansion",
+			},
 		},
 	}
 }
@@ -59,10 +64,13 @@ func (c *CmdSimpleFSMove) Run() error {
 	}
 
 	ctx := context.TODO()
+	destPaths := c.src
 
-	destPaths, err := doSimpleFSGlob(ctx, c.G(), cli, c.src)
-	if err != nil {
-		return err
+	if ! c.noglob {
+		destPaths, err = doSimpleFSGlob(ctx, c.G(), cli, c.src)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Eat the error because it's ok here if the dest doesn't exist
@@ -120,6 +128,7 @@ func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.interactive = ctx.Bool("interactive")
 	c.force = ctx.Bool("force")
+	c.noglob = ctx.Bool("G, no-glob")
 
 	if c.force && c.interactive {
 		return errors.New("force and interactive are incompatible")
