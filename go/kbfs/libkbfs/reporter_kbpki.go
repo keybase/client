@@ -36,7 +36,6 @@ const (
 	errorParamFoldersCreated      = "foldersCreated"
 	errorParamFolderLimit         = "folderLimit"
 	errorParamApplicationExecPath = "applicationExecPath"
-	errorParamDiscarded           = "discarded"
 
 	// error operation modes
 	errorModeRead  = "read"
@@ -118,14 +117,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeWrite
 		filename = e.Filename
-	case kbfsblock.ServerErrorNoPermission, kbfsmd.ServerErrorWriteAccess,
-		WritesDiscardedError:
+	case kbfsblock.ServerErrorNoPermission, kbfsmd.ServerErrorWriteAccess:
 		// The server refused an operation the local handle check
 		// allowed, so there is no file to name; name the folder.
 		code = keybase1.FSErrorType_ACCESS_DENIED
-		if _, ok := e.(WritesDiscardedError); ok {
-			params[errorParamDiscarded] = "true"
-		}
 		if tlfName != "" {
 			filename = tlfhandle.BuildCanonicalPathForTlfName(t, tlfName)
 		}

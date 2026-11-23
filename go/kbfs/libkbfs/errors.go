@@ -106,21 +106,6 @@ func (e WriteUnsupportedError) Error() string {
 	return fmt.Sprintf("Writing to %s is unsupported", e.Filename)
 }
 
-// WritesDiscardedError indicates that a folder's journaled writes were
-// discarded because the server refused them.
-type WritesDiscardedError struct {
-	Err error
-}
-
-// Error implements the error interface for WritesDiscardedError
-func (e WritesDiscardedError) Error() string {
-	return fmt.Sprintf("Discarded writes the server refused: %v", e.Err)
-}
-
-func (e WritesDiscardedError) Unwrap() error {
-	return e.Err
-}
-
 // WriteToReadonlyNodeError indicates an error when trying to write a
 // node that's marked as read-only.
 type WriteToReadonlyNodeError struct {

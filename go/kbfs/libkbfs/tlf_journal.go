@@ -252,7 +252,6 @@ type tlfJournal struct {
 	deferLog            traceLogger
 	onBranchChange      branchChangeListener
 	onMDFlush           mdFlushListener
-	onWriteRefused      writeRefusalListener
 	forcedSquashByBytes uint64
 
 	// overrideTlfID is used for journals that are accessed by the
@@ -384,8 +383,7 @@ func makeTLFJournal(
 	config tlfJournalConfig, delegateBlockServer BlockServer,
 	bws TLFJournalBackgroundWorkStatus, bwDelegate tlfJournalBWDelegate,
 	onBranchChange branchChangeListener, onMDFlush mdFlushListener,
-	onWriteRefused writeRefusalListener, diskLimiter DiskLimiter,
-	overrideTlfID tlf.ID,
+	diskLimiter DiskLimiter, overrideTlfID tlf.ID,
 ) (*tlfJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
@@ -473,7 +471,6 @@ func makeTLFJournal(
 		vlog:                 vlog,
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
-		onWriteRefused:       onWriteRefused,
 		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
 		overrideTlfID:        overrideTlfID,
 		diskLimiter:          diskLimiter,
@@ -757,8 +754,7 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 // as pause-resume. But that's okay, since these are just for
 // infrequent ad-hoc testing.
 
-// pause returns whether pauseType wasn't already set.
-func (j *tlfJournal) pause(pauseType tlfJournalPauseType) bool {
+func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
 	j.pauseLock.Lock()
 	defer j.pauseLock.Unlock()
 	oldPauseType := j.pauseType
@@ -766,7 +762,7 @@ func (j *tlfJournal) pause(pauseType tlfJournalPauseType) bool {
 
 	if oldPauseType > 0 {
 		// No signal is needed since someone already called pause.
-		return oldPauseType&pauseType == 0
+		return
 	}
 
 	j.wg.Pause()
@@ -774,11 +770,10 @@ func (j *tlfJournal) pause(pauseType tlfJournalPauseType) bool {
 	case j.needPauseCh <- struct{}{}:
 	default:
 	}
-	return true
 }
 
-func (j *tlfJournal) pauseBackgroundWork() bool {
-	return j.pause(journalPauseCommand)
+func (j *tlfJournal) pauseBackgroundWork() {
+	j.pause(journalPauseCommand)
 }
 
 func (j *tlfJournal) resume(pauseType tlfJournalPauseType) {
@@ -899,7 +894,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 		if refusal := writeRefusal(err); refusal != nil &&
 			!j.writeRefusalReported {
-			j.writeRefusalReported = j.handleWriteRefusal(ctx, refusal)
+			j.writeRefusalReported = j.reportWriteRefusal(ctx, refusal)
 		}
 	}()
 
@@ -2389,17 +2384,13 @@ func writeRefusal(err error) error {
 	return nil
 }
 
-// handleWriteRefusal tells the user the server refused this journal's
-// writes, and returns whether it did. Blocks flush before their MD lands
-// in the journal, so with no MD to name the folder yet, it does nothing
-// and a later retry handles the refusal instead.
-//
-// When the server has disabled public folder writes, retrying can't
-// succeed, so the listener discards the writes before reporting. Any
-// other refusal may come from a membership change the server hasn't
-// caught up with, so the entries stay in the journal and flushing keeps
-// retrying.
-func (j *tlfJournal) handleWriteRefusal(
+// reportWriteRefusal tells the user the server refused this journal's
+// writes, and returns whether it did. The entries stay in the journal and
+// flushing keeps retrying, so they go through if the server starts
+// accepting them. Blocks flush before their MD lands in the journal, so
+// with no MD to name the folder yet, it reports nothing and a later retry
+// reports instead.
+func (j *tlfJournal) reportWriteRefusal(
 	ctx context.Context, refusal error,
 ) bool {
 	handle, err := j.getHandle(ctx, j.tlfID)
@@ -2410,24 +2401,9 @@ func (j *tlfJournal) handleWriteRefusal(
 	if handle == nil {
 		return false
 	}
-	noPermission, ok := refusal.(kbfsblock.ServerErrorNoPermission)
-	if ok && noPermission.Msg == kbfsblock.PublicWritesDisabledMsg &&
-		j.tlfID.Type() == tlf.Public && j.onWriteRefused != nil {
-		j.onWriteRefused.onTLFWriteRefused(
-			j.tlfID, handle.GetCanonicalName(), refusal)
-		return true
-	}
 	j.config.Reporter().ReportErr(
 		ctx, handle.GetCanonicalName(), j.tlfID.Type(), WriteMode, refusal)
 	return true
-}
-
-// retryWriteRefusal makes the next write refusal get handled again, for
-// a listener that couldn't discard the writes yet.
-func (j *tlfJournal) retryWriteRefusal() {
-	j.flushLock.Lock()
-	defer j.flushLock.Unlock()
-	j.writeRefusalReported = false
 }
 
 func (j *tlfJournal) getMDRange(
