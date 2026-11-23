@@ -2,10 +2,11 @@
 /// <reference types="jest" />
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {cleanup, render, screen} from '@testing-library/react'
+import {act, cleanup, render, screen} from '@testing-library/react'
 import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {navigationWrapper} from '@/test/navigation'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
@@ -51,6 +52,7 @@ beforeEach(() => {
   entries = []
   fake = installFakeEngine()
   useConfigState.setState({loggedIn: true})
+  useDaemonState.setState({handshakeState: 'done'})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'testuser-mac',
@@ -152,4 +154,57 @@ test('a read asked for during a failed read still runs', async () => {
   await flush()
 
   screen.getByText('e2e-c.pdf')
+})
+
+// Whether the service restarted or only the link dropped, a change made while the app was away sent
+// it no notification. The new connection subscribes again under new ids and reads the folder once
+// the service holds them; the old ids are let go without touching the new ones.
+test('a reconnect subscribes the folder again and lists a file added while away', async () => {
+  const subscribed: Array<string> = []
+  const unsubscribed: Array<string> = []
+  fake.answer(subscribePath, (p: {subscriptionID: string}) => {
+    subscribed.push(p.subscriptionID)
+    return null
+  })
+  fake.answer('keybase.1.SimpleFS.simpleFSUnsubscribe', (p: {subscriptionID: string}) => {
+    unsubscribed.push(p.subscriptionID)
+    return null
+  })
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
+    loggedIn: true,
+    sessionSeq: 0,
+    uid: 'uid',
+    username: 'testuser',
+  }))
+  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush()
+  render(
+    <FsDaemonProvider>
+      <FsDataProvider>
+        <FolderScreen />
+      </FsDataProvider>
+    </FsDaemonProvider>,
+    {wrapper: navigationWrapper({route: 'fsRoot', tab: Tabs.fsTab}).wrapper}
+  )
+  await flush(8)
+  const firstIDs = [...subscribed]
+  expect(firstIDs.length).toBeGreaterThan(0)
+  expect(screen.queryByText('e2e-c.pdf')).toBeNull()
+
+  act(() => fake.drop())
+  await flush()
+  entries = [dirent('e2e-c.pdf')]
+  act(() => fake.restart())
+  await flush()
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush(8)
+  // past the delay before an unused subscription is let go
+  await act(async () => new Promise(resolve => setTimeout(resolve, 1100)))
+  await flush()
+
+  screen.getByText('e2e-c.pdf')
+  const newIDs = subscribed.filter(id => !firstIDs.includes(id))
+  expect(newIDs.length).toBe(firstIDs.length)
+  expect(unsubscribed.some(id => newIDs.includes(id))).toBe(false)
 })

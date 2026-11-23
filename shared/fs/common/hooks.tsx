@@ -6,6 +6,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {NavigationContext} from '@react-navigation/core'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import * as FS from '@/constants/fs'
 import {RPCError} from '@/util/errors'
 import isEqual from 'lodash/isEqual'
@@ -778,7 +779,7 @@ const useFsSubscriptionEffect = ({
   errorPath,
   onSubscribed,
   subscribe,
-  subscriptionKey,
+  subscriptionKey: topicKey,
 }: {
   enabled?: boolean
   errorPath?: T.FS.Path
@@ -788,7 +789,14 @@ const useFsSubscriptionEffect = ({
   subscribe: (subscriptionID: string) => Promise<unknown>
   subscriptionKey: string
 }) => {
-  const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  // Every connection subscribes again once its handshake is done: notifications sent while the
+  // link was down are lost, and a restarted service holds no subscriptions at all
+  const handshakeGeneration = useDaemonState(s =>
+    s.handshakeState === 'done' ? s.handshakeGeneration : undefined
+  )
+  const subscriptionKey = `${topicKey}@${handshakeGeneration}`
+  const kbfsConnected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  const connected = handshakeGeneration !== undefined && kbfsConnected
   const routeData = React.useContext(FsDataContext)
   const username = useCurrentUserState(s => s.username)
   const subscriptionManager = routeData?.subscriptionManager
