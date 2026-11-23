@@ -21,7 +21,6 @@ test('a thread search the service fails stops searching', async () => {
     getLastOrdinal: () => T.Chat.numberToOrdinal(0),
     onDone: () => {},
     pendingHitsRef: {current: []},
-    pendingReplaceHitsRef: {current: undefined},
     query: 'hello',
     scheduleFlush: () => {},
     updateIfCurrent: updater => {

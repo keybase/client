@@ -2301,23 +2301,30 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	default:
 		_ = ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
 	}
+	// A conversation-scoped search streams each hit as it is found and never repeats
+	// them as an inbox hit; an inbox-wide search sends only the per-conversation hits.
+	convScoped := opts.ConvID != nil
 	var numHits, numConvs int
 	for index, conv := range convs {
-		uiCh := make(chan chat1.ChatSearchHit, 10)
+		var uiCh chan chat1.ChatSearchHit
 		ch := make(chan struct{})
-		go func() {
-			for searchHit := range uiCh {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					_ = ui.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
-						SearchHit: searchHit,
-					})
+		if convScoped {
+			uiCh = make(chan chat1.ChatSearchHit, 10)
+			go func() {
+				defer close(ch)
+				for searchHit := range uiCh {
+					select {
+					case <-ctx.Done():
+					default:
+						_ = ui.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+							SearchHit: searchHit,
+						})
+					}
 				}
-			}
+			}()
+		} else {
 			close(ch)
-		}()
+		}
 		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
@@ -2341,9 +2348,11 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 		case <-ctx.Done():
 			return res, ctx.Err()
 		default:
-			_ = ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-				SearchHit: inboxHit,
-			})
+			if !convScoped {
+				_ = ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+					SearchHit: inboxHit,
+				})
+			}
 		}
 		res.Hits = append(res.Hits, inboxHit)
 		if opts.MaxConvsHit > 0 && len(res.Hits) > opts.MaxConvsHit {
@@ -2430,15 +2439,37 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if !doSearch {
 			return nil
 		}
+		// A conversation-scoped search gets each hit once, as a ChatSearchHit, the same
+		// shape the delegated search streams. A conversation the indexer searches again
+		// after reindexing repeats its earlier hits.
+		sent := make(map[chat1.MessageID]bool)
 		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-				_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-					SearchHit: searchHit,
-				})
+			if opts.ConvID == nil {
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+					_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+						SearchHit: searchHit,
+					})
+				}
+				continue
+			}
+			for _, hit := range searchHit.Hits {
+				msgID := hit.HitMessage.GetMessageID()
+				if sent[msgID] {
+					continue
+				}
+				sent[msgID] = true
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+					_ = chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+						SearchHit: hit,
+					})
+				}
 			}
 		}
 		return nil

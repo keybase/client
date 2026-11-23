@@ -30,14 +30,13 @@ export const runSearchInbox = async (p: {
   getLastOrdinal: () => T.Chat.Ordinal
   onDone: () => void
   pendingHitsRef: {current: Array<T.Chat.Message>}
-  pendingReplaceHitsRef: {current: Array<T.Chat.Message> | undefined}
   query: string
   scheduleFlush: () => void
   updateIfCurrent: (updater: (state: SearchState) => SearchState) => void
   username: string
 }) => {
   const {conversationIDKey, deviceName, getLastOrdinal, onDone, query, username} = p
-  const {pendingHitsRef, pendingReplaceHitsRef, scheduleFlush, updateIfCurrent} = p
+  const {pendingHitsRef, scheduleFlush, updateIfCurrent} = p
   try {
     await searchInboxRPC({
       // Name, bot and index-progress results are for the inbox search, not a thread's
@@ -63,24 +62,6 @@ export const runSearchInbox = async (p: {
           scheduleFlush()
         },
         'chat.1.chatUi.chatSearchInboxDone': onDone,
-        'chat.1.chatUi.chatSearchInboxHit': resp => {
-          const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((result, hit) => {
-            const message = Message.uiMessageToMessage(
-              conversationIDKey,
-              hit.hitMessage,
-              username,
-              getLastOrdinal,
-              deviceName
-            )
-            if (message) {
-              result.push(message)
-            }
-            return result
-          }, [])
-          pendingHitsRef.current = []
-          pendingReplaceHitsRef.current = messages
-          scheduleFlush()
-        },
         'chat.1.chatUi.chatSearchInboxStart': () => {
           updateIfCurrent(state => ({...state, status: 'inprogress'}))
         },
@@ -115,11 +96,6 @@ export const useCommon = (ownProps: CommonProps) => {
     timestamp: h.timestamp,
   }))
   const [selectedIndex, setSelectedIndex] = React.useState(0)
-  // an inbox hit replaces the whole list, so a shorter replacement can leave the
-  // index past the end and the counter reading "8 of 2" until the user moves
-  if (selectedIndex >= numHits && selectedIndex !== 0) {
-    setSelectedIndex(numHits === 0 ? 0 : numHits - 1)
-  }
   const [text, setText] = React.useState(initialQuery)
   const [lastSearch, setLastSearch] = React.useState(initialQuery)
 
@@ -127,7 +103,6 @@ export const useCommon = (ownProps: CommonProps) => {
   const hitsRef = React.useRef(messageHits)
   const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
-  const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
   const lastOrdinal = useConversationThreadSelector(
     s => s.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   )
@@ -145,7 +120,6 @@ export const useCommon = (ownProps: CommonProps) => {
       flushTimeoutRef.current = undefined
     }
     pendingHitsRef.current = []
-    pendingReplaceHitsRef.current = undefined
   })
 
   const startThreadSearchRequest = React.useEffectEvent((query: string, requestOrdinal: number) => {
@@ -166,29 +140,15 @@ export const useCommon = (ownProps: CommonProps) => {
         clearTimeout(flushTimeoutRef.current)
         flushTimeoutRef.current = undefined
       }
-      const pendingReplaceHits = pendingReplaceHitsRef.current
       const pendingHits = pendingHitsRef.current
-      pendingReplaceHitsRef.current = undefined
       pendingHitsRef.current = []
-      if (!pendingReplaceHits && !pendingHits.length && statusOverride === undefined) {
+      if (!pendingHits.length && statusOverride === undefined) {
         return
       }
-      updateIfCurrent(state => {
-        let nextHits = state.hits
-        if (pendingReplaceHits) {
-          nextHits = pendingReplaceHits
-        } else if (pendingHits.length) {
-          const seen = new Set(nextHits.map(hit => hit.id))
-          nextHits = [...nextHits]
-          pendingHits.forEach(hit => {
-            if (!seen.has(hit.id)) {
-              seen.add(hit.id)
-              nextHits.push(hit)
-            }
-          })
-        }
-        return {hits: nextHits, status: statusOverride ?? state.status}
-      })
+      updateIfCurrent(state => ({
+        hits: pendingHits.length ? [...state.hits, ...pendingHits] : state.hits,
+        status: statusOverride ?? state.status,
+      }))
     }
     const scheduleFlush = () => {
       if (flushTimeoutRef.current) {
@@ -209,7 +169,6 @@ export const useCommon = (ownProps: CommonProps) => {
         getLastOrdinal,
         onDone,
         pendingHitsRef,
-        pendingReplaceHitsRef,
         query,
         scheduleFlush,
         updateIfCurrent,

@@ -225,34 +225,6 @@ describe('hit ingestion', () => {
     expect(result.current.numHits).toBe(1)
   })
 
-  test('a repeated message id is only counted once', async () => {
-    const {result} = await mountSearching('needle')
-    await deliverHits(hitMessage(5), hitMessage(6))
-    await deliverHits(hitMessage(5), hitMessage(7))
-    expect(result.current.numHits).toBe(3)
-    expect(result.current.hits.map(h => h.summary)).toEqual(['hello', 'hello', 'hello'])
-  })
-
-  test('an inbox hit batch replaces whatever streamed in before it', async () => {
-    const {result} = await mountSearching('needle')
-    await deliverHits(hitMessage(5), hitMessage(6))
-    expect(result.current.numHits).toBe(2)
-    await pushToActive('chat.1.chatUi.chatSearchInboxHit', {
-      searchHit: {
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        convName: '',
-        hits: [{hitMessage: hitMessage(9, {bodySummary: 'batched'}), matches: [], postMessages: [], prevMessages: []}],
-        query: 'needle',
-        teamType: T.RPCChat.TeamType.none,
-        time: 0,
-      },
-    })
-    act(() => {
-      jest.advanceTimersByTime(20)
-    })
-    expect(result.current.hits).toEqual([{author: username, summary: 'batched', timestamp: 1000}])
-  })
-
   test('unparseable hits are dropped rather than counted', async () => {
     const {result} = await mountSearching('needle')
     await deliverHits(
