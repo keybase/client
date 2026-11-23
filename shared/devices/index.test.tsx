@@ -211,7 +211,7 @@ test('a device history change from the service reloads the list, until the scree
   expect(historyCalls(fake)).toBe(2)
 })
 
-test('a user change from the service reloads the list, so a device revoked elsewhere leaves the active section', async () => {
+test('a device revoked elsewhere leaves the active section on the device history change, not on a user change', async () => {
   let results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old')]
   const fake = serve(() => results)
 
@@ -219,11 +219,14 @@ test('a user change from the service reloads the list, so a device revoked elsew
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old'])
   expect(historyCalls(fake)).toBe(1)
 
-  // a revoke from elsewhere: the service sends userChanged, not deviceHistoryChanged
+  // userChanged fires for many reasons; the service follows a key change with deviceHistoryChanged
   results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1000})]
   await fake.push('keybase.1.NotifyUsers.userChanged', {uid: 'testuser-uid'}, {oneway: true})
   await flush()
+  expect(historyCalls(fake)).toBe(1)
 
+  await fake.push('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', {}, {oneway: true})
+  await flush()
   expect(historyCalls(fake)).toBe(2)
   // gone from the active section, into the collapsed revoked one
   expect(renderedDevices()).toEqual(['testuser-mac'])
@@ -231,16 +234,16 @@ test('a user change from the service reloads the list, so a device revoked elsew
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old (revoked)'])
 })
 
-test('a burst of user changes loads the list once more after the load in flight, not once per notice', async () => {
+test('a burst of device history changes loads the list once more after the load in flight, not once per notice', async () => {
   let results = [makeDetail('testuser-mac', {currentDevice: true})]
   const fake = serve(() => results)
   await renderDevices()
   expect(historyCalls(fake)).toBe(1)
 
-  // a service start replays every unexpired key change, each one a userChanged
+  // a service start replays every unexpired key change, each one a deviceHistoryChanged
   const held = fake.hold(historyList)
   for (let i = 0; i < 5; i++) {
-    await fake.push('keybase.1.NotifyUsers.userChanged', {uid: 'testuser-uid'}, {oneway: true})
+    await fake.push('keybase.1.NotifyDeviceHistory.deviceHistoryChanged', {}, {oneway: true})
     await flush()
   }
   expect(historyCalls(fake)).toBe(2)

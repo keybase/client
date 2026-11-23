@@ -337,6 +337,7 @@ func (e *RevokeEngine) run(m libkb.MetaContext) error {
 	}
 
 	e.G().UserChanged(m.Ctx(), me.GetUID())
+	e.G().NotifyRouter.HandleDeviceHistoryChanged()
 
 	return nil
 }

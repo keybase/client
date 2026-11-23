@@ -529,3 +529,32 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 
 	assertNumDevicesAndKeys(tc, u1, 1, 3)
 }
+
+type deviceHistoryListener struct {
+	libkb.NoopNotifyListener
+	count int
+}
+
+func (d *deviceHistoryListener) DeviceHistoryChanged() { d.count++ }
+
+// A device list open on this device hears about a revoke made here without
+// waiting for the server's key-change push.
+func TestRevokeDeviceTellsDeviceLists(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	var paper libkb.DeviceWithDeviceNumber
+	for _, device := range devices {
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
+			paper = device
+		}
+	}
+
+	listener := &deviceHistoryListener{}
+	tc.G.NotifyRouter.AddListener(listener)
+	require.NoError(t, doRevokeDevice(tc, u, paper.ID, false, false))
+	require.Positive(t, listener.count)
+}
