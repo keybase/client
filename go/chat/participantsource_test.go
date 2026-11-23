@@ -171,3 +171,72 @@ func TestParticipantsUnusableCacheRefreshesAndKeyErrorKeepsIt(t *testing.T) {
 	require.True(t, found, "a key-fetch failure must not delete the participants cache")
 	require.Equal(t, rawBefore, rawAfter)
 }
+
+// A join reaches the other members (and the joiner) only as a membership push; nothing
+// on those clients asks for the participant list again, so the push itself has to send it.
+func TestParticipantsPushedOnJoin(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestParticipantsPushedOnJoin", 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[1])
+	topicName := "joinme"
+	channel := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, &topicName,
+		chat1.ConversationMembersType_TEAM, users[1])
+
+	listeners := make([]*teamChannelParticipantsListener, len(users))
+	for i, u := range users {
+		listeners[i] = &teamChannelParticipantsListener{
+			participants: make(chan map[chat1.ConvIDStr][]chat1.UIParticipant, 100),
+		}
+		ctc.as(t, u).h.G().NotifyRouter.AddListener(listeners[i])
+	}
+
+	_, err := ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(
+		ctc.as(t, users[1]).startCtx, channel.Id)
+	require.NoError(t, err)
+
+	for i, listener := range listeners {
+		timeout := time.After(20 * time.Second)
+	wait:
+		for {
+			select {
+			case participants := <-listener.participants:
+				for _, p := range participants[channel.Id.ConvIDStr()] {
+					if p.Assertion == users[1].Username {
+						break wait
+					}
+				}
+			case <-timeout:
+				require.FailNow(t, "no participant list with the joined user was pushed",
+					"listener for users[%d]", i)
+			}
+		}
+	}
+}
+
+func TestParticipantsNotifySkipsFailedLoads(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestParticipantsNotifySkipsFailedLoads", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	listener := &teamChannelParticipantsListener{
+		participants: make(chan map[chat1.ConvIDStr][]chat1.UIParticipant, 10),
+	}
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+
+	tc.Context().ParticipantsSource.GetWithNotifyNonblock(ctc.as(t, users[0]).startCtx, uid,
+		chat1.ConversationID([]byte("missing")), types.InboxSourceDataSourceAll)
+	select {
+	case participants := <-listener.participants:
+		require.FailNow(t, "a failed load must not push a participant list", "%+v", participants)
+	case <-time.After(2 * time.Second):
+	}
+}

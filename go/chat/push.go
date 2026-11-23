@@ -955,6 +955,31 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+// refreshParticipants pushes a fresh participant list for every conversation whose
+// membership changed. Nothing else recomputes the cached list.
+func (g *PushHandler) refreshParticipants(ctx context.Context, uid gregor1.UID,
+	membersRes types.MembershipUpdateRes,
+) {
+	seen := make(map[chat1.ConvIDStr]bool)
+	refresh := func(convID chat1.ConversationID, topicType chat1.TopicType) {
+		if topicType != chat1.TopicType_CHAT || seen[convID.ConvIDStr()] {
+			return
+		}
+		seen[convID.ConvIDStr()] = true
+		g.G().ParticipantsSource.GetWithNotifyNonblock(ctx, uid, convID,
+			types.InboxSourceDataSourceAll)
+	}
+	for _, c := range membersRes.UserJoinedConvs {
+		refresh(c.GetConvID(), c.GetTopicType())
+	}
+	for _, l := range [][]chat1.ConversationMember{membersRes.UserRemovedConvs, membersRes.OthersJoinedConvs,
+		membersRes.OthersRemovedConvs, membersRes.OthersResetConvs} {
+		for _, cm := range l {
+			refresh(cm.ConvID, cm.TopicType)
+		}
+	}
+}
+
 func (g *PushHandler) notifyConversationsStale(ctx context.Context, uid gregor1.UID,
 	updates []chat1.ConversationUpdate,
 ) {
@@ -1101,6 +1126,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
+		g.refreshParticipants(ctx, uid, updateRes)
 		g.notifyConvUpdates(ctx, uid, updateRes.RoleUpdates)
 
 		// Fire off badger updates

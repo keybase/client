@@ -8,7 +8,6 @@ import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
-import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
 import {getChatRpc} from '../chat-rpc'
 
 type Props = {
@@ -58,10 +57,6 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
         .catch(() => {})
     }
   }, [conversationIDKey, teamname])
-
-  // a kick, an add-to-team or a reset user let back in changes this channel's members
-  // too, including when another client does it
-  useRefreshParticipantsOnTeamMembershipChange(teamID, conversationIDKey)
 
   const showSpinner = !participants.length
   const participantsItems: ReadonlyArray<MemberItem> = participants

@@ -36,7 +36,6 @@ import ResetUser, {addTeamMemberAfterReset} from './reset-user'
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 const addAfterReset = 'chat.1.local.addTeamMemberAfterReset'
-const refreshParticipants = 'chat.1.local.refreshParticipants'
 const convID = T.Chat.keyToConversationID(conversationIDKey)
 
 let fake: FakeEngine
@@ -48,7 +47,6 @@ beforeEach(() => {
   mockFirstOnClick.clear()
   fake = installFakeEngine()
   fake.answer(addAfterReset, () => {})
-  fake.answer(refreshParticipants, () => {})
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -64,28 +62,19 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('letting a reset user back in refreshes the conversation participants', async () => {
+test('letting a reset user back in re-adds them to the conversation', async () => {
   await addTeamMemberAfterReset(conversationIDKey, 'testuser')
 
+  expect(serviceLog()).toEqual([addAfterReset])
   expect(paramsOf(fake, addAfterReset)).toEqual([{convID, username: 'testuser'}])
-  expect(paramsOf(fake, refreshParticipants)).toEqual([{convID}])
 })
 
-test('a failed re-add never claims the participants are fresh', async () => {
+test('a failed re-add rejects with the service error', async () => {
   fake.answer(addAfterReset, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'still reset'))
 
   await expect(addTeamMemberAfterReset(conversationIDKey, 'testuser')).rejects.toMatchObject({
     desc: 'still reset',
   })
-  expect(paramsOf(fake, refreshParticipants)).toEqual([])
-})
-
-test('a re-add that lands still resolves when the participant refresh fails', async () => {
-  fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
-  const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
-
-  await expect(addTeamMemberAfterReset(conversationIDKey, 'testuser')).resolves.toBeUndefined()
-  expect(info).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${conversationIDKey}`)
 })
 
 describe('the Let them in button', () => {
@@ -109,7 +98,7 @@ describe('the Let them in button', () => {
     render(<ResetUser />, {wrapper: threadWrapper(conversationIDKey).wrapper})
   }
 
-  test('re-adds the first reset participant, then refreshes participants', async () => {
+  test('re-adds the first reset participant', async () => {
     renderBanner()
 
     act(() => {
@@ -117,11 +106,11 @@ describe('the Let them in button', () => {
     })
     await flush()
 
-    expect(serviceLog()).toEqual([addAfterReset, refreshParticipants])
+    expect(serviceLog()).toEqual([addAfterReset])
     expect(paramsOf(fake, addAfterReset)).toEqual([{convID, username: 'testuser'}])
   })
 
-  test('a rejected re-add is only logged and no refresh is sent', async () => {
+  test('a rejected re-add is only logged', async () => {
     fake.answer(addAfterReset, () => fakeError(T.RPCGen.StatusCode.scgeneric, 'still reset'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderBanner()
@@ -132,7 +121,6 @@ describe('the Let them in button', () => {
     await flush()
 
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.objectContaining({desc: 'still reset'}))
-    expect(paramsOf(fake, refreshParticipants)).toEqual([])
     // the banner stays up: nothing about the conversation changed
     expect(screen.getByText('Let them in')).toBeTruthy()
   })

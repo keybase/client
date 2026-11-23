@@ -182,6 +182,10 @@ func (s *CachingParticipantSource) GetWithNotifyNonblock(ctx context.Context, ui
 		convIDStr := convID.ConvIDStr()
 		ch := s.G().ParticipantsSource.GetNonblock(ctx, uid, convID, dataSource)
 		for r := range ch {
+			if r.Err != nil {
+				s.Debug(ctx, "GetWithNotifyNonblock: failed to load participants: %s", r.Err)
+				continue
+			}
 			participants, err := s.GetParticipantsFromUids(ctx, r.Uids)
 			if err != nil {
 				s.Debug(ctx, "GetWithNotifyNonblock: failed to map uids: %s", err)

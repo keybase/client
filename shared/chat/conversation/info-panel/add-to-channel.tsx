@@ -6,19 +6,15 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
-import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import {getChatRpc} from '../chat-rpc'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
 
-// bulkAddToConv only posts a system message - nothing recomputes the channel's
-// participants, so the refresh is what makes every open members list show the new members.
 export const addMembersToChannel = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   usernames: ReadonlyArray<string>
 ) => {
   await getChatRpc().addToConversation(conversationIDKey, usernames)
-  await refreshConversationParticipants([conversationIDKey])
 }
 
 const AddToChannel = (props: Props) => {
