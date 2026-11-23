@@ -157,6 +157,12 @@ export const newRoutes = defineRouteMap({
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
+  // Go asks these after the paper key is accepted and before it logs the user in. Taking either
+  // screen away is the decline (use-cancel-on-leave).
+  recoverPasswordPgpWarning: {
+    getOptions: {...recoverPasswordGetOptions, gestureEnabled: false},
+    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
+  },
   recoverPasswordPromptResetAccount: {
     getOptions: (p: {route: {params: {skipPassword: boolean; username: string}}}) => ({
       ...recoverPasswordGetOptions,
@@ -180,6 +186,10 @@ export const newRoutes = defineRouteMap({
         : {headerLeft: () => <RecoverRestartLeft />}),
     }),
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
+  },
+  recoverPasswordSetPassword: {
+    getOptions: {...recoverPasswordGetOptions, gestureEnabled: false, title: 'Set password'},
+    screen: React.lazy(async () => import('./recover-password/password')),
   },
   resetConfirm: {
     getOptions: {gestureEnabled: false, title: 'Account reset'},
@@ -207,15 +217,5 @@ export const newModalRoutes = defineRouteMap({
   recoverPasswordErrorModal: {
     getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
-  },
-  // Shown over the logged-in app: Go asks after the paper key has logged the user in. The modal's
-  // Cancel is the decline.
-  recoverPasswordPgpWarning: {
-    getOptions: {gestureEnabled: false, title: 'Recover password'},
-    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
-  },
-  recoverPasswordSetPassword: {
-    getOptions: {gestureEnabled: false, title: 'Set password'},
-    screen: React.lazy(async () => import('./recover-password/password')),
   },
 })

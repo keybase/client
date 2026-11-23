@@ -1,11 +1,5 @@
 import * as T from '@/constants/types'
-import {
-  clearModals,
-  getVisibleScreen,
-  navigateAppend,
-  navigateAppendOnceRootHas,
-  navigateUp,
-} from '@/constants/router'
+import {navigateAppend, navigateUp} from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
@@ -31,6 +25,7 @@ const slots = {
   submitNoDevice: 'submitNoDevice',
   submitPaperKey: 'submitPaperKey',
   submitPassword: 'submitPassword',
+  submitPgpWarning: 'submitPgpWarning',
   submitResetPassword: 'submitResetPassword',
 } as const
 type Slot = (typeof slots)[keyof typeof slots]
@@ -44,53 +39,9 @@ export const submitRecoverPasswordPaperKey = (paperKey: string) =>
   callNamed(owner, slots.submitPaperKey, paperKey)
 export const submitRecoverPasswordPassword = (password: string) =>
   callNamed(owner, slots.submitPassword, password)
+export const submitRecoverPasswordPgpWarning = () => callNamed(owner, slots.submitPgpWarning)
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
-
-// Go asks the PGP question at most once per run and waits for the answer, so at most one is pending.
-// Each warning screen carries its prompt's id and answers only that prompt.
-type PgpPrompt = {
-  answer: (proceed: boolean) => void
-  id: number
-  timer: ReturnType<typeof setTimeout>
-}
-let pendingPgp: PgpPrompt | undefined
-let lastPgpId = 0
-const pgpWarningName = 'recoverPasswordPgpWarning'
-// How long the warning may wait for the logged-in root before navigateAppendOnceRootHas drops it.
-const pgpWarningMountTimeoutMs = 5000
-
-export const isRecoverPasswordPgpPending = (id: number) => pendingPgp?.id === id
-
-// undefined settles without answering: the run's RPC is over and nothing on Go's side is listening.
-const settlePgp = (id: number, proceed: boolean | undefined) => {
-  const prompt = pendingPgp
-  if (prompt?.id !== id) return
-  pendingPgp = undefined
-  clearTimeout(prompt.timer)
-  if (proceed !== undefined) {
-    prompt.answer(proceed)
-  }
-}
-
-// The warning screen reports its mount: from then on the user has it and the push timeout is moot.
-export const markRecoverPasswordPgpShown = (id: number) => {
-  if (pendingPgp?.id === id) {
-    clearTimeout(pendingPgp.timer)
-  }
-}
-
-export const answerRecoverPasswordPgp = (id: number, proceed: boolean) => settlePgp(id, proceed)
-
-// Settles the pending prompt and takes its warning away if it is on top. A warning under another modal
-// stays: removing a covered modal crashes iOS.
-const endPgp = (proceed: false | undefined, id: number | undefined) => {
-  if (id === undefined || !isRecoverPasswordPgpPending(id)) return
-  settlePgp(id, proceed)
-  if (getVisibleScreen(true)?.name === pgpWarningName) {
-    navigateUp()
-  }
-}
 
 export const startRecoverPassword = ({
   abortProvisioning,
@@ -98,10 +49,7 @@ export const startRecoverPassword = ({
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
-  // The previous run's RPC is still live and waiting on its answer.
-  endPgp(false, pendingPgp?.id)
   clearOwner(owner)
-  let runPgpId: number | undefined
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
@@ -167,19 +115,22 @@ export const startRecoverPassword = ({
             // The listener runs handlers a tick late, so the run may have ended since Go asked.
             if (!isActive()) return
             // true continues to set-password; false makes Go cancel and log back out.
-            endPgp(false, pendingPgp?.id)
-            const id = ++lastPgpId
-            runPgpId = id
-            pendingPgp = {
-              answer: wrapErrors((proceed: boolean) => response.result(proceed)),
-              id,
-              // The push below gives up silently after its timeout; decline rather than leave Go waiting.
-              // The warning mounting clears this, so it only fires for a warning that never appeared.
-              timer: setTimeout(() => settlePgp(id, false), pgpWarningMountTimeoutMs),
-            }
-            // The paper key has just logged the user in, so the logged-in root this modal lives on may not
-            // be mounted yet.
-            navigateAppendOnceRootHas('loggedIn', {name: pgpWarningName, params: {id}}, pgpWarningMountTimeoutMs)
+            const clear = () => clearSlots(slots.cancel, slots.submitPgpWarning)
+            setHandle(
+              slots.cancel,
+              wrapErrors(() => {
+                clear()
+                response.result(false)
+              })
+            )
+            setHandle(
+              slots.submitPgpWarning,
+              wrapErrors(() => {
+                clear()
+                response.result(true)
+              })
+            )
+            navigateAppend({name: 'recoverPasswordPgpWarning', params: {}}, true)
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
@@ -248,17 +199,10 @@ export const startRecoverPassword = ({
                   response.result({passphrase, storeSecret: true})
                 })
               )
-              if (!params.pinentry.retryLabel) {
-                navigateAppend({name: 'recoverPasswordSetPassword', params: {error: undefined}})
-              } else {
-                navigateAppend(
-                  {
-                    name: 'recoverPasswordSetPassword',
-                    params: {error: params.pinentry.retryLabel},
-                  },
-                  true
-                )
-              }
+              navigateAppend(
+                {name: 'recoverPasswordSetPassword', params: {error: params.pinentry.retryLabel || undefined}},
+                true
+              )
             }
           },
         },
@@ -302,20 +246,12 @@ export const startRecoverPassword = ({
         slots.submitNoDevice,
         slots.submitPaperKey,
         slots.submitPassword,
+        slots.submitPgpWarning,
         slots.submitResetPassword
       )
       active = false
-      // Go stopped waiting with the run, so a prompt still pending is settled without an answer: one sent
-      // now would leave the RPC counted as waiting on a server that has nothing more to send.
-      // A run that never got a prompt has no id: defaulting would settle another run's prompt.
-      if (runPgpId !== undefined) {
-        endPgp(undefined, runPgpId)
-      }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
-    if (!hadError) {
-      clearModals()
-    }
   }
   ignorePromise(f())
 }

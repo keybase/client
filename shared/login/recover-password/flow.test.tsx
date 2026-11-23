@@ -186,10 +186,10 @@ describe('through the engine listener', () => {
     })
   }
 
-  // Logged in, recovery runs from a modal, which an error replaces and nothing else clears.
+  // Go refuses to recover while an account is logged in: the error opens as a modal over the app.
   const startLoggedIn = () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installNavigation({rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}]})})
+    nav = installNavigation({rootState: makeRootState()})
   }
   const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
@@ -201,12 +201,12 @@ describe('through the engine listener', () => {
     expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
   })
 
-  test('logged in, a service error replaces the modal with the error modal and leaves it up', async () => {
+  test('logged in, a service error opens the error modal', async () => {
     startLoggedIn()
-    await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
+    await failRecovery(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
 
     expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
-    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
+    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('already logged in')
   })
 
   test('a cancelled recovery shows no error and leaves the screens where they were', async () => {
@@ -216,10 +216,10 @@ describe('through the engine listener', () => {
     expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
   })
 
-  test('logged in, a cancelled recovery shows no error and leaves the modals', async () => {
+  test('logged in, a cancelled recovery opens nothing', async () => {
     startLoggedIn()
     await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
 
-    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+    expect(rootNames()).toEqual(['loggedIn'])
   })
 })
