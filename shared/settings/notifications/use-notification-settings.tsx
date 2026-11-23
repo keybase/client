@@ -2,9 +2,7 @@ import * as C from '@/constants'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {isAndroidNewerThanN} from '@/constants/platform'
-import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
 import * as React from 'react'
 
 const securityGroup = 'security'
@@ -12,42 +10,22 @@ const soundGroup = 'sound'
 const miscGroup = 'misc'
 
 type NotificationSetting = {
-  name:
-    | 'newmessages'
-    | 'plaintextmobile'
-    | 'plaintextdesktop'
-    | 'defaultsoundmobile'
-    | 'disabletyping'
-    | 'convertheic'
+  name: string
   subscribed: boolean
   description: string
 }
 
-type NotificationsGroupStateFromServer = {
-  notifications: {
-    [key: string]: {
-      settings: Array<{
-        description: string
-        description_h: string
-        name: NotificationSetting['name']
-        subscribed: boolean
-      }>
-      unsub: boolean
-    }
-  }
-}
+type ChatGlobalSettingName = 'plaintextmobile' | 'plaintextdesktop' | 'defaultsoundmobile' | 'disabletyping' | 'convertheic'
 
 type NotificationsGroupState = {
   settings: Array<NotificationSetting>
   unsub: boolean
 }
 
-type NotificationSavePayload = {
-  JSONPayload: Array<{key: string; value: string}>
-  chatGlobalArg: {[key: string]: boolean}
-}
-
 const emptyGroups = new Map<string, NotificationsGroupState>()
+
+const isChatGlobalGroup = (groupName: string) =>
+  groupName === securityGroup || groupName === soundGroup || groupName === miscGroup
 
 export type UseNotificationSettingsResult = {
   allowEdit: boolean
@@ -57,67 +35,61 @@ export type UseNotificationSettingsResult = {
 }
 
 export const buildNotificationGroups = (
-  body: string,
-  chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
-): Map<string, NotificationsGroupState> | undefined => {
-  const results = JSON.parse(body) as undefined | NotificationsGroupStateFromServer
-  if (!results) return
+  loaded: T.RPCChat.NotificationSettingsLocal
+): Map<string, NotificationsGroupState> => {
+  const groups = new Map<string, NotificationsGroupState>()
+  for (const group of loaded.subscriptions ?? []) {
+    groups.set(group.name, {
+      settings: (group.settings ?? []).map(s => ({...s})),
+      unsub: group.unsub,
+    })
+  }
+  const chatGlobal = loaded.chatGlobal.settings
+  const isOn = (name: ChatGlobalSettingName) => !!chatGlobal?.[`${T.RPCChat.GlobalAppNotificationSetting[name]}`]
 
-  results.notifications[securityGroup] = {
+  groups.set(securityGroup, {
     settings: [
       {
         description: 'Show message content in phone chat notifications',
-        description_h: 'Show message content in phone chat notifications',
         name: 'plaintextmobile',
-        subscribed:
-          !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`],
+        subscribed: isOn('plaintextmobile'),
       },
       {
         description: 'Show message content in computer chat notifications',
-        description_h: 'Show message content in computer chat notifications',
         name: 'plaintextdesktop',
-        subscribed:
-          !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`],
+        subscribed: isOn('plaintextdesktop'),
       },
       {
         description: "Show others when you're typing",
-        description_h: "Show others when you're typing",
         name: 'disabletyping',
-        subscribed: !chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
+        subscribed: !isOn('disabletyping'),
       },
     ],
     unsub: false,
-  }
-  results.notifications[soundGroup] = {
+  })
+  groups.set(soundGroup, {
     settings: isAndroidNewerThanN
       ? []
       : [
           {
             description: 'Phone: use default sound for new messages',
-            description_h: 'Phone: use default sound for new messages',
             name: 'defaultsoundmobile',
-            subscribed:
-              !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`],
-          } as const,
+            subscribed: isOn('defaultsoundmobile'),
+          },
         ],
     unsub: false,
-  }
-  results.notifications[miscGroup] = {
+  })
+  groups.set(miscGroup, {
     settings: [
       {
         description: 'Convert HEIC images to JPEG for chat attachments',
-        description_h: 'Convert HEIC images to JPEG for chat attachments',
         name: 'convertheic',
-        subscribed: !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`],
+        subscribed: isOn('convertheic'),
       },
     ],
     unsub: false,
-  }
-
-  return Object.keys(results.notifications).reduce((m, name) => {
-    m.set(name, results.notifications[name]!)
-    return m
-  }, new Map<string, NotificationsGroupState>())
+  })
+  return groups
 }
 
 export const toggleNotificationGroup = (
@@ -144,135 +116,40 @@ export const toggleNotificationGroup = (
 
 export const buildNotificationSavePayload = (
   groups: ReadonlyMap<string, NotificationsGroupState>
-): NotificationSavePayload => {
-  const JSONPayload: Array<{key: string; value: string}> = []
-  const chatGlobalArg: {[key: string]: boolean} = {}
+): T.RPCChat.MessageTypes['chat.1.local.setNotificationSettingsLocal']['inParam'] => {
+  const subscriptions: Array<T.RPCChat.NotificationSubscriptionGroup> = []
+  const chatGlobal: {[key: string]: boolean} = {}
   groups.forEach((group, groupName) => {
-    if (groupName === securityGroup || groupName === soundGroup || groupName === miscGroup) {
+    if (isChatGlobalGroup(groupName)) {
       group.settings.forEach(setting => {
-        chatGlobalArg[`${T.RPCChat.GlobalAppNotificationSetting[setting.name]}`] =
-          setting.name === 'disabletyping' ? !setting.subscribed : !!setting.subscribed
+        chatGlobal[`${T.RPCChat.GlobalAppNotificationSetting[setting.name as ChatGlobalSettingName]}`] =
+          setting.name === 'disabletyping' ? !setting.subscribed : setting.subscribed
       })
       return
     }
-
-    group.settings.forEach(setting =>
-      JSONPayload.push({
-        key: `${setting.name}|${groupName}`,
-        value: setting.subscribed ? '1' : '0',
-      })
-    )
-    JSONPayload.push({
-      key: `unsub|${groupName}`,
-      value: group.unsub ? '1' : '0',
-    })
+    subscriptions.push({name: groupName, settings: group.settings, unsub: group.unsub})
   })
-  return {JSONPayload, chatGlobalArg}
-}
-
-const saveNotificationSettings = async (
-  nextGroups: Map<string, NotificationsGroupState>,
-  prevGroups: Map<string, NotificationsGroupState>,
-  saveSubscriptionsRPC: (
-    args: Parameters<typeof T.RPCGen.apiserverPostJSONRpcPromise>,
-    setResult: (r: T.RPCGen.APIRes) => void,
-    setError: (e: RPCError) => void
-  ) => void,
-  saveGlobalSettingsRPC: (
-    args: Parameters<typeof T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise>,
-    setResult: () => void,
-    setError: (e: RPCError) => void
-  ) => void,
-  setGroups: (groups: Map<string, NotificationsGroupState>) => void,
-  setAllowEdit: (allowEdit: boolean) => void
-) => {
-  try {
-    if (!nextGroups.get('email')) {
-      throw new Error('No notifications loaded yet')
-    }
-    const {JSONPayload, chatGlobalArg} = buildNotificationSavePayload(nextGroups)
-    const result = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
-      saveSubscriptionsRPC(
-        [
-          {
-            JSONPayload,
-            args: [],
-            endpoint: 'account/subscribe',
-          },
-          S.waitingKeySettingsGeneric,
-        ],
-        resolve,
-        reject
-      )
-    })
-    await new Promise<void>((resolve, reject) => {
-      saveGlobalSettingsRPC([{settings: {...chatGlobalArg}}, S.waitingKeySettingsGeneric], () => resolve(), reject)
-    })
-    if (
-      !result.body ||
-      (JSON.parse(result.body) as {status?: {code?: number}} | undefined)?.status?.code !== 0
-    ) {
-      throw new Error(`Invalid response ${result.body || '(no result)'}`)
-    }
-  } catch (error) {
-    logger.warn('Failed to save notification settings', error)
-    setGroups(prevGroups)
-  } finally {
-    setAllowEdit(true)
-  }
+  return {chatGlobal, subscriptions}
 }
 
 const useNotificationSettings = (): UseNotificationSettingsResult => {
-  const loadSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverGetWithSessionRpcPromise)
-  const loadGlobalSettingsRPC = C.useRPC(T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise)
-  const saveSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverPostJSONRpcPromise)
-  const saveGlobalSettingsRPC = C.useRPC(T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise)
+  const loadRPC = C.useRPC(T.RPCChat.localGetNotificationSettingsLocalRpcPromise)
+  const saveRPC = C.useRPC(T.RPCChat.localSetNotificationSettingsLocalRpcPromise)
   const [allowEdit, setAllowEdit] = React.useState(false)
   const [groups, setGroups] = React.useState(emptyGroups)
 
   const refresh = React.useCallback(() => {
-    let handled = false
-    const maybeClear = async () => {
-      await timeoutPromise(500)
-      if (!handled) {
+    loadRPC(
+      [undefined, S.refreshNotificationsWaitingKey],
+      loaded => {
         setAllowEdit(true)
-        setGroups(new Map())
-      }
-    }
-    ignorePromise(maybeClear())
-
-    const f = async () => {
-      let body: string
-      let chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
-
-      try {
-        const json = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
-          loadSubscriptionsRPC(
-            [{args: [], endpoint: 'account/subscriptions'}, S.refreshNotificationsWaitingKey],
-            resolve,
-            reject
-          )
-        })
-        chatGlobalSettings = await new Promise<T.RPCChat.GlobalAppNotificationSettings>((resolve, reject) => {
-          loadGlobalSettingsRPC([undefined, S.refreshNotificationsWaitingKey], resolve, reject)
-        })
-        body = json.body
-      } catch (error) {
-        if (!(error instanceof RPCError)) {
-          return
-        }
+        setGroups(buildNotificationGroups(loaded))
+      },
+      error => {
         logger.warn(`Error getting notification settings: ${error.desc}`)
-        return
       }
-
-      handled = true
-      const nextGroups = buildNotificationGroups(body, chatGlobalSettings)
-      if (!nextGroups) return
-      setAllowEdit(true)
-      setGroups(nextGroups)
-    }
-    ignorePromise(f())
-  }, [loadGlobalSettingsRPC, loadSubscriptionsRPC])
+    )
+  }, [loadRPC])
 
   const toggle = React.useCallback(
     (group: string, name?: string) => {
@@ -290,18 +167,17 @@ const useNotificationSettings = (): UseNotificationSettingsResult => {
       setAllowEdit(false)
       setGroups(nextGroups)
 
-      ignorePromise(
-        saveNotificationSettings(
-          nextGroups,
-          prevGroups,
-          saveSubscriptionsRPC,
-          saveGlobalSettingsRPC,
-          setGroups,
-          setAllowEdit
-        )
+      saveRPC(
+        [buildNotificationSavePayload(nextGroups), S.waitingKeySettingsGeneric],
+        () => setAllowEdit(true),
+        error => {
+          logger.warn('Failed to save notification settings', error)
+          setGroups(prevGroups)
+          setAllowEdit(true)
+        }
       )
     },
-    [allowEdit, groups, saveGlobalSettingsRPC, saveSubscriptionsRPC]
+    [allowEdit, groups, saveRPC]
   )
 
   return {allowEdit, groups, refresh, toggle}

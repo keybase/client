@@ -5483,6 +5483,66 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
+type NotificationSubscription struct {
+	Name        string `codec:"name" json:"name"`
+	Description string `codec:"description" json:"description"`
+	Subscribed  bool   `codec:"subscribed" json:"subscribed"`
+}
+
+func (o NotificationSubscription) DeepCopy() NotificationSubscription {
+	return NotificationSubscription{
+		Name:        o.Name,
+		Description: o.Description,
+		Subscribed:  o.Subscribed,
+	}
+}
+
+type NotificationSubscriptionGroup struct {
+	Name     string                     `codec:"name" json:"name"`
+	Settings []NotificationSubscription `codec:"settings" json:"settings"`
+	Unsub    bool                       `codec:"unsub" json:"unsub"`
+}
+
+func (o NotificationSubscriptionGroup) DeepCopy() NotificationSubscriptionGroup {
+	return NotificationSubscriptionGroup{
+		Name: o.Name,
+		Settings: (func(x []NotificationSubscription) []NotificationSubscription {
+			if x == nil {
+				return nil
+			}
+			ret := make([]NotificationSubscription, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Settings),
+		Unsub: o.Unsub,
+	}
+}
+
+type NotificationSettingsLocal struct {
+	Subscriptions []NotificationSubscriptionGroup `codec:"subscriptions" json:"subscriptions"`
+	ChatGlobal    GlobalAppNotificationSettings   `codec:"chatGlobal" json:"chatGlobal"`
+}
+
+func (o NotificationSettingsLocal) DeepCopy() NotificationSettingsLocal {
+	return NotificationSettingsLocal{
+		Subscriptions: (func(x []NotificationSubscriptionGroup) []NotificationSubscriptionGroup {
+			if x == nil {
+				return nil
+			}
+			ret := make([]NotificationSubscriptionGroup, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Subscriptions),
+		ChatGlobal: o.ChatGlobal.DeepCopy(),
+	}
+}
+
 type ResetConvMember struct {
 	Username string         `codec:"username" json:"username"`
 	Uid      gregor1.UID    `codec:"uid" json:"uid"`
@@ -7202,6 +7262,14 @@ type SetGlobalAppNotificationSettingsLocalArg struct {
 type GetGlobalAppNotificationSettingsLocalArg struct {
 }
 
+type GetNotificationSettingsLocalArg struct {
+}
+
+type SetNotificationSettingsLocalArg struct {
+	Subscriptions []NotificationSubscriptionGroup `codec:"subscriptions" json:"subscriptions"`
+	ChatGlobal    map[string]bool                 `codec:"chatGlobal" json:"chatGlobal"`
+}
+
 type UnboxMobilePushNotificationArg struct {
 	Payload     string                  `codec:"payload" json:"payload"`
 	ConvID      string                  `codec:"convID" json:"convID"`
@@ -7604,6 +7672,8 @@ type LocalInterface interface {
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
+	GetNotificationSettingsLocal(context.Context) (NotificationSettingsLocal, error)
+	SetNotificationSettingsLocal(context.Context, SetNotificationSettingsLocalArg) error
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
 	GetAllResetConvMembers(context.Context) (GetAllResetConvMembersRes, error)
@@ -8601,6 +8671,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetGlobalAppNotificationSettingsLocal(ctx)
+					return
+				},
+			},
+			"getNotificationSettingsLocal": {
+				MakeArg: func() any {
+					var ret [1]GetNotificationSettingsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					ret, err = i.GetNotificationSettingsLocal(ctx)
+					return
+				},
+			},
+			"setNotificationSettingsLocal": {
+				MakeArg: func() any {
+					var ret [1]SetNotificationSettingsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]SetNotificationSettingsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetNotificationSettingsLocalArg)(nil), args)
+						return
+					}
+					err = i.SetNotificationSettingsLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9941,6 +10036,16 @@ func (c LocalClient) SetGlobalAppNotificationSettingsLocal(ctx context.Context, 
 
 func (c LocalClient) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res GlobalAppNotificationSettings, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getGlobalAppNotificationSettingsLocal", []any{GetGlobalAppNotificationSettingsLocalArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetNotificationSettingsLocal(ctx context.Context) (res NotificationSettingsLocal, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getNotificationSettingsLocal", []any{GetNotificationSettingsLocalArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SetNotificationSettingsLocal(ctx context.Context, __arg SetNotificationSettingsLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setNotificationSettingsLocal", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

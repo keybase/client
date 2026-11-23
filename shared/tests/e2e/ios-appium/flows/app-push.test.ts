@@ -47,7 +47,7 @@ import {expectShown, openNotificationSettings, settles, switchOf, tapAndCall} fr
 import {masked} from '../helpers/teams'
 import {threadRoute} from '../gate/thread-route.ts'
 
-const POST_JSON = 'keybase.1.apiserver.PostJSON'
+const SAVE_NOTIFICATIONS = 'chat.1.local.setNotificationSettingsLocal'
 
 // how long a push to the app in the foreground is watched for a banner (it shows none)
 const FOREGROUND_WINDOW_MS = 8_000
@@ -272,12 +272,12 @@ describe('app push notifications', function () {
     await expectShown(switchOf(base, was), 'the phone notification before the change')
     await step('The phone notification before the change')
 
-    await tapAndCall(base, POST_JSON, 'the notification settings save')
+    await tapAndCall(base, SAVE_NOTIFICATIONS, 'the notification settings save')
     await settles('the phone notification to read back changed', subscribed, !was)
     await expectShown(switchOf(base, !was), 'the phone notification after the change')
     await step('The phone notification changed', {card: true})
 
-    await tapAndCall(base, POST_JSON, 'the notification settings save back')
+    await tapAndCall(base, SAVE_NOTIFICATIONS, 'the notification settings save back')
     await settles('the phone notification to read back changed back', subscribed, was)
     await expectShown(switchOf(base, was), 'the phone notification after the change back')
     await step('The phone notification changed back')

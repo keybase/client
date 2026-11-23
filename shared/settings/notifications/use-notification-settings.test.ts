@@ -4,7 +4,7 @@ import {afterEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {
   type UseNotificationSettingsResult,
@@ -14,20 +14,12 @@ import {
   default as useNotificationSettings,
 } from './use-notification-settings'
 
-const makeChatGlobalSettings = (settings: {[key: string]: boolean} = {}) =>
-  ({settings} as T.RPCChat.GlobalAppNotificationSettings)
+const loadRpc = 'chat.1.local.getNotificationSettingsLocal'
+const saveRpc = 'chat.1.local.setNotificationSettingsLocal'
 
-const loadSubscriptionsRpc = 'keybase.1.apiserver.GetWithSession'
-const loadGlobalSettingsRpc = 'chat.1.local.getGlobalAppNotificationSettingsLocal'
-const saveSubscriptionsRpc = 'keybase.1.apiserver.PostJSON'
-const saveGlobalSettingsRpc = 'chat.1.local.setGlobalAppNotificationSettingsLocal'
-
-// Every call of the four held, so a test answers each in turn
 const holdAll = (fake: FakeEngine) => ({
-  loadGlobalSettings: fake.hold(loadGlobalSettingsRpc),
-  loadSubscriptions: fake.hold(loadSubscriptionsRpc),
-  saveGlobalSettings: fake.hold(saveGlobalSettingsRpc),
-  saveSubscriptions: fake.hold(saveSubscriptionsRpc),
+  load: fake.hold(loadRpc),
+  save: fake.hold(saveRpc),
 })
 
 const reply = async (held: Array<{reply: (a: unknown) => void}>, a: unknown) => {
@@ -35,38 +27,26 @@ const reply = async (held: Array<{reply: (a: unknown) => void}>, a: unknown) => 
   await flush()
 }
 
-const makeSubscriptionsResponse = () =>
-  ({
-    body: JSON.stringify({
-      notifications: {
-        email: {
-          settings: [{description: 'Email', description_h: 'Email', name: 'newmessages', subscribed: true}],
-          unsub: false,
-        },
-      },
-    }),
-  }) as T.RPCGen.APIRes
+const makeLoaded = (chatGlobal: {[key: string]: boolean} = {}): T.RPCChat.NotificationSettingsLocal => ({
+  chatGlobal: {settings: chatGlobal} as T.RPCChat.GlobalAppNotificationSettings,
+  subscriptions: [
+    {
+      name: 'email',
+      settings: [{description: 'Email', name: 'newmessages', subscribed: true}],
+      unsub: false,
+    },
+  ],
+})
 
 const snapshotGroups = (groups: UseNotificationSettingsResult['groups']) =>
-  [...groups.entries()].reduce(
-    (acc, [group, value]) => ({
-      ...acc,
-      [group]: {
-        settings: value.settings.map(setting => ({
-          description: setting.description,
-          name: setting.name,
-          subscribed: setting.subscribed,
-        })),
+  Object.fromEntries(
+    [...groups.entries()].map(([group, value]) => [
+      group,
+      {
+        settings: value.settings.map(({description, name, subscribed}) => ({description, name, subscribed})),
         unsub: value.unsub,
       },
-    }),
-    {} as Record<
-      string,
-      {
-        settings: Array<{description: string; name: string; subscribed: boolean}>
-        unsub: boolean
-      }
-    >
+    ])
   )
 
 afterEach(() => {
@@ -74,17 +54,9 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('buildNotificationGroups merges API and chat-global notification settings', () => {
+test('buildNotificationGroups merges the subscriptions and the chat-global settings', () => {
   const groups = buildNotificationGroups(
-    JSON.stringify({
-      notifications: {
-        email: {
-          settings: [{description: 'Email', description_h: 'Email', name: 'newmessages', subscribed: true}],
-          unsub: false,
-        },
-      },
-    }),
-    makeChatGlobalSettings({
+    makeLoaded({
       [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
       [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
       [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
@@ -92,16 +64,16 @@ test('buildNotificationGroups merges API and chat-global notification settings',
     })
   )
 
-  expect(groups?.get('email')?.settings[0]?.name).toBe('newmessages')
-  expect(groups?.get('security')?.settings.map(setting => setting.name)).toEqual([
+  expect(groups.get('email')?.settings[0]?.name).toBe('newmessages')
+  expect(groups.get('security')?.settings.map(setting => setting.name)).toEqual([
     'plaintextmobile',
     'plaintextdesktop',
     'disabletyping',
   ])
-  expect(groups?.get('security')?.settings[0]?.subscribed).toBe(true)
-  expect(groups?.get('security')?.settings[1]?.subscribed).toBe(false)
-  expect(groups?.get('security')?.settings[2]?.subscribed).toBe(true)
-  expect(groups?.get('misc')?.settings[0]?.subscribed).toBe(true)
+  expect(groups.get('security')?.settings[0]?.subscribed).toBe(true)
+  expect(groups.get('security')?.settings[1]?.subscribed).toBe(false)
+  expect(groups.get('security')?.settings[2]?.subscribed).toBe(true)
+  expect(groups.get('misc')?.settings[0]?.subscribed).toBe(true)
 })
 
 test('toggleNotificationGroup and buildNotificationSavePayload preserve optimistic toggle semantics', () => {
@@ -123,23 +95,23 @@ test('toggleNotificationGroup and buildNotificationSavePayload preserve optimist
         unsub: false,
       },
     ],
-  ]) as Parameters<typeof toggleNotificationGroup>[0]
+  ])
 
   const nextGroups = toggleNotificationGroup(groups, 'security', 'plaintextmobile')
   expect(nextGroups.get('security')?.settings[0]?.subscribed).toBe(false)
 
-  const payload = buildNotificationSavePayload(nextGroups)
-  expect(payload.JSONPayload).toEqual([
-    {key: 'newmessages|email', value: '1'},
-    {key: 'unsub|email', value: '0'},
-  ])
-  expect(payload.chatGlobalArg).toEqual({
-    [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: true,
-    [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
+  expect(buildNotificationSavePayload(nextGroups)).toEqual({
+    chatGlobal: {
+      [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: true,
+      [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
+    },
+    subscriptions: [
+      {name: 'email', settings: [{description: 'Email', name: 'newmessages', subscribed: true}], unsub: false},
+    ],
   })
 })
 
-test('useNotificationSettings refreshes and saves notification settings through the service', async () => {
+test('useNotificationSettings loads and saves notification settings in one call each', async () => {
   const fake = installFakeEngine()
   const held = holdAll(fake)
   const {result} = renderHook(() => useNotificationSettings())
@@ -150,18 +122,11 @@ test('useNotificationSettings refreshes and saves notification settings through 
   await flush()
 
   expect(result.current.allowEdit).toBe(false)
-  expect(held.loadSubscriptions[0]!.params).toEqual(
-    expect.objectContaining({args: [], endpoint: 'account/subscriptions'})
-  )
-  // the chat settings are asked for only once the subscriptions are in
-  expect(held.loadGlobalSettings).toHaveLength(0)
-
-  await reply(held.loadSubscriptions, makeSubscriptionsResponse())
-  expect(held.loadGlobalSettings).toHaveLength(1)
+  expect(held.load).toHaveLength(1)
 
   await reply(
-    held.loadGlobalSettings,
-    makeChatGlobalSettings({
+    held.load,
+    makeLoaded({
       [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
       [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
       [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
@@ -195,39 +160,29 @@ test('useNotificationSettings refreshes and saves notification settings through 
 
   expect(result.current.allowEdit).toBe(false)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
-  expect(held.saveSubscriptions[0]!.params).toEqual(
+  expect(held.save[0]!.params).toEqual(
     expect.objectContaining({
-      JSONPayload: [
-        {key: 'newmessages|email', value: '1'},
-        {key: 'unsub|email', value: '0'},
-      ],
-      args: [],
-      endpoint: 'account/subscribe',
-    })
-  )
-
-  await reply(held.saveSubscriptions, {body: JSON.stringify({status: {code: 0}})})
-
-  expect(held.saveGlobalSettings[0]!.params).toEqual(
-    expect.objectContaining({
-      settings: expect.objectContaining({
+      chatGlobal: {
         [`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`]: false,
         [`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`]: false,
         [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
         [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
         [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
-      }),
+      },
+      subscriptions: [
+        {name: 'email', settings: [{description: 'Email', name: 'newmessages', subscribed: true}], unsub: false},
+      ],
     })
   )
-  expect(result.current.allowEdit).toBe(false)
 
-  await reply(held.saveGlobalSettings, null)
+  await reply(held.save, null)
 
   expect(result.current.allowEdit).toBe(true)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
+  expect(fake.calls.map(c => c.method)).toEqual([loadRpc, saveRpc])
 })
 
-test('useNotificationSettings restores optimistic state when save fails', async () => {
+test('useNotificationSettings restores the optimistic state when the save fails', async () => {
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
   const fake = installFakeEngine()
   const held = holdAll(fake)
@@ -237,14 +192,7 @@ test('useNotificationSettings restores optimistic state when save fails', async 
     result.current.refresh()
   })
   await flush()
-  await reply(held.loadSubscriptions, makeSubscriptionsResponse())
-  await reply(
-    held.loadGlobalSettings,
-    makeChatGlobalSettings({
-      [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
-      [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true,
-    })
-  )
+  await reply(held.load, makeLoaded({[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true}))
   expect(result.current.allowEdit).toBe(true)
 
   const previousGroups = snapshotGroups(result.current.groups)
@@ -253,14 +201,11 @@ test('useNotificationSettings restores optimistic state when save fails', async 
     result.current.toggle('security', 'plaintextmobile')
   })
   await flush()
-
-  expect(result.current.allowEdit).toBe(false)
   expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
 
-  await reply(held.saveSubscriptions, {body: JSON.stringify({status: {code: 1}})})
-  await reply(held.saveGlobalSettings, null)
+  await reply(held.save, fakeError(T.RPCGen.StatusCode.scgeneric, 'subscribe failed'))
 
   expect(result.current.allowEdit).toBe(true)
   expect(snapshotGroups(result.current.groups)).toEqual(previousGroups)
-  expect(warnSpy).toHaveBeenCalledWith('Failed to save notification settings', expect.any(Error))
+  expect(warnSpy).toHaveBeenCalledWith('Failed to save notification settings', expect.anything())
 })

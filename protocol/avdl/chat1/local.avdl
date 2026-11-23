@@ -1140,6 +1140,25 @@ protocol local {
   void setGlobalAppNotificationSettingsLocal(map<string, bool> settings);
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
+  // The account's email and push subscriptions, as the server groups them
+  record NotificationSubscription {
+    string name;
+    string description;
+    boolean subscribed;
+  }
+  record NotificationSubscriptionGroup {
+    string name;
+    array<NotificationSubscription> settings;
+    boolean unsub;
+  }
+  record NotificationSettingsLocal {
+    array<NotificationSubscriptionGroup> subscriptions;
+    GlobalAppNotificationSettings chatGlobal;
+  }
+  NotificationSettingsLocal getNotificationSettingsLocal();
+  // Saves the subscriptions, then the chat settings, and fails if either save does.
+  void setNotificationSettingsLocal(array<NotificationSubscriptionGroup> subscriptions, map<string, bool> chatGlobal);
+
   // Unpack message from a push notification
   string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType);
 

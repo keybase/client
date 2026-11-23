@@ -7437,6 +7437,42 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 	})
 }
 
+func TestNotificationSettingsLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "NotificationSettingsLocal", 1)
+	defer ctc.cleanup()
+
+	user := ctc.users()[0]
+	ctx := ctc.as(t, user).startCtx
+	handler := ctc.as(t, user).chatLocalHandler()
+
+	before, err := handler.GetNotificationSettingsLocal(ctx)
+	require.NoError(t, err)
+	var email *chat1.NotificationSubscriptionGroup
+	for i := range before.Subscriptions {
+		if before.Subscriptions[i].Name == "email" {
+			email = &before.Subscriptions[i]
+		}
+	}
+	require.NotNil(t, email)
+	require.NotEmpty(t, email.Settings)
+
+	// one save writes the subscriptions and the chat settings
+	email.Settings[0].Subscribed = !email.Settings[0].Subscribed
+	plaintextMobile := !before.ChatGlobal.Settings[chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE]
+	err = handler.SetNotificationSettingsLocal(ctx, chat1.SetNotificationSettingsLocalArg{
+		Subscriptions: before.Subscriptions,
+		ChatGlobal: map[string]bool{
+			strconv.Itoa(int(chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE)): plaintextMobile,
+		},
+	})
+	require.NoError(t, err)
+
+	after, err := handler.GetNotificationSettingsLocal(ctx)
+	require.NoError(t, err)
+	require.Equal(t, before.Subscriptions, after.Subscriptions)
+	require.Equal(t, plaintextMobile, after.ChatGlobal.Settings[chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE])
+}
+
 func TestMessageDrafts(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()

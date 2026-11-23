@@ -103,8 +103,7 @@ import {iosTheme} from '../theme'
 
 const SAVE_UNFURL = 'chat.1.local.saveUnfurlSettings'
 const SET_CONTACT = 'keybase.1.account.userSetContactSettings'
-const SET_GLOBAL_NOTIF = 'chat.1.local.setGlobalAppNotificationSettingsLocal'
-const POST_JSON = 'keybase.1.apiserver.PostJSON'
+const SAVE_NOTIFICATIONS = 'chat.1.local.setNotificationSettingsLocal'
 const SET_COMPRESS = 'keybase.1.incomingShare.setPreference'
 const GUI_SET = 'keybase.1.config.guiSetValue'
 const TOGGLE_EMOJI = 'chat.1.local.toggleEmojiAnimations'
@@ -449,7 +448,7 @@ describe('settings persisted', function () {
     const was = !!map[PLAINTEXT_MOBILE]
     await roundTrip<boolean>(
       {
-        change: async () => tapAndCall(base, SET_GLOBAL_NOTIF, 'the chat notification settings save'),
+        change: async () => tapAndCall(base, SAVE_NOTIFICATIONS, 'the chat notification settings save'),
         open: openChat,
         read: async () => masked(async () => !!(await globalNotifSettings())[PLAINTEXT_MOBILE]),
         shown: on => switchOf(base, on),
@@ -501,7 +500,7 @@ describe('settings persisted', function () {
     }
     await roundTrip<boolean>(
       {
-        change: async () => tapAndCall(base, POST_JSON, 'the email notification settings save'),
+        change: async () => tapAndCall(base, SAVE_NOTIFICATIONS, 'the email notification settings save'),
         open: openNotificationSettings,
         read: subscribed,
         shown: on => switchOf(base, on),
