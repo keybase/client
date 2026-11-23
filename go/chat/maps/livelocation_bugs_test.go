@@ -27,8 +27,10 @@ type nilCtxFactory struct{}
 func (nilCtxFactory) NewKeyFinder() types.KeyFinder   { return nil }
 func (nilCtxFactory) NewUPAKFinder() types.UPAKFinder { return nil }
 
-var watchBugsTestConvID = chat1.ConversationID("conv")
-var watchBugsTestUID = gregor1.UID([]byte{0, 1})
+var (
+	watchBugsTestConvID = chat1.ConversationID("conv")
+	watchBugsTestUID    = gregor1.UID([]byte{0, 1})
+)
 
 // newLiveLocationBugsTestTracker wires a LiveLocationTracker to a fake
 // UIRouter/chat UI and a mock chat helper (whose GetMessage always returns
