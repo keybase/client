@@ -7,6 +7,10 @@
 //   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run drew
 //   render [ids…] [--ios] [--theme t]      captures entries from the current tree with no base,
 //                                          recording each entry's routes and RPCs
+// --ios captures the simulator KB_IOS_DEVICE names (iPhoneTest by default) and --android the
+// emulator or device adb lists (KB_ANDROID_SERIAL picks one of several); both through Metro.
+// base, check, gate, aa and render also take --suite <name>: the entries of a named subset in
+// suites.ts, added to any ids given.
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -18,7 +22,7 @@ import * as http from 'http'
 import * as path from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {parseArgs, promisify} from 'util'
-import {udidForName} from '../ios-appium/helpers/app.ts'
+import {iosUdid} from '../ios-appium/helpers/app.ts'
 import {formFactorStoreKey, readFormFactor, restartSimulator} from '../ios-appium/helpers/form-factor.mts'
 import {appIsSplit, applyPosture, parseAnyPosture, postureFormFactor, postureOfFormFactor, type AnyPosture} from '../ios-appium/helpers/split-view.mts'
 import {e2eAccounts} from '../shared/chat-data.ts'
@@ -36,7 +40,17 @@ import {
 } from './coverage/changed-sites.mts'
 import {withDeadline} from '../shared/deadline.ts'
 import {openDesktop, sleep, waitFor, type Capture, type DesktopSession} from './driver-desktop.mts'
-import {openIos, type IosSession} from './driver-ios.mts'
+import {openIos} from './driver-ios.mts'
+import {
+  androidInspectorDevice,
+  androidSerial,
+  openAndroid,
+  PACKAGE as ANDROID_PACKAGE,
+  readAndroidFormFactor,
+  relaunchAndroid,
+  relaunchCommands,
+} from './driver-android.mts'
+import type {NativeSession} from './driver-native.mts'
 import {fixtureHash} from './fixtures/drive.mts'
 import {FIXTURE_RUNTIME_VERSION, isFixtureName, type FixtureName} from './fixtures/names.ts'
 import {acquireLock} from './lock.mts'
@@ -45,6 +59,7 @@ import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts
 import {diffSeals, readSeal, type Seal, type SealField} from './seal.mts'
 import {assertServedFrom, listenerCwd} from './served-tree.mts'
 import * as Store from './store.mts'
+import {isSuiteName, SUITES, type SuiteName} from './suites.ts'
 import {tour} from './tour.ts'
 import {matchEntries, nextDesktopEntry, type ParamRef, type ParamValue, type Platform, type Theme, type TourEntry} from './tour-types.ts'
 
@@ -72,7 +87,16 @@ const iosDevice = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
 
 // ---------------------------------------------------------------- arguments and selection
 
-export type Command = {base: string | undefined; coverage: boolean; ios: boolean; patterns: Array<string>; posture?: AnyPosture; themes: Array<Theme>}
+export type Command = {
+  android: boolean
+  base: string | undefined
+  coverage: boolean
+  ios: boolean
+  patterns: Array<string>
+  posture?: AnyPosture
+  suite?: SuiteName
+  themes: Array<Theme>
+}
 
 export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   const {values, positionals} = parseArgs({
@@ -81,35 +105,63 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
     options: {
       base: {type: 'string'},
       coverage: {type: 'boolean'},
+      android: {type: 'boolean'},
       ios: {type: 'boolean'},
       posture: {type: 'string'},
+      suite: {type: 'string'},
       theme: {type: 'string'},
       themes: {type: 'string'},
     },
     strict: true,
   })
   const ios = !!values.ios
+  const android = !!values.android
+  if (ios && android) throw new Error('--ios and --android: pick one')
   const asked = (values.themes ?? values.theme)?.split(',').map(s => s.trim()).filter(Boolean)
   for (const t of asked ?? []) {
     if (!THEMES.includes(t as Theme)) throw new Error(`unknown theme ${t} (light or dark)`)
   }
   const themes = (asked as Array<Theme> | undefined) ?? ['light']
   if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
+  if (android && themes.some(t => t !== 'light')) throw new Error('Android captures are light only')
   if (values.posture !== undefined && !ios) throw new Error('--posture needs --ios: it folds or unfolds an iPhone Duo')
   const posture = parseAnyPosture(values.posture)
-  return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, ...(posture ? {posture} : {}), themes}
+  const suite = values.suite
+  if (suite !== undefined && !isSuiteName(suite)) throw new Error(`unknown suite ${suite} (${Object.keys(SUITES).join(', ')})`)
+  return {
+    android,
+    base: values.base,
+    coverage: !!values.coverage,
+    ios,
+    patterns: positionals,
+    ...(posture ? {posture} : {}),
+    ...(suite ? {suite} : {}),
+    themes,
+  }
 }
 
-const tourPlatform = (p: RunPlatform): Platform => (p === 'ios' ? 'phone' : 'desktop')
+const tourPlatform = (p: RunPlatform): Platform => (p === 'desktop' ? 'desktop' : 'phone')
+const platformOf = (cmd: Command): RunPlatform => (cmd.android ? 'android' : cmd.ios ? 'ios' : 'desktop')
 
-// The entries the patterns name on the platform, in tour order. A pattern naming nothing refuses.
-export const selectEntries = (entries: ReadonlyArray<TourEntry>, patterns: ReadonlyArray<string>, platform: RunPlatform) => {
-  const on = entries.filter(e => e.platforms.includes(tourPlatform(platform)))
+// The entries the patterns and the suite name on the platform, in tour order (every entry when
+// neither is given). A pattern naming nothing refuses; a suite pattern naming nothing on this
+// platform is skipped.
+export const selectEntries = (
+  entries: ReadonlyArray<TourEntry>,
+  patterns: ReadonlyArray<string>,
+  platform: RunPlatform,
+  suite?: SuiteName
+) => {
+  // a screen protector entry is Android's alone
+  const on = entries.filter(e => e.platforms.includes(tourPlatform(platform)) && (!e.screenProtector || platform === 'android'))
   const hit = new Set<TourEntry>()
-  for (const p of patterns.length ? patterns : ['*']) {
+  for (const p of patterns.length || suite ? patterns : ['*']) {
     const m = matchEntries(on, p)
     if (!m.length) throw new Error(`no tour entry matches ${p} on ${platform}`)
     for (const e of m) hit.add(e)
+  }
+  for (const p of suite ? SUITES[suite] : []) {
+    for (const e of matchEntries(on, p)) hit.add(e)
   }
   // a desktop entry that leaves a popup open brings the entry that closes it
   if (platform === 'desktop') {
@@ -164,7 +216,7 @@ export const assertTouredConversationsRead = (entries: ReadonlyArray<TourEntry>,
 
 const isUnder = (p: string, dir: string) => p === dir || p.startsWith(dir + path.sep)
 
-const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
+const portOf = (p: RunPlatform) => (p === 'desktop' ? DESKTOP_PORT : METRO_PORT)
 
 // ---------------------------------------------------------------- iOS form factors
 
@@ -176,19 +228,25 @@ const iosStoreTarget = (posture?: AnyPosture): Store.StoreTarget => {
   if (posture) {
     // a Split View run starts from a restarted simulator (an earlier split leaves its pair behind),
     // before any Appium session, which a restart would end
-    if (posture.startsWith('split-')) restartSimulator(udidForName(iosDevice()))
+    if (posture.startsWith('split-')) restartSimulator(iosUdid(iosDevice()))
     return formFactorStoreKey(postureFormFactor(posture))
   }
-  const found = readFormFactor(udidForName(iosDevice()))
+  const found = readFormFactor(iosUdid(iosDevice()))
   if (found.startsWith('duo-')) throw new Error('an iPhone Duo run needs --posture (folded, unfolded, split-left or split-right)')
   return formFactorStoreKey(found)
 }
+
+// An Android run's store target: the phone's, or the tablet's by the screen's smallest width
+const androidStoreTarget = (): Store.StoreTarget => (readAndroidFormFactor(androidSerial()) === 'tablet' ? 'android-tablet' : 'android')
+
+const openSession_ = async (platform: RunPlatform, target: Store.StoreTarget): Promise<DesktopSession | NativeSession> =>
+  platform === 'android' ? openAndroid({serial: androidSerial()}) : platform === 'ios' ? openIos({device: iosDevice(), target}) : openDesktop()
 
 // Puts a Duo in the posture its target names, after the Appium session that folds it has opened
 const applyTargetPosture = async (target: Store.StoreTarget) => {
   const posture = isDuoTarget(target) ? postureOfFormFactor(target.slice(4)) : undefined
   if (!posture) return
-  const got = formFactorStoreKey(await applyPosture(udidForName(iosDevice()), iosDevice(), posture))
+  const got = formFactorStoreKey(await applyPosture(iosUdid(iosDevice()), iosDevice(), posture))
   if (got !== target) throw new Error(`--posture ${posture} left the simulator ${Store.targetLabel(got)}, not ${Store.targetLabel(target)}`)
 }
 
@@ -197,7 +255,7 @@ const applyTargetPosture = async (target: Store.StoreTarget) => {
 const currentIosTarget = async (want: Store.StoreTarget): Promise<Store.StoreTarget> => {
   let ff: string
   try {
-    ff = readFormFactor(udidForName(iosDevice()))
+    ff = readFormFactor(iosUdid(iosDevice()))
   } catch {
     // a Duo just restarted lights both screens with neither active: no form factor yet
     return 'ios-unknown'
@@ -260,7 +318,7 @@ export type CheckDeps = {
 const assertServed = (deps: Pick<CheckDeps, 'servedFrom' | 'currentShared'>, platform: RunPlatform) => {
   const port = portOf(platform)
   const served = deps.servedFrom(port)
-  if (!served) throw new Error(`nothing is listening on port ${port}; start the ${platform === 'ios' ? 'Metro server' : 'app'} from ${deps.currentShared}`)
+  if (!served) throw new Error(`nothing is listening on port ${port}; start the ${platform === 'desktop' ? 'app' : 'Metro server'} from ${deps.currentShared}`)
   if (!isUnder(served, deps.currentShared)) {
     throw new Error(`port ${port} is served from ${served}, expected ${deps.currentShared}; restart it from this tree`)
   }
@@ -311,13 +369,13 @@ const checkEntries = async (
   cmd: Command,
   opts: {title: string; sealNow?: Seal}
 ): Promise<CheckRun> => {
-  const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
-  const entries = selectEntries(deps.entries, cmd.patterns, platform)
+  const platform = platformOf(cmd)
+  const entries = selectEntries(deps.entries, cmd.patterns, platform, cmd.suite)
   const target = await deps.storeTarget(platform, cmd.posture)
   const sha = await deps.baseSha(target)
   const meta = deps.readBaseMeta(sha, target)
-  const named = cmd.patterns.join(' ') || '*'
-  const iosFlag = cmd.ios ? ` --ios${cmd.posture ? ` --posture ${cmd.posture}` : ''}` : ''
+  const named = [...cmd.patterns, ...(cmd.suite ? [`--suite ${cmd.suite}`] : [])].join(' ') || '*'
+  const iosFlag = cmd.android ? ' --android' : cmd.ios ? ` --ios${cmd.posture ? ` --posture ${cmd.posture}` : ''}` : ''
   const which = target === platform ? '' : `${Store.targetLabel(target)} `
   if (!meta) throw new Error(`no ${which}base for ${named} at ${sha}; run yarn visual:base ${named}${iosFlag}`)
   for (const e of entries) {
@@ -379,7 +437,7 @@ const checkEntries = async (
 
 export async function runCheck(deps: CheckDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
-  if (!cmd.patterns.length) throw new Error('check needs an id or glob, e.g. yarn visual:check "tab/*"')
+  if (!cmd.patterns.length && !cmd.suite) throw new Error('check needs an id, a glob or --suite, e.g. yarn visual:check "tab/*"')
   const run = await checkEntries(deps, cmd, {title: 'Visual check'})
   deps.log(`report (base ${run.sha.slice(0, 10)}): ${run.reportPath}`)
   if (!run.ok) deps.openReport(run.reportPath)
@@ -388,7 +446,7 @@ export async function runCheck(deps: CheckDeps, argv: ReadonlyArray<string>): Pr
 
 export async function runGate(deps: CheckDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
-  if (cmd.patterns.length) throw new Error('gate runs every entry; use check for a subset')
+  if (cmd.patterns.length) throw new Error('gate runs every entry or a --suite; use check for other subsets')
   const before = await deps.readSeal()
   const run = await checkEntries(deps, cmd, {sealNow: before, title: 'Visual gate'})
   const after = await deps.readSeal()
@@ -412,8 +470,8 @@ const AA_ROUNDS = 2
 // in a state no live capture may follow (fixtureOrderProblems), and only a prepare puts it back.
 export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promise<number> {
   const cmd = parseCommand(argv)
-  const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
-  const entries = selectEntries(deps.entries, cmd.patterns, platform)
+  const platform = platformOf(cmd)
+  const entries = selectEntries(deps.entries, cmd.patterns, platform, cmd.suite)
   assertServed(deps, platform)
   const target = await deps.storeTarget(platform, cmd.posture)
   const before = await deps.readSeal()
@@ -506,8 +564,8 @@ export async function runRender(deps: RenderDeps, argv: ReadonlyArray<string>): 
   const cmd = parseCommand(argv)
   if (cmd.base !== undefined) throw new Error('render takes no --base: it compares nothing')
   if (cmd.coverage) throw new Error('render takes no --coverage')
-  const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
-  const entries = selectEntries(deps.entries, cmd.patterns, platform)
+  const platform = platformOf(cmd)
+  const entries = selectEntries(deps.entries, cmd.patterns, platform, cmd.suite)
   assertServed(deps, platform)
   const target = await deps.storeTarget(platform, cmd.posture)
   const startedAt = deps.now()
@@ -606,12 +664,12 @@ const SRC_MARK = 'shared/tests/e2e/visual/coverage/src-mark.tsx'
 const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
 
 // The base is captured from the app served by the base tree (desktop: launched with the visual
-// switches; iOS: its Metro), so the base commit must already carry the visual gate. Never patched
+// switches; iOS and Android: its Metro), so the base commit must already carry the visual gate. Never patched
 // in: a refusal names --base instead.
 export const checkBaseInfra = (
   sha: string,
   readFile: (repoPath: string) => string | undefined,
-  opts: {coverage: boolean; ios: boolean; fixtures?: boolean}
+  opts: {coverage: boolean; native: boolean; fixtures?: boolean}
 ) => {
   // the driver finds the marks it counts by this flag (coverage/visible.ts)
   if (opts.coverage && !readFile(SRC_MARK)?.includes('__kbVisualSrcMark')) {
@@ -628,7 +686,8 @@ export const checkBaseInfra = (
       )
     }
   }
-  if (opts.ios) {
+  // an Android run needs what an iOS one does of the base: the app's half is the same
+  if (opts.native) {
     if (!readFile(IOS_DRIVER)) throw new Error(`base ${sha} has no visual gate infra (${IOS_DRIVER}); ${PASS_BASE}`)
     if (opts.coverage && !readFile(BABEL_CONFIG)?.includes('KB_VISUAL_COVERAGE')) {
       throw new Error(`base ${sha} has no visual coverage hook in ${BABEL_CONFIG}; ${PASS_BASE}, or drop --coverage`)
@@ -763,19 +822,29 @@ const serveMetro = async (shared: string, coverage: boolean, log: (l: string) =>
 
 // Terminates and relaunches the app so it loads the bundle the current Metro serves, and waits for
 // a logged in JS runtime.
-const relaunchIosApp = async (log: (l: string) => void) => {
-  const device = iosDevice()
-  const udid = udidForName(device)
-  try {
-    run('xcrun', ['simctl', 'terminate', udid, IOS_BUNDLE_ID], {timeout: 30_000})
-  } catch {}
-  run('xcrun', ['simctl', 'launch', udid, IOS_BUNDLE_ID], {timeout: 30_000})
-  log(`iOS: relaunched the app on ${device}; waiting for the bundle`)
+const relaunchNativeApp = async (platform: 'ios' | 'android', log: (l: string) => void) => {
+  let device: string
+  let appId: string
+  if (platform === 'android') {
+    const serial = androidSerial()
+    device = androidInspectorDevice(serial)
+    appId = ANDROID_PACKAGE
+    relaunchAndroid(serial)
+  } else {
+    device = iosDevice()
+    appId = IOS_BUNDLE_ID
+    const udid = iosUdid(device)
+    try {
+      run('xcrun', ['simctl', 'terminate', udid, IOS_BUNDLE_ID], {timeout: 30_000})
+    } catch {}
+    run('xcrun', ['simctl', 'launch', udid, IOS_BUNDLE_ID], {timeout: 30_000})
+  }
+  log(`${platform}: relaunched the app on ${device}; waiting for the bundle`)
   let last = ''
   try {
     await waitFor('a logged in JS runtime after the relaunch', IOS_BOOT_MS, async () => {
       try {
-        const page = await inspectorPageFor(device, IOS_BUNDLE_ID)
+        const page = await inspectorPageFor(device, appId)
         last = await evalInPage<string>(page, `return kbModule('constants/router.tsx').getRootState()?.routes?.[0]?.name ?? ''`)
         return last === 'loggedIn'
       } catch (e) {
@@ -794,22 +863,24 @@ const relaunchIosApp = async (log: (l: string) => void) => {
 // desktop app with the plain visual switches, or this tree's Metro without coverage.
 type Restore = {commands: Array<string>; run: () => Promise<void> | void}
 
-const restoreFor = (ios: boolean, current: string, log: (l: string) => void): Restore =>
-  ios
+const restoreFor = (platform: RunPlatform, current: string, log: (l: string) => void): Restore =>
+  platform === 'desktop'
     ? {
+        commands: [`cd ${current} && node ${path.join(path.dirname(current), LAUNCH_APP)} --visual`],
+        run: () => launchDesktop(current, false, log),
+      }
+    : {
         commands: [
           `kill $(lsof -t -iTCP:${METRO_PORT} -sTCP:LISTEN)`,
           `cd ${current} && yarn rn:start`,
-          `xcrun simctl terminate ${iosDevice()} ${IOS_BUNDLE_ID}; xcrun simctl launch ${iosDevice()} ${IOS_BUNDLE_ID}`,
+          ...(platform === 'android'
+            ? relaunchCommands(androidSerial())
+            : [`xcrun simctl terminate ${iosDevice()} ${IOS_BUNDLE_ID}; xcrun simctl launch ${iosDevice()} ${IOS_BUNDLE_ID}`]),
         ],
         run: async () => {
           await serveMetro(current, false, log)
-          await relaunchIosApp(log)
+          await relaunchNativeApp(platform, log)
         },
-      }
-    : {
-        commands: [`cd ${current} && node ${path.join(path.dirname(current), LAUNCH_APP)} --visual`],
-        run: () => launchDesktop(current, false, log),
       }
 
 // Set while the app is served from the base tree, so the deadline and signal paths can restore.
@@ -820,15 +891,15 @@ const printRestoreCommands = (r: Restore) =>
 
 // Set while a capture session is open (prepare patches Date, the theme and, on iOS, simulator
 // settings), so the deadline and signal paths can close it or say how to undo it by hand.
-let openSession: DesktopSession | IosSession | undefined
+let openSession: DesktopSession | NativeSession | undefined
 const CLOSE_ON_ABORT_MS = 60_000
 
-const printCleanupCommands = (s: DesktopSession | IosSession) => {
+const printCleanupCommands = (s: DesktopSession | NativeSession) => {
   const cmds = s.cleanupCommands()
   if (cmds.length) console.error(`the capture session was not closed; to undo what it changed by hand:\n  ${cmds.join('\n  ')}`)
 }
 
-const closeSession = async (s: DesktopSession | IosSession) => {
+const closeSession = async (s: DesktopSession | NativeSession) => {
   try {
     await s.close()
   } catch (e) {
@@ -841,11 +912,11 @@ const closeSession = async (s: DesktopSession | IosSession) => {
 
 export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => void): Promise<number> {
   const cmd = parseCommand(argv)
-  const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
-  const entries = selectEntries(tour, cmd.patterns, platform)
-  const target = cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
+  const platform = platformOf(cmd)
+  const entries = selectEntries(tour, cmd.patterns, platform, cmd.suite)
+  const target = cmd.android ? androidStoreTarget() : cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
   const sha = await resolveBaseSha(cmd.base)
-  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, ios: cmd.ios})
+  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, native: platform !== 'desktop'})
   const baseShared = ensureBaseTree(sha, log)
   ensureInstalled(baseShared, log)
   const current = fs.realpathSync(SHARED_DIR)
@@ -863,18 +934,18 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
     fs.writeFileSync(staged(p), data)
   }
   fs.rmSync(stage, {force: true, recursive: true})
-  const restore = restoreFor(cmd.ios, current, log)
+  const restore = restoreFor(platform, current, log)
   try {
     let failure: Error | undefined
     pendingRestore = restore
     try {
-      if (cmd.ios) {
+      if (platform !== 'desktop') {
         await serveMetro(baseShared, cmd.coverage, log)
-        await relaunchIosApp(log)
+        await relaunchNativeApp(platform, log)
       } else {
         launchDesktop(baseShared, cmd.coverage, log)
       }
-      const session: DesktopSession | IosSession = cmd.ios ? await openIos({device: iosDevice(), target}) : await openDesktop()
+      const session: DesktopSession | NativeSession = await openSession_(platform, target)
       openSession = session
       // after the app's relaunch above (which ends a Split View) and the session's open (which folds)
       await applyTargetPosture(target)
@@ -906,7 +977,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
       failure = e as Error
       log(`✗ ${failure.message}`)
     }
-    log(`restoring ${platform === 'ios' ? 'Metro and the app' : 'the app'} from ${current}`)
+    log(`restoring ${platform === 'desktop' ? 'the app' : 'Metro and the app'} from ${current}`)
     try {
       await restore.run()
       pendingRestore = undefined
@@ -984,7 +1055,7 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
   if (!range || cmd.patterns.length > 1) {
     throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
   }
-  const sha = await usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base)
+  const sha = await usedBaseSha(platformOf(cmd), cmd.base)
   const {drawn, masked} = Store.readBaseCoverage(sha)
   if (!drawn.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
   if (masked.length) log(`skipped ${masked.length} masked capture${masked.length === 1 ? '' : 's'}: ${masked.join(', ')}`)
@@ -1019,11 +1090,11 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
 // ---------------------------------------------------------------- main
 
 const sessionCapturer = () => {
-  let session: DesktopSession | IosSession | undefined
+  let session: DesktopSession | NativeSession | undefined
   let preparedFor = ''
   const capture = async (entry: TourEntry, o: CaptureOpts) => {
     if (!session) {
-      session = o.platform === 'ios' ? await openIos({device: iosDevice(), target: o.target}) : await openDesktop()
+      session = await openSession_(o.platform, o.target)
       openSession = session
       if (o.platform === 'ios') await applyTargetPosture(o.target)
     }
@@ -1064,7 +1135,8 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
-    storeTarget: async (platform, posture) => Promise.resolve(platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
+    storeTarget: async (platform, posture) =>
+      Promise.resolve(platform === 'android' ? androidStoreTarget() : platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
     team: () => e2eAccounts().team,
   }
 }

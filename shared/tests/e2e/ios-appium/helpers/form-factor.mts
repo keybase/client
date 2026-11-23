@@ -30,6 +30,7 @@ const LABELS: Record<string, string> = {
   'duo-split-right': 'iPhone Duo Split Right',
   'duo-unfolded': 'iPhone Duo Unfolded',
   iphone: 'iPhone',
+  ipad: 'iPad',
 }
 export const formFactorLabel = (f: FormFactor) => LABELS[f] ?? f
 

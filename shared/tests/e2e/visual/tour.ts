@@ -769,8 +769,10 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: [],
     setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_SCREENPROTECTOR}],
   },
-  // iOS lists no row for it (it shows a notice that only Android supports it), but the route opens
   phoneSettingsPage('settings/screen-protector', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []),
+  // the same page with the protector on: the capture must come out blank. Android only: a simulator
+  // screenshot reads the display from outside iOS, which the iOS protector does not reach
+  {...phoneSettingsPage('settings/screen-protector-on', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []), screenProtector: true},
   ...settingsPage('icons', 'iconsTab', T.SETTINGS_ROW_ICONS, T.SETTINGS_ICONS),
   ...settingsPage('wallet', 'walletsTab', T.SETTINGS_ROW_WALLET, T.SETTINGS_WALLET),
   // The settings list: the phone's settings tab root. Desktop's sits beside a sub-page, always the

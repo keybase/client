@@ -60,16 +60,27 @@ export const hostAppPid = (udid: string, executable: string): number | undefined
   return Number.isInteger(n) && n > 0 ? n : undefined
 }
 
+type SimDevice = {name: string; udid: string; state?: string}
+
+// The one simulator named `name`. Several with that name are refused rather than one picked, since
+// the first listed may not be the one with the app (two booted iPads of the same model).
+export function pickSimulator(devices: Record<string, ReadonlyArray<SimDevice>>, name: string): string {
+  const found = Object.values(devices).flatMap(list => list.filter(d => d.name === name))
+  if (found.length === 1) return found[0]!.udid
+  if (!found.length) throw new Error(`Simulator not found: ${name}`)
+  throw new Error(
+    `${found.length} simulators are named ${name} (${found.map(d => `${d.udid} ${d.state ?? ''}`.trim()).join(', ')}); ` +
+      'set KB_IOS_UDID to the one to use, or rename the others'
+  )
+}
+
 export function udidForName(name: string): string {
   const json = runSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], 60_000)
-  const devices = (JSON.parse(json) as {devices: Record<string, Array<{name: string; udid: string}>>}).devices
-  for (const runtime of Object.keys(devices)) {
-    for (const d of devices[runtime] ?? []) {
-      if (d.name === name) return d.udid
-    }
-  }
-  throw new Error(`Simulator not found: ${name}`)
+  return pickSimulator((JSON.parse(json) as {devices: Record<string, Array<SimDevice>>}).devices, name)
 }
+
+// KB_IOS_UDID, else the one simulator named `name`
+export const iosUdid = (name: string): string => process.env['KB_IOS_UDID'] ?? udidForName(name)
 
 export function requireSmokeUser(): string {
   const u = process.env['KB_SMOKE_USER']

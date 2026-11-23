@@ -36,7 +36,7 @@ const deps = (over = {}) => ({
   readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}),
   readSeal: async () => ({fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 1}),
   servedFrom: () => '/tree/shared',
-  storeTarget: async (p: 'desktop' | 'ios') => p,
+  storeTarget: async (p: 'desktop' | 'ios' | 'android') => p,
   team: () => 'testteam',
   ...over,
 })
@@ -119,7 +119,7 @@ test('the capture session is closed even when a capture throws', async () => {
 })
 
 test('parseCommand: flags, themes and refusals', () => {
-  assert.deepEqual(parseCommand(['tab/*', '--ios']), {base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
+  assert.deepEqual(parseCommand(['tab/*', '--ios']), {android: false, base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
   assert.deepEqual(parseCommand(['--themes', 'dark', 'a', 'b']).themes, ['dark'])
   assert.deepEqual(parseCommand(['--theme', 'dark']).themes, ['dark'])
   assert.deepEqual(parseCommand([]).themes, ['light'])
@@ -128,6 +128,9 @@ test('parseCommand: flags, themes and refusals', () => {
   assert.throws(() => parseCommand(['--ios', '--theme', 'dark']), /iOS captures are light only/)
   assert.throws(() => parseCommand(['--themes', 'sepia']), /unknown theme sepia/)
   assert.throws(() => parseCommand(['--bogus']), /bogus/)
+  assert.equal(parseCommand(['--android']).android, true)
+  assert.throws(() => parseCommand(['--android', '--ios']), /pick one/)
+  assert.throws(() => parseCommand(['--android', '--theme', 'dark']), /Android captures are light only/)
 })
 
 test('check and gate resolve the --base the command was given, in either spelling', async () => {
@@ -146,7 +149,7 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
     [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')",
     [mark]: 'Object.assign(KbSrcMark, {__kbVisualSrcMark: true})',
   }
-  const desktop = (coverage: boolean) => ({coverage, ios: false})
+  const desktop = (coverage: boolean) => ({coverage, native: false})
   assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), desktop(true)))
   assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), desktop(false)), /abc has no visual gate .*--base <ref>/s)
   assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), desktop(false)), /--base <ref>/)
@@ -161,7 +164,7 @@ test('checkBaseInfra refuses fixture entries from a base without the fixture run
   const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
   const runtime = 'shared/tests/e2e/visual/fixtures/runtime.ts'
   const names = 'shared/tests/e2e/visual/fixtures/names.ts'
-  const ios = {coverage: false, fixtures: true, ios: true}
+  const ios = {coverage: false, fixtures: true, native: true}
   const version = (v: number) => `export const FIXTURE_RUNTIME_VERSION = ${v}\n`
   assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios), /abc has no fixture runtime/)
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION), [runtime]: 'x'}), ios))
@@ -177,7 +180,7 @@ test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook fo
   const files = (m: Record<string, string>) => (p: string) => m[p]
   const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
   const babel = 'shared/babel.config.js'
-  const ios = (coverage: boolean) => ({coverage, ios: true})
+  const ios = (coverage: boolean) => ({coverage, native: true})
   // the desktop pieces are not what iOS needs
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios(false)))
   assert.throws(() => checkBaseInfra('abc', files({}), ios(false)), /abc has no visual gate infra \(.*driver-ios\.mts\).*--base <ref>/)
@@ -345,6 +348,34 @@ test('selecting a desktop entry that leaves a popup open brings the entry after 
   assert.deepEqual(selectEntries(es, ['team/menu'], 'ios').map(e => e.id), ['team/menu'])
 })
 
+test('a suite adds its entries on the platform, skipping patterns absent there', async () => {
+  const {tour} = await import('./tour.ts')
+  const {SUITES} = await import('./suites.ts')
+  for (const platform of ['desktop', 'ios', 'android'] as const) {
+    const ids = selectEntries(tour, [], platform, 'layout').map(e => e.id)
+    const all = selectEntries(tour, [], platform).map(e => e.id)
+    assert.ok(ids.length > 0 && ids.length < 60, `${platform}: ${ids.length} entries`)
+    assert.ok(ids.includes('settings/account'))
+    // every suite id the platform has is picked
+    assert.ok(SUITES.layout.every(p => p.includes('*') || ids.includes(p) || !all.includes(p)))
+    assert.equal(ids.includes('settings/screen-protector-on'), platform === 'android')
+  }
+  const withId = selectEntries(tour, ['settings/about'], 'ios', 'layout').map(e => e.id)
+  assert.ok(withId.includes('settings/about') && withId.includes('settings/account'))
+  assert.equal(parseCommand(['--suite', 'layout', '--ios']).suite, 'layout')
+  assert.throws(() => parseCommand(['--suite', 'bogus']), /unknown suite bogus \(layout\)/)
+})
+
+test('a screen protector entry is selected on Android only', () => {
+  const es: ReadonlyArray<TourEntry> = [
+    {id: 'settings/sp', nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready: 'x', seal: []},
+    {id: 'settings/sp-on', nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready: 'x', screenProtector: true, seal: []},
+  ]
+  assert.deepEqual(selectEntries(es, [], 'android').map(e => e.id), ['settings/sp', 'settings/sp-on'])
+  assert.deepEqual(selectEntries(es, [], 'ios').map(e => e.id), ['settings/sp'])
+  assert.throws(() => selectEntries(es, ['settings/sp-on'], 'ios'), /no tour entry matches settings\/sp-on on ios/)
+})
+
 test('a fixture entry needs a base that ran the fixture as this tree defines it', async () => {
   const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
   const meta = (fixtures?: Record<string, string>) => () => ({createdAt: 0, fixtures, frozenAt: 1000, seal: {fields: {}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
@@ -422,7 +453,7 @@ test('aa, check and gate never capture a live entry after a fixture entry withou
 // a run directory per run: its name is the start time
 let renderClock = 1_000_000
 const renderDeps = (over = {}) => ({
-  storeTarget: async (p: 'desktop' | 'ios') => p,
+  storeTarget: async (p: 'desktop' | 'ios' | 'android') => p,
   capture: async (): Promise<Capture> => {
     throw new Error('should not capture')
   },

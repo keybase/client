@@ -22,6 +22,8 @@ export type CompareResult = {
 
 export const makePng = (width: number, height: number): PNGData => new PNG({height, width})
 export const readPng = (p: string): PNGData => PNG.sync.read(fs.readFileSync(p))
+export const readPngBuffer = (b: Buffer): PNGData => PNG.sync.read(b)
+export const pngBuffer = (png: PNGData): Buffer => PNG.sync.write(png)
 export const writePng = (p: string, png: PNGData) => fs.writeFileSync(p, PNG.sync.write(png))
 
 export const paintMasks = (png: PNGData, masks: ReadonlyArray<Rect>) => {

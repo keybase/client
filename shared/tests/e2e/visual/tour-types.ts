@@ -108,6 +108,10 @@ export type TourEntry = {
   // another conversation (the chat root keeps the thread). See popupFollowerProblems. iOS needs no
   // follower: its reset pops the current tab's stack before switching, unmounting the popup's owner.
   leavesPopup?: true
+  // Android only: captured with the screen protector on, and failed unless none of the app shows in
+  // the capture (Android draws a secure window black in a screenshot; a simulator screenshot reads
+  // iOS's display from outside, where its protector does not reach)
+  screenProtector?: true
 }
 
 const sameRef = (a: ParamRef | undefined, b: ParamRef | undefined) =>
@@ -198,6 +202,9 @@ export function validateEntry(e: TourEntry): Array<string> {
     problems.push(`${e.id}: nav.thread must be a conversationIDKey ref`)
   }
   if (e.platforms.length === 0) problems.push(`${e.id}: no platforms`)
+  if (e.screenProtector && (e.platforms.length !== 1 || e.platforms[0] !== 'phone')) {
+    problems.push(`${e.id}: a screen protector entry is phone only (it runs on Android)`)
+  }
   for (const s of e.setup ?? []) {
     if (!SETUP_KINDS.has(s.kind)) {
       problems.push(`${e.id}: setup step '${s.kind}' is not allowed`)
@@ -230,8 +237,9 @@ export function validateEntry(e: TourEntry): Array<string> {
   return problems
 }
 
-export function matchEntries(entries: ReadonlyArray<TourEntry>, pattern: string): Array<TourEntry> {
-  if (!pattern.includes('*')) return entries.filter(e => e.id === pattern)
+// Whether an id is the pattern, or matches it as a glob (`*` any run of characters).
+export function idMatches(id: string, pattern: string): boolean {
+  if (!pattern.includes('*')) return id === pattern
   const re = new RegExp(
     '^' +
       pattern
@@ -240,5 +248,9 @@ export function matchEntries(entries: ReadonlyArray<TourEntry>, pattern: string)
         .join('.*') +
       '$'
   )
-  return entries.filter(e => re.test(e.id))
+  return re.test(id)
+}
+
+export function matchEntries(entries: ReadonlyArray<TourEntry>, pattern: string): Array<TourEntry> {
+  return entries.filter(e => idMatches(e.id, pattern))
 }

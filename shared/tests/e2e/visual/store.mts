@@ -14,14 +14,18 @@ import type {Seal} from './seal.mts'
 import type {Theme} from './tour-types.ts'
 import {formFactorLabel} from '../ios-appium/helpers/form-factor.mts'
 
-export type RunPlatform = 'desktop' | 'ios'
-// Where a platform's captures are kept: desktop, ios (iPhone), or ios-<form factor> (an iPhone Duo's,
-// e.g. ios-duo-folded), so a Duo's captures never mix with the iPhone's
-export type StoreTarget = RunPlatform | `ios-${string}`
-// A store target as a person reads it: desktop, iPhone, iPhone Duo Folded, …
-export const targetLabel = (t: StoreTarget) => (t === 'ios' ? 'iPhone' : t.startsWith('ios-') ? formFactorLabel(t.slice(4)) : t)
-// Every iOS target a gallery or report can show, in display order
-export const IOS_TARGETS: ReadonlyArray<StoreTarget> = ['ios', 'ios-duo-folded', 'ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
+export type RunPlatform = 'desktop' | 'ios' | 'android'
+// Where a platform's captures are kept: desktop, ios (iPhone), ios-<form factor> (an iPad's or an
+// iPhone Duo's, e.g. ios-duo-folded), android (a phone) or android-tablet, so no two form factors'
+// captures mix
+export type StoreTarget = RunPlatform | `ios-${string}` | `android-${string}`
+const ANDROID_LABELS: Record<string, string> = {android: 'Android Phone', 'android-tablet': 'Android Tablet'}
+// A store target as a person reads it: desktop, iPhone, iPhone Duo Folded, Android Tablet, …
+export const targetLabel = (t: StoreTarget) =>
+  t === 'ios' ? 'iPhone' : t.startsWith('ios-') ? formFactorLabel(t.slice(4)) : (ANDROID_LABELS[t] ?? t)
+// Every phone and tablet target a gallery or report can show, in display order
+export const IOS_TARGETS: ReadonlyArray<StoreTarget> = ['ios', 'ios-ipad', 'ios-duo-folded', 'ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
+export const ANDROID_TARGETS: ReadonlyArray<StoreTarget> = ['android', 'android-tablet']
 // `fixtures`: the definition hash (fixtures/drive.mts) of each fixture the base's entries ran under
 export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number; fixtures?: Record<string, string>}
 

@@ -37,6 +37,23 @@ await test('the page escapes ids and keys notes by the bases shown', () => {
   assert.doesNotMatch(html, /<h2>a\/<b>/)
   assert.match(html, /"notes-abc"/)
   assert.match(html, /not captured/)
+  assert.match(html, /<button id="clear">Clear notes<\/button>/)
+})
+
+await test('each screen is tagged with the suites that include it, and each suite gets a filter', () => {
+  const html = galleryHtml(
+    [{platform: 'desktop', sha: 'abc'}],
+    [
+      {id: 'settings/account', shots: [undefined]},
+      {id: 'tab/fs', shots: [undefined]},
+      {id: 'settings/about', shots: [undefined]},
+    ]
+  )
+  assert.match(html, /data-id="settings\/account" data-suites="layout"/)
+  // a glob in the suite (tab/*) tags what it matches
+  assert.match(html, /data-id="tab\/fs" data-suites="layout"/)
+  assert.match(html, /data-id="settings\/about" data-suites=""/)
+  assert.match(html, /class="suite" data-suite="layout"> only layout suite/)
 })
 
 await test('each column is labeled by its device and can be hidden', () => {

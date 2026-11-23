@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, STILL_VIDEOS, appiumPort, clipToWindow, iosCleanupCommands, recaptureAfterDrop, recoverApp, type RecoverDeps, innerPressPoint, recoveryFor, scrollToTarget, systemUiOverApp, targetState, typeIntoTarget, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, iosCleanupCommands, innerPressPoint, visualCapabilities} from './driver-ios.mts'
+import {STILL_VIDEOS, clipToWindow, recaptureAfterDrop, recoverApp, type RecoverDeps, recoveryFor, scrollToTarget, systemUiOverApp, targetState, typeIntoTarget} from './driver-native.mts'
 import {pidFromLaunchctl} from '../ios-appium/helpers/app.ts'
 
 test('mask rects outside the window are dropped and the rest clipped to it', () => {
