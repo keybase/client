@@ -819,21 +819,19 @@ const cases: Array<Case> = [
         'forceUnboxRows:A',
         'forceUnboxRows:A,C',
         'rpc:unbox:A',
-        'rpc:unbox:C',
+        'rpc:unbox:A,C',
         'rpc:loadThread:A:general',
         'inbox:metas',
-        'rpc:unbox:A',
       ],
       'A+B': [
         'forceUnboxRows:A',
         'forceUnboxRows:A,C',
         'rpc:unbox:A',
-        'rpc:unbox:C',
+        'rpc:unbox:A,C',
         'rpc:loadThread:A:general',
         'inbox:metas',
-        'rpc:unbox:A',
       ],
-      none: ['forceUnboxRows:A', 'forceUnboxRows:A,C', 'rpc:unbox:A', 'rpc:unbox:C', 'rpc:unbox:A'],
+      none: ['forceUnboxRows:A', 'forceUnboxRows:A,C', 'rpc:unbox:A', 'rpc:unbox:A,C'],
     },
     name: 'ChatThreadsStale',
   },
@@ -1314,8 +1312,8 @@ describe('mounted conversation screens', () => {
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the
-  // same unbox once per reader. The in-flight check lets only the first reach the service.
-  test('each metadata reader asks for an unbox; only one reaches the service', async () => {
+  // same unbox once per reader. Each reaches the service, which unboxes the conv once for all of them.
+  test('each metadata reader asks the service for an unbox', async () => {
     await mountTree(<Screen id={convA} metadataReaders={2} />, () => {
       metasReceived(
         [{...Meta.makeConversationMeta(), conversationIDKey: convA, trustedState: 'untrusted'}],
@@ -1333,6 +1331,8 @@ describe('mounted conversation screens', () => {
       'unboxRows:A',
       'unboxRows:A',
       'unboxRows:A',
+      'rpc:unbox:A',
+      'rpc:unbox:A',
       'rpc:unbox:A',
     ])
   })

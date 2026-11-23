@@ -532,7 +532,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.local.requestInboxUnbox': {
-    inParam: {readonly convIDs?: ReadonlyArray<ConversationID> | null},
+    inParam: {readonly convIDs?: ReadonlyArray<ConversationID> | null,readonly force: boolean},
     outParam: void,
   },
   'chat.1.local.resolveMaybeMention': {

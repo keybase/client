@@ -16,8 +16,11 @@ import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-navigation'
-import {useConversationMetaSelector, useConversationParticipantsSelector} from '../data-hooks'
-import {ensureConversationMetaLoaded} from '@/chat/inbox/metadata'
+import {
+  useConversationMetaSelector,
+  useConversationParticipantsSelector,
+  useRequestIncompleteConversationMeta,
+} from '../data-hooks'
 import {muteConversation} from '../status-actions'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from '@/chat/inbox/layout-state'
 
@@ -55,7 +58,7 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
 // The title renders from the metas/participants maps, which fill via the unbox flow and can
 // lag (or entirely miss) a conv the inbox layout already knows about. The layout row is what
 // the inbox list renders from and effectively always has display names, so fall back to it:
-// the header paints immediately and upgrades when ensureConversationMetaLoaded lands.
+// the header paints immediately and upgrades when the unboxed meta lands.
 const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useInboxLayoutState(
     C.useShallow(s => {
@@ -72,16 +75,9 @@ const useLayoutFallbackNames = (conversationIDKey: T.Chat.ConversationIDKey) =>
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
-  // self-heal: the header lives in the navigation bar, outside ConversationInner's
-  // data ownership, and can render for a conv whose meta never loaded (e.g. a conv
-  // reached without going through the inbox). The ensure call dedups and no-ops
-  // when the meta is already complete.
-  const loggedIn = useConfigState(s => s.loggedIn)
-  React.useEffect(() => {
-    if (loggedIn) {
-      ensureConversationMetaLoaded(conversationIDKey)
-    }
-  }, [conversationIDKey, loggedIn])
+  // the header lives in the navigation bar, outside ConversationInner's data ownership, and can
+  // render for a conv reached without going through the inbox
+  useRequestIncompleteConversationMeta(conversationIDKey)
   const meta = useConversationMetaSelector(
     conversationIDKey,
     C.useShallow(m => ({channelname: m.channelname, teamname: m.teamname}))

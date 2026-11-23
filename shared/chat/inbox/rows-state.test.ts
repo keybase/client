@@ -57,7 +57,7 @@ test('meta, participant, badge and typing stores merge into the computed small/b
         snippetDecoration: T.RPCChat.SnippetDecoration.pendingMessage,
         teamname: 'team#general',
         timestamp: 1234,
-        trustedState: 'requesting',
+        trustedState: 'untrusted',
       },
     ])
     participantInfoReceived(convID, {all: ['alice', 'bob'], contactName: new Map(), name: ['alice', 'bob']})

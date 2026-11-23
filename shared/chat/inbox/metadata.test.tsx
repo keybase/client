@@ -5,7 +5,6 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
-  ensureConversationMetaLoaded,
   forceUnboxRowsForService,
   loadConversationMeta,
   getInboxConversationMeta,
@@ -33,32 +32,6 @@ afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
   jest.useRealTimers()
-})
-
-test('forceUnboxRowsForService reruns once for requests made while an unbox is in flight', async () => {
-  const resolvers = new Array<() => void>()
-  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockImplementation(
-    async () =>
-      new Promise(resolve => {
-        resolvers.push(() => {
-          resolve(undefined)
-        })
-      })
-  )
-
-  forceUnboxRowsForService([convID])
-  forceUnboxRowsForService([convID])
-  await flushPromises()
-
-  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
-
-  resolvers[0]?.()
-  await flushPromises()
-
-  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(2)
-
-  resolvers[1]?.()
-  await flushPromises()
 })
 
 const makeMeta = (over: Partial<T.Chat.ConversationMeta>): T.Chat.ConversationMeta => ({
@@ -155,14 +128,6 @@ test('metasReceived force overwrites regardless of version', () => {
   expect(getInboxConversationMeta(convID)?.inboxVersion).toBe(1)
 })
 
-// ensureConversationMetaLoaded: self-heal for the blank thread header
-
-const participants = {
-  all: ['testuser', 'testuser-mac'],
-  contactName: new Map<string, string>(),
-  name: ['testuser', 'testuser-mac'],
-}
-
 const makeInboxUIItem = (): T.RPCChat.InboxUIItem =>
   ({
     botAliases: {},
@@ -200,96 +165,6 @@ const makeInboxUIItem = (): T.RPCChat.InboxUIItem =>
 const mockFetch = () =>
   jest.spyOn(T.RPCChat, 'localGetInboxAndUnboxUILocalRpcPromise').mockResolvedValue({offline: false})
 
-test('ensure retries with backoff until the response carries the conv, then stops', async () => {
-  jest.useFakeTimers()
-  // service returns nothing at first (conv not available yet)
-  const rpc = mockFetch()
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(0)
-  expect(rpc).toHaveBeenCalledTimes(1)
-
-  await jest.advanceTimersByTimeAsync(2000)
-  expect(rpc).toHaveBeenCalledTimes(2)
-
-  // now the response carries the unboxed conv: the loop writes it and stops
-  rpc.mockResolvedValue({conversations: [makeInboxUIItem()], offline: false})
-  await jest.advanceTimersByTimeAsync(4000)
-  expect(rpc).toHaveBeenCalledTimes(3)
-  expect(getInboxConversationMeta(convID)?.trustedState).toBe('trusted')
-
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).toHaveBeenCalledTimes(3)
-
-  // complete data: re-arming is a no-op
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).toHaveBeenCalledTimes(3)
-})
-
-test('ensure stops once participants arrive via the notification path', async () => {
-  jest.useFakeTimers()
-  const rpc = mockFetch()
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(0)
-  expect(rpc).toHaveBeenCalledTimes(1)
-
-  // trusted meta lands but it's an adhoc conv with no participants yet: still not renderable
-  metasReceived([makeMeta({trustedState: 'trusted'})])
-  await jest.advanceTimersByTimeAsync(2000)
-  expect(rpc).toHaveBeenCalledTimes(2)
-
-  // participants arrive (ChatParticipantsInfo path): loop must stop
-  participantInfoReceived(convID, participants)
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).toHaveBeenCalledTimes(2)
-})
-
-test('ensure treats a conv with a teamname as renderable without participants', async () => {
-  jest.useFakeTimers()
-  const rpc = mockFetch()
-  metasReceived([makeMeta({teamname: 'keybase', trustedState: 'trusted'})])
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).not.toHaveBeenCalled()
-})
-
-test('ensure gives up after the backoff schedule, and a later mount starts over', async () => {
-  jest.useFakeTimers()
-  const rpc = mockFetch()
-
-  ensureConversationMetaLoaded(convID)
-  // schedule is 2s/4s/8s/16s/32s: 6 total attempts, then nothing
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).toHaveBeenCalledTimes(6)
-
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).toHaveBeenCalledTimes(6)
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(0)
-  expect(rpc).toHaveBeenCalledTimes(7)
-})
-
-test('a hung fetch times out instead of wedging the loop', async () => {
-  jest.useFakeTimers()
-  const rpc = jest
-    .spyOn(T.RPCChat, 'localGetInboxAndUnboxUILocalRpcPromise')
-    .mockImplementation(async () => new Promise<never>(() => {}))
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(0)
-  expect(rpc).toHaveBeenCalledTimes(1)
-
-  // the 10s timeout race frees the loop, then the 2s backoff fires the retry
-  await jest.advanceTimersByTimeAsync(9000)
-  expect(rpc).toHaveBeenCalledTimes(1)
-  await jest.advanceTimersByTimeAsync(4000)
-  expect(rpc).toHaveBeenCalledTimes(2)
-})
-
 test('loading the meta waits on its fetch, and leaves no timer once it lands', async () => {
   jest.useFakeTimers()
   const rpc = jest
@@ -309,22 +184,6 @@ test('loading the meta of a conversation the store already trusts asks nothing',
 
   expect((await loadConversationMeta(convID))?.conversationIDKey).toBe(convID)
   expect(rpc).not.toHaveBeenCalled()
-})
-
-test('ensure does not run while logged out and can re-arm after login', async () => {
-  jest.useFakeTimers()
-  const rpc = mockFetch()
-  useConfigState.setState({loggedIn: false})
-
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(120000)
-  expect(rpc).not.toHaveBeenCalled()
-
-  // the data hook re-arms on login
-  useConfigState.setState({loggedIn: true})
-  ensureConversationMetaLoaded(convID)
-  await jest.advanceTimersByTimeAsync(0)
-  expect(rpc).toHaveBeenCalledTimes(1)
 })
 
 test('userSwitching skips inbox unbox', async () => {

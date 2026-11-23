@@ -9,7 +9,7 @@ import type {RetentionPolicy} from '../retention-policy'
 export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset' | 'youLeft' | 'notMember'
 export type TeamType = 'small' | 'big' | 'adhoc'
 
-export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
+export type MetaTrustedState = 'untrusted' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type PinnedMessageInfo = {

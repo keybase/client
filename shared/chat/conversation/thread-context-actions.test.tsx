@@ -965,7 +965,7 @@ describe('centered, jump to recent and selected conversation', () => {
     const {h} = renderThread()
     act(() => h().selectedConversation())
     await flushPromises()
-    expect(paramsOf(fake, requestInboxUnbox)).toEqual([{convIDs: [T.Chat.keyToConversationID(convID)]}])
+    expect(paramsOf(fake, requestInboxUnbox)).toEqual([{convIDs: [T.Chat.keyToConversationID(convID)], force: false}])
     expect(paramsOf(fake, userCard)).toEqual([{useSession: true, username: 'testuser2'}])
     await delivered()
     expect(loads()).toHaveLength(1)
