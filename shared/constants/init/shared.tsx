@@ -117,9 +117,9 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig);
 };
 
-// The service sends a notification only to a connection subscribed to its channel, so every
-// handshake subscribes before it reads anything.
-const subscribeNotificationsStep = async () => {
+// The service sends a notification only to a connection subscribed to its channel, so nothing is
+// read on a connection before it subscribes.
+const subscribeNotifications = async () => {
   try {
     // prettier-ignore
     await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
@@ -136,6 +136,10 @@ const subscribeNotificationsStep = async () => {
     logger.warn("error in toggling notifications: ", error);
   }
 };
+
+// The current connection's subscription, which the handshake and the UI registration wait on
+let notificationsSubscribed: Promise<void> = Promise.resolve();
+const subscribeNotificationsStep = async () => notificationsSubscribed;
 
 export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts;
@@ -230,6 +234,20 @@ const onLoggedInChanged = (loggedIn: ConfigState["loggedIn"]) => {
     useBlockButtonsState.getState().dispatch.resetState();
   }
   ignorePromise(useConfigState.getState().dispatch.refreshAccounts());
+};
+
+// A new connection may have missed notifications. A login reloads what they keep current, so a
+// handshake that leaves the same session logged in reloads it here.
+let loggedInAtHandshakeStart = false;
+const onHandshakeStateChanged = (
+  state: DaemonState["handshakeState"],
+) => {
+  const { loggedIn, userSwitching } = useConfigState.getState();
+  if (state === "loading") {
+    loggedInAtHandshakeStart = loggedIn;
+  } else if (state === "done" && loggedInAtHandshakeStart && loggedIn && !userSwitching) {
+    requestFollowerInfoForStartup();
+  }
 };
 
 const onRevokedTriggerChanged = () => {
@@ -495,9 +513,13 @@ const onNavStateChanged = (
 };
 
 export const onEngineConnected = () => {
+  notificationsSubscribed = subscribeNotifications();
   {
     const registerUIs = async () => {
       try {
+        // Registering the identify UI is when the service resends the badge state, so it must
+        // come after the subscription or the badges it sends are dropped
+        await notificationsSubscribed;
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise();
         await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise();
         logger.info("Registered Chat UI");
@@ -567,6 +589,11 @@ export const initSharedSubscriptions = (
       useDaemonState,
       (s) => s.bootstrapStatus,
       onBootstrapStatusChanged,
+    ),
+    subscribeValue(
+      useDaemonState,
+      (s) => s.handshakeState,
+      onHandshakeStateChanged,
     ),
   );
   _sharedUnsubs.push(watchChatSelection());
