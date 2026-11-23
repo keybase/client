@@ -186,3 +186,40 @@ func TestUnfollowWithLostResponseSendsTrackingChanged(t *testing.T) {
 	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
 	require.Contains(t, listener.userChangedUIDs(), fu.UID())
 }
+
+func TestProveWithLostResponseSendsUserChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "prove_lost_notify")
+	defer tc.Cleanup()
+
+	loseResponsesFrom(tc, "sig/post")
+	_, _, err := proveRooter(tc.G, fu, libkb.KeybaseSignatureV2)
+	require.Error(t, err)
+	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+}
+
+func TestCryptocurrencyWithLostResponseSendsUserChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "crypto_lost_notify")
+	defer tc.Cleanup()
+
+	loseResponsesFrom(tc, "sig/post")
+	sv := keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: fu.NewSecretUI()}
+	eng := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "bitcoin", SigVersion: &sv})
+	require.Error(t, RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), eng))
+	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+}
+
+func TestRevokeSigsWithLostResponseSendsUserChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "revoke_lost_notify")
+	defer tc.Cleanup()
+
+	_, sigID, err := proveRooter(tc.G, fu, libkb.KeybaseSignatureV2)
+	require.NoError(t, err)
+	listener.reset()
+
+	loseResponsesFrom(tc, "sig/revoke")
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: fu.NewSecretUI()}
+	eng := NewRevokeSigsEngine(tc.G, []string{sigID.String()})
+	require.Error(t, RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), eng))
+	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+}

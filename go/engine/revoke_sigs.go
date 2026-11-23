@@ -101,6 +101,8 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 	kid := sigKey.GetKID()
+	// the server may accept the link even if the post or the merkle check below errors
+	defer m.G().UserChanged(m.Ctx(), me.GetUID())
 	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -113,8 +115,5 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	// the link is on the sigchain now, even if the merkle check below fails
-	defer m.G().UserChanged(m.Ctx(), me.GetUID())
-
 	return libkb.MerkleCheckPostedUserSig(m, me.GetUID(), proof.Seqno, linkID)
 }
