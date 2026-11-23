@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -115,11 +116,11 @@ func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error
 type LevelDb struct {
 	// We use a RWMutex here to ensure close doesn't happen in the middle of
 	// other DB operations, and DB operations doesn't happen after close. The
-	// lock should be considered for the db pointer and dbOpenerOnce pointer,
-	// rather than the DB itself.  More specifically, close does Lock(), while
-	// other DB operations does RLock().
+	// lock guards dbOpenerOnce and serializes Close/Nuke against readers;
+	// db itself is an atomic.Pointer because the lazy open assigns it under
+	// the shared read lock.
 	sync.RWMutex
-	db           *leveldb.DB
+	db           atomic.Pointer[leveldb.DB]
 	dbOpenerOnce *sync.Once
 	cleaner      *levelDbCleaner
 
@@ -154,7 +155,7 @@ func (l *LevelDb) Opts() *opt.Options {
 	}
 }
 
-func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error) {
+func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func(db *leveldb.DB) error) (err error) {
 	err = func() error {
 		l.RLock()
 		defer l.RUnlock()
@@ -164,13 +165,14 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 		l.dbOpenerOnce.Do(func() {
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
-			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
+			l.G().Log.Debug("| Opening LevelDB for local cache: %s", fn)
 			l.G().Log.Debug("| Opening LevelDB options: %+v", l.Opts())
-			l.db, err = leveldb.OpenFile(fn, l.Opts())
+			var db *leveldb.DB
+			db, err = leveldb.OpenFile(fn, l.Opts())
 			if _, ok := err.(*errors.ErrCorrupted); ok {
 				l.G().Log.Debug("| LevelDb was corrupted; attempting recovery (%v)", err)
 				var recoveryError error
-				l.db, recoveryError = leveldb.RecoverFile(fn, nil)
+				db, recoveryError = leveldb.RecoverFile(fn, nil)
 				if recoveryError != nil {
 					l.G().Log.Debug("| Recovery failed: %v", recoveryError)
 				} else {
@@ -180,8 +182,9 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 				}
 			}
 			l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
-			if l.db != nil {
-				l.cleaner.setDb(l.db)
+			l.db.Store(db)
+			if db != nil {
+				l.cleaner.start(db)
 			}
 		})
 
@@ -189,15 +192,22 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			return err
 		}
 
-		if l.db == nil {
+		db := l.db.Load()
+		if db == nil {
 			// This means DB is already closed. We are preventing lazy-opening after
 			// closing, so just return error here.
 			return LevelDBOpenClosedError{}
 		}
 
-		return action()
+		return action(db)
 	}()
+	return l.handleOpError(err)
+}
 
+// handleOpError recovers from an error a db operation returned: it nukes a
+// corrupt db, starts a forced clean when the disk is full, and lets a failed
+// lazy open be retried.
+func (l *LevelDb) handleOpError(err error) error {
 	// If the file is corrupt, just nuke and act like we didn't find anything
 	if l.nukeIfCorrupt(err) {
 		err = nil
@@ -215,8 +225,8 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 	// we should at least try instead of auto returning LevelDBOpenClosederror.
 	if err != nil {
 		l.Lock()
-		if l.db == nil {
-			l.G().Log.Debug("LevelDb: doWhileOpenAndNukeIfCorrupted: resetting sync one: %s", err)
+		if l.db.Load() == nil {
+			l.G().Log.Debug("LevelDb: handleOpError: resetting sync one: %s", err)
 			l.dbOpenerOnce = new(sync.Once)
 		}
 		l.Unlock()
@@ -228,45 +238,34 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 // where we want to get around the lazy open and make sure we can
 // use it later.
 func (l *LevelDb) ForceOpen() error {
-	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
+	return l.doWhileOpenAndNukeIfCorrupted(func(*leveldb.DB) error { return nil })
 }
 
-// levelDbFlushSentinelKey lives in the "pm" table so the db cleaner ignores
-// it. Written before CompactRange so the memtable contains at least one key
-// and isMemOverlaps returns true for the full-range compaction.
-var levelDbFlushSentinelKey = []byte(levelDbTablePerm + ":ff:flush-sentinel")
-
-// Flush writes the current memtable to disk and rotates the journal. An
+// Flush writes the current memtable to disk and starts an empty journal. An
 // unclean process kill (routine on iOS) with a non-empty journal forces a
 // journal replay on the next open, or worse a whole-DB recovery if the
 // journal tail is corrupt — both of which block startup. Flushing while
-// entering the background leaves a near-empty journal so the next cold start
+// entering the background leaves an empty journal so the next cold start
 // opens fast. No-op if the DB is not currently open; does not trigger a lazy
 // open.
+//
+// Errors are returned to the caller as-is (after no-space wrapping). Unlike
+// Get/Put, a corrupt flush must not nuke-and-return-nil: callers treat a nil
+// error as "memtable is durable".
 func (l *LevelDb) Flush() (err error) {
 	defer convertNoSpaceError(&err)
 	l.RLock()
 	defer l.RUnlock()
-	if l.db == nil {
+	db := l.db.Load()
+	if db == nil {
 		return nil
 	}
-	// Write the sentinel so the memtable is non-empty; then compact the full
-	// key space (util.Range{} with nil Start/Limit) so isMemOverlaps always
-	// returns true regardless of what other keys are live. A narrow range
-	// keyed only on the sentinel could miss the memtable flush if a concurrent
-	// write rotated the memtable between the Put and CompactRange.
-	if err = l.db.Put(levelDbFlushSentinelKey, nil, nil); err != nil {
-		return err
-	}
-	if err = l.db.CompactRange(util.Range{}); err != nil {
-		return err
-	}
-	return l.db.Delete(levelDbFlushSentinelKey, nil)
+	return db.FlushMemdb()
 }
 
 func (l *LevelDb) Stats() (stats string) {
-	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
-		stats, err = l.db.GetProperty("leveldb.stats")
+	if err := l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) (err error) {
+		stats, err = db.GetProperty("leveldb.stats")
 		stats = fmt.Sprintf("%s\n%s", stats, l.cleaner.Status())
 		return err
 	}); err != nil {
@@ -277,8 +276,8 @@ func (l *LevelDb) Stats() (stats string) {
 
 func (l *LevelDb) CompactionStats() (memActive, tableActive bool, err error) {
 	var dbStats leveldb.DBStats
-	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
-		return l.db.Stats(&dbStats)
+	if err := l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) (err error) {
+		return db.Stats(&dbStats)
 	}); err != nil {
 		return false, false, err
 	}
@@ -300,17 +299,17 @@ func (l *LevelDb) Close() error {
 
 func (l *LevelDb) closeLocked() error {
 	var err error
-	if l.db != nil {
+	if db := l.db.Load(); db != nil {
 		l.G().Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
-		err = l.db.Close()
-		l.db = nil
+		// Stop any active cleaning job first: goleveldb must not be closed
+		// under an open iterator. Stop waits for an in-flight clean to exit.
+		l.cleaner.Stop()
+		err = db.Close()
+		l.db.Store(nil)
 
 		// In case we just nuked DB and reset the dbOpenerOnce, this makes sure it
 		// doesn't open the DB again.
 		l.dbOpenerOnce.Do(func() {})
-		// stop any active cleaning jobs
-		l.cleaner.Stop()
-		l.cleaner.Shutdown()
 	}
 	return err
 }
@@ -361,6 +360,7 @@ func (l *LevelDb) Nuke() (fn string, err error) {
 	if err = os.RemoveAll(fn); err != nil {
 		return fn, err
 	}
+	l.cleaner.forgetPosition()
 	// reset dbOpenerOnce since this is not a explicit close and there might be
 	// more legitimate DB operations coming in
 	l.dbOpenerOnce = new(sync.Once)
@@ -380,30 +380,30 @@ func (l *LevelDb) nukeIfCorrupt(err error) bool {
 }
 
 func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
-	return l.doWhileOpenAndNukeIfCorrupted(func() error {
-		return levelDbPut(l.db, l.cleaner, id, aliases, value)
+	return l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) error {
+		return levelDbPut(db, l.cleaner, id, aliases, value)
 	})
 }
 
 func (l *LevelDb) Get(id DbKey) (val []byte, found bool, err error) {
-	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = levelDbGet(l.db, l.cleaner, id)
+	err = l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) error {
+		val, found, err = levelDbGet(db, l.cleaner, id)
 		return err
 	})
 	return val, found, err
 }
 
 func (l *LevelDb) Lookup(id DbKey) (val []byte, found bool, err error) {
-	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = levelDbLookup(l.db, l.cleaner, id)
+	err = l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) error {
+		val, found, err = levelDbLookup(db, l.cleaner, id)
 		return err
 	})
 	return val, found, err
 }
 
 func (l *LevelDb) Delete(id DbKey) error {
-	return l.doWhileOpenAndNukeIfCorrupted(func() error {
-		return levelDbDelete(l.db, l.cleaner, id)
+	return l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) error {
+		return levelDbDelete(db, l.cleaner, id)
 	})
 }
 
@@ -412,7 +412,24 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 		ltr LevelDbTransaction
 		err error
 	)
-	if ltr.tr, err = l.db.OpenTransaction(); err != nil {
+	// Open the db lazily, but wait on goleveldb's write lock outside our read
+	// lock: a Close or Nuke queued behind a held read lock would block every
+	// new reader, including the current transaction's holder. If the db
+	// closes first, goleveldb returns ErrClosed.
+	var db *leveldb.DB
+	if err = l.doWhileOpenAndNukeIfCorrupted(func(opened *leveldb.DB) error {
+		db = opened
+		return nil
+	}); err != nil {
+		return LevelDbTransaction{}, err
+	}
+	if ltr.tr, err = db.OpenTransaction(); err != nil {
+		// Memtable rotation / compaction wait can fail after the lazy open
+		// already succeeded. Recover like other write paths, but never clear
+		// the error: a nil return here would look like an open transaction.
+		if !l.nukeIfCorrupt(err) && IsNoSpaceOnDeviceError(err) {
+			go func() { _ = l.cleaner.clean(true) }()
+		}
 		return LevelDbTransaction{}, err
 	}
 	ltr.cleaner = l.cleaner
@@ -421,10 +438,10 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 
 func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	m := make(map[DbKey]struct{})
-	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
+	err := l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) error {
 		opts := &opt.ReadOptions{DontFillCache: true}
 		for _, prefix := range prefixes {
-			if err := collectDbKeys(l.db.NewIterator(util.BytesPrefix(prefix), opts), m); err != nil {
+			if err := collectDbKeys(db.NewIterator(util.BytesPrefix(prefix), opts), m); err != nil {
 				return err
 			}
 		}

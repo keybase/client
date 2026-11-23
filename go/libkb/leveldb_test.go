@@ -74,8 +74,8 @@ func doSomeIO() error {
 }
 
 func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
-	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
-		return db.db.Stats(&stats)
+	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func(ldb *leveldb.DB) error {
+		return ldb.Stats(&stats)
 	}))
 	return stats
 }
@@ -159,13 +159,11 @@ func TestLevelDb(t *testing.T) {
 				require.NoError(t, db.Flush())
 				require.NoError(t, db.Flush())
 
-				// Data survives the flush and the sentinel is cleaned up.
+				// Data survives the flush.
 				val, found, err := db.Get(key)
 				require.NoError(t, err)
 				require.True(t, found)
 				require.Equal(t, []byte{1, 2, 3, 4}, val)
-				_, err = db.db.Get(levelDbFlushSentinelKey, nil)
-				require.Equal(t, leveldb.ErrNotFound, err)
 
 				// Writes still work after a flush.
 				_, err = testLevelDbPut(db)
@@ -186,7 +184,7 @@ func TestLevelDb(t *testing.T) {
 					for _, prefix := range []string{"aa", "kv", "lo", "pm", "zz"} {
 						for i := 0; i < 20; i++ {
 							key := []byte(fmt.Sprintf("%s:%d:%d", prefix, round, i))
-							require.NoError(t, db.db.Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
+							require.NoError(t, db.db.Load().Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
 						}
 					}
 				}
@@ -194,7 +192,7 @@ func TestLevelDb(t *testing.T) {
 				// compaction of the flushed memtable would have inputs.
 				for round := 0; round < 2; round++ {
 					putAcrossPrefixes(round)
-					tr, err := db.db.OpenTransaction()
+					tr, err := db.db.Load().OpenTransaction()
 					require.NoError(t, err)
 					tr.Discard()
 				}
@@ -211,7 +209,7 @@ func TestLevelDb(t *testing.T) {
 				}
 				require.Equal(t, beforeTotal+1, levelDbTableCount(t, db), "flush should add exactly one table")
 				require.Zero(t, levelDbJournalSize(t, db), "the flushed memtable's journal should be gone")
-				val, err := db.db.Get([]byte("zz:2:19"), nil)
+				val, err := db.db.Load().Get([]byte("zz:2:19"), nil)
 				require.NoError(t, err)
 				require.Equal(t, bytes.Repeat([]byte{19}, 100), val)
 			},
@@ -357,7 +355,7 @@ func TestLevelDb(t *testing.T) {
 				// for sure they can happen concurrently.
 				ch := make(chan struct{})
 				go func() {
-					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func(*leveldb.DB) error {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):
@@ -368,7 +366,7 @@ func TestLevelDb(t *testing.T) {
 					})
 				}()
 				go func() {
-					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func(*leveldb.DB) error {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):
