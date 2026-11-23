@@ -3718,13 +3718,6 @@
       "name": "LoadGalleryRes",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "messages"
-        },
-        {
           "type": "boolean",
           "name": "last"
         },

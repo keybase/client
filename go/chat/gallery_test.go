@@ -1,9 +1,13 @@
 package chat
 
 import (
+	"context"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -287,4 +291,60 @@ func TestAttachmentGalleryPagination(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, nm, 3)
 	require.True(t, last)
+}
+
+// slowGalleryUI takes a while to accept each gallery hit, as a GUI round trip does.
+type slowGalleryUI struct {
+	*kbtest.ChatUI
+	mu   sync.Mutex
+	hits []chat1.MessageID
+}
+
+func (u *slowGalleryUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) error {
+	time.Sleep(200 * time.Millisecond)
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.hits = append(u.hits, msg.GetMessageID())
+	return nil
+}
+
+func TestLoadGalleryDeliversEveryHitBeforeReturning(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestLoadGalleryDeliversEveryHitBeforeReturning", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+	defer func() {
+		useRemoteMock = true
+	}()
+	useRemoteMock = false
+
+	ui := &slowGalleryUI{ChatUI: kbtest.NewChatUI()}
+	ctc.as(t, users[0]).h.mockChatUI = ui
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	var posted []chat1.MessageID
+	for _, path := range []string{"a", "b"} {
+		res, err := postLocalForTest(t, ctc, users[0], conv,
+			chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+				Object: chat1.Asset{Path: path},
+			}))
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_ATTACHMENT)
+		posted = append(posted, res.MessageID)
+	}
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().LoadGallery(ctc.as(t, users[0]).startCtx,
+		chat1.LoadGalleryArg{
+			ConvID: conv.Id,
+			Typ:    chat1.GalleryItemTyp_DOC,
+			Num:    10,
+		})
+	require.NoError(t, err)
+	require.True(t, res.Last)
+
+	ui.mu.Lock()
+	defer ui.mu.Unlock()
+	require.Equal(t, []chat1.MessageID{posted[1], posted[0]}, ui.hits)
 }

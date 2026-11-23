@@ -521,19 +521,11 @@ const runAttachmentViewLoad = async (p: {
     if (!isCurrentLoad()) {
       return
     }
-    const dedupedMessages = new Array<T.Chat.Message>()
-    const seenMessageIDs = new Set<T.Chat.MessageID>()
-    for (const message of messages) {
-      if (!seenMessageIDs.has(message.id)) {
-        seenMessageIDs.add(message.id)
-        dedupedMessages.push(message)
-      }
-    }
     updateCurrentAttachmentViewMap(viewType, info => {
       const existingMessageIDs = new Set(info.messages.map(item => item.id))
       const nextMessages = [...info.messages]
       let changed = false
-      for (const message of dedupedMessages) {
+      for (const message of messages) {
         if (!existingMessageIDs.has(message.id)) {
           existingMessageIDs.add(message.id)
           nextMessages.push(message)
@@ -622,10 +614,6 @@ const runAttachmentViewLoad = async (p: {
         reason,
         viewType,
       })
-    }
-  } finally {
-    if (flushTimeout) {
-      clearTimeout(flushTimeout)
     }
   }
 }

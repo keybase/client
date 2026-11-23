@@ -1280,7 +1280,6 @@ protocol local {
     DOC_2
   }
   record LoadGalleryRes {
-    array<UIMessage> messages;
     boolean last;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;

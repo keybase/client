@@ -2935,21 +2935,22 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
 	}
 
+	// every hit reaches the UI before the reply does
 	hitCh := make(chan chat1.UIMessage)
+	hitsDone := make(chan struct{})
 	go func(ctx context.Context) {
+		defer close(hitsDone)
 		for msg := range hitCh {
 			_ = chatUI.ChatLoadGalleryHit(ctx, msg)
 		}
 	}(ctx)
 	gallery := attachments.NewGallery(h.G())
-	msgs, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	_, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	<-hitsDone
 	if err != nil {
 		return res, err
 	}
-	return chat1.LoadGalleryRes{
-		Last:     last,
-		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
-	}, nil
+	return chat1.LoadGalleryRes{Last: last}, nil
 }
 
 func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1.LoadFlipRes, err error) {
