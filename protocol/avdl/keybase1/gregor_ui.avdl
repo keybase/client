@@ -9,6 +9,21 @@ protocol gregorUI {
     NEW_DATA_2
   }
 
+  // GregorUIPrefs is the GUI's view of the gregor items it acts on, parsed by the service.
+  record GregorUIPrefs {
+    // ConvIDStrs, top of the inbox first
+    array<string> pinnedConvs;
+    // ConvIDStr -> seconds
+    map<string, int> explodingModes;
+    array<string> chosenChannelsTeamnames;
+    // team ID -> username of whoever added us
+    map<string, string> blockButtonsAdders;
+    // team ID -> usernames asking to join
+    map<string, array<string>> teamAccessRequests;
+    boolean allowAnimatedEmojis;
+  }
+
   void pushState(gregor1.State state, PushReason reason) oneway;
+  void pushUIPrefs(GregorUIPrefs prefs) oneway;
   void pushOutOfBandMessages(array<gregor1.OutOfBandMessage> oobm) oneway;
 }

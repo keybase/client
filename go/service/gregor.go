@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -197,9 +198,14 @@ type gregorHandler struct {
 	gregorCli   *grclient.Client
 
 	firehoseHandlers []libkb.GregorFirehoseHandler
-	badger           *badges.Badger
-	reachability     *reachability
-	chatLog          utils.DebugLabeler
+
+	// the pinned conversations the inbox layout was last told about
+	pinsMu   sync.Mutex
+	lastPins []chat1.ConvIDStr
+
+	badger       *badges.Badger
+	reachability *reachability
+	chatLog      utils.DebugLabeler
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -574,10 +580,25 @@ func (g *gregorHandler) pushStateOnce(r keybase1.PushReason) {
 		g.Debug(ctx, "pushState: pushing state with %d items", len(s.Items_))
 		h.PushState(s, r)
 	})
+	g.updateLayoutOnPinsChange(ctx, s)
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
 	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
 		g.badger.PushState(ctx, s)
+	}
+}
+
+// updateLayoutOnPinsChange rebuilds the inbox layout when the pinned list in the state differs
+// from the last one seen. It diffs state rather than reacting to in-band messages because a
+// dismissal synced while offline is consumed before replay, so no handler ever sees it.
+func (g *gregorHandler) updateLayoutOnPinsChange(ctx context.Context, s gregor1.State) {
+	pins := pinnedConvsFromState(s)
+	g.pinsMu.Lock()
+	changed := !slices.Equal(pins, g.lastPins)
+	g.lastPins = pins
+	g.pinsMu.Unlock()
+	if changed && g.G().UIInboxLoader != nil {
+		g.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "pinned convs changed")
 	}
 }
 
@@ -1375,6 +1396,9 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown(context.Background())
 	g.setFirstConnect(true)
 	g.shutdownGregorClient(context.TODO())
+	g.pinsMu.Lock()
+	g.lastPins = nil
+	g.pinsMu.Unlock()
 	return nil
 }
 
@@ -1894,6 +1918,15 @@ func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err
 	}
 	g.G().Log.CDebugf(ctx, "GetState: returning %d items", len(res.Items_))
 	return res, nil
+}
+
+func (g *gregorRPCHandler) GetUIPrefs(ctx context.Context) (res keybase1.GregorUIPrefs, err error) {
+	defer g.G().CTrace(ctx, "gregorRPCHandler#GetUIPrefs", &err)()
+	s, err := g.gh.getState(ctx)
+	if err != nil {
+		return res, err
+	}
+	return buildGregorUIPrefs(s), nil
 }
 
 func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (res gregor1.MsgID, err error) {

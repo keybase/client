@@ -5,6 +5,10 @@
       "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "gregor_ui.avdl",
+      "type": "idl"
     }
   ],
   "types": [],
@@ -12,6 +16,10 @@
     "getState": {
       "request": [],
       "response": "gregor1.State"
+    },
+    "getUIPrefs": {
+      "request": [],
+      "response": "GregorUIPrefs"
     },
     "injectItem": {
       "request": [

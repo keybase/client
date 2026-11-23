@@ -14,6 +14,9 @@ import (
 type GetStateArg struct {
 }
 
+type GetUIPrefsArg struct {
+}
+
 type InjectItemArg struct {
 	Cat   string               `codec:"cat" json:"cat"`
 	Body  string               `codec:"body" json:"body"`
@@ -43,6 +46,7 @@ type UpdateCategoryArg struct {
 
 type GregorInterface interface {
 	GetState(context.Context) (gregor1.State, error)
+	GetUIPrefs(context.Context) (GregorUIPrefs, error)
 	InjectItem(context.Context, InjectItemArg) (gregor1.MsgID, error)
 	DismissCategory(context.Context, gregor1.Category) error
 	DismissItem(context.Context, gregor1.MsgID) error
@@ -61,6 +65,16 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetState(ctx)
+					return
+				},
+			},
+			"getUIPrefs": {
+				MakeArg: func() any {
+					var ret [1]GetUIPrefsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					ret, err = i.GetUIPrefs(ctx)
 					return
 				},
 			},
@@ -149,6 +163,11 @@ type GregorClient struct {
 
 func (c GregorClient) GetState(ctx context.Context) (res gregor1.State, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.gregor.getState", []any{GetStateArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c GregorClient) GetUIPrefs(ctx context.Context) (res GregorUIPrefs, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gregor.getUIPrefs", []any{GetUIPrefsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 

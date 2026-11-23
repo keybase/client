@@ -16,6 +16,57 @@
         "RECONNECTED_1",
         "NEW_DATA_2"
       ]
+    },
+    {
+      "type": "record",
+      "name": "GregorUIPrefs",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "pinnedConvs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int",
+            "keys": "string"
+          },
+          "name": "explodingModes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "chosenChannelsTeamnames"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "blockButtonsAdders"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "string"
+            },
+            "keys": "string"
+          },
+          "name": "teamAccessRequests"
+        },
+        {
+          "type": "boolean",
+          "name": "allowAnimatedEmojis"
+        }
+      ]
     }
   ],
   "messages": {
@@ -28,6 +79,16 @@
         {
           "name": "reason",
           "type": "PushReason"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "pushUIPrefs": {
+      "request": [
+        {
+          "name": "prefs",
+          "type": "GregorUIPrefs"
         }
       ],
       "response": null,

@@ -34,6 +34,10 @@ func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (
 	return nil
 }
 
+func (e *electronMock) PushUIPrefs(context.Context, keybase1.GregorUIPrefs) error {
+	return nil
+}
+
 func (e *electronMock) PushOutOfBandMessages(_ context.Context, msgs []gregor1.OutOfBandMessage) error {
 	for _, m := range msgs {
 		e.oobmCh <- m

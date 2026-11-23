@@ -57,6 +57,10 @@
       "response": null,
       "doc": "registerGregorFirehoseFilter allows a client to register for a filtered\n   firehose, limited to only the OOBMs of the systems provided.\n   Like the firehose handler, but less pressure.",
       "lint": "ignore"
+    },
+    "registerGregorUIPrefs": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

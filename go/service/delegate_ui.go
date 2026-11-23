@@ -84,6 +84,15 @@ func (d *DelegateUICtlHandler) RegisterGregorFirehoseFiltered(ctx context.Contex
 	return d.registerGregorFirehose(ctx, oobmSystems)
 }
 
+func (d *DelegateUICtlHandler) RegisterGregorUIPrefs(ctx context.Context) error {
+	if d.G().GregorListener == nil {
+		d.G().Log.Info("Failed to register gregor UI prefs on connection %d", d.id)
+		return nil
+	}
+	d.G().GregorListener.PushFirehoseHandler(newGregorUIPrefsHandler(d.G(), d.id, d.xp))
+	return nil
+}
+
 func (d *DelegateUICtlHandler) registerGregorFirehose(ctx context.Context, oobmSystems []string) error {
 	if d.G().GregorListener != nil {
 		d.G().Log.Debug("Registering firehose on connection %d", d.id)

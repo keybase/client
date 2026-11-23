@@ -41,6 +41,9 @@ type RegisterGregorFirehoseFilteredArg struct {
 	Systems []string `codec:"systems" json:"systems"`
 }
 
+type RegisterGregorUIPrefsArg struct {
+}
+
 type DelegateUiCtlInterface interface {
 	RegisterIdentifyUI(context.Context) error
 	RegisterSecretUI(context.Context) error
@@ -55,6 +58,7 @@ type DelegateUiCtlInterface interface {
 	// firehose, limited to only the OOBMs of the systems provided.
 	// Like the firehose handler, but less pressure.
 	RegisterGregorFirehoseFiltered(context.Context, []string) error
+	RegisterGregorUIPrefs(context.Context) error
 }
 
 func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
@@ -166,6 +170,16 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 					return
 				},
 			},
+			"registerGregorUIPrefs": {
+				MakeArg: func() any {
+					var ret [1]RegisterGregorUIPrefsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					err = i.RegisterGregorUIPrefs(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -225,5 +239,10 @@ func (c DelegateUiCtlClient) RegisterGregorFirehose(ctx context.Context) (err er
 func (c DelegateUiCtlClient) RegisterGregorFirehoseFiltered(ctx context.Context, systems []string) (err error) {
 	__arg := RegisterGregorFirehoseFilteredArg{Systems: systems}
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterGregorUIPrefs(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerGregorUIPrefs", []any{RegisterGregorUIPrefsArg{}}, nil, 0*time.Millisecond)
 	return
 }
