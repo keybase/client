@@ -133,3 +133,42 @@ test('getUploadIconForTlfType derives conflict, uploading, and offline upload st
     )
   ).toBe(T.FS.UploadIcon.AwaitingToUpload)
 })
+
+test('getUploadIconForTlfType and pathIsActivelyWritingToJournal ignore failed and canceled uploads', () => {
+  const path = T.FS.stringToPath('/keybase/private/alice,bob/file')
+  const uploadState = (fields: Partial<T.RPCGen.UploadState>): T.RPCGen.UploadState => ({
+    canceled: false,
+    error: null,
+    targetPath: FS.pathToRPCPath(path).kbfs,
+    uploadID: 'upload-id',
+    ...fields,
+  })
+  const status = {
+    onlineStatus: T.FS.KbfsDaemonOnlineStatus.Online,
+    rpcStatus: T.FS.KbfsDaemonRpcStatus.Connected,
+  }
+  const uploadsWith = (state: T.RPCGen.UploadState) => ({
+    endEstimate: undefined,
+    syncingPaths: new Set<T.FS.Path>(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Map([[path, state]]),
+  })
+  const tlfType = T.FS.TlfType.Private
+
+  expect(FS.pathIsActivelyWritingToJournal(uploadsWith(uploadState({})), path)).toBe(true)
+  expect(FS.getUploadIconForTlfType(status, uploadsWith(uploadState({})), new Map(), tlfType)).toBe(
+    T.FS.UploadIcon.Uploading
+  )
+
+  expect(FS.pathIsActivelyWritingToJournal(uploadsWith(uploadState({error: 'no access'})), path)).toBe(
+    false
+  )
+  expect(
+    FS.getUploadIconForTlfType(status, uploadsWith(uploadState({error: 'no access'})), new Map(), tlfType)
+  ).toBeUndefined()
+
+  expect(FS.pathIsActivelyWritingToJournal(uploadsWith(uploadState({canceled: true})), path)).toBe(false)
+  expect(
+    FS.getUploadIconForTlfType(status, uploadsWith(uploadState({canceled: true})), new Map(), tlfType)
+  ).toBeUndefined()
+})

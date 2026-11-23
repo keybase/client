@@ -4949,3 +4949,130 @@ func TestKBFSOpsCancelUploads(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, children)
 }
+
+func TestKBFSOpsReportsRefusedInitialWrite(t *testing.T) {
+	var userName kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, string(userName), tlf.Public)
+	require.NoError(t, err)
+
+	// A public folder that doesn't exist yet writes its first root
+	// block directly, not through a journal.
+	config.SetBlockServer(refusingBlockServer{config.BlockServer()})
+	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorNoPermission))
+	require.ErrorAs(t, err, new(reportedError))
+
+	reported := config.Reporter().AllKnownErrors()
+	require.Len(t, reported, 1)
+	require.ErrorAs(t, reported[0].Error, new(kbfsblock.ServerErrorNoPermission))
+}
+
+type journaledFolderTest struct {
+	config   *ConfigLocal
+	ctx      context.Context
+	kbfsOps  KBFSOps
+	jManager *JournalManager
+	fb       data.FolderBranch
+	aNode    Node
+}
+
+// setupJournaledFolderTest makes u1's folder of the given type with
+// journaling on, holding a directory "a" that has been flushed.
+func setupJournaledFolderTest(
+	t *testing.T, tlfType tlf.Type,
+) journaledFolderTest {
+	var userName kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_ops_test")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err := ioutil.RemoveAll(tempdir)
+		require.NoError(t, err)
+	})
+	t.Cleanup(func() { kbfsTestShutdownNoMocks(ctx, t, config, cancel) })
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(ctx, tempdir, TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, string(userName), tlfType)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+	fb := rootNode.GetFolderBranch()
+	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, fb)
+	require.NoError(t, err)
+	jManager, err := GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.Wait(ctx, fb.Tlf)
+	require.NoError(t, err)
+	return journaledFolderTest{config, ctx, kbfsOps, jManager, fb, aNode}
+}
+
+func (ft journaledFolderTest) writeFile(t *testing.T, name string) Node {
+	n, _, err := ft.kbfsOps.CreateFile(
+		ft.ctx, ft.aNode, testPPS(name), false, NoExcl)
+	require.NoError(t, err)
+	err = ft.kbfsOps.Write(ft.ctx, n, []byte(name+"data"), 0)
+	require.NoError(t, err)
+	return n
+}
+
+// requireFlushes syncs the folder and requires its journal to flush.
+func (ft journaledFolderTest) requireFlushes(t *testing.T) {
+	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
+	require.NoError(t, err)
+	err = ft.jManager.Wait(ft.ctx, ft.fb.Tlf)
+	require.NoError(t, err)
+	status, err := ft.jManager.JournalStatus(ft.fb.Tlf)
+	require.NoError(t, err)
+	require.Zero(t, status.BlockOpCount)
+}
+
+func TestKBFSOpsCancelUploadsKeepsUserPause(t *testing.T) {
+	ft := setupJournaledFolderTest(t, tlf.Private)
+	require.True(t, ft.jManager.PauseBackgroundWork(ft.ctx, ft.fb.Tlf))
+	ft.writeFile(t, "b")
+	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
+	require.NoError(t, err)
+
+	t.Log("A cancel that fails leaves the user's pause in place")
+	ft.writeFile(t, "c")
+	err = ft.kbfsOps.CancelUploads(ft.ctx, ft.fb)
+	require.ErrorAs(t, err, new(NotPermittedWhileDirtyError))
+	require.False(t, ft.jManager.PauseBackgroundWork(ft.ctx, ft.fb.Tlf))
+
+	ft.jManager.ResumeBackgroundWork(ft.ctx, ft.fb.Tlf)
+	ft.requireFlushes(t)
+}
+
+func TestKBFSOpsCancelUploadsBeforeHeadLoaded(t *testing.T) {
+	ft := setupJournaledFolderTest(t, tlf.Private)
+
+	h, err := tlfhandle.ParseHandle(
+		ft.ctx, ft.config.KBPKI(), ft.config.MDOps(), nil, "u1", tlf.Public)
+	require.NoError(t, err)
+	// Like at startup, the journal exists before the folder is loaded.
+	err = ft.jManager.Enable(
+		ft.ctx, h.TlfID(), h, TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	public := ft
+	public.fb = data.FolderBranch{Tlf: h.TlfID(), Branch: data.MasterBranch}
+	err = ft.kbfsOps.CancelUploads(ft.ctx, public.fb)
+	require.ErrorIs(t, err, errCancelUploadsBeforeHead)
+	rootNode, _, err := ft.kbfsOps.GetOrCreateRootNode(
+		ft.ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+	public.aNode, _, err = ft.kbfsOps.CreateDir(ft.ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	public.requireFlushes(t)
+}

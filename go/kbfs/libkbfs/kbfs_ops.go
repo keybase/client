@@ -1058,6 +1058,15 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	var rekeyConflictErr RekeyConflictError
 	alreadyExisted := errors.As(err, &rekeyConflictErr)
 	if err != nil && !alreadyExisted {
+		// Nothing is journaled yet, so report here for SimpleFS and
+		// other callers that don't go through FUSE/Dokan processError.
+		// Wrap so processError's ReportErr skips a second toast.
+		if refusal := writeRefusal(err); refusal != nil {
+			fs.config.Reporter().ReportErr(
+				ctx, h.GetCanonicalName(), h.Type(), WriteMode, refusal)
+			// Wrap the typed refusal so FUSE/Dokan Cause() still maps EACCES.
+			return false, ImmutableRootMetadata{}, tlf.NullID, reportedError{refusal}
+		}
 		return false, ImmutableRootMetadata{}, tlf.NullID, err
 	}
 

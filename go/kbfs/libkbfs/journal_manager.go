@@ -941,17 +941,19 @@ func (j *JournalManager) dirtyOpEnd(tlfID tlf.ID) {
 }
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
-// not already paused.
-func (j *JournalManager) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
+// not already paused, and returns whether this call paused it.
+func (j *JournalManager) PauseBackgroundWork(
+	ctx context.Context, tlfID tlf.ID,
+) bool {
 	j.log.CDebugf(ctx, "Signaling pause for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
-		tlfJournal.pauseBackgroundWork()
-		return
+		return tlfJournal.pauseBackgroundWork()
 	}
 
 	j.log.CDebugf(ctx,
 		"Could not find journal for %s; dropping pause signal",
 		tlfID)
+	return false
 }
 
 // ResumeBackgroundWork resumes the background work goroutine, if it's

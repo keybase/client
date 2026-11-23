@@ -7799,9 +7799,12 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	})
 }
 
+var errCancelUploadsBeforeHead = errors.New(
+	"Can't cancel uploads before the folder's head is loaded")
+
 func (fbo *folderBranchOps) cancelUploadsLocked(
 	ctx context.Context, lState *kbfssync.LockState,
-) error {
+) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	jManager, _ := GetJournalManager(fbo.config)
@@ -7816,10 +7819,22 @@ func (fbo *folderBranchOps) cancelUploadsLocked(
 		return errors.New("Can't cancel uploads while there's a conflict")
 	}
 
-	// Pause the uploads right away.
-	jManager.PauseBackgroundWork(ctx, fbo.id())
+	// Undoing the MD updates below needs the head to undo from.
+	if md, _ := fbo.getHead(ctx, lState, mdNoCommit); md == (ImmutableRootMetadata{}) {
+		return errCancelUploadsBeforeHead
+	}
+
+	// Pause the uploads right away. If this paused them, resume them if
+	// cancelling fails.
+	if jManager.PauseBackgroundWork(ctx, fbo.id()) {
+		defer func() {
+			if err != nil {
+				jManager.ResumeBackgroundWork(ctx, fbo.id())
+			}
+		}()
+	}
 	// Wait until the pause takes effect.
-	err := jManager.Wait(ctx, fbo.id())
+	err = jManager.Wait(ctx, fbo.id())
 	if err != nil {
 		return err
 	}

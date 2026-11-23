@@ -99,6 +99,13 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 ) {
 	r.ReporterSimple.ReportErr(ctx, tlfName, t, mode, err)
 
+	// Already toasted from a lower layer (same idea as ErrDiskLimitTimeout
+	// with reportable=false); still record above for the error file.
+	var already reportedError
+	if errors.As(err, &already) {
+		return
+	}
+
 	// Fire off error popups
 	params := make(map[string]string)
 	filename := ""

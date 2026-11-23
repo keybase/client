@@ -754,7 +754,8 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 // as pause-resume. But that's okay, since these are just for
 // infrequent ad-hoc testing.
 
-func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
+// pause returns whether pauseType wasn't already set.
+func (j *tlfJournal) pause(pauseType tlfJournalPauseType) bool {
 	j.pauseLock.Lock()
 	defer j.pauseLock.Unlock()
 	oldPauseType := j.pauseType
@@ -762,7 +763,7 @@ func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
 
 	if oldPauseType > 0 {
 		// No signal is needed since someone already called pause.
-		return
+		return oldPauseType&pauseType == 0
 	}
 
 	j.wg.Pause()
@@ -770,10 +771,11 @@ func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
 	case j.needPauseCh <- struct{}{}:
 	default:
 	}
+	return true
 }
 
-func (j *tlfJournal) pauseBackgroundWork() {
-	j.pause(journalPauseCommand)
+func (j *tlfJournal) pauseBackgroundWork() bool {
+	return j.pause(journalPauseCommand)
 }
 
 func (j *tlfJournal) resume(pauseType tlfJournalPauseType) {

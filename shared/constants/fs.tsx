@@ -577,6 +577,15 @@ export const isOfflineUnsynced = (
   T.FS.getPathLevel(path) > 2 &&
   pathItem.prefetchStatus !== prefetchComplete
 
+// A failed or canceled upload stays listed until it's dismissed, but it isn't uploading.
+const isActivelyWritingToJournal = (upload: T.RPCGen.UploadState): boolean =>
+  !upload.error && !upload.canceled
+
+export const pathIsActivelyWritingToJournal = (uploads: T.FS.Uploads, path: T.FS.Path): boolean => {
+  const upload = uploads.writingToJournal.get(path)
+  return !!upload && isActivelyWritingToJournal(upload)
+}
+
 // Status/Icon Utilities
 export const getUploadIconForTlfType = (
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
@@ -596,7 +605,9 @@ export const getUploadIconForTlfType = (
   const prefix = T.FS.pathToString(T.FS.getTlfTypePathFromTlfType(tlfType))
   if (
     [...uploads.syncingPaths].some(p => T.FS.pathToString(p).startsWith(prefix)) ||
-    [...uploads.writingToJournal.keys()].some(p => T.FS.pathToString(p).startsWith(prefix))
+    [...uploads.writingToJournal].some(
+      ([p, upload]) => isActivelyWritingToJournal(upload) && T.FS.pathToString(p).startsWith(prefix)
+    )
   ) {
     return kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline
       ? T.FS.UploadIcon.AwaitingToUpload
