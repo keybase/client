@@ -76,6 +76,8 @@ const idleEntryMs = 5 * 60_000
 // Entries are never removed, only emptied: a screen can hold one it is not subscribed to (between
 // its render and its effects, or while hidden), and must find the same one when it comes back.
 const entries = new Map<string, Entry>()
+// the same entries by method, for notices that refresh a whole method
+const entriesByMethod = new Map<string, Array<Entry>>()
 
 /** the same params give the same key whatever order their fields are written in */
 export const stableKey = (method: string, params: unknown) =>
@@ -348,6 +350,12 @@ export const getEntry = (key: string, method: string): Entry => {
     },
   }
   entries.set(key, e)
+  const ofMethod = entriesByMethod.get(method)
+  if (ofMethod) {
+    ofMethod.push(e)
+  } else {
+    entriesByMethod.set(method, [e])
+  }
   return e
 }
 
@@ -445,8 +453,9 @@ const refreshEntry = (e: Entry) => {
 export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
   const notice = currentNotice()
   const now = Date.now()
-  for (const [entryKey, e] of entries) {
-    if (e.method !== method || (key !== undefined && key !== entryKey)) continue
+  const keyed = key === undefined ? undefined : entries.get(key)
+  const targets = key === undefined ? (entriesByMethod.get(method) ?? []) : keyed?.method === method ? [keyed] : []
+  for (const e of targets) {
     if (e.lastNotice === notice || e.snapshot.forgotten) continue
     e.lastNotice = notice
     e.stale = true
