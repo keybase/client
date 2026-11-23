@@ -63,8 +63,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
     }
   }
 
-  const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
-
   const nativeContactsToContacts = (
     contacts: Array<{
       fullName?: string | null
@@ -124,15 +122,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         })
       }
       const f = async () => {
-        const username = useCurrentUserState.getState().username
-        if (!username) {
-          logger.warn('no username')
-          return
-        }
-        await T.RPCGen.configGuiSetValueRpcPromise(
-          {path: importContactsConfigKey(username), value: {b: enable, isNull: false}},
-          importContactsWaitingKey
-        )
+        await T.RPCGen.contactsSetImportContactsEnabledRpcPromise({enabled: enable}, importContactsWaitingKey)
         get().dispatch.loadContactImportEnabled()
       }
       ignorePromise(f())
@@ -147,25 +137,15 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         if (!useConfigState.getState().loggedIn) {
           return
         }
-        const username = useCurrentUserState.getState().username
-        if (!username) {
-          logger.warn('no username')
-          return
-        }
-        let enabled = false
+        let enabled: boolean
         try {
-          const value = await T.RPCGen.configGuiGetValueRpcPromise(
-            {path: importContactsConfigKey(username)},
-            importContactsWaitingKey
-          )
-          enabled = !!value.b && !value.isNull
+          enabled = await T.RPCGen.contactsGetImportContactsEnabledRpcPromise(undefined, importContactsWaitingKey)
         } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
+          // a failed read is not "off": treating it as off would clear the uploaded contacts
+          if (error instanceof RPCError) {
+            logger.error(`Error reading contact import setting: ${error.message}`)
           }
-          if (!error.message.includes('no such key')) {
-            logger.error(`Error reading config: ${error.message}`)
-          }
+          return
         }
 
         set(s => {
