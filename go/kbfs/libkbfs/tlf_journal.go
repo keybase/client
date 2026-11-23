@@ -1225,6 +1225,23 @@ func (j *tlfJournal) flushBlockEntries(
 			j.delegateBlockServer, j.config.BlockCache(), j.config.Reporter(),
 			j.tlfID, tlfName, entries, cacheType)
 	})
+	eg.Go(func() error {
+		// An overdue flush's endEstimate moves with the clock, so
+		// keep status readers updated until the puts finish.
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if j.isCurrFlushOverdue() {
+					j.config.SubscriptionManagerPublisher().PublishChange(
+						keybase1.SubscriptionTopic_JOURNAL_STATUS)
+				}
+			case <-convertCtx.Done():
+				return nil
+			}
+		}
+	})
 	converted = false
 	eg.Go(func() error {
 		// We might need to run multiple conversions during a single
@@ -1547,6 +1564,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		j.needInfoFile = true
 	}
 
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	return nil
 }
 
@@ -1687,6 +1706,36 @@ func (j *tlfJournal) isOnConflictBranch() (bool, error) {
 	return j.mdJournal.getBranchID() != kbfsmd.NullBranchID, nil
 }
 
+// timeLeftInCurrFlushLocked estimates how long the current block flush
+// has left. Once it runs past its expected time (always, with no
+// bandwidth estimate yet), it is overdue and the estimate stays one
+// second from now.
+func (j *tlfJournal) timeLeftInCurrFlushLocked(
+	now time.Time, bwEstimate float64,
+) (timeLeft time.Duration, overdue bool) {
+	if j.currBytesFlushing <= 0 {
+		return 0, false
+	}
+	timeFlushingSoFar := now.Sub(j.currFlushStarted)
+	totalExpectedTime := time.Duration(0)
+	if bwEstimate > 0 {
+		totalExpectedTime = time.Duration(
+			float64(j.currBytesFlushing)/bwEstimate) * time.Second
+	}
+	if totalExpectedTime > timeFlushingSoFar {
+		return totalExpectedTime - timeFlushingSoFar, false
+	}
+	return 1 * time.Second, true
+}
+
+func (j *tlfJournal) isCurrFlushOverdue() bool {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	_, overdue := j.timeLeftInCurrFlushLocked(
+		j.config.Clock().Now(), j.bytesPerSecEstimate.Value())
+	return overdue
+}
+
 func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	if err := j.checkEnabledLocked(); err != nil {
 		return TLFJournalStatus{}, err
@@ -1714,24 +1763,7 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		now := j.config.Clock().Now()
 		bwEstimate := j.bytesPerSecEstimate.Value()
 
-		// How long do we think is remaining in the current flush?
-		timeLeftInCurrFlush := time.Duration(0)
-		if j.currBytesFlushing > 0 {
-			timeFlushingSoFar := now.Sub(j.currFlushStarted)
-			totalExpectedTime := time.Duration(0)
-			if bwEstimate > 0 {
-				totalExpectedTime = time.Duration(
-					float64(j.currBytesFlushing)/bwEstimate) * time.Second
-			}
-
-			if totalExpectedTime > timeFlushingSoFar {
-				timeLeftInCurrFlush = totalExpectedTime - timeFlushingSoFar
-			} else {
-				// Arbitrarily say that there's one second left, if
-				// we've taken longer than expected to flush so far.
-				timeLeftInCurrFlush = 1 * time.Second
-			}
-		}
+		timeLeftInCurrFlush, _ := j.timeLeftInCurrFlushLocked(now, bwEstimate)
 
 		// Add the estimate for the blocks that haven't started flushing yet.
 
@@ -2504,6 +2536,8 @@ func (j *tlfJournal) doPutMD(
 		return ImmutableRootMetadata{}, false, err
 	}
 	j.log.CDebugf(ctx, "Put update rev=%d id=%s", rmd.Revision(), mdID)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 
 	j.signalWork()
 
@@ -2611,6 +2645,8 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	if err != nil {
 		return err
 	}
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 
 	j.resume(journalPauseConflict)
 	return nil
@@ -2686,6 +2722,10 @@ func (j *tlfJournal) doResolveBranch(
 		return ImmutableRootMetadata{}, false, err
 	}
 	j.log.CDebugf(ctx, "Put resolution rev=%d id=%s", rmd.Revision(), mdID)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 
 	j.resume(journalPauseConflict)
 	j.signalWork()

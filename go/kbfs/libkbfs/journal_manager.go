@@ -1385,6 +1385,8 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FAVORITES)
 	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
@@ -1435,6 +1437,8 @@ func (j *JournalManager) deleteJournal(
 	tlfJournal.shutdown(ctx)
 	delete(j.tlfJournals, tlfID)
 	journalDir = tlfJournal.dir
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	return nil
 }
 
