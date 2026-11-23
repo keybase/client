@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/clockwork"
@@ -129,7 +130,7 @@ func (h *UIInboxLoader) UnboxConvs(ctx context.Context, convIDs []chat1.Conversa
 	h.Lock()
 	defer h.Unlock()
 	if !h.started {
-		return nil
+		return storage.NewAbortedError()
 	}
 	start := h.unboxer.request(convIDs, force)
 	h.Debug(ctx, "UnboxConvs: starting a pass for %d convs", len(start))

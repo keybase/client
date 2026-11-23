@@ -9,7 +9,7 @@ import {useRequestIncompleteConversationMeta} from '@/chat/conversation/data-hoo
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {paramsOf} from '@/test/fake-thread-load'
 import {flush, tick} from '@/test/flush'
 import {
@@ -137,18 +137,92 @@ test('the unboxed conversation answers the request with meta and participants', 
   expect(unboxRequests()).toHaveLength(1)
 })
 
-// the service joins a request for a conv it is already unboxing; a forced one gets one more pass
-test('every request reaches the service, which does the dedup', async () => {
+// what startHandshake does when the link comes back
+const reconnect = () =>
+  useDaemonState.setState(s => {
+    s.handshakeGeneration += 1
+    s.handshakeState = 'loading'
+  })
+
+const untrusted = () =>
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, trustedState: 'untrusted'}], undefined, {
+    force: true,
+  })
+
+test('three screens asking for a conv with no answer yet send one call', async () => {
   unboxRows([convID])
   unboxRows([convID])
+  unboxRows([convID])
+  await tick()
+
+  expect(unboxRequests()).toEqual([{convIDs: [convID], force: false}])
+})
+
+test('a forced request goes while the conv is waiting on its answer', async () => {
+  unboxRows([convID])
+  await tick()
   forceUnboxRowsForService([convID])
   await tick()
 
   expect(unboxRequests()).toEqual([
     {convIDs: [convID], force: false},
-    {convIDs: [convID], force: false},
     {convIDs: [convID], force: true},
   ])
+})
+
+test('the conversation answering a request lets the next one go', async () => {
+  untrusted()
+  unboxRows([convID])
+  await tick()
+  await serviceAnswers('chat.1.chatUi.chatInboxConversation', {convs: JSON.stringify([unboxed()])})
+  untrusted()
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('a failure answering a request lets the next one go', async () => {
+  unboxRows([convID])
+  await tick()
+  await serviceAnswers('chat.1.chatUi.chatInboxFailed', failure(T.RPCChat.ConversationErrorType.transient, 'x'))
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('a request the service refuses lets the next one go', async () => {
+  fake.answer(requestInboxUnbox, () => fakeError(1, 'aborted'))
+  unboxRows([convID])
+  await tick()
+  await tick()
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('a store reset lets the next request go', async () => {
+  unboxRows([convID])
+  await tick()
+  resetAllStores()
+  useConfigState.setState({loggedIn: true, userSwitching: false})
+  useCurrentUserState.setState({username: 'testuser'})
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('a reconnect lets the next request go', async () => {
+  unboxRows([convID])
+  await tick()
+  reconnect()
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
 })
 
 test('a trusted adhoc conv with no participants is asked for with force', async () => {
@@ -170,7 +244,7 @@ test('the header asks once the session is ready, and again after a reconnect', a
   expect(unboxRequests()).toHaveLength(1)
 
   // the answer to that request was lost with the link
-  act(() => useDaemonState.setState({handshakeState: 'loading'}))
+  act(() => reconnect())
   await flush()
   act(() => useDaemonState.setState({handshakeState: 'done'}))
   await flush()

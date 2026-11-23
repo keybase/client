@@ -14,6 +14,7 @@ import {isChatSessionReady} from '@/stores/config'
 import {withChatSessionRetry} from './session-rpc'
 import {conversationGone, maybeChangeSelectedConversation} from './selection'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
 
 export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
@@ -51,6 +52,7 @@ export const metaReceivedError = (
   conversationIDKey: T.Chat.ConversationIDKey,
   error: T.RPCChat.InboxUIItemError
 ) => {
+  pendingUnboxRows.delete(conversationIDKey)
   if (error.typ === T.RPCChat.ConversationErrorType.transient) {
     logger.info(
       `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
@@ -201,8 +203,17 @@ export const clearConversationsForInboxSync = () => {
   })
 }
 
-const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
-  ids.filter(id => getInboxConversationMeta(id)?.trustedState !== 'trusted')
+// Convs asked of the service with no answer yet, each with the handshake it was asked on. The service
+// answers every conv while the session and the link last, so an entry ends with its answer, a store
+// reset, or a new handshake (a lost link loses the answers in flight on it); none needs a timeout.
+const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, number>()
+const isUnboxPending = (id: T.Chat.ConversationIDKey) =>
+  pendingUnboxRows.get(id) === useDaemonState.getState().handshakeGeneration
+
+const needsUnbox = (id: T.Chat.ConversationIDKey) =>
+  getInboxConversationMeta(id)?.trustedState !== 'trusted' && !isUnboxPending(id)
+
+const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => ids.filter(needsUnbox)
 
 type ConvoMetaQueueState = T.Immutable<{
   generation: number
@@ -246,6 +257,7 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
       get().dispatch.queueMetaHandle()
     },
     resetState: () => {
+      pendingUnboxRows.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -311,34 +323,44 @@ async function runMetaQueueWorker(generation: number) {
   }
 }
 
-// While the session lasts the service answers every conv it is asked for with a chatInboxConversation
-// or a chatInboxFailed, and joins a request for a conv it is already unboxing, so nothing here tracks
-// requests in flight.
+// A forced request always goes: the service gives a conv it is already unboxing one more pass for it.
 const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => {
   const f = async () => {
     if (!isChatSessionReady()) {
       return
     }
-    const conversationIDKeys = ids.filter(
-      id => T.Chat.isValidConversationIDKey(id) && (force || getInboxConversationMeta(id)?.trustedState !== 'trusted')
-    )
+    const conversationIDKeys = [
+      ...new Set(ids.filter(id => T.Chat.isValidConversationIDKey(id) && (force || needsUnbox(id)))),
+    ]
     if (!conversationIDKeys.length) {
       return
     }
+    const handshake = useDaemonState.getState().handshakeGeneration
+    conversationIDKeys.forEach(id => pendingUnboxRows.set(id, handshake))
+    let asked: boolean | undefined
     logger.info(
       `unboxRows: unboxing len: ${conversationIDKeys.length} force: ${force} convs: ${conversationIDKeys.join(',')}`
     )
     try {
-      await withChatSessionRetry(async () =>
-        T.RPCChat.localRequestInboxUnboxRpcPromise({
+      asked = await withChatSessionRetry(async () => {
+        await T.RPCChat.localRequestInboxUnboxRpcPromise({
           convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
           force,
         })
-      )
+        return true
+      })
     } catch (error) {
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
       }
+    }
+    if (!asked) {
+      // no answer is coming for these
+      conversationIDKeys.forEach(id => {
+        if (pendingUnboxRows.get(id) === handshake) {
+          pendingUnboxRows.delete(id)
+        }
+      })
     }
   }
   ignorePromise(f())
@@ -475,6 +497,7 @@ export const onGetInboxConvsUnboxed = (
 ) => {
   const {convs} = action.payload.params
   const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
+  inboxUIItems.forEach(item => pendingUnboxRows.delete(T.Chat.stringToConversationIDKey(item.convID)))
   updateInboxUserInfo(inboxUIItems)
   hydrateInboxConversations(inboxUIItems)
 }

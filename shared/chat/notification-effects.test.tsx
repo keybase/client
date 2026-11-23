@@ -1312,8 +1312,8 @@ describe('mounted conversation screens', () => {
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the
-  // same unbox once per reader. Each reaches the service, which unboxes the conv once for all of them.
-  test('each metadata reader asks the service for an unbox', async () => {
+  // same unbox once per reader. Only the first reaches the service; the rest wait on its answer.
+  test('each metadata reader asks for an unbox; only one reaches the service', async () => {
     await mountTree(<Screen id={convA} metadataReaders={2} />, () => {
       metasReceived(
         [{...Meta.makeConversationMeta(), conversationIDKey: convA, trustedState: 'untrusted'}],
@@ -1331,8 +1331,6 @@ describe('mounted conversation screens', () => {
       'unboxRows:A',
       'unboxRows:A',
       'unboxRows:A',
-      'rpc:unbox:A',
-      'rpc:unbox:A',
       'rpc:unbox:A',
     ])
   })
