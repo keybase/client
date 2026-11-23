@@ -1,0 +1,110 @@
+go/stellar/stellar.go
+  s_b6dce66bc45d03::t_d023c566df09cf 122-123,126,129,131,133-135,140-145
+  s_2db215efaf2bb2::t_7332a9493102d1 19-20,23-24,31-34,37-38,41,67-69,72,75,77-81,83,85,87,89,92-95,97-98,100-104,106,109-111,113,116-118,120,124-125,127,139,146,149-152,154,156,159-165,167-170,173-174,176-177,179,181-195,198-199,201-202,204
+  s_2db215efaf2bb2::t_5c2e2bc5e5898c 70
+  s_2db215efaf2bb2::t_f89c332b72e24a 76
+go/stellar/stellarsvc/frontend.go
+  s_2db215efaf2bb2::t_49597a7b2b46ab 1,26,65,67
+go/client/cmd_wallet_export.go
+  s_b6dce66bc45d03::t_b5811520d99349 75-78,80-89
+go/stellar/stellarsvc/service.go
+  s_2db215efaf2bb2::t_2fab3446bb288e 1-3,21,24,47-48,60-62,64,84
+go/chat/globals/globals.go
+  s_2db215efaf2bb2::t_f15598ef5e82e0 20-38
+go/chat/server.go
+  s_2db215efaf2bb2::t_5284370a439dbc 3958,4033
+go/chat/utils/utils.go
+  s_2db215efaf2bb2::t_02ea1ad7d53b3f 1929
+go/chatrender/chat_cli_rendering.go
+  s_2db215efaf2bb2::t_6a33386dd9172f 339-340,481-482,485-486,555,558
+go/client/cmd_chat_api_listen.go
+  s_2db215efaf2bb2::t_0770ad571295c1 23-25,65-66
+go/client/cmd_wallet.go
+  s_2db215efaf2bb2::t_06cb91edb57f8a 12,14-16
+go/client/stellar_common.go
+  s_2db215efaf2bb2::t_19c07b134d5b8a 20
+go/service/debugging.go
+  s_2db215efaf2bb2::t_42c8a0845e5d78 21,24,26-28
+go/service/gregor.go
+  s_2db215efaf2bb2::t_9df6c6454088ef 9,1339-1343,1346
+go/service/main.go
+  s_2db215efaf2bb2::t_c983ba856ac599 196,201,603
+go/service/test_handler.go
+  s_2db215efaf2bb2::t_c797b9d12f990e 8,53
+go/service/wallet.go
+  s_2db215efaf2bb2::t_c5c8c4efaa1202 23,29
+packaging/linux/keybase.desktop
+  s_2db215efaf2bb2::t_d213f90b4cc4a7 9
+protocol/avdl/stellar1/common.avdl
+  s_2db215efaf2bb2::t_4129cefdc04983 10-13
+protocol/avdl/stellar1/local.avdl
+  s_2db215efaf2bb2::t_320285b01f9a68 6,9,16,23,33-46,48,50
+protocol/avdl/stellar1/remote.avdl
+  s_2db215efaf2bb2::t_973e6477676fc3 6
+shared/chat/conversation/chat-rpc.tsx
+  s_2db215efaf2bb2::t_acb1595c3a9e34 550
+shared/chat/conversation/input-area/composer.tsx
+  s_2db215efaf2bb2::t_e30d4c8fc0176f 84,120-121,140
+shared/chat/conversation/input-area/normal/desktop-composer.test.tsx
+  s_2db215efaf2bb2::t_c5ba60fdbd6b13 642
+shared/chat/conversation/input-area/suggestors/index.tsx
+  s_2db215efaf2bb2::t_d109635420561a 55
+shared/chat/conversation/messages/account-payment/container.test.tsx
+  s_2db215efaf2bb2::t_5b1765c8b240b3 3-5,7-8,11-15,17-19
+shared/chat/conversation/messages/account-payment/container.tsx
+  s_2db215efaf2bb2::t_316fb7b3d06b11 5-8,10-13,18
+shared/chat/conversation/messages/wrapper/wrapper.tsx
+  s_2db215efaf2bb2::t_be46bf7fa1eefc 300,553,826,860,920
+shared/chat/conversation/send-actions.test.tsx
+  s_2db215efaf2bb2::t_8c94a69ec8a382 16-17,35-36,181
+shared/chat/conversation/send-actions.tsx
+  s_2db215efaf2bb2::t_b6f9e73a495968 9,17,23,25-26
+shared/chat/conversation/thread-store.test.ts
+  s_2db215efaf2bb2::t_6cab2078a6e2ad 704
+shared/chat/readme.md
+  s_2db215efaf2bb2::t_92d1e83e3a8aff 32
+shared/common-adapters/markdown/service-decoration.tsx
+  s_2db215efaf2bb2::t_cff31bb6a8bb8c 142-143
+shared/constants/chat/message.test.tsx
+  s_2db215efaf2bb2::t_5517458d16c1ec 784,788-790,794-795,801-802
+shared/constants/chat/message.tsx
+  s_2db215efaf2bb2::t_bc12f6f49fecb2 1375
+shared/desktop/app/app-events.desktop.tsx
+  s_2db215efaf2bb2::t_73ceae202cdbbb 19
+shared/profile/user/index.tsx
+  s_2db215efaf2bb2::t_5a17a10c0c1455 141-151
+shared/tests/e2e/electron/census-exclusions.ts
+  s_2db215efaf2bb2::t_35b0d61beed04b 65
+shared/tests/e2e/visual/fixtures/chat-thread.ts
+  s_2db215efaf2bb2::t_edd8dacd5f2b48 2
+shared/tracker/assertion.tsx
+  s_2db215efaf2bb2::t_98abf51493b86e 26,73-77,306-307,309-317,319-322,326-339
+shared/tracker/index.desktop.tsx
+  s_2db215efaf2bb2::t_8e3e3e31f52f4a 188-190
+shared/wallets/really-remove-account.tsx
+  s_2db215efaf2bb2::t_3b987694029e41 27,29-38,67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2897bc0e1cd87f1cd1a846501278ed45d1ee14c8",
+  "prompts": {},
+  "sessions": {
+    "s_2db215efaf2bb2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b909938-7ca0-416f-84f5-32363b3b7227",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_b6dce66bc45d03": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1ded4e8b-aeff-406e-8f47-4c92dfc5f2c6",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
