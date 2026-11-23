@@ -26,7 +26,6 @@ const startFlow = async (p: {genericService: string | null; proofReason: 'appLin
     currentGenericParamsRef: {current: {} as never},
     currentUsernameRef: {current: ''},
     genericService: p.genericService,
-    loadCurrentProfile: jest.fn(),
     mountedRef,
     navigateAppend: navigateAppend as never,
     navigateUp: navigateUp as never,

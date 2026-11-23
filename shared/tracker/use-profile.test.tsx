@@ -53,17 +53,6 @@ test('an incidental surface asks for a cached identify instead', async () => {
   )
 })
 
-test('loadOnMount false starts no identify at all', async () => {
-  const {result} = renderHook(() => useTrackerProfile('testuser', {loadOnMount: false}))
-  await act(async () => {
-    await Promise.resolve()
-  })
-
-  expect(identifySpy).not.toHaveBeenCalled()
-  expect(result.current.details.state).toBe('unknown')
-  expect(result.current.details.username).toBe('testuser')
-})
-
 test('two surfaces on the same user share one identify', async () => {
   renderHook(() => useTrackerProfile('testuser'))
   renderHook(() => useTrackerProfile('TestUser'))
@@ -145,7 +134,7 @@ test('loadNonUserProfile fills in the SBS details', async () => {
     } as never)
   )
 
-  const {result} = renderHook(() => useTrackerProfile('testuser-mac@twitter', {loadOnMount: false}))
+  const {result} = renderHook(() => useTrackerProfile('testuser-mac@twitter'))
   expect(result.current.nonUserDetails.assertionKey).toBe('')
 
   await act(async () => {
@@ -170,7 +159,7 @@ test('a non-user response for a real keybase user is ignored', async () => {
       } as never)
   )
 
-  const {result} = renderHook(() => useTrackerProfile('testuser', {loadOnMount: false}))
+  const {result} = renderHook(() => useTrackerProfile('testuser'))
   const before = result.current.nonUserDetails
 
   await act(async () => {

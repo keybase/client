@@ -17,7 +17,6 @@ import logger from '@/logger'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useProofSuggestions} from '../use-proof-suggestions'
-import {useTrackerProfile} from '@/tracker/use-profile'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {useNavigation} from '@react-navigation/native'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -158,7 +157,6 @@ export const runProofFlow = async (p: {
   currentGenericParamsRef: React.RefObject<ProveGenericParams>
   currentUsernameRef: React.RefObject<string>
   genericService: string | null
-  loadCurrentProfile: () => void
   mountedRef: React.RefObject<boolean>
   navigateAppend: typeof C.Router2.navigateAppend
   navigateUp: typeof C.Router2.navigateUp
@@ -175,7 +173,6 @@ export const runProofFlow = async (p: {
     currentGenericParamsRef,
     currentUsernameRef,
     genericService,
-    loadCurrentProfile,
     mountedRef,
     navigateAppend,
     navigateUp,
@@ -320,7 +317,6 @@ export const runProofFlow = async (p: {
       waitingKey: C.waitingKeyProfile,
     })
 
-    loadCurrentProfile()
     // the user left this flow while the service finished it
     if (wasCanceled()) return
 
@@ -337,7 +333,6 @@ export const runProofFlow = async (p: {
       })
     }
   } catch (_error) {
-    loadCurrentProfile()
     // the user left this flow (Back to the picker, or closed the modal)
     if (wasCanceled() || !(_error instanceof RPCError)) {
       return
@@ -373,11 +368,9 @@ export const runProofFlow = async (p: {
 const ProofsList = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const {proofSuggestions} = useProofSuggestions()
-  const {loadProfile} = useTrackerProfile(currentUsername, {loadOnMount: false})
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
   const {clearModals, navigateAppend, navigateUp} = C.Router2
-  const loadCurrentProfile = React.useCallback(() => loadProfile(false), [loadProfile])
 
   const providers = proofSuggestions.map(s => ({
     desc: s.pickerSubtext,
@@ -476,7 +469,6 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
         currentGenericParamsRef,
         currentUsernameRef,
         genericService,
-        loadCurrentProfile,
         mountedRef,
         navigateAppend,
         navigateUp,
@@ -513,7 +505,6 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
             proofStatus: T.RPCGen.ProofStatus.ok,
             username: normalized,
           })
-          loadCurrentProfile()
         },
         error => {
           setStepSafe({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
@@ -533,7 +524,6 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
             proofStatus: T.RPCGen.ProofStatus.ok,
             username: normalized,
           })
-          loadCurrentProfile()
         },
         error => {
           setStepSafe({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
