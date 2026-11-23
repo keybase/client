@@ -43,13 +43,15 @@ export const invalidateLoadedTeams = () => {
 
 const loadRoleMapIfStale = async () => loadRpcIfStale(T.RPCGen.teamsGetTeamRoleMapRpcPromise, undefined, staleMs)
 
+const teamsListParams = (username: string) => ({includeImplicitTeams: false, userAssertion: username})
+
 // The one place that loads both, and keeps them reloading on the service's notices
 export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   const username = useCurrentUserState(s => s.username)
   const enabled = useConfigState(s => s.loggedIn) && !!username
   useRpcData(
     T.RPCGen.teamsTeamListUnverifiedRpcPromise,
-    {includeImplicitTeams: false, userAssertion: username},
+    teamsListParams(username),
     {enabled, onError: warnTeamsList, staleMs, waitingKey: C.waitingKeyTeamsLoaded}
   )
   useRpcData(T.RPCGen.teamsGetTeamRoleMapRpcPromise, undefined, {enabled, onError: warnTeamsRoleMap, staleMs})
@@ -63,7 +65,7 @@ export const useTeamsList = (): TeamsList => {
   const teams =
     useCachedRpcData(
       T.RPCGen.teamsTeamListUnverifiedRpcPromise,
-      {includeImplicitTeams: false, userAssertion: username},
+      teamsListParams(username),
       toTeams
     ) ?? emptyTeams
   return React.useMemo(() => ({reload: invalidateLoadedTeams, teams}), [teams])

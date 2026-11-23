@@ -370,6 +370,9 @@ const policyToExplanation = (
 
 const teamRetentionStaleMs = 5_000
 
+// One cache entry per team, shared by every consumer (settings tab and every chat
+// info panel for the team): a burst of remounts would otherwise be a burst of
+// GetTeamRetentionLocal calls with identical arguments.
 const teamRetentionLoad = 'teams.retention'
 
 // resolve rather than reject on failure: the picker falls back to the default
@@ -389,9 +392,6 @@ const loadTeamRetention = async (teamID: T.Teams.TeamID): Promise<T.Retention.Re
   return policy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : policy
 }
 
-// One cache entry per team, shared by every consumer (settings tab and every chat
-// info panel for the team): a burst of remounts would otherwise be a burst of
-// GetTeamRetentionLocal calls with identical arguments.
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   // an adhoc conversation has no team
   const enabled = !!teamID && teamID !== T.Teams.noTeamID

@@ -188,9 +188,9 @@ const start = (e: Entry) => {
       }
     }
     e.inFlight = undefined
-    // the notice behind a queued load left the entry stale: with no screen loading it, the next
-    // one to mount loads it
-    // (queued stays set until start, so a waiter does not take the gap for the end)
+    // The notice behind a queued load left the entry stale, so with no screen loading it the next
+    // one to mount loads it. queued stays set until start, so a waiter does not take the gap
+    // between the two loads for the end.
     const again = e.queued && e.loaders > 0
     e.queued = again
     update(e, {...patch, loading: again})
@@ -296,7 +296,7 @@ const settled = async (e: Entry) => {
   }
 }
 
-export const getEntry = (key: string, method: string, load: Entry['load']): Entry => {
+export const getEntry = (key: string, method: string): Entry => {
   const existing = entries.get(key)
   if (existing) {
     return existing
@@ -310,7 +310,8 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
     lastNotice: 0,
     lastNoticeAt: 0,
     listeners: new Set(),
-    load,
+    // a loading screen sets it (setLoader) before it can start a load
+    load: noLoader,
     loadedAt: 0,
     loaders: 0,
     method,
@@ -497,7 +498,13 @@ const emptyCache = () => {
   clearTimeout(sweepTimer)
   sweepTimer = undefined
 }
-onNewAccountGeneration(emptyCache)
+declare global {
+  var __hmr_rpcDataCacheUnsubs: Array<() => void> | undefined
+}
+// a hot reload of this file makes a new cache: the old one's subscriptions go with it
+const unsubs = (globalThis.__hmr_rpcDataCacheUnsubs ??= [])
+for (const unsub of unsubs.splice(0)) unsub()
+unsubs.push(onNewAccountGeneration(emptyCache))
 // the store reset that a logout, an account switch and each test's cleanup all run
 registerExternalResetter('rpc-data-cache', emptyCache)
 
@@ -516,21 +523,21 @@ const accountReady = () => {
   return loggedIn && !userSwitching
 }
 let wasAccountReady = accountReady()
-useConfigState.subscribe(() => {
+unsubs.push(useConfigState.subscribe(() => {
   const ready = accountReady()
   if (ready && !wasAccountReady) {
     loadWhere(e => !e.snapshot.loaded && !e.snapshot.forgotten)
   }
   wasAccountReady = ready
-})
+}))
 
 // A lost link fails the rpcs in flight on it, and what the service knows may have changed while it
 // was away: the handshake that follows a reconnect reloads everything a screen is showing.
 let lastHandshake = useDaemonState.getState().handshakeState
-useDaemonState.subscribe(s => {
+unsubs.push(useDaemonState.subscribe(s => {
   const reconnected = s.handshakeState === 'done' && lastHandshake !== 'done'
   lastHandshake = s.handshakeState
   if (reconnected) {
     loadWhere(e => !e.snapshot.forgotten)
   }
-})
+}))

@@ -1,4 +1,4 @@
-import './notifications'
+export {teamNoticeDebounceMs} from './notifications'
 export {
   forgetLoad,
   loadRpcIfStale,

@@ -4,7 +4,7 @@ import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {forgetLoad, refreshLoad, reviveLoad, useLoadData} from '@/query'
+import {forgetLoad, refreshLoad, reviveLoad, teamNoticeDebounceMs, useLoadData} from '@/query'
 
 type LoadedTeam = {
   loaded: boolean
@@ -27,7 +27,6 @@ type LoadedTeamData = {teamDetails: T.Teams.TeamDetails; teamMeta: Omit<T.Teams.
 
 export const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
 const loadedTeamReloadStaleMs = 5_000
-const teamNoticeDebounceMs = 2_000
 
 // One cache entry per team for every consumer: the team screen, the channel screen and any
 // modal above them would otherwise each pay a full team load.

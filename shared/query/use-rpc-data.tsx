@@ -98,8 +98,7 @@ const rpcLoad =
     return call(params, waitingKey, signal)
   }
 
-const rpcEntry = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, load = rpcLoad(rpc, params)) =>
-  getEntry(stableKey(rpc.method, params), rpc.method, load)
+const rpcEntry = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>) => getEntry(stableKey(rpc.method, params), rpc.method)
 
 /**
  * What a read rpc returns, from the cache every screen shares: screens asking for the same method
@@ -122,7 +121,7 @@ export const useRpcData = <F extends AnyRpc, DATA = DataOf<F>>(
   options: Options<DataOf<F>, DATA> & {waitingKey?: WaitingKeys} = {}
 ) => {
   const load = rpcLoad(rpc, params, options.waitingKey)
-  return useEntry(rpcEntry(rpc, params, load), load, options)
+  return useEntry(rpcEntry(rpc, params), load, options)
 }
 
 /**
@@ -149,7 +148,7 @@ export const useLoadData = <RAW, DATA = RAW>(
   key: unknown,
   load: (signal: AbortSignal) => Promise<RAW>,
   options: Options<RAW, DATA> = {}
-) => useEntry(getEntry(stableKey(name, key), name, load), load, options)
+) => useEntry(getEntry(stableKey(name, key), name), load, options)
 
 /** the service's data behind this rpc changed (after a write, or on a notice): reload it wherever it is shown */
 export const refreshRpc = (rpc: AnyRpc, debounceMs?: number) => refreshMethod(rpc.method, undefined, debounceMs)

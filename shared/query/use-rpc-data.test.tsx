@@ -385,7 +385,7 @@ test('a reload after the last screen left ends a wait on the load it cuts off', 
   expect(done).toBe(true)
   const reader = renderHook(() => useCachedRpcData(listRpc, undefined, toNames))
   expect(reader.result.current).toEqual(['laptop'])
-  const entry = getEntry(stableKey(listMethod, undefined), listMethod, async () => Promise.resolve(null))
+  const entry = getEntry(stableKey(listMethod, undefined), listMethod)
   expect(entry.getSnapshot().loading).toBe(false)
 })
 
@@ -974,7 +974,7 @@ test('data that lands after its last screen left is still dropped once idle, and
     await advance(6 * 60_000)
     held[0]!.reply([device('laptop')])
     await flush()
-    const entry = getEntry(stableKey(listMethod, undefined), listMethod, async () => Promise.resolve(null))
+    const entry = getEntry(stableKey(listMethod, undefined), listMethod)
     expect(entry.getData()).toHaveLength(1)
     const loadWhileCached = entry.load
 

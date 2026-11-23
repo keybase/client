@@ -68,3 +68,27 @@ test('a list load that failed before the screen opened does not close it as miss
   expect(nav.types()).not.toContain('GO_BACK')
   expect(nav.types()).not.toContain('POP')
 })
+
+test('a list load already on the wire when the screen opens does not close it as missing', async () => {
+  const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  const held = fake.hold(historyList)
+  // the list screen's load, started before the device was added elsewhere
+  renderHook(() => useRpcData(T.RPCGen.deviceDeviceHistoryListRpcPromise, undefined))
+  await flush()
+  expect(held).toHaveLength(1)
+
+  const deviceID = T.Devices.stringToDeviceID('id-testuser-phone')
+  const nav = navigationWrapper({params: {deviceID}, route: 'deviceRevoke'})
+  render(<DeviceRevoke deviceID={deviceID} />, {wrapper: nav.wrapper})
+  await flush()
+  held[0]!.reply([detail('testuser-laptop')])
+  await flush()
+  expect(nav.types()).not.toContain('GO_BACK')
+  expect(nav.types()).not.toContain('POP')
+
+  expect(held).toHaveLength(2)
+  held[1]!.reply([detail('testuser-laptop'), detail('testuser-phone')])
+  await flush()
+  expect(screen.queryAllByText('testuser-phone').length).toBeGreaterThan(0)
+  expect(nav.types()).not.toContain('GO_BACK')
+})

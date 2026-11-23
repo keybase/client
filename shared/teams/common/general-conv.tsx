@@ -3,10 +3,8 @@ import * as Meta from '@/constants/chat/meta'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {useLoadData} from '@/query'
 
-// A team's #general conversation does not move, but two screens ask for it - the
-// team rows and the bot install modal - and each used to hold the answer in its
-// own state, so every mount was another findGeneralConvFromTeamID. Share one
-// cache per team, and let it live a while since the answer is effectively static.
+// One shared entry per team for the screens that ask for #general (the team rows and the bot
+// install modal). It does not move, so the entry stays fresh for a long while.
 const generalConvStaleMs = 5 * 60_000
 
 export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => {

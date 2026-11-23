@@ -13,8 +13,9 @@ type Stale = {
   readonly debounceMs?: number
 }
 
-// one per message in a busy team
-const teamNotice = {debounceMs: 2_000}
+/** team notices come one per message in a busy team */
+export const teamNoticeDebounceMs = 2_000
+const teamNotice = {debounceMs: teamNoticeDebounceMs}
 const teamsList: Stale = {rpc: T.RPCGen.teamsTeamListUnverifiedRpcPromise, ...teamNotice}
 const teamsRoleMap: Stale = {rpc: T.RPCGen.teamsGetTeamRoleMapRpcPromise, ...teamNotice}
 const devices: Stale = {rpc: T.RPCGen.deviceDeviceHistoryListRpcPromise}

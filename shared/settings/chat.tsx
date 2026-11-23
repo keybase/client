@@ -77,7 +77,7 @@ const useUnfurlSettings = () => {
   const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
   const normalizeUnfurlDomainRPC = C.useRPC(T.RPCChat.localNormalizeUnfurlDomainRpcPromise)
   const loggedIn = useConfigState(s => s.loggedIn)
-  const [actionError, setError] = React.useState('')
+  const [actionError, setActionError] = React.useState('')
   const {data, error: loadError} = useRpcData(T.RPCChat.localGetUnfurlSettingsRpcPromise, undefined, {
     enabled: loggedIn,
     waitingKey: C.waitingKeySettingsChatUnfurl,
@@ -90,7 +90,7 @@ const useUnfurlSettings = () => {
 
   const unfurlSettingsSaved = React.useCallback(
     (settings: ReturnType<typeof unfurlSaveArgs>, onSuccess: () => void) => {
-      setError('')
+      setActionError('')
       if (!useConfigState.getState().loggedIn) {
         return
       }
@@ -103,7 +103,7 @@ const useUnfurlSettings = () => {
           refreshRpc(T.RPCChat.localGetUnfurlSettingsRpcPromise)
         },
         e => {
-          setError(
+          setActionError(
             e.desc
               ? `Unable to save link preview settings: ${e.desc}`
               : 'Unable to save link preview settings, please try again.'
@@ -120,10 +120,10 @@ const useUnfurlSettings = () => {
       normalizeUnfurlDomainRPC(
         [{input}],
         domain => {
-          setError('')
+          setActionError('')
           onNormalized(domain)
         },
-        e => setError(e.desc || 'Unable to add that website, please try again.')
+        e => setActionError(e.desc || 'Unable to add that website, please try again.')
       )
     },
     [normalizeUnfurlDomainRPC]

@@ -28,8 +28,8 @@ const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
 const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
   partition([...devices].sort(sortDevices), d => d.revokedAt)
 
-const noDevices = new Array<T.Devices.Device>()
 const itemHeight = {height: 48, type: 'fixed'} as const
+const noDevices = new Array<T.Devices.Device>()
 const toDevices = (results: ReadonlyArray<T.RPCGen.DeviceDetail> | null) =>
   results?.map(rpcDeviceDetailToDevice) ?? noDevices
 
