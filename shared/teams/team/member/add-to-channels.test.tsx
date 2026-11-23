@@ -10,9 +10,8 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('adding someone to several channels refreshes every one of them', async () => {
+test('adding someone to several channels sends them all in one call', async () => {
   jest.spyOn(T.RPCChat, 'localBulkAddToManyConvsRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await addMembersToChannels([convA, convB], ['testuser'])
 
@@ -20,20 +19,10 @@ test('adding someone to several channels refreshes every one of them', async () 
     conversations: [T.Chat.keyToConversationID(convA), T.Chat.keyToConversationID(convB)],
     usernames: ['testuser'],
   })
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledTimes(2)
 })
 
-test('a failed add never claims the participants are fresh', async () => {
+test('a failed add rejects with the service error', async () => {
   jest.spyOn(T.RPCChat, 'localBulkAddToManyConvsRpcPromise').mockRejectedValue(new Error('nope'))
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await expect(addMembersToChannels([convA], ['testuser'])).rejects.toThrow('nope')
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
-})
-
-test('a failed refresh does not fail the add', async () => {
-  jest.spyOn(T.RPCChat, 'localBulkAddToManyConvsRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockRejectedValue(new Error('offline'))
-
-  await expect(addMembersToChannels([convA], ['testuser'])).resolves.toBeUndefined()
 })

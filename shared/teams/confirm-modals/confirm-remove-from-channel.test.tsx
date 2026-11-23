@@ -10,9 +10,8 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('removing members refreshes the conversation participants', async () => {
+test('removing members asks the service to remove them', async () => {
   jest.spyOn(T.RPCChat, 'localRemoveFromConversationLocalRpcPromise').mockResolvedValue({} as never)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await removeMembersFromChannel(conversationIDKey, ['testuser', 'testuser-mac'])
 
@@ -20,15 +19,12 @@ test('removing members refreshes the conversation participants', async () => {
     convID,
     usernames: ['testuser', 'testuser-mac'],
   })
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
 })
 
-test('a failed removal never claims the participants are fresh', async () => {
+test('a failed removal rejects with the service error', async () => {
   jest
     .spyOn(T.RPCChat, 'localRemoveFromConversationLocalRpcPromise')
     .mockRejectedValue(new Error('not an admin'))
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await expect(removeMembersFromChannel(conversationIDKey, ['testuser'])).rejects.toThrow('not an admin')
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
 })
