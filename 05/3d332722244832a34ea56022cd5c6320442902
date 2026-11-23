@@ -1,0 +1,61 @@
+go/kbfs/libkbfs/reporter_kbpki_test.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 30-32,34,41
+go/kbfs/libkbfs/tlf_journal_test.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 27,317,528,542-543,546-550,573,576,589-591
+go/kbfs/libkbfs/journal_manager_test.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 430,800,925,995,1114
+go/kbfs/libkbfs/journal_manager.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 188,473,844
+go/kbfs/libkbfs/kbfs_ops.go
+  s_7a47aee68b0e8f::t_13ed284175f742 1067-1068
+  s_7a47aee68b0e8f::t_7bda9cecbef85f 1064-1066
+  s_7a47aee68b0e8f::t_163bf4368389c4 1069
+shared/util/platform-specific/kbfs-notifications.tsx
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 33
+go/kbfs/libkbfs/reporter_kbpki.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 127
+  s_637150e6ffaeaf::t_30cd3194aa0bc0 102-108
+go/kbfs/libkbfs/tlf_journal.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 386,899,2389-2395
+shared/menubar/remote-proxy.desktop.tsx
+  s_637150e6ffaeaf::t_855840a0de6c68 94-97
+shared/constants/fs.tsx
+  s_637150e6ffaeaf::t_b3d968715ab903 580,582-588,608-610
+  s_7a47aee68b0e8f::t_b3c1e4c3241567 581
+go/kbfs/libkbfs/config_local.go
+  s_637150e6ffaeaf::t_b6f9bf0d1e9e18 1302
+go/kbfs/libkbfs/errors.go
+  s_462efbd550fb8e::t_bacdee9a53adae 109-114,117-118,121-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "053d332722244832a34ea56022cd5c6320442902",
+  "prompts": {},
+  "sessions": {
+    "s_462efbd550fb8e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "50c57b4f-134b-4480-91da-742eb370da3a",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_637150e6ffaeaf": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a4df963d-7727-4b6c-9005-3fcad99223e0",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_7a47aee68b0e8f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e549e1c6-d826-4579-b4d9-5651a96009bc",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
