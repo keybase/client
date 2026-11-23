@@ -29,14 +29,12 @@ type LayoutProps = {
 // header buttons). Screens still lay out on the full window, so centered content stays centered;
 // scrolling content clears the strips through ScreenSideInsetsContext. Only the screen's own safe
 // area includes the header column (the root provider's window insets report 0 for it), so an
-// invisible RNScreens SafeAreaView is measured for them.
-// A screen pushed above the tabs drops the left strip: in Split View's left half that strip is kept
-// for the tab bar, which those screens hide, and their back button stays in the header. The right
-// strip holds the status column and header buttons wherever it appears, so every screen keeps it.
+// invisible RNScreens SafeAreaView is measured for them. Every screen keeps both strips: a screen
+// pushed above the tabs still has Split View's left column, drawn over it with its back button.
 const androidEdges = {bottom: true} as const
 const probeEdges = {left: true, right: true} as const
 type LayoutEvent = {nativeEvent: {layout: {width: number; x: number}}}
-const ScreenWrapper = ({children, isTabScreen}: {children: React.ReactNode; isTabScreen: boolean}) => {
+const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
   const styles = useStyles()
   // the two measurements live in refs: a screen re-renders only when its strips change, which on a
   // screen with none is never
@@ -53,7 +51,7 @@ const ScreenWrapper = ({children, isTabScreen}: {children: React.ReactNode; isTa
   const update = () => {
     const {width, x} = probe.current
     if (screenWidth.current <= 0 || width <= 0) return
-    const left = isTabScreen ? x : 0
+    const left = x
     const right = Math.max(0, screenWidth.current - x - width)
     setSideInsets(was => (was.left === left && was.right === right ? was : left || right ? {left, right} : Kb.noSideInsets))
   }
@@ -209,7 +207,7 @@ const ModalScreenWrapper = ({
 export const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
-  isTabScreen: boolean,
+  _isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
   return function Layout({children, route, navigation}: LayoutProps) {
@@ -218,7 +216,7 @@ export const nativeMakeLayout = (
     const wrappedContent = <React.Suspense>{children}</React.Suspense>
 
     if (!isModal && !isLoggedOut) {
-      return <ScreenWrapper isTabScreen={isTabScreen}>{wrappedContent}</ScreenWrapper>
+      return <ScreenWrapper>{wrappedContent}</ScreenWrapper>
     }
     if (!isModal && isLoggedOut) {
       return <LoggedOutScreenWrapper>{wrappedContent}</LoggedOutScreenWrapper>
