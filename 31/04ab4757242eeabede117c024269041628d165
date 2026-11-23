@@ -1,0 +1,26 @@
+shared/android/app/src/main/java/io/keybase/ossifrage/AppLifecycleReporter.kt
+  s_8ed8c7dc19d9ab::t_04d36b0ef0860a 88-90,99
+go/bind/notifications_test.go
+  s_8ed8c7dc19d9ab::t_714431afb8d984 110-114
+go/bind/notifications.go
+  s_8ed8c7dc19d9ab::t_1eb2a5f621f966 127
+  s_8ed8c7dc19d9ab::t_e9fe58990e98da 121-123,128-131,135,139-140,143,145,147
+shared/android/app/src/test/java/io/keybase/ossifrage/AppLifecycleReporterTest.kt
+  s_8ed8c7dc19d9ab::t_0828a02d79c764 162,178-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3104ab4757242eeabede117c024269041628d165",
+  "prompts": {},
+  "sessions": {
+    "s_8ed8c7dc19d9ab": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d70b9670-312b-4b40-be3f-65b2d6f73ef7",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
