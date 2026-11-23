@@ -102,11 +102,21 @@ func (l *LiveLocationTracker) trackerCtxLocked() context.Context {
 
 func (l *LiveLocationTracker) goTrackerLocked(t *locationTrack) {
 	if !l.started {
-		delete(l.trackers, t.Key())
+		// StartTracking/GetCurrentPosition already persisted t; clear disk too so a
+		// Stop race cannot resurrect it on the next Start/restoreLocked.
+		l.removeTrackerLocked(t)
 		return
 	}
 	ctx := l.trackerCtxLocked()
 	l.eg.Go(func() error { return l.tracker(ctx, t) })
+}
+
+// removeTrackerLocked deletes t from the in-memory map and persists. Callers
+// hold l's lock. Uses a non-cancelled context so Stop/logout cancellation
+// cannot skip the durable clear.
+func (l *LiveLocationTracker) removeTrackerLocked(t *locationTrack) {
+	delete(l.trackers, t.Key())
+	l.saveLocked(context.Background())
 }
 
 func (l *LiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
@@ -204,7 +214,12 @@ func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.
 func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack, done bool) (err error) {
 	ctx = globals.ChatCtx(ctx, l.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer l.Trace(ctx, &err, "updateMapUnfurl")()
-	msg, err := l.G().ChatHelper.GetMessage(ctx, l.uid, t.convID, t.msgID, true, nil)
+	// Copy under the lock: Stop nils uid and LocationUpdate writes lastCoord concurrently.
+	l.Lock()
+	uid := l.uid
+	lastCoord := l.lastCoord
+	l.Unlock()
+	msg, err := l.G().ChatHelper.GetMessage(ctx, uid, t.convID, t.msgID, true, nil)
 	if err != nil {
 		return err
 	}
@@ -215,8 +230,8 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	var coords []chat1.Coordinate
 	trackerCoords := t.GetCoords()
 	if len(trackerCoords) == 0 {
-		if !l.lastCoord.IsZero() {
-			coords = []chat1.Coordinate{l.lastCoord}
+		if !lastCoord.IsZero() {
+			coords = []chat1.Coordinate{lastCoord}
 		} else {
 			return errors.New("no coordinates")
 		}
@@ -224,7 +239,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 		coords = trackerCoords
 	}
 	last := coords[len(coords)-1]
-	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, t.convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, l.G(), uid, t.convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
@@ -238,7 +253,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	if !t.getCurrentPosition {
 		body += fmt.Sprintf("&livekey=%s", t.Key())
 	}
-	l.G().Unfurler.Prefetch(ctx, l.uid, t.convID, body)
+	l.G().Unfurler.Prefetch(ctx, uid, t.convID, body)
 	for unfurlMsgID := range mvalid.Unfurls {
 		// delete the old unfurl first to make way for the new
 		if err := l.G().ChatHelper.DeleteMsg(ctx, t.convID, conv.Info.TlfName, unfurlMsgID); err != nil {
@@ -255,7 +270,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	unfurlDoneCh := make(chan struct{}, 10)
 	outboxID := storage.GetOutboxIDFromURL(body, t.convID, newMsg)
 	listenerID := l.G().NotifyRouter.AddListener(newUnfurlNotifyListener(l.G(), outboxID, unfurlDoneCh))
-	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg, nil)
+	l.G().Unfurler.UnfurlAndSend(ctx, uid, t.convID, newMsg, nil)
 	select {
 	case <-unfurlDoneCh:
 	case <-ctx.Done():
@@ -283,7 +298,7 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) 
 		} else {
 			break
 		}
-		maxWatchAttempts++
+		watchAttempts++
 		select {
 		case <-ctx.Done():
 			return 0, ctx.Err()
@@ -298,33 +313,39 @@ func (l *LiveLocationTracker) tracker(ctx context.Context, t *locationTrack) err
 	if t.endTime.Before(l.clock.Now()) {
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
+		l.removeTrackerLocked(t)
 		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
 
-	// start up the OS watch routine
+	// Always remove from the map when we exit, including if startWatch fails,
+	// so a failed tracker does not linger in l.trackers / on disk.
+	defer func() {
+		l.Lock()
+		defer l.Unlock()
+		l.removeTrackerLocked(t)
+	}()
 	watchID, err := l.startWatch(ctx, t)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		// drop everything when our live location ends
-		err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
-		if err != nil {
+		if err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID); err != nil {
 			l.Debug(ctx, "tracker[%v]: error clearing watch: %+v", watchID, err)
 		}
-		l.Lock()
-		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
 	}()
 	// if this is a live location request, just put whatever the last coord is on the screen, makes it
 	// feel more live
-	if !l.lastCoord.IsZero() {
+	l.Lock()
+	lastCoord := l.lastCoord
+	l.Unlock()
+	if !lastCoord.IsZero() {
 		l.Debug(ctx, "tracker[%v]: updating with last coord", watchID)
-		t.updateCh <- l.lastCoord
+		// Non-blocking: LocationUpdate may have filled the buffer during startWatch retries.
+		select {
+		case t.updateCh <- lastCoord:
+		default:
+		}
 	}
 	firstUpdate := true
 	shouldUpdate := false

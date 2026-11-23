@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +28,7 @@ func (nilCtxFactory) NewKeyFinder() types.KeyFinder   { return nil }
 func (nilCtxFactory) NewUPAKFinder() types.UPAKFinder { return nil }
 
 var watchBugsTestConvID = chat1.ConversationID("conv")
+var watchBugsTestUID = gregor1.UID([]byte{0, 1})
 
 // newLiveLocationBugsTestTracker wires a LiveLocationTracker to a fake
 // UIRouter/chat UI and a mock chat helper (whose GetMessage always returns
@@ -35,12 +37,15 @@ var watchBugsTestConvID = chat1.ConversationID("conv")
 // It also owns tc's teardown: t.Cleanup runs last-registered-first, so
 // registering tc.Cleanup before the tracker-stop cleanup tears the test
 // context down only after every tracker has exited, instead of under them.
+// Start must be called so goTrackerLocked will actually launch trackers
+// (it no-ops when !l.started).
 func newLiveLocationBugsTestTracker(t *testing.T, tc libkb.TestContext, chatUI libkb.ChatUI) *LiveLocationTracker {
 	t.Cleanup(tc.Cleanup)
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 	tc.G.SetUIRouter(kbtest.NewMockUIRouter(chatUI))
 	g := globals.NewContext(tc.G, &globals.ChatContext{CtxFactory: nilCtxFactory{}})
 	l := NewLiveLocationTracker(g)
+	l.Start(context.Background(), watchBugsTestUID)
 	t.Cleanup(func() {
 		l.StopAllTracking(context.Background())
 		select {
@@ -93,12 +98,9 @@ func (u *fakeWatchChatUI) Watches() int {
 	return u.watches
 }
 
-// TestStartWatchGivesUp: startWatch is supposed to give up and return an
-// error after enough failed attempts. Its retry loop bumps the wrong
-// counter (maxWatchAttempts, not watchAttempts), so watchAttempts stays 0
-// forever and the "watchAttempts > maxWatchAttempts" check never trips: with
-// a chat UI that always errors, startWatch retries once a second forever and
-// never returns. The timeout below is the bug.
+// TestStartWatchGivesUp: startWatch must give up and return an error after
+// enough failed attempts (regression: the retry loop used to increment
+// maxWatchAttempts instead of watchAttempts, so it never gave up).
 func TestStartWatchGivesUp(t *testing.T) {
 	tc := libkb.SetupTest(t, "StartWatchGivesUp", 0)
 	ui := &failingWatchChatUI{}
@@ -118,16 +120,10 @@ func TestStartWatchGivesUp(t *testing.T) {
 	}
 }
 
-// TestFailedWatchLeavesNoTracker: a tracker whose watch never succeeds should
-// eventually remove itself and leave ActivelyTracking false. Two separate
-// bugs keep that from happening, and a fix needs both:
-//  1. startWatch never gives up (see TestStartWatchGivesUp), so the tracker
-//     never gets past its startup.
-//  2. Even once startWatch returns its error, tracker() returns straight
-//     away, before it sets up the deferred delete from l.trackers; only the
-//     success path removes the entry, so the failed tracker stays in the map.
-//
-// Either way the condition below never becomes true within the 30s cap.
+// TestFailedWatchLeavesNoTracker: a tracker whose watch never succeeds must
+// eventually remove itself and leave ActivelyTracking false (regression:
+// startWatch used to retry forever, and even after giving up tracker()
+// returned before removing the entry from l.trackers).
 func TestFailedWatchLeavesNoTracker(t *testing.T) {
 	tc := libkb.SetupTest(t, "FailedWatchLeavesNoTracker", 0)
 	ui := &failingWatchChatUI{}
@@ -146,10 +142,9 @@ func TestFailedWatchLeavesNoTracker(t *testing.T) {
 	}, 30*time.Second, 50*time.Millisecond, "tracker never gave up and removed itself")
 }
 
-// TestLastCoordRace: tracker() reads l.lastCoord without holding l.Lock()
-// when it primes a freshly-started tracker with the last known coordinate,
-// while LocationUpdate only ever writes l.lastCoord under the lock. Race
-// detector should catch the unsynchronized read.
+// TestLastCoordRace: tracker()'s prime-from-lastCoord path must take
+// l.Lock() (regression: that read used to be unlocked while LocationUpdate
+// wrote under the lock). Run under -race.
 func TestLastCoordRace(t *testing.T) {
 	if !raceEnabled {
 		t.Skip("race detector required; run `go test -race`")
@@ -188,11 +183,13 @@ func TestLastCoordRace(t *testing.T) {
 // call. Stop snapshots l.trackers under the lock and tells only those to
 // stop, but it then waits on l.eg, a single errgroup shared for the
 // tracker's whole lifetime -- not just the trackers it just told to stop.
-// If the new StartTracking's lock acquisition lands after Stop's snapshot,
-// its tracker is added to that same errgroup without ever being told to
-// stop, so Stop's channel doesn't close until the new tracker finishes on
-// its own (its endTime, an hour out here). Looping makes the bad ordering
-// land within a few iterations; the per-iteration 5s cap catches the hang.
+// If a concurrent StartTracking could join that errgroup after Stop's
+// snapshot without being stopped, Stop's channel would hang until that
+// tracker's endTime. goTrackerLocked refusing work when !l.started closes
+// that hole; this test keeps the race honest. Looping makes the bad
+// ordering land within a few iterations; the per-iteration 5s cap catches
+// a hang. Each Stop clears started, so we Start again before the next
+// iteration's StartTracking.
 func TestStopDuringStartTracking(t *testing.T) {
 	tc := libkb.SetupTest(t, "StopDuringStartTracking", 0)
 	ui := &fakeWatchChatUI{}
@@ -220,5 +217,6 @@ func TestStopDuringStartTracking(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			t.Fatalf("Stop's channel did not close within 5s (iteration %d)", i)
 		}
+		l.Start(context.Background(), watchBugsTestUID)
 	}
 }
