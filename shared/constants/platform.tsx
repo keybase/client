@@ -232,8 +232,8 @@ const screenProtectorConfigKey = 'ui.screenprotector'
 // secure window), off for iOS, which shipped without one, so updating changes nothing there.
 const secureByDefault = isAndroid
 
-// The saved setting. One that can't be read counts as on: a failed read must not leave a user who
-// turned the protector on unprotected.
+// The saved setting, or the platform's default when there is none. The service answers an unset
+// setting with an error ("no such key"), so any failed read takes the default too.
 export const getSecureFlagSetting = async (): Promise<boolean> => {
   if (!isMobile) {
     await Promise.resolve()
@@ -244,7 +244,7 @@ export const getSecureFlagSetting = async (): Promise<boolean> => {
     const value = await RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
     return value.isNull ? secureByDefault : value.b !== false
   } catch {
-    return true
+    return secureByDefault
   }
 }
 
