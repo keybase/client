@@ -1,0 +1,25 @@
+go/libkb/race_off_test.go
+  s_fb7e74e906af56::t_b00544fd7f716b 1-11
+go/libkb/race_on_test.go
+  s_fb7e74e906af56::t_b00544fd7f716b 1-11
+go/libkb/leveldb_test.go
+  s_fb7e74e906af56::t_b00544fd7f716b 12,17,76-103,175-329,613-659
+go/libkb/leveldb_cleaner_test.go
+  s_fb7e74e906af56::t_b00544fd7f716b 1-207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "526d27af23e3379d433f8ccef9e6dd3ea1bc240d",
+  "prompts": {},
+  "sessions": {
+    "s_fb7e74e906af56": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "07ed344b-fcdd-4c11-84f7-4efefeb27ef5",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
