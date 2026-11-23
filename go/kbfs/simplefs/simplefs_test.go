@@ -2012,3 +2012,46 @@ loopWait:
 	}
 	require.Empty(t, files)
 }
+
+func TestReadListFreesHandle(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	pathJDoe := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathJDoe, `test1.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	lists := map[string]func(keybase1.OpID) error{
+		"List": func(opid keybase1.OpID) error {
+			return sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+				OpID: opid, Path: pathJDoe,
+			})
+		},
+		"ListRecursiveToDepth": func(opid keybase1.OpID) error {
+			return sfs.SimpleFSListRecursiveToDepth(ctx,
+				keybase1.SimpleFSListRecursiveToDepthArg{
+					OpID: opid, Path: pathJDoe, Depth: 1,
+				})
+		},
+	}
+	for name, list := range lists {
+		t.Run(name, func(t *testing.T) {
+			opid, err := sfs.SimpleFSMakeOpid(ctx)
+			require.NoError(t, err)
+			require.NoError(t, list(opid))
+			require.NoError(t, sfs.SimpleFSWait(ctx, opid))
+			listResult, err := sfs.SimpleFSReadList(ctx, opid)
+			require.NoError(t, err)
+			require.NotEmpty(t, listResult.Entries)
+
+			// The GUI reads the list and never closes the op, so
+			// reading it must not leave the handle behind.
+			sfs.lock.RLock()
+			_, ok := sfs.handles[opid]
+			sfs.lock.RUnlock()
+			require.False(t, ok)
+		})
+	}
+}

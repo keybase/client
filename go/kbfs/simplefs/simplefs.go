@@ -1258,19 +1258,19 @@ func (k *SimpleFS) SimpleFSListRecursive(
 // to get more entries.
 func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keybase1.SimpleFSListResult, error) {
 	k.lock.Lock()
+	defer k.lock.Unlock()
 	res := k.handles[opid]
-	var x any
-	if res != nil {
-		x = res.async
-		res.async = nil
+	if res == nil {
+		return keybase1.SimpleFSListResult{}, errNoResult
 	}
-	k.lock.Unlock()
-
-	lr, ok := x.(keybase1.SimpleFSListResult)
+	lr, ok := res.async.(keybase1.SimpleFSListResult)
+	res.async = nil
 	if !ok {
 		return keybase1.SimpleFSListResult{}, errNoResult
 	}
-
+	// A list handle holds nothing but its result, and not every caller
+	// closes the op, so free it once the result is read.
+	delete(k.handles, opid)
 	return lr, nil
 }
 
