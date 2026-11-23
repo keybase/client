@@ -424,7 +424,7 @@ export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T
     setMinWriterRole: isAdminOrAbove,
     setPublicityAny: isAdminOrAbove || implicitAdmin,
     setRetentionPolicy: isAdminOrAbove,
-    setTeamShowcase: isAdminOrAbove,
+    setTeamShowcase: isAdminOrAbove || implicitAdmin,
   }
   canUserPerformCache[ck] = canPerform
   return canPerform
