@@ -5,6 +5,7 @@ import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
+import {showLoggedInScreens} from '@/router-v2/account-switch'
 import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
@@ -43,6 +44,8 @@ export const submitRecoverPasswordPgpWarning = () => callNamed(owner, slots.subm
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
+let lastRun = 0
+
 export const startRecoverPassword = ({
   abortProvisioning,
   onResetEmailSent,
@@ -50,9 +53,15 @@ export const startRecoverPassword = ({
   username,
 }: StartRecoverPasswordParams) => {
   clearOwner(owner)
+  const run = ++lastRun
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
+    }
+    const {dispatch: configDispatch, loggedIn} = useConfigState.getState()
+    const holdLoggedOut = !loggedIn
+    if (holdLoggedOut) {
+      configDispatch.holdForRecoverPassword(run, true)
     }
     let active = true
     let hadError = false
@@ -233,7 +242,7 @@ export const startRecoverPassword = ({
       if (!isQuietCancel(error)) {
         navigateAppend(
           {
-            name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+            name: showLoggedInScreens(useConfigState.getState()) ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
             params: {error: error.message},
           },
           true
@@ -250,6 +259,9 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
+      if (holdLoggedOut) {
+        configDispatch.holdForRecoverPassword(run, false)
+      }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
   }

@@ -85,8 +85,9 @@ describe('pending account-switch tab', () => {
 })
 
 describe('showLoggedInScreens', () => {
-  const state = (loggedIn: boolean, userSwitching = false, userSwitchingFromLoggedIn = false) => ({
+  const state = (loggedIn: boolean, userSwitching = false, userSwitchingFromLoggedIn = false, recoverPasswordHold = 0) => ({
     loggedIn,
+    recoverPasswordHold,
     userSwitching,
     userSwitchingFromLoggedIn,
   })
@@ -102,5 +103,9 @@ describe('showLoggedInScreens', () => {
 
   test('keeps the logged-out screens for a switch that started logged out', () => {
     expect(showLoggedInScreens(state(false, true, false))).toBe(false)
+  })
+
+  test('keeps the logged-out screens through a password recovery that started logged out', () => {
+    expect(showLoggedInScreens(state(true, false, false, 1))).toBe(false)
   })
 })

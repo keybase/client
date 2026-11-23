@@ -49,6 +49,8 @@ type Store = T.Immutable<{
   justRevokedSelf: string;
   loggedIn: boolean;
   outOfDate: T.Config.OutOfDate;
+  // The password recovery run, started logged out, that holds the logged-out screens (0 when none)
+  recoverPasswordHold: number;
   revokedTrigger: number;
   startup: {
     loaded: boolean;
@@ -91,6 +93,7 @@ const initialStore: Store = {
     outOfDate: false,
     updating: false,
   },
+  recoverPasswordHold: 0,
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
@@ -131,6 +134,8 @@ export type State = Store & {
     setStartupDetails: (st: Omit<Store["startup"], "loaded">) => void;
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void;
     setUpdating: () => void;
+    // A recovery run holds the logged-out screens; only that run's end lets go
+    holdForRecoverPassword: (run: number, hold: boolean) => void;
     // Starting a switch names its target; switchToAccount is the one place that does.
     setUserSwitching: (...args: [sw: true, to: string] | [sw: false]) => void;
     // Starts a switch to a stored account unless one is already running. Returns whether it started.
@@ -629,6 +634,12 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     setUpdating: () => {
       set((s) => {
         s.outOfDate.updating = true;
+      });
+    },
+    holdForRecoverPassword: (run, hold) => {
+      if (!hold && get().recoverPasswordHold !== run) return;
+      set((s) => {
+        s.recoverPasswordHold = hold ? run : 0;
       });
     },
     setUserSwitching: (...args) => {
