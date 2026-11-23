@@ -87,7 +87,7 @@ export function useUnreadShortcut(p: {
   const [unreadCount, setUnreadCount] = React.useState(0)
   const firstOffscreenIdxRef = React.useRef(-1)
 
-  const applyUnreadAndFloating = React.useCallback(() => {
+  const applyImpl = React.useCallback(() => {
     const state = listRef.current?.getState()
     const lastVisibleIdx = state?.end ?? -1
     const info = calcUnreadShortcut(unreadIndices, lastVisibleIdx)
@@ -96,6 +96,15 @@ export function useUnreadShortcut(p: {
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
     setShowFloating(shouldShowFloating(rows, getSize, listRef))
   }, [listRef, unreadIndices, rows, getSize])
+
+  // A stable callback for onViewableItemsChanged: a new one would make LegendList redo its
+  // viewability setup on every rows update, and it swaps callbacks in a passive effect, so a dwell
+  // timer could still reach the previous closure for a frame. The layout effect keeps it current.
+  const applyRef = React.useRef(applyImpl)
+  React.useLayoutEffect(() => {
+    applyRef.current = applyImpl
+  })
+  const applyUnreadAndFloating = React.useCallback(() => applyRef.current(), [])
 
   const scrollToUnread = () => {
     if (firstOffscreenIdxRef.current <= 0) {
@@ -106,8 +115,8 @@ export function useUnreadShortcut(p: {
 
   // Re-run when data changes (rows, unreadIndices, unreadTotal).
   React.useEffect(() => {
-    applyUnreadAndFloating()
-  }, [applyUnreadAndFloating, unreadTotal])
+    applyImpl()
+  }, [applyImpl, unreadTotal])
 
   return {applyUnreadAndFloating, scrollToUnread, showFloating, showUnread, unreadCount}
 }
@@ -121,8 +130,8 @@ const visibleConversationIDs = (data: ViewableItemsData) =>
     return arr
   }, [])
 
-// unboxFirstViewNow: the first callback that shows conversations unboxes them right away, so the
-// inbox's first paint isn't held back by the debounce; later ones are debounced.
+// unboxFirstViewNow: the first view that shows conversations unboxes them without waiting for the
+// debounce (and drops any debounced call still pending); later views are debounced.
 export function useScrollUnbox(
   onUntrustedInboxVisible: (ids: Array<T.Chat.ConversationIDKey>) => void,
   debounceMs: number,
@@ -132,12 +141,13 @@ export function useScrollUnbox(
     (data: ViewableItemsData) => onUntrustedInboxVisible(visibleConversationIDs(data)),
     debounceMs
   )
-  const firstViewPendingRef = React.useRef(unboxFirstViewNow)
+  const firstViewPendingRef = React.useRef(true)
   return (data: ViewableItemsData) => {
-    if (firstViewPendingRef.current) {
+    if (unboxFirstViewNow && firstViewPendingRef.current) {
       const ids = visibleConversationIDs(data)
       if (ids.length > 0) {
         firstViewPendingRef.current = false
+        debounced.cancel()
         onUntrustedInboxVisible(ids)
         return
       }

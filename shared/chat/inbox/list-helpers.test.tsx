@@ -39,6 +39,9 @@ test('a first view with no conversations in it leaves the immediate unbox for th
   act(() => result.current(viewable(divider, conv('a'))))
   expect(onVisible).toHaveBeenCalledTimes(1)
   expect(onVisible).toHaveBeenLastCalledWith(['a'])
+  // the empty view's debounced call was dropped
+  act(() => jest.advanceTimersByTime(200))
+  expect(onVisible).toHaveBeenCalledTimes(1)
 })
 
 test('without unboxFirstViewNow every view is debounced', () => {
