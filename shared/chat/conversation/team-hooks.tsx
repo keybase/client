@@ -7,7 +7,7 @@ import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
-import {forgetLoad, refreshLoad, useLoadData} from '@/query'
+import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
 
@@ -118,7 +118,7 @@ const useChatTeamMembersRaw = (
     'keybase.1.NotifyTeam.teamChangedByID',
     action => {
       if (action.payload.params.teamID === validTeamID) {
-        refreshLoad(chatTeamMembersLoad, teamIDToLoad)
+        reviveLoad(chatTeamMembersLoad, teamIDToLoad)
       }
     },
     enabled

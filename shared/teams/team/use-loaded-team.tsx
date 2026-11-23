@@ -4,7 +4,7 @@ import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {forgetLoad, refreshLoad, useLoadData} from '@/query'
+import {forgetLoad, refreshLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeam = {
   loaded: boolean
@@ -141,9 +141,10 @@ const useLoadedTeamRaw = (
   }
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, enabled)
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, enabled)
+  // the one notice that names this team, so it also brings back a team left and rejoined
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (action.payload.params.teamID === validTeamID) {
-      onTeamChange()
+    if (enabled && action.payload.params.teamID === validTeamID) {
+      reviveLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
     }
   }, enabled)
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {

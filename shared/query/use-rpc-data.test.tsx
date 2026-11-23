@@ -18,6 +18,7 @@ import {
   loadRpcIfStale,
   refreshLoad,
   refreshRpc,
+  reviveLoad,
   setRpcData,
   useCachedRpcData,
   useLoadData,
@@ -360,6 +361,52 @@ test('waiting on a load also waits for the one a notice queued behind it', async
   await act(async () => waiting)
   expect(done).toBe(true)
   expect(result.current.data).toEqual(['current'])
+})
+
+test('a reload after the last screen left ends a wait on the load it cuts off', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const first = renderHook(useDevices)
+  await flush()
+  const held = fake.hold(listMethod)
+  let done = false
+  let waiting = Promise.resolve()
+  act(() => {
+    waiting = (async () => {
+      await first.result.current.reloadAndWait()
+      done = true
+    })()
+  })
+  await flush()
+  expect(held).toHaveLength(1)
+  const {reload} = first.result.current
+  first.unmount()
+  act(() => reload())
+  await act(async () => waiting)
+  expect(done).toBe(true)
+  const reader = renderHook(() => useCachedRpcData(listRpc, undefined, toNames))
+  expect(reader.result.current).toEqual(['laptop'])
+  const entry = getEntry(stableKey(listMethod, undefined), listMethod, async () => Promise.resolve(null))
+  expect(entry.getSnapshot().loading).toBe(false)
+})
+
+test('a load a notice queued goes out only while a screen still loads the data', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const first = renderHook(useDevices)
+  await flush()
+  const held = fake.hold(listMethod)
+  act(() => first.result.current.reload())
+  await flush()
+  await act(notice)
+  first.unmount()
+  held[0]!.reply([device('from-before-the-notice')])
+  await flush()
+  expect(held).toHaveLength(1)
+
+  // the notice left it stale, so the next screen loads it even inside staleMs
+  fake.answer(listMethod, () => [device('current')])
+  const next = renderHook(() => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000}))
+  await flush()
+  expect(next.result.current.data).toEqual(['current'])
 })
 
 test('data nothing has looked at for five minutes is dropped, with no new key needed', async () => {
@@ -854,7 +901,7 @@ test('an explicit reload that fails leaves data a notice made stale still stale'
   })
 })
 
-test('forgotten data is not loaded again by a method-wide notice or a stale check, only by asking for it or naming it', async () => {
+test('forgotten data is not loaded again by a notice or a stale check, only by asking for it or reviving it', async () => {
   fake.answer(teamMethod, (params: {teamID: string}) => ({name: `name-of-${params.teamID}`}))
   const {rerender, result} = renderHook(
     ({refreshKey}: {refreshKey: number}) =>
@@ -871,6 +918,7 @@ test('forgotten data is not loaded again by a method-wide notice or a stale chec
   expect(calls()).toBe(1)
 
   act(() => forgetLoad('test.teamName', 'team-gone'))
+  act(() => refreshLoad('test.teamName', 'team-gone'))
   act(() => refreshLoad('test.teamName'))
   rerender({refreshKey: 2})
   await flush()
@@ -882,9 +930,9 @@ test('forgotten data is not loaded again by a method-wide notice or a stale chec
   expect(calls()).toBe(2)
   expect(result.current.data).toBe('name-of-team-gone')
 
-  // a notice about this very team (re-added while its screen stayed up) brings it back
+  // a notice that names this very team (rejoined while its screen stayed up) brings it back
   act(() => forgetLoad('test.teamName', 'team-gone'))
-  act(() => refreshLoad('test.teamName', 'team-gone'))
+  act(() => reviveLoad('test.teamName', 'team-gone'))
   await flush()
   expect(calls()).toBe(3)
   expect(result.current.data).toBe('name-of-team-gone')

@@ -4,6 +4,7 @@ export {
   loadRpcIfStale,
   refreshLoad,
   refreshRpc,
+  reviveLoad,
   setRpcData,
   useCachedRpcData,
   useLoadData,

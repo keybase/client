@@ -12,7 +12,7 @@ type Snapshot = {
   /** undefined until a load lands */
   readonly data: unknown
   readonly error: Error | undefined
-  /** dropped on purpose (forgetKey): only a screen asking for it, or a refresh naming its key, loads it again */
+  /** dropped on purpose (forgetKey): only a screen asking for it, or reviveKey, loads it again */
   readonly forgotten: boolean
   /** successful loads so far; never goes back, so it tells one load's data from the next */
   readonly loadCount: number
@@ -188,8 +188,13 @@ const start = (e: Entry) => {
       }
     }
     e.inFlight = undefined
-    update(e, {...patch, loading: e.queued})
-    if (e.queued) {
+    // the notice behind a queued load left the entry stale: with no screen loading it, the next
+    // one to mount loads it
+    // (queued stays set until start, so a waiter does not take the gap for the end)
+    const again = e.queued && e.loaders > 0
+    e.queued = again
+    update(e, {...patch, loading: again})
+    if (again) {
       start(e)
     }
     // last: whatever the handler does, the entry is already settled
@@ -243,6 +248,14 @@ export const forgetKey = (key: string) => {
   const e = entries.get(key)
   if (e) {
     clear(e, true)
+  }
+}
+
+/** It exists again after forgetKey (a team rejoined): refreshes reach it again from now on */
+export const reviveKey = (key: string) => {
+  const e = entries.get(key)
+  if (e?.snapshot.forgotten) {
+    update(e, {forgotten: false})
   }
 }
 
@@ -308,8 +321,11 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
         start(e)
       } else {
         // its load may belong to a screen that is gone (or be noLoader once emptied): the next
-        // screen to mount loads it instead
+        // screen to mount loads it instead. A load it cut off never lands, so say it is over.
         e.stale = true
+        if (e.snapshot.loading) {
+          update(e, {loading: false})
+        }
       }
     },
     reloadAndWait: async () => {
@@ -421,8 +437,7 @@ const refreshEntry = (e: Entry) => {
 /**
  * The service says what this method returns has changed. A load on the wire may carry the old
  * answer, so it finishes and one more follows it: a burst of notices costs at most two loads.
- * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry, and
- * reloads it even if it was forgotten: a notice about that exact data says it exists again.
+ * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry.
  * debounceMs is for notices that keep coming (one per message in a busy team): the first reloads
  * at once, and the rest reload once, debounceMs after the last of them.
  */
@@ -431,7 +446,7 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
   const now = Date.now()
   for (const [entryKey, e] of entries) {
     if (e.method !== method || (key !== undefined && key !== entryKey)) continue
-    if (e.lastNotice === notice || (e.snapshot.forgotten && key === undefined)) continue
+    if (e.lastNotice === notice || e.snapshot.forgotten) continue
     e.lastNotice = notice
     e.stale = true
     const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs

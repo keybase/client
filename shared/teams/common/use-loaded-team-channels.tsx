@@ -6,7 +6,7 @@ import logger from '@/logger'
 import * as React from 'react'
 import {registerTeamChannelsInvalidator} from './team-channels-invalidation'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {forgetLoad, refreshLoad, useLoadData} from '@/query'
+import {forgetLoad, refreshLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -72,7 +72,7 @@ const teamChannelsRPCParams = (teamname: string) => ({
 const useReloadOnTeamChannelChanges = (teamID: T.Teams.TeamID, enabled: boolean) => {
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === teamID) {
-      refreshLoad(loadedTeamChannelsLoad, teamID)
+      reviveLoad(loadedTeamChannelsLoad, teamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {

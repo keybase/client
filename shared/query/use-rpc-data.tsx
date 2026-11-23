@@ -7,6 +7,7 @@ import {
   getEntry,
   loadIfStale,
   refreshMethod,
+  reviveKey,
   selectFrom,
   setEntryData,
   setLoader,
@@ -155,6 +156,15 @@ export const refreshRpc = (rpc: AnyRpc, debounceMs?: number) => refreshMethod(rp
 /** refreshRpc for a useLoadData name; with a key (not undefined) for just that one */
 export const refreshLoad = (name: string, key?: unknown, debounceMs?: number) =>
   refreshMethod(name, key === undefined ? undefined : stableKey(name, key), debounceMs)
+
+/**
+ * refreshLoad for one key that also undoes forgetLoad: for a notice that names this data (a team
+ * changed), which says it exists again
+ */
+export const reviveLoad = (name: string, key: unknown, debounceMs?: number) => {
+  reviveKey(stableKey(name, key))
+  refreshLoad(name, key, debounceMs)
+}
 
 /** drop a useLoadData's cached data: for when it no longer exists, where refreshLoad would reload it */
 export const forgetLoad = (name: string, key: unknown) => forgetKey(stableKey(name, key))
