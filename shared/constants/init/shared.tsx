@@ -247,6 +247,8 @@ const onHandshakeStateChanged = (
     loggedInAtHandshakeStart = loggedIn;
   } else if (state === "done" && loggedInAtHandshakeStart && loggedIn && !userSwitching) {
     requestFollowerInfoForStartup();
+    // The service's chat sync runs when it reaches the server, not when the app reconnects to it
+    ignorePromise(useInboxLayoutState.getState().dispatch.refresh("reconnected"));
   }
 };
 

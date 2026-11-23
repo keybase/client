@@ -460,6 +460,7 @@ describe('a new connection', () => {
   let subscribed = false
   const followerRequests = () =>
     fake.calls.filter(c => c.method === 'keybase.1.config.requestFollowingAndUnverifiedFollowers').length
+  const inboxRefreshes = () => fake.calls.filter(c => c.method === 'chat.1.local.requestInboxLayout').length
 
   // The service as each connection meets it: it sends a notification only to a subscribed
   // connection, and resends the badge state when the identify UI registers
@@ -491,6 +492,7 @@ describe('a new connection', () => {
       'keybase.1.delegateUiCtl.registerGregorUIPrefs',
       'keybase.1.config.helloIAm',
       'keybase.1.config.requestFollowingAndUnverifiedFollowers',
+      'chat.1.local.requestInboxLayout',
     ]) {
       fake.answer(m, () => null)
     }
@@ -579,6 +581,22 @@ describe('a new connection', () => {
 
     expect(useDaemonState.getState().handshakeState).toBe('done')
     expect(followerRequests()).toBe(before + 1)
+  })
+
+  // Chat changes made while disconnected were sent to no one, and the service's own chat sync runs
+  // only when it reaches the server
+  test('a reconnect that keeps the user logged in refreshes the inbox', async () => {
+    session = userA
+    await connect()
+    const before = inboxRefreshes()
+
+    fake.drop()
+    await settle()
+    fake.restart()
+    await settle()
+    await connect()
+
+    expect(inboxRefreshes()).toBe(before + 1)
   })
 
   test('the first handshake leaves the follower load to the login', async () => {
