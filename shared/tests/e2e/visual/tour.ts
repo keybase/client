@@ -838,13 +838,12 @@ export const tour: ReadonlyArray<TourEntry> = [
     {phone: true, seal: ['follows']}
   ),
   ...modal('feedback', 'signupSendFeedbackLoggedIn', {}, {phone: true}),
-  // Signup's screens after the account exists, and recover password's signed-in modals: render
-  // only. A flow never reaches them (no account is created, and only a real paper key would log in
-  // to set a new password), so the tour opens them and presses nothing.
+  // Signup's screens after the account exists, and recover password's signed-in error modal: render
+  // only. A flow never reaches them (no account is created, and recovery runs signed out), so the
+  // tour opens them and presses nothing.
   ...modal('signup-email', 'signupEnterEmail'),
   ...modal('signup-phone', 'signupEnterPhoneNumber'),
   ...modal('signup-verify-phone', 'signupVerifyPhoneNumber', {phoneNumber: '+15555550100'}),
-  ...modal('recover-password-set-password', 'recoverPasswordSetPassword', {}),
   ...modal('recover-password-error', 'recoverPasswordErrorModal', {error: 'e2e: the recovery failed'}),
   ...modal('chat-block', 'chatBlockingModal', {blockUserByDefault: true, username: {ref: 'secondUser'}}, {phone: true, seal: ['follows']}),
   ...teamModal('team-rename', 'teamRename', {teamname: {ref: 'teamname'}}, {phone: true}),
@@ -1089,9 +1088,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 //
 // Signed out, provisioning or resetting (the gate runs signed in): login, feedback, the
 //   recoverPassword* screens of the signed-out stack, reset*, signupError, signupEnterUsername,
-//   signupEnterDevicename, signupSendFeedbackLoggedOut, and the provision screens; also
-//   recoverPasswordPgpWarning, which closes itself unless a recovery a real paper key started is
-//   waiting on it
+//   signupEnterDevicename, signupSendFeedbackLoggedOut, and the provision screens
 //
 // A write on open:
 //   devicePaperKey: makes and provisions a new paper key
