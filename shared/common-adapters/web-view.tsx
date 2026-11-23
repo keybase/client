@@ -145,6 +145,8 @@ const WebView = (props: WebViewProps) => {
             setLoadFailed(true)
             onError?.(event.nativeEvent.description)
           }}
+          // Only here because iOS adds injectedJavaScript just when messaging is on. Messages come
+          // from whatever page is loaded, so this stays a no-op.
           onMessage={() => {}}
           startInLoadingState={!!renderLoading}
           renderLoading={renderLoading}

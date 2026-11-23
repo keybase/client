@@ -7,7 +7,6 @@ import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
 import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
 import {useConversationSendActions} from '../../../send-actions'
-import {useSyncRowLayout} from '../../use-sync-row-layout'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // The flip result arrives via a separate status notification, not with the thread, so on initial
@@ -50,11 +49,6 @@ function CoinFlipContainer() {
   const revealVis = status?.revealVisualization
   const showParticipants = phase === T.RPCChat.UICoinFlipPhase.complete
   const numParticipants = participants?.length ?? 0
-
-  // The flip result streams in after first paint and grows the card; flush the row measure so the
-  // list re-pins to the newest message instead of parking above it. Keyed on the status signals
-  // that change the card height (loaded yet, phase, participant count, result present).
-  useSyncRowLayout(`${status === undefined ? 0 : 1}|${phase ?? -1}|${numParticipants}|${resultInfo ? 1 : 0}`)
 
   const revealed =
     participants?.reduce((r, p) => {

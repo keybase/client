@@ -117,6 +117,8 @@ const NativeGiphySearch = () => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={nativeStyles.container}>
       {p.previews ? (
         <WebView
+          // Only here because iOS adds injectedJavaScript just when messaging is on. Messages come
+          // from the loaded page, so this stays a no-op.
           onMessage={noop}
           injectedJavaScript={injectedJavaScript}
           allowsInlineMediaPlayback={true}

@@ -67,6 +67,13 @@ config.server = {
   },
 }
 
+// Expo's default is inlineRequires: false; we keep modules initialising on first use.
+const expoGetTransformOptions = config.transformer.getTransformOptions
+config.transformer.getTransformOptions = async (...args) => {
+  const options = await expoGetTransformOptions(...args)
+  return {...options, transform: {...options.transform, inlineRequires: true}}
+}
+
 // Bundle Mode: chains our resolveRequest behind the worklets shims, pre-loads
 // worklet entry points, and pins module ids so all runtimes share the bundle.
 module.exports = getBundleModeMetroConfig(config)

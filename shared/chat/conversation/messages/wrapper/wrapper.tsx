@@ -12,7 +12,6 @@ import ExplodingMeta from './exploding-meta'
 import LongPressable from './long-pressable'
 import {useMessagePopup} from '../message-popup'
 import ReactionsRow from '../reactions-rows'
-import {useSyncRowLayout} from '../use-sync-row-layout'
 import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
@@ -582,9 +581,6 @@ function TextAndSiblings(p: TSProps) {
   const {hasReactions, popupAnchor, reactions, sendIndicatorFailed, sendIndicatorID} = p
   const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
-  // Reactions appearing and an unfurl card loading both grow the row after first paint; flush the
-  // measure so the list re-pins to the newest message instead of parking above it.
-  useSyncRowLayout(`${reactions?.size ?? 0}|${hasUnfurlList ? 1 : 0}`)
   const pressableProps = isMobile
     ? {
         onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
