@@ -140,3 +140,22 @@ func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.Ide
 	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
+
+// DedupeSuperseded returns one row per phone number, in order of first
+// appearance. The server can list a number more than once when another
+// account superseded it and it was re-added; the live row wins.
+func DedupeSuperseded(nums []keybase1.UserPhoneNumber) (ret []keybase1.UserPhoneNumber) {
+	index := make(map[keybase1.PhoneNumber]int, len(nums))
+	for _, num := range nums {
+		i, ok := index[num.PhoneNumber]
+		if !ok {
+			index[num.PhoneNumber] = len(ret)
+			ret = append(ret, num)
+			continue
+		}
+		if ret[i].Superseded && !num.Superseded {
+			ret[i] = num
+		}
+	}
+	return ret
+}

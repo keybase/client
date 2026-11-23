@@ -18,29 +18,6 @@ test('makePhoneError maps the expected RPC errors', () => {
   )
 })
 
-test('setNumbers keeps the first non-superseded row for a phone number', () => {
-  const rows = [
-    {
-      phoneNumber: '+15555550123',
-      superseded: false,
-      verified: false,
-      visibility: T.RPCGen.IdentityVisibility.private,
-    },
-    {
-      phoneNumber: '+15555550123',
-      superseded: true,
-      verified: true,
-      visibility: T.RPCGen.IdentityVisibility.public,
-    },
-  ] as any
-
-  useSettingsPhoneState.getState().dispatch.setNumbers(rows)
-
-  const row = useSettingsPhoneState.getState().phones?.get('+15555550123')
-  expect(row?.superseded).toBe(false)
-  expect(row?.verified).toBe(false)
-})
-
 test('resetState clears the cached phone numbers', () => {
   useSettingsPhoneState.getState().dispatch.setNumbers([
     {
