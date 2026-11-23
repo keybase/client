@@ -1394,10 +1394,15 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 		g.NotifyRouter.HandleKeyfamilyChanged(u)
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
-		// a device was added or revoked; the device list can now see it
-		if g.GetMyUID().Equal(u) {
-			g.NotifyRouter.HandleDeviceHistoryChanged()
-		}
+		g.notifyDeviceHistoryIfSelf(u)
+	}
+}
+
+// notifyDeviceHistoryIfSelf tells device lists that our devices may have
+// changed; call it after our cached keys are refreshed so a reload sees it.
+func (g *GlobalContext) notifyDeviceHistoryIfSelf(u keybase1.UID) {
+	if g.NotifyRouter != nil && g.GetMyUID().Equal(u) {
+		g.NotifyRouter.HandleDeviceHistoryChanged()
 	}
 }
 
