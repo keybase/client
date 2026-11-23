@@ -144,7 +144,6 @@ class SendQuickReplyTest {
         assertEquals(listOf<Pair<String, Throwable?>>("Failed to send quick reply" to failure), errors.toList())
     }
 
-    // Go sends before it checks either, and swallows the send's error.
     @Test
     fun loggedOutReplyIsNotSent() {
         assertEquals(QUICK_REPLY_FAILED, send(currentUID = { "" }))
@@ -160,7 +159,7 @@ class SendQuickReplyTest {
         assertEquals(listOf<Throwable?>(failure), errors.map { it.second })
     }
 
-    // Go would post it as the current account.
+    // Go posts as the current account; refuse another account's notification here.
     @Test
     fun replyFromAnotherAccountsNotificationIsNotSent() {
         assertEquals(QUICK_REPLY_FAILED, send(currentUID = { "uid" }, notificationUID = "other-uid"))
@@ -176,9 +175,13 @@ class SendQuickReplyTest {
 
     @Test
     fun replyToAnInvalidMessageIsNotSent() {
-        assertEquals(QUICK_REPLY_FAILED, send(msgId = -1))
-        assertFalse(sent)
-        assertEquals(1, errors.size)
+        for (msgId in listOf(-1L, 0L)) {
+            sent = false
+            errors.clear()
+            assertEquals(QUICK_REPLY_FAILED, send(msgId = msgId), "msgId=$msgId")
+            assertFalse(sent, "msgId=$msgId")
+            assertEquals(1, errors.size)
+        }
     }
 }
 

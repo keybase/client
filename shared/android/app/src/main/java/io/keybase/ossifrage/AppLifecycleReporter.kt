@@ -85,7 +85,9 @@ internal fun sendQuickReply(
         error("Quick reply couldn't read the current uid", e)
         return QUICK_REPLY_FAILED
     }
-    // Go sends before it checks either, and swallows the send's error.
+    // Go also refuses logged-out / invalid-msgID replies and returns send
+    // errors; these checks keep a failed reply from looking like success in
+    // the notification UI before Go runs.
     if (uid.isEmpty()) {
         error("Quick reply while logged out", null)
         return QUICK_REPLY_FAILED
@@ -94,7 +96,7 @@ internal fun sendQuickReply(
         error("Quick reply from another account's notification", null)
         return QUICK_REPLY_FAILED
     }
-    if (msgId < 0) {
+    if (msgId <= 0) {
         error("Quick reply to invalid message id $msgId", null)
         return QUICK_REPLY_FAILED
     }
