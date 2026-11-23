@@ -1662,7 +1662,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-webview (16.0.2):
+  - react-native-webview (17.1.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2896,7 +2896,7 @@ SPEC CHECKSUMS:
   react-native-kb: 4f05411ae1f4a96b38b0f48ed35c39fa9c048323
   react-native-keyboard-controller: dd21c5674298a000d060e70909cb6984404bc582
   react-native-safe-area-context: f54c903d3a8c8ddd602e85d4e5bcfe9944de85bc
-  react-native-webview: 8f00424aca54fdfbe9d1a14e8b7126ea1c12dbcf
+  react-native-webview: 657a4c13791eeffbb7939ae3f72a5c72908c45f5
   React-NativeModulesApple: 8cfb2f308f48c48068c96b932e7f0e4297c23342
   React-networking: 6e2fa1cf6d44aa04a11e9f72900361731ddf74d6
   React-oscompat: f27d5f926c696f407b81a282fa15d68c881d7b3d
