@@ -227,10 +227,13 @@ export const getAssetPath = (...a: Array<string>): string => {
   return KB2.constants.assetRoot + a.join('/')
 }
 
+const screenProtectorConfigKey = 'ui.screenprotector'
 // The screen protector when the setting was never saved: on for Android (its native default is a
 // secure window), off for iOS, which shipped without one, so updating changes nothing there.
 const secureByDefault = isAndroid
 
+// The saved setting. One that can't be read counts as on: a failed read must not leave a user who
+// turned the protector on unprotected.
 export const getSecureFlagSetting = async (): Promise<boolean> => {
   if (!isMobile) {
     await Promise.resolve()
@@ -238,25 +241,43 @@ export const getSecureFlagSetting = async (): Promise<boolean> => {
   }
   try {
     const RPCGen = await import('@/constants/rpc/rpc-gen')
-    const screenProtectorConfigKey = 'ui.screenprotector'
     const value = await RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
     return value.isNull ? secureByDefault : value.b !== false
   } catch {
-    return secureByDefault
+    return true
   }
 }
 
-// Turns the screen protector on or off: screenshots and screen recording show nothing of the app,
-// nor does the app switcher's preview (Android's secure window covers that itself; iOS blurs it).
+// Android starts protected at launch (constants/init), before any apply
+let screenProtectorOn = isAndroid
+// Counts the user's changes to the setting, so a startup read that a change overtook is not applied.
+let screenProtectorWrites = 0
+export const screenProtectorWriteCount = () => screenProtectorWrites
+
+// Turns the screen protector on or off. Android's secure window keeps the app out of screenshots,
+// screen recordings and the app switcher. On iOS screenshots leave out the window that was key when
+// it was turned on, a recording shows a cover over the app, and the app switcher shows a blur.
 export const applyScreenProtector = async (secure: boolean) => {
+  screenProtectorOn = secure
   const ScreenCapture = await import('expo-screen-capture')
   if (secure) {
-    await ScreenCapture.preventScreenCaptureAsync('screenprotector')
+    // first, so app switcher protection holds even when there is no window to protect yet
     if (isIOS) await ScreenCapture.enableAppSwitcherProtectionAsync()
+    await ScreenCapture.preventScreenCaptureAsync('screenprotector')
   } else {
     await ScreenCapture.allowScreenCaptureAsync('screenprotector')
     if (isIOS) await ScreenCapture.disableAppSwitcherProtectionAsync()
   }
+}
+
+// iOS protects only the window that was key when the protector went on, and fails when there was
+// none (a launch into the background). On becoming active the window is protected again; the library
+// reaches native only for its first call under a key, so this calls native itself, which does nothing
+// for a window already protected.
+export const reapplyScreenProtectorIOS = async () => {
+  if (!isIOS || !screenProtectorOn) return
+  const {requireNativeModule} = await import('expo')
+  await requireNativeModule<{preventScreenCapture: () => Promise<void>}>('ExpoScreenCapture').preventScreenCapture()
 }
 
 export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> => {
@@ -264,9 +285,10 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
     await Promise.resolve()
     return false
   }
+  screenProtectorWrites++
+  const was = screenProtectorOn
   try {
     const RPCGen = await import('@/constants/rpc/rpc-gen')
-    const screenProtectorConfigKey = 'ui.screenprotector'
     await applyScreenProtector(secure)
     await RPCGen.configGuiSetValueRpcPromise({
       path: screenProtectorConfigKey,
@@ -274,6 +296,8 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
     })
     return true
   } catch {
+    // what holds matches what is saved: an apply that took is undone when its save failed
+    await applyScreenProtector(was).catch(() => {})
     return false
   }
 }
