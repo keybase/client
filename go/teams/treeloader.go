@@ -26,9 +26,6 @@ type Treeloader struct {
 
 	// mock for error testing
 	Converter TreeloaderStateConverter
-
-	// loads a team below the target
-	loadSubteam func(libkb.MetaContext, keybase1.TeamID) (*TeamSigChainState, error)
 }
 
 var _ TreeloaderStateConverter = &Treeloader{}
@@ -47,18 +44,9 @@ func NewTreeloader(mctx libkb.MetaContext, targetUsername string,
 		targetTeamID:     targetTeamID,
 		targetUV:         upak.Current.ToUserVersion(),
 		includeAncestors: includeAncestors,
-		loadSubteam:      loadTreeSubteam,
 	}
 	l.Converter = l
 	return l, nil
-}
-
-func loadTreeSubteam(mctx libkb.MetaContext, teamID keybase1.TeamID) (*TeamSigChainState, error) {
-	team, err := GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
-	if err != nil {
-		return nil, err
-	}
-	return team.chain(), nil
 }
 
 // Load returns a result for every team of the tree that it reached, sorted by team name. It errors
@@ -97,10 +85,30 @@ func (l *Treeloader) loadTree(mctx libkb.MetaContext,
 	for membership := range ch {
 		res = append(res, membership)
 	}
-	// '.' sorts before every character a team name part can have, so each team comes right
-	// before its subteams
-	sort.Slice(res, func(i, j int) bool { return res[i].TeamName < res[j].TeamName })
+	sortTeamTreeMemberships(res)
 	return res
+}
+
+// '.' sorts before every character a team name part can have, so each team comes right before
+// its subteams
+func sortTeamTreeMemberships(res []keybase1.TeamTreeMembership) {
+	sort.Slice(res, func(i, j int) bool { return res[i].TeamName < res[j].TeamName })
+}
+
+// treeNode is one team's row, and the subteams to load next, from how its load went: chain if it
+// loaded, loadErr if not. A team that failed to load is an ERROR row and none of its subteams are
+// loaded; its siblings are not affected.
+func (l *Treeloader) treeNode(mctx libkb.MetaContext, teamName keybase1.TeamName,
+	chain *TeamSigChainState, loadErr error,
+) (row keybase1.TeamTreeMembership, subteams []keybase1.TeamIDAndName) {
+	if loadErr != nil {
+		return newTeamTreeMembership(teamName, l.NewErrorResult(loadErr, teamName)), nil
+	}
+	result := l.Converter.ProcessSigchainState(mctx, teamName, &chain.inner)
+	if s, _ := result.S(); s == keybase1.TeamTreeMembershipStatus_ERROR {
+		return newTeamTreeMembership(teamName, result), nil
+	}
+	return newTeamTreeMembership(teamName, result), chain.ListSubteams()
 }
 
 func newTeamTreeMembership(teamName keybase1.TeamName,
@@ -116,31 +124,23 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 	defer mctx.Trace(fmt.Sprintf("Treeloader.loadRecursive(%s, %s, %s)",
 		l.targetTeamName, l.targetUV, l.targetUsername), nil)()
 
-	var result keybase1.TeamTreeMembershipResult
-	var subteams []keybase1.TeamIDAndName
-	select {
-	case <-mctx.Ctx().Done():
-		result = l.NewErrorResult(mctx.Ctx().Err(), teamName)
-	default:
-		// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
-		// it. Otherwise, do a team load.
-		chain := targetChainState
-		if chain == nil {
-			var err error
-			chain, err = l.loadSubteam(mctx, teamID)
-			if err != nil {
-				result = l.NewErrorResult(err, teamName)
-			}
-		}
-		if chain != nil {
-			result = l.Converter.ProcessSigchainState(mctx, teamName, &chain.inner)
-			subteams = chain.ListSubteams()
+	// If it is the initial call, the caller passes in the sigchain state so we don't need to reload
+	// it. Otherwise, do a team load.
+	chain := targetChainState
+	var loadErr error
+	if err := mctx.Ctx().Err(); err != nil {
+		loadErr = err
+	} else if chain == nil {
+		var team *Team
+		team, loadErr = GetForTeamManagementByTeamID(mctx.Ctx(), mctx.G(), teamID, true /* needAdmin */)
+		if loadErr == nil {
+			chain = team.chain()
 		}
 	}
-	ch <- newTeamTreeMembership(teamName, result)
-	s, _ := result.S()
-	if s == keybase1.TeamTreeMembershipStatus_ERROR {
-		mctx.Debug("Treeloader.loadRecursive: short-circuiting load due to failure: %+v", result)
+	row, subteams := l.treeNode(mctx, teamName, chain, loadErr)
+	ch <- row
+	if s, _ := row.Result.S(); s == keybase1.TeamTreeMembershipStatus_ERROR {
+		mctx.Debug("Treeloader.loadRecursive: short-circuiting load due to failure: %+v", row.Result)
 		return
 	}
 
