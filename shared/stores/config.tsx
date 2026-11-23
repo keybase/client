@@ -26,7 +26,6 @@ import {
 import { disposeDialogsForLogout } from "@/engine/dialog";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
-import { useDaemonState } from "@/stores/daemon";
 import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
@@ -338,8 +337,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             );
             return;
           }
-          // Every failure that was not superseded ends the switch here; nothing else would. The session
-          // refresh in finally then applies whatever the daemon says, a logged-out status included.
+          // Every failure that was not superseded ends the switch here; nothing else would. Ending it
+          // applies the service's latest session, a logged-out one included.
           get().dispatch.setUserSwitching(false);
           if (!(error instanceof RPCError)) {
             return;
@@ -362,11 +361,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
               ),
             );
           }
-        } finally {
-          // After the switch ends: a failed switch must apply a logged-out session.
-          useDaemonState
-            .getState()
-            .dispatch.refreshSessionFromDaemon("login returned");
         }
       };
       get().dispatch.setLoginError();

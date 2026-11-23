@@ -22,6 +22,8 @@ afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
+  // the service's session outlives a store reset
+  useDaemonState.setState({bootstrapStatus: undefined})
 })
 
 describe('useTopReacjis', () => {

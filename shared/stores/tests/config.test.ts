@@ -4,7 +4,6 @@
 import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
 import {getAccountGeneration} from '../../engine/account-generation'
-import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 import {useWaitingState} from '../waiting'
@@ -156,47 +155,18 @@ test('loggedIn and loggedOut notifications do not set the session themselves', (
 
 describe('login', () => {
   const loginRpc = 'keybase.1.login.login'
-  const bootstrapRpc = 'keybase.1.config.getBootstrapStatus'
-  const originalDaemonDispatch = useDaemonState.getState().dispatch
-  // whether the switch was still running each time the session was read
-  let switchingWhenRead: Array<boolean>
-  beforeEach(() => {
-    switchingWhenRead = []
-    // the real read, recording when it starts
-    useDaemonState.setState({
-      dispatch: {
-        ...originalDaemonDispatch,
-        refreshSessionFromDaemon: reason => {
-          switchingWhenRead.push(useConfigState.getState().userSwitching)
-          originalDaemonDispatch.refreshSessionFromDaemon(reason)
-        },
-      },
-    })
-  })
   afterEach(() => {
     jest.restoreAllMocks()
-    useDaemonState.setState({dispatch: originalDaemonDispatch})
   })
 
   const flush = settle
 
-  // The service: what the session read answers, and every login held for the test to end
+  // The service, with every login held for the test to end. It answers nothing else: the session
+  // comes with the service's sessionChanged, so a login that ends reads nothing.
   const serve = (): {fake: FakeEngine; logins: ReturnType<FakeEngine['hold']>} => {
     const fake = installFakeEngine()
-    fake.answer(bootstrapRpc, () => ({
-      deviceID: '',
-      deviceName: '',
-      fullname: '',
-      httpSrvInfo: null,
-      loggedIn: false,
-      registered: true,
-      uid: '',
-      userReacjis: {skinTone: 0, topReacjis: null},
-      username: '',
-    }))
     return {fake, logins: fake.hold(loginRpc)}
   }
-  const sessionReads = (fake: FakeEngine) => fake.calls.filter(c => c.method === bootstrapRpc).length
 
   const loginEnding = async (answer: unknown, switching = false) => {
     const {fake, logins} = serve()
@@ -209,27 +179,17 @@ describe('login', () => {
     return fake
   }
 
-  test('reads the session from the daemon when the login succeeds', async () => {
-    const fake = await loginEnding(null)
+  test('a login that succeeds leaves the session to the service', async () => {
+    await loginEnding(null)
 
-    expect(sessionReads(fake)).toBe(1)
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().loginError).toBeUndefined()
   })
 
-  test('reads the session from the daemon when already logged in', async () => {
-    const fake = await loginEnding(fakeError(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in'))
+  test('a failed switch stops switching and shows the error', async () => {
+    await loginEnding(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'), true)
 
-    expect(sessionReads(fake)).toBe(1)
-    expect(useConfigState.getState().loggedIn).toBe(false)
-    expect(useConfigState.getState().loginError).toBeUndefined()
-  })
-
-  test('a failed switch stops switching before it reads the session, so a logged-out reply applies', async () => {
-    const fake = await loginEnding(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'), true)
-
-    expect(switchingWhenRead).toEqual([false])
-    expect(sessionReads(fake)).toBe(1)
+    expect(useConfigState.getState().userSwitching).toBe(false)
     expect(useConfigState.getState().loginError).toBeDefined()
   })
 
@@ -383,12 +343,11 @@ describe('login', () => {
     })
 
     test('already logged in ends the switch without a login error', async () => {
-      const fake = await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
+      await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
 
       const state = useConfigState.getState()
       expect(state.userSwitching).toBe(false)
       expect(state.loginError).toBeUndefined()
-      expect(sessionReads(fake)).toBe(1)
     })
 
     test.each([
