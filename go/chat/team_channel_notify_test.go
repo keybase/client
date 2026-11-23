@@ -12,21 +12,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type teamChangedByIDListener struct {
+type teamChangedListener struct {
 	libkb.NoopNotifyListener
-	ch chan keybase1.TeamChangedByIDArg
+	ch chan keybase1.TeamChangedArg
 }
 
-func (l *teamChangedByIDListener) TeamChangedByID(teamID keybase1.TeamID, _ keybase1.Seqno, _ bool,
-	changes keybase1.TeamChangeSet, _ keybase1.Seqno, source keybase1.TeamChangedSource,
+func (l *teamChangedListener) TeamChanged(teamID keybase1.TeamID, kinds keybase1.TeamChangedKinds,
+	_ keybase1.UserTeamVersion,
 ) {
 	select {
-	case l.ch <- keybase1.TeamChangedByIDArg{TeamID: teamID, Changes: changes, Source: source}:
+	case l.ch <- keybase1.TeamChangedArg{TeamID: teamID, Kinds: kinds}:
 	default:
 	}
 }
 
-func (l *teamChangedByIDListener) drain() {
+func (l *teamChangedListener) drain() {
 	for {
 		select {
 		case <-l.ch:
@@ -36,19 +36,18 @@ func (l *teamChangedByIDListener) drain() {
 	}
 }
 
-// requireChannelsChanged waits for the empty, locally sourced change set that a
-// channel change sends; server team.change notices for the team are skipped.
-func (l *teamChangedByIDListener) requireChannelsChanged(t *testing.T, teamID keybase1.TeamID, what string) {
+// requireChannelsChanged waits for the channels-only teamChanged that a channel
+// change sends; other team changes (server team.change notices) are skipped.
+func (l *teamChangedListener) requireChannelsChanged(t *testing.T, teamID keybase1.TeamID, what string) {
 	timeout := time.After(20 * time.Second)
 	for {
 		select {
 		case arg := <-l.ch:
-			if arg.TeamID.Eq(teamID) && arg.Source == keybase1.TeamChangedSource_LOCAL &&
-				arg.Changes == (keybase1.TeamChangeSet{}) {
+			if arg.TeamID.Eq(teamID) && arg.Kinds == (keybase1.TeamChangedKinds{Channels: true}) {
 				return
 			}
 		case <-timeout:
-			require.Fail(t, "no teamChangedByID after "+what)
+			require.Fail(t, "no teamChanged after "+what)
 		}
 	}
 }
@@ -62,7 +61,7 @@ func TestChatSrvTeamChannelChangesNotifyTeam(t *testing.T) {
 	tc := ctc.as(t, users[0])
 	ctx := tc.startCtx
 
-	listener := &teamChangedByIDListener{ch: make(chan keybase1.TeamChangedByIDArg, 100)}
+	listener := &teamChangedListener{ch: make(chan keybase1.TeamChangedArg, 100)}
 	tc.h.G().NotifyRouter.AddListener(listener)
 
 	general := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -112,15 +111,13 @@ func TestChatSrvTeamChannelChangesNotifyTeam(t *testing.T) {
 	listener.requireChannelsChanged(t, teamID, "delete")
 }
 
-type blockingTeamChangedByIDListener struct {
+type blockingTeamChangedListener struct {
 	libkb.NoopNotifyListener
 	release chan struct{}
 	done    chan struct{}
 }
 
-func (l *blockingTeamChangedByIDListener) TeamChangedByID(keybase1.TeamID, keybase1.Seqno, bool,
-	keybase1.TeamChangeSet, keybase1.Seqno, keybase1.TeamChangedSource,
-) {
+func (l *blockingTeamChangedListener) TeamChanged(keybase1.TeamID, keybase1.TeamChangedKinds, keybase1.UserTeamVersion) {
 	<-l.release
 	close(l.done)
 }
@@ -133,7 +130,7 @@ func TestNotifyTeamChannelsChangedDoesNotBlock(t *testing.T) {
 	tc.G.ConnectionManager = libkb.NewConnectionManager()
 	tc.G.NotifyRouter = libkb.NewNotifyRouter(tc.G)
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
-	listener := &blockingTeamChangedByIDListener{release: make(chan struct{}), done: make(chan struct{})}
+	listener := &blockingTeamChangedListener{release: make(chan struct{}), done: make(chan struct{})}
 	g.NotifyRouter.AddListener(listener)
 
 	teamID := keybase1.MakeTestTeamID(1, false)

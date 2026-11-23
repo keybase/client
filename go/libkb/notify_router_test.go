@@ -434,3 +434,70 @@ func TestSessionStatusReturnsTheReadError(t *testing.T) {
 	_, err := tc.G.NotifyRouter.SessionStatus(NewMetaContextForTest(tc))
 	require.EqualError(t, err, "read failed")
 }
+
+// A connection on the teamChanged channel gets one teamChanged per change and
+// none of the coarse team notifications it replaces; a connection on only the
+// team channel keeps getting those.
+func TestTeamChangedReplacesCoarseTeamNotifications(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	app := NewNotifyRecorder(g, keybase1.NotificationChannels{Team: true, TeamChanged: true})
+	defer app.Close()
+	coarse := NewNotifyRecorder(g, keybase1.NotificationChannels{Team: true})
+	defer coarse.Close()
+
+	ctx := context.Background()
+	n := g.NotifyRouter
+	teamID := keybase1.TeamID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa24")
+	n.HandleTeamChangedByBothKeys(ctx, teamID, "testteam", 3, false,
+		keybase1.TeamChangeSet{MembershipChanged: true, Misc: true}, 0, 0, keybase1.TeamChangedSource_SERVER)
+	n.HandleTeamDeleted(ctx, teamID)
+	n.HandleTeamExit(ctx, teamID)
+	n.HandleTeamRoleMapChanged(ctx, 7)
+	n.HandleTeamMetadataUpdate(ctx)
+	n.HandleTeamChanged(ctx, teamID, keybase1.TeamChangedKinds{Channels: true}, 0)
+
+	type sent struct {
+		TeamID  keybase1.TeamID
+		Kinds   keybase1.TeamChangedKinds
+		Version keybase1.UserTeamVersion
+	}
+	want := []sent{
+		{TeamID: teamID, Kinds: keybase1.TeamChangedKinds{Membership: true, Settings: true}},
+		{TeamID: teamID, Kinds: keybase1.TeamChangedKinds{Deleted: true}},
+		{TeamID: teamID, Kinds: keybase1.TeamChangedKinds{Exited: true}},
+		{Kinds: keybase1.TeamChangedKinds{RoleMap: true}, Version: 7},
+		{TeamID: teamID, Kinds: keybase1.TeamChangedKinds{Channels: true}},
+	}
+	require.Eventually(t, func() bool {
+		return len(app.Messages()) >= len(want)
+	}, 10*time.Second, 10*time.Millisecond)
+	var got []sent
+	for _, m := range app.Messages() {
+		require.Equal(t, "keybase.1.NotifyTeam.teamChanged", m.Method)
+		var arg keybase1.TeamChangedArg
+		require.NoError(t, m.Decode(&arg))
+		got = append(got, sent{TeamID: arg.TeamID, Kinds: arg.Kinds, Version: arg.RoleMapVersion})
+	}
+	require.Equal(t, want, got)
+
+	wantCoarse := []string{
+		"keybase.1.NotifyTeam.teamChangedByID",
+		"keybase.1.NotifyTeam.teamChangedByName",
+		"keybase.1.NotifyTeam.teamDeleted",
+		"keybase.1.NotifyTeam.teamExit",
+		"keybase.1.NotifyTeam.teamRoleMapChanged",
+		"keybase.1.NotifyTeam.teamMetadataUpdate",
+	}
+	require.Eventually(t, func() bool {
+		return len(coarse.Messages()) >= len(wantCoarse)
+	}, 10*time.Second, 10*time.Millisecond)
+	var gotCoarse []string
+	for _, m := range coarse.Messages() {
+		gotCoarse = append(gotCoarse, m.Method)
+	}
+	require.Equal(t, wantCoarse, gotCoarse)
+}

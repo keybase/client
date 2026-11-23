@@ -85,6 +85,36 @@ func (o AvatarUpdateType) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
+type TeamChangedKinds struct {
+	Membership     bool `codec:"membership" json:"membership"`
+	Roles          bool `codec:"roles" json:"roles"`
+	KeyRotated     bool `codec:"keyRotated" json:"keyRotated"`
+	Renamed        bool `codec:"renamed" json:"renamed"`
+	Settings       bool `codec:"settings" json:"settings"`
+	Channels       bool `codec:"channels" json:"channels"`
+	MemberCount    bool `codec:"memberCount" json:"memberCount"`
+	Exited         bool `codec:"exited" json:"exited"`
+	Deleted        bool `codec:"deleted" json:"deleted"`
+	RoleMap        bool `codec:"roleMap" json:"roleMap"`
+	MemberShowcase bool `codec:"memberShowcase" json:"memberShowcase"`
+}
+
+func (o TeamChangedKinds) DeepCopy() TeamChangedKinds {
+	return TeamChangedKinds{
+		Membership:     o.Membership,
+		Roles:          o.Roles,
+		KeyRotated:     o.KeyRotated,
+		Renamed:        o.Renamed,
+		Settings:       o.Settings,
+		Channels:       o.Channels,
+		MemberCount:    o.MemberCount,
+		Exited:         o.Exited,
+		Deleted:        o.Deleted,
+		RoleMap:        o.RoleMap,
+		MemberShowcase: o.MemberShowcase,
+	}
+}
+
 type TeamChangedByIDArg struct {
 	TeamID              TeamID            `codec:"teamID" json:"teamID"`
 	LatestSeqno         Seqno             `codec:"latestSeqno" json:"latestSeqno"`
@@ -134,6 +164,12 @@ type AvatarUpdatedArg struct {
 type TeamMetadataUpdateArg struct {
 }
 
+type TeamChangedArg struct {
+	TeamID         TeamID           `codec:"teamID" json:"teamID"`
+	Kinds          TeamChangedKinds `codec:"kinds" json:"kinds"`
+	RoleMapVersion UserTeamVersion  `codec:"roleMapVersion" json:"roleMapVersion"`
+}
+
 type TeamTreeMembershipsPartialArg struct {
 	Membership TeamTreeMembership `codec:"membership" json:"membership"`
 }
@@ -152,6 +188,7 @@ type NotifyTeamInterface interface {
 	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
 	TeamMetadataUpdate(context.Context) error
+	TeamChanged(context.Context, TeamChangedArg) error
 	TeamTreeMembershipsPartial(context.Context, TeamTreeMembership) error
 	TeamTreeMembershipsDone(context.Context, TeamTreeMembershipsDoneResult) error
 }
@@ -290,6 +327,21 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamChanged": {
+				MakeArg: func() any {
+					var ret [1]TeamChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]TeamChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamChangedArg)(nil), args)
+						return
+					}
+					err = i.TeamChanged(ctx, typedArgs[0])
+					return
+				},
+			},
 			"teamTreeMembershipsPartial": {
 				MakeArg: func() any {
 					var ret [1]TeamTreeMembershipsPartialArg
@@ -375,6 +427,11 @@ func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdated
 
 func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []any{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamChanged(ctx context.Context, __arg TeamChangedArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }
 

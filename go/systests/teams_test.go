@@ -1160,6 +1160,12 @@ func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keyb
 	return nil
 }
 
+// TeamChanged is not sent here: this handler's connection is only on the team
+// channel. Tests of teamChanged listen in process (teamChangedRecorder).
+func (n *teamNotifyHandler) TeamChanged(context.Context, keybase1.TeamChangedArg) error {
+	return nil
+}
+
 func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
 	arg keybase1.TeamTreeMembership,
 ) error {

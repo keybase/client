@@ -139,7 +139,7 @@ func (t *TeamRoleMapManager) loadDelayedRetry(mctx libkb.MetaContext, backoff ti
 
 	// Note that we are passing retryOnFail=true, meaning we're going to keep the retry attempt
 	// going if we fail again (but with a bigger backoff parameter).
-	err = t.load(mctx, backoffIncrease(backoff))
+	err = t.loadAndNotifyRoles(mctx, backoffIncrease(backoff))
 	if err != nil {
 		mctx.Debug("delayed retry: exiting on error: %s", err)
 		return
@@ -240,7 +240,35 @@ func (t *TeamRoleMapManager) Update(mctx libkb.MetaContext, version keybase1.Use
 		return nil
 	}
 	t.sendNotification(mctx, version)
-	return t.load(mctx, backoffInitial(false))
+	return t.loadAndNotifyRoles(mctx, backoffInitial(false))
+}
+
+// loadAndNotifyRoles loads the role map like load, then sends teamChanged
+// (roles) for each team whose role or implicit role the load changed. Nothing
+// is sent when there was no map to compare against.
+func (t *TeamRoleMapManager) loadAndNotifyRoles(mctx libkb.MetaContext, retryOnFailBackoff time.Duration) error {
+	var before map[keybase1.TeamID]keybase1.TeamRolePair
+	if t.state != nil {
+		before = t.state.Data.Teams
+	}
+	if err := t.load(mctx, retryOnFailBackoff); err != nil {
+		return err
+	}
+	if before == nil {
+		return nil
+	}
+	after := t.state.Data.Teams
+	for teamID, pair := range after {
+		if old, ok := before[teamID]; !ok || old != pair {
+			mctx.G().NotifyRouter.HandleTeamChanged(mctx.Ctx(), teamID, keybase1.TeamChangedKinds{Roles: true}, 0)
+		}
+	}
+	for teamID := range before {
+		if _, ok := after[teamID]; !ok {
+			mctx.G().NotifyRouter.HandleTeamChanged(mctx.Ctx(), teamID, keybase1.TeamChangedKinds{Roles: true}, 0)
+		}
+	}
+	return nil
 }
 
 func (t *TeamRoleMapManager) FlushCache() {

@@ -84,6 +84,7 @@ type Keybase1IncomingAction =
   'keybase.1.NotifySession.sessionChanged' |
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
   'keybase.1.NotifyTeam.avatarUpdated' |
+  'keybase.1.NotifyTeam.teamChanged' |
   'keybase.1.NotifyTeam.teamChangedByID' |
   'keybase.1.NotifyTeam.teamDeleted' |
   'keybase.1.NotifyTeam.teamExit' |
