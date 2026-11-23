@@ -12,10 +12,10 @@ import {screenshotDisplayOf, simctlScreenshot, touchInner} from '../ios-appium/h
 import type {StoreTarget} from './store.mts'
 import {waitFor} from './driver-desktop.mts'
 import {withDeadline} from '../shared/deadline.ts'
-import {clipToWindow, openNative, type NativeDevice, type NativeSession} from './driver-native.mts'
+import {clipToWindow, openNative, type Box, type NativeDevice, type NativeSession} from './driver-native.mts'
 import type {Rect} from './compare.mts'
 
-export type IosOriginal ={accessibility: Array<{key: string; value: string | undefined}>; appearance: string}
+export type IosOriginal = {accessibility: Array<{key: string; value: string | undefined}>; appearance: string}
 
 // `original` is what prepare found (undefined before prepare touched the simulator); `appium` is
 // whether the Appium server this session started may still be running.
@@ -35,13 +35,15 @@ export const iosCleanupCommands = (opts: {udid: string; port: number; original: 
       )
     }
     // a relaunch drops the fixed Date and picks up the accessibility settings
-    out.push(`xcrun simctl terminate ${udid} ${BUNDLE_ID}; xcrun simctl launch ${udid} ${BUNDLE_ID}`)
+    out.push(iosRelaunchCommand(udid))
   }
   if (opts.appium) out.push(`kill $(lsof -t -iTCP:${opts.port} -sTCP:LISTEN)   # the gate's Appium`)
   return out
 }
 
-const BUNDLE_ID = 'keybase.ios'
+export const BUNDLE_ID = 'keybase.ios'
+// what relaunches the app on the simulator, for a person to run
+export const iosRelaunchCommand = (udid: string) => `xcrun simctl terminate ${udid} ${BUNDLE_ID}; xcrun simctl launch ${udid} ${BUNDLE_ID}`
 const SHARED_DIR = fileURLToPath(new URL('../../../', import.meta.url))
 const APPIUM_START_MS = 30_000
 const APPIUM_STOP_MS = 5_000
@@ -59,7 +61,7 @@ const LONG_PRESS_S = 1
 // centre in the app's window, plus where that window starts (the right half, in Split View right)
 const innerTargets: ReadonlyArray<StoreTarget> = ['ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
 export const innerPressPoint = (
-  box: {bottom: number; left: number; right: number; top: number},
+  box: Box,
   o: {target: StoreTarget; windowWidth: number; screenWidth: number}
 ) => ({
   x: (box.left + box.right) / 2 + (o.target === 'ios-duo-split-right' ? o.screenWidth - o.windowWidth : 0),
@@ -161,10 +163,8 @@ const stopAppium = async (child: ChildProcess) => {
 }
 
 
-export type IosSession = NativeSession
-
 // `target`: the store target the session captures for (an iPhone Duo's posture)
-export async function openIos(opts: {device: string; target?: StoreTarget}): Promise<IosSession> {
+export async function openIos(opts: {device: string; target?: StoreTarget}): Promise<NativeSession> {
   const {device, target} = opts
   const udid = iosUdid(device)
   const port = appiumPort()
@@ -231,7 +231,8 @@ export async function openIos(opts: {device: string; target?: StoreTarget}): Pro
     },
     cleanupCommands: () => iosCleanupCommands({appium: appium.exitCode === null && appium.signalCode === null, original, port, udid}),
     click: async testID => byTestID(testID).click(),
-    // simctl and Appium screenshots are never blanked by the app
+    // The session lifts the app's screen protector (driver-native); whether iOS would blank these
+    // captures with it on is not known, so they are not checked
     checkCapture: () => {},
     // an upward swipe from the bottom edge
     dismissSystemUi: async () => {
@@ -244,7 +245,7 @@ export async function openIos(opts: {device: string; target?: StoreTarget}): Pro
       await stopAppium(appium)
     },
     inspectorDevice: device,
-    longPress: async (_testID, box, h) => {
+    longPress: async (box, h) => {
       if (target && innerTargets.includes(target)) {
         const dims = await h.appEval<{screen: number; window: number}>(
           `const m = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
@@ -282,7 +283,6 @@ export async function openIos(opts: {device: string; target?: StoreTarget}): Pro
       }
       return rects
     },
-    prepareRuntime: async () => Promise.resolve(),
     prepareDevice: () => {
       original ??= {
         accessibility: ACCESSIBILITY_KEYS.map(key => ({key, value: readAccessibility(udid, key)})),

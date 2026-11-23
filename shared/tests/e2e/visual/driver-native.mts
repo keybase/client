@@ -40,6 +40,8 @@ export type AppHelpers = {
   targetBox: (testID: string) => Promise<Box | null>
   // whether a view with the testID is in the focused screen or an overlay
   targetPresent: (testID: string) => Promise<boolean>
+  // the app's window in points (read once a session)
+  windowSize: () => Promise<{width: number; height: number}>
 }
 
 export type NativeDevice = {
@@ -60,16 +62,14 @@ export type NativeDevice = {
   // stops and starts the app (the caller waits for its runtime)
   relaunch: () => Promise<void>
   click: (testID: string, h: AppHelpers) => Promise<void>
-  longPress: (testID: string, box: Box, h: AppHelpers) => Promise<void>
+  longPress: (box: Box, h: AppHelpers) => Promise<void>
   // scrolls a view that is in neither a list row nor a ScrollView into view
-  scrollOther: (testID: string, h: AppHelpers) => Promise<void>
+  scrollOther: (testID: string) => Promise<void>
   // waits for a view with the testID to exist anywhere in the app
   waitForExist: (testID: string, timeoutMs: number, h: AppHelpers) => Promise<void>
   maskRects: (entry: TourEntry, h: AppHelpers) => Promise<Array<Rect>>
-  // JS state a fresh runtime needs for captures, set after the clock is fixed (a reload undoes it)
-  prepareRuntime: (h: AppHelpers) => Promise<void>
-  // with the screen protector on, a capture checked to show none of the app; undefined on a device
-  // whose screenshots the protector does not blank
+  // with the screen protector turned on, a capture checked to show none of the app; undefined on a
+  // device without the check (the caller lifts the protector again)
   captureProtected?: (h: AppHelpers) => Promise<{png: Buffer; note?: string}>
   // throws when a capture cannot be the app's screen (a device's own check)
   checkCapture: (png: Buffer) => void
@@ -77,10 +77,11 @@ export type NativeDevice = {
   dismissSystemUi: () => Promise<void>
   // ends what the device opened for the session (an Appium session and server)
   end: () => Promise<void>
-  // commands that undo prepareDevice and end, for a process that died before close; `prepared` is
-  // whether prepareDevice ran
-  cleanupCommands: (prepared: boolean) => Array<string>
+  // commands that undo prepareDevice and end, for a process that died before close
+  cleanupCommands: () => Array<string>
 }
+
+export const boxToRect = (b: Box): Rect => ({height: b.bottom - b.top, width: b.right - b.left, x: b.left, y: b.top})
 
 // Each rect clipped to the window, dropping those wholly outside it. Window points, origin 0,0.
 export const clipToWindow = (rects: ReadonlyArray<Rect>, win: {width: number; height: number}): Array<Rect> =>
@@ -102,6 +103,8 @@ const BOOT_MS = 90_000
 const RESET_MS = 5_000
 const READY_MS = 10_000
 const SETUP_MS = 5_000
+// a protected capture turns the protector on, waits for a blank frame, and reads the screen's size
+const PROTECTED_CAPTURE_MS = 30_000
 const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
 // The glass header buttons of a pushed screen fade their shadow out for about 2s after the push,
 // and two screenshots 250ms apart can match in the middle of it, so a capture waits for two that
@@ -575,11 +578,28 @@ export function openNative(dev: NativeDevice): NativeSession {
     return state === 'inView'
   }
 
+  const liftScreenProtector = async () =>
+    appEval(
+      `const m = kbModule('node_modules/expo-screen-capture/build/ScreenCapture.js')
+       return m.allowScreenCaptureAsync('screenprotector')`,
+      'lifting the screen protector'
+    )
+
+  let win: {width: number; height: number} | undefined
   const helpers: AppHelpers = {
     appEval,
     targetBox: async testID => appEval<Box | null>(targetBox(testID), `measuring ${testID}`),
     targetPresent: async testID => (await appEval<string>(targetState(testID), `finding ${testID}`)) !== 'missing',
     waitForTarget,
+    windowSize: async () => {
+      win ??= await appEval<{width: number; height: number}>(
+        `const m = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
+         const w = (m.default ?? m).get('window')
+         return {height: w.height, width: w.width}`,
+        'reading the window size'
+      )
+      return win
+    },
   }
 
   const runStep = async (s: SetupStep) => {
@@ -618,7 +638,7 @@ export function openNative(dev: NativeDevice): NativeSession {
         for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt++) {
           const how = await appEval<'row' | 'scrollView' | 'none'>(scrollToTarget(s.testID), `scrolling to ${s.testID}`)
           if (how === 'none') {
-            await withDeadline(dev.scrollOther(s.testID, helpers), SETUP_MS, `scrolling to ${s.testID}`)
+            await withDeadline(dev.scrollOther(s.testID), SETUP_MS, `scrolling to ${s.testID}`)
             return
           }
           let box = ''
@@ -641,7 +661,7 @@ export function openNative(dev: NativeDevice): NativeSession {
         if (!(await waitForTarget(s.testID))) throw new Error(`longPress ${s.testID}: not all of it shows; scroll it into view first`)
         const box = await helpers.targetBox(s.testID)
         if (!box) throw new Error(`longPress ${s.testID}: it went before it could be pressed`)
-        await withDeadline(dev.longPress(s.testID, box, helpers), SETUP_MS, `long pressing ${s.testID}`)
+        await withDeadline(dev.longPress(box, helpers), SETUP_MS, `long pressing ${s.testID}`)
         return
       }
     }
@@ -719,26 +739,23 @@ export function openNative(dev: NativeDevice): NativeSession {
     if (changed || !(await accessibilityOn())) await relaunchApp()
     else if (p.reload) await reloadJs()
     if (!(await accessibilityOn())) throw new Error(`the app does not report ${reducedWhat} after a relaunch`)
-    await appEval(fixClocks(p.frozenAt), 'fixing Date')
     datePatched = true
     frozenAt = p.frozenAt
-    await applyLight()
-    await dev.prepareRuntime(helpers)
-    await remountScreens()
+    await restorePrepared(p.frozenAt)
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
-    await warmTabs()
-    // a capture that loses the inspector page compares the runtime with this mark
-    await markRuntime()
     knownPid = appPid()
     prepared = true
   }
 
-  // The state prepare leaves on a fresh JS runtime.
+  // The state prepare leaves on a fresh JS runtime. The app's screen protector is lifted for this
+  // runtime only (never in its saved setting; the reload that ends the session applies that again),
+  // since a protected app captures blank. A capture that loses the inspector page compares the
+  // runtime with the mark set last.
   const restorePrepared = async (at: number) => {
     await appEval(fixClocks(at), 'fixing Date')
     await applyLight()
-    await dev.prepareRuntime(helpers)
+    await liftScreenProtector()
     await remountScreens()
     await warmTabs()
     await markRuntime()
@@ -862,10 +879,15 @@ export function openNative(dev: NativeDevice): NativeSession {
       const covered = systemUiOverApp(await appStateNow())
       if (covered) throw new Error(covered)
       if (entry.screenProtector) {
-        if (!dev.captureProtected) throw new Error(`${entry.id}: a screen protector entry runs on Android only`)
-        const shot = await withDeadline(dev.captureProtected(helpers), SETUP_MS, 'capturing with the screen protector on')
-        png = shot.png
-        result = {coverage: null, masks: [], png, status: 'ok', ...(shot.note ? {note: shot.note} : {})}
+        if (!dev.captureProtected) throw new Error(`${entry.id}: this device has no screen protector check`)
+        try {
+          const shot = await withDeadline(dev.captureProtected(helpers), PROTECTED_CAPTURE_MS, 'capturing with the screen protector on')
+          png = shot.png
+          result = {coverage: null, masks: [], png, status: 'ok', ...(shot.note ? {note: shot.note} : {})}
+        } finally {
+          // also when the capture failed or ran out its deadline, so no later entry captures blank
+          await liftScreenProtector()
+        }
       } else {
         const settled = await settle(async () => {
           png = await screenshot()
@@ -938,7 +960,7 @@ export function openNative(dev: NativeDevice): NativeSession {
     }
   }
 
-  const cleanupCommands = () => dev.cleanupCommands(devicePrepared)
+  const cleanupCommands = () => (devicePrepared ? dev.cleanupCommands() : [])
 
   return {capture, cleanupCommands, close, prepare}
 }

@@ -16,10 +16,6 @@ test('unknown setup kind is refused', () => {
   const bad = {...base, setup: [{kind: 'drag', testID: 'a'}]} as unknown as TourEntry
   assert.match(validateEntry(bad).join(), /setup step 'drag' is not allowed/)
 })
-test('a screen protector entry is phone only', () => {
-  assert.deepEqual(validateEntry({...base, platforms: ['phone'], screenProtector: true}), [])
-  assert.match(validateEntry({...base, platforms: ['desktop', 'phone'], screenProtector: true}).join(), /screen protector entry is phone only/)
-})
 test('a click only presses a listed local control', () => {
   assert.deepEqual(validateEntry({...base, setup: [{kind: 'click', testID: T.TEAMS_MEMBER_CHECK}]}), [])
   assert.match(validateEntry({...base, setup: [{kind: 'click', testID: T.CHAT_SEND_BUTTON}]}).join(), /not in CLICK_TARGETS/)

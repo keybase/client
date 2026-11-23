@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {hostAppPid, runSync, udidForName} from './app'
+import {hostAppPid, iosUdid, runSync} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
@@ -26,7 +26,7 @@ export const BUNDLE_ID = 'keybase.ios'
 const APP_EXECUTABLE = 'Keybase'
 
 export const deviceName = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
-export const deviceUdid = () => process.env['KB_IOS_UDID'] ?? udidForName(deviceName())
+export const deviceUdid = () => iosUdid(deviceName())
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 

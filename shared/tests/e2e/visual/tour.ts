@@ -761,17 +761,9 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...settingsPage('typography', 'typographyTab', T.SETTINGS_ROW_TYPOGRAPHY, T.SETTINGS_TYPOGRAPHY),
   ...settingsPage('markdown', 'markdownTab', T.SETTINGS_ROW_MARKDOWN, T.SETTINGS_MARKDOWN),
   ...settingsPage('about', 'aboutTab', T.SETTINGS_ROW_ABOUT, T.SETTINGS_ABOUT),
-  {
-    id: 'settings/screen-protector',
-    nav: {tab: 'tabs.settingsTab'},
-    platforms: ['desktop'],
-    ready: T.SETTINGS_SCREENPROTECTOR,
-    seal: [],
-    setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_SCREENPROTECTOR}],
-  },
-  phoneSettingsPage('settings/screen-protector', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []),
-  // the same page with the protector on: the capture must come out blank. Android only: a simulator
-  // screenshot reads the display from outside iOS, which the iOS protector does not reach
+  ...settingsPage('screen-protector', 'screenprotector', T.SETTINGS_ROW_SCREENPROTECTOR, T.SETTINGS_SCREENPROTECTOR),
+  // the same page with the protector on: the capture must come out blank. Android only: iOS draws
+  // simctl's screenshots with the protector on all the same, so they can't show it working
   {...phoneSettingsPage('settings/screen-protector-on', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []), screenProtector: true},
   ...settingsPage('icons', 'iconsTab', T.SETTINGS_ROW_ICONS, T.SETTINGS_ICONS),
   ...settingsPage('wallet', 'walletsTab', T.SETTINGS_ROW_WALLET, T.SETTINGS_WALLET),

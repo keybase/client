@@ -40,7 +40,7 @@ import {
 } from './coverage/changed-sites.mts'
 import {withDeadline} from '../shared/deadline.ts'
 import {openDesktop, sleep, waitFor, type Capture, type DesktopSession} from './driver-desktop.mts'
-import {openIos} from './driver-ios.mts'
+import {BUNDLE_ID, iosRelaunchCommand, openIos} from './driver-ios.mts'
 import {
   androidInspectorDevice,
   androidSerial,
@@ -59,7 +59,7 @@ import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts
 import {diffSeals, readSeal, type Seal, type SealField} from './seal.mts'
 import {assertServedFrom, listenerCwd} from './served-tree.mts'
 import * as Store from './store.mts'
-import {isSuiteName, SUITES, type SuiteName} from './suites.ts'
+import {isSuiteName, SUITE_NAMES, SUITES, type SuiteName} from './suites.ts'
 import {tour} from './tour.ts'
 import {matchEntries, nextDesktopEntry, type ParamRef, type ParamValue, type Platform, type Theme, type TourEntry} from './tour-types.ts'
 
@@ -69,7 +69,6 @@ const SHARED_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 const REPO_DIR = path.dirname(SHARED_DIR)
 const DESKTOP_PORT = 4000
 const METRO_PORT = 8081
-const IOS_BUNDLE_ID = 'keybase.ios'
 const FROZEN_AFTER_NEWEST_MS = 60_000
 const GIT_MS = 60_000
 const INSTALL_MS = 20 * 60_000
@@ -77,7 +76,7 @@ const LAUNCH_MS = 5 * 60_000
 const RESTORE_MS = 10 * 60_000
 const METRO_STOP_MS = 15_000
 const METRO_START_MS = 3 * 60_000
-const IOS_BOOT_MS = 5 * 60_000
+const APP_BOOT_MS = 5 * 60_000
 const MIN = 60_000
 const DEADLINES: Record<string, number> = {aa: 90 * MIN, base: 90 * MIN, check: 45 * MIN, coverage: 5 * MIN, gate: 90 * MIN, render: 90 * MIN}
 const THEMES: ReadonlyArray<Theme> = ['light', 'dark']
@@ -122,12 +121,11 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
     if (!THEMES.includes(t as Theme)) throw new Error(`unknown theme ${t} (light or dark)`)
   }
   const themes = (asked as Array<Theme> | undefined) ?? ['light']
-  if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
-  if (android && themes.some(t => t !== 'light')) throw new Error('Android captures are light only')
+  if ((ios || android) && themes.some(t => t !== 'light')) throw new Error(`${ios ? 'iOS' : 'Android'} captures are light only`)
   if (values.posture !== undefined && !ios) throw new Error('--posture needs --ios: it folds or unfolds an iPhone Duo')
   const posture = parseAnyPosture(values.posture)
   const suite = values.suite
-  if (suite !== undefined && !isSuiteName(suite)) throw new Error(`unknown suite ${suite} (${Object.keys(SUITES).join(', ')})`)
+  if (suite !== undefined && !isSuiteName(suite)) throw new Error(`unknown suite ${suite} (${SUITE_NAMES.join(', ')})`)
   return {
     android,
     base: values.base,
@@ -170,7 +168,9 @@ export const selectEntries = (
       if (next) hit.add(next)
     }
   }
-  return on.filter(e => hit.has(e))
+  const picked = on.filter(e => hit.has(e))
+  if (!picked.length) throw new Error(`--suite ${suite ?? ''} names no tour entry on ${platform}`)
+  return picked
 }
 
 const fixturesOf = (entries: ReadonlyArray<TourEntry>): Array<FixtureName> => [
@@ -238,6 +238,10 @@ const iosStoreTarget = (posture?: AnyPosture): Store.StoreTarget => {
 
 // An Android run's store target: the phone's, or the tablet's by the screen's smallest width
 const androidStoreTarget = (): Store.StoreTarget => (readAndroidFormFactor(androidSerial()) === 'tablet' ? 'android-tablet' : 'android')
+
+// Where a run's captures are kept: a phone's form factor or posture, or desktop
+const storeTargetFor = (platform: RunPlatform, posture?: AnyPosture): Store.StoreTarget =>
+  platform === 'android' ? androidStoreTarget() : platform === 'ios' ? iosStoreTarget(posture) : 'desktop'
 
 const openSession_ = async (platform: RunPlatform, target: Store.StoreTarget): Promise<DesktopSession | NativeSession> =>
   platform === 'android' ? openAndroid({serial: androidSerial()}) : platform === 'ios' ? openIos({device: iosDevice(), target}) : openDesktop()
@@ -375,13 +379,13 @@ const checkEntries = async (
   const sha = await deps.baseSha(target)
   const meta = deps.readBaseMeta(sha, target)
   const named = [...cmd.patterns, ...(cmd.suite ? [`--suite ${cmd.suite}`] : [])].join(' ') || '*'
-  const iosFlag = cmd.android ? ' --android' : cmd.ios ? ` --ios${cmd.posture ? ` --posture ${cmd.posture}` : ''}` : ''
+  const platformFlag = cmd.android ? ' --android' : cmd.ios ? ` --ios${cmd.posture ? ` --posture ${cmd.posture}` : ''}` : ''
   const which = target === platform ? '' : `${Store.targetLabel(target)} `
-  if (!meta) throw new Error(`no ${which}base for ${named} at ${sha}; run yarn visual:base ${named}${iosFlag}`)
+  if (!meta) throw new Error(`no ${which}base for ${named} at ${sha}; run yarn visual:base ${named}${platformFlag}`)
   for (const e of entries) {
     for (const theme of cmd.themes) {
       if (!deps.hasBasePng(sha, target, theme, e.id)) {
-        throw new Error(`no base for ${e.id} at ${sha}; run yarn visual:base ${e.id}${iosFlag} (no ${platform} ${theme} capture)`)
+        throw new Error(`no base for ${e.id} at ${sha}; run yarn visual:base ${e.id}${platformFlag} (no ${platform} ${theme} capture)`)
       }
     }
   }
@@ -390,7 +394,7 @@ const checkEntries = async (
     if (based !== deps.fixtureHash(name)) {
       throw new Error(
         `fixture ${name} ${based ? 'changed' : 'was not run'} since the base at ${sha.slice(0, 10)}; ` +
-          `retake the base: yarn visual:base ${named}${iosFlag} --base <the commit before your change>`
+          `retake the base: yarn visual:base ${named}${platformFlag} --base <the commit before your change>`
       )
     }
   }
@@ -832,17 +836,17 @@ const relaunchNativeApp = async (platform: 'ios' | 'android', log: (l: string) =
     relaunchAndroid(serial)
   } else {
     device = iosDevice()
-    appId = IOS_BUNDLE_ID
+    appId = BUNDLE_ID
     const udid = iosUdid(device)
     try {
-      run('xcrun', ['simctl', 'terminate', udid, IOS_BUNDLE_ID], {timeout: 30_000})
+      run('xcrun', ['simctl', 'terminate', udid, BUNDLE_ID], {timeout: 30_000})
     } catch {}
-    run('xcrun', ['simctl', 'launch', udid, IOS_BUNDLE_ID], {timeout: 30_000})
+    run('xcrun', ['simctl', 'launch', udid, BUNDLE_ID], {timeout: 30_000})
   }
   log(`${platform}: relaunched the app on ${device}; waiting for the bundle`)
   let last = ''
   try {
-    await waitFor('a logged in JS runtime after the relaunch', IOS_BOOT_MS, async () => {
+    await waitFor('a logged in JS runtime after the relaunch', APP_BOOT_MS, async () => {
       try {
         const page = await inspectorPageFor(device, appId)
         last = await evalInPage<string>(page, `return kbModule('constants/router.tsx').getRootState()?.routes?.[0]?.name ?? ''`)
@@ -875,7 +879,7 @@ const restoreFor = (platform: RunPlatform, current: string, log: (l: string) => 
           `cd ${current} && yarn rn:start`,
           ...(platform === 'android'
             ? relaunchCommands(androidSerial())
-            : [`xcrun simctl terminate ${iosDevice()} ${IOS_BUNDLE_ID}; xcrun simctl launch ${iosDevice()} ${IOS_BUNDLE_ID}`]),
+            : [iosRelaunchCommand(iosUdid(iosDevice()))]),
         ],
         run: async () => {
           await serveMetro(current, false, log)
@@ -914,7 +918,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const cmd = parseCommand(argv)
   const platform = platformOf(cmd)
   const entries = selectEntries(tour, cmd.patterns, platform, cmd.suite)
-  const target = cmd.android ? androidStoreTarget() : cmd.ios ? iosStoreTarget(cmd.posture) : 'desktop'
+  const target = storeTargetFor(platform, cmd.posture)
   const sha = await resolveBaseSha(cmd.base)
   checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, fixtures: fixturesOf(entries).length > 0, native: platform !== 'desktop'})
   const baseShared = ensureBaseTree(sha, log)
@@ -1055,7 +1059,7 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
   if (!range || cmd.patterns.length > 1) {
     throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
   }
-  const sha = await usedBaseSha(platformOf(cmd), cmd.base)
+  const sha = await usedBaseSha(storeTargetFor(platformOf(cmd), cmd.posture), cmd.base)
   const {drawn, masked} = Store.readBaseCoverage(sha)
   if (!drawn.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
   if (masked.length) log(`skipped ${masked.length} masked capture${masked.length === 1 ? '' : 's'}: ${masked.join(', ')}`)
@@ -1135,8 +1139,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
-    storeTarget: async (platform, posture) =>
-      Promise.resolve(platform === 'android' ? androidStoreTarget() : platform === 'ios' ? iosStoreTarget(posture) : 'desktop'),
+    storeTarget: async (platform, posture) => Promise.resolve(storeTargetFor(platform, posture)),
     team: () => e2eAccounts().team,
   }
 }

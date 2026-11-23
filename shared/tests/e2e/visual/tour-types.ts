@@ -109,8 +109,7 @@ export type TourEntry = {
   // follower: its reset pops the current tab's stack before switching, unmounting the popup's owner.
   leavesPopup?: true
   // Android only: captured with the screen protector on, and failed unless none of the app shows in
-  // the capture (Android draws a secure window black in a screenshot; a simulator screenshot reads
-  // iOS's display from outside, where its protector does not reach)
+  // the capture (Android draws a secure window black in a screenshot, or refuses the capture)
   screenProtector?: true
 }
 
@@ -202,9 +201,6 @@ export function validateEntry(e: TourEntry): Array<string> {
     problems.push(`${e.id}: nav.thread must be a conversationIDKey ref`)
   }
   if (e.platforms.length === 0) problems.push(`${e.id}: no platforms`)
-  if (e.screenProtector && (e.platforms.length !== 1 || e.platforms[0] !== 'phone')) {
-    problems.push(`${e.id}: a screen protector entry is phone only (it runs on Android)`)
-  }
   for (const s of e.setup ?? []) {
     if (!SETUP_KINDS.has(s.kind)) {
       problems.push(`${e.id}: setup step '${s.kind}' is not allowed`)

@@ -6,7 +6,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {homedir} from 'os'
-import {iosCapabilities, udidForName, requireSmokeUser} from './helpers/app'
+import {iosCapabilities, iosUdid, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
 import {assertNotLocked} from '../visual/lock.mts'
 import {attemptToken, iosReportDir, leaveBody, readAttempts, readRunErrors, requireCurrentAttempt, runAttempt} from './gate/attempt'
@@ -49,7 +49,7 @@ const runFormFactor = () => process.env['KB_IOS_FORM_FACTOR'] ?? 'iphone'
 process.env['APPIUM_HOME'] ||= `${homedir()}/.appium`
 
 requireSmokeUser()
-const udid = process.env['KB_IOS_UDID'] ?? udidForName(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest')
+const udid = iosUdid(process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest')
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 

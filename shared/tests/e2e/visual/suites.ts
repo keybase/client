@@ -46,4 +46,5 @@ export const SUITES = {
 
 export type SuiteName = keyof typeof SUITES
 
-export const isSuiteName = (s: string): s is SuiteName => Object.keys(SUITES).includes(s)
+export const SUITE_NAMES = Object.keys(SUITES) as ReadonlyArray<SuiteName>
+export const isSuiteName = (s: string): s is SuiteName => (SUITE_NAMES as ReadonlyArray<string>).includes(s)

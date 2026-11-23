@@ -14,7 +14,7 @@ clock, remounts, fixtures, scrolling and typing, all through Metro's inspector).
 device half: `driver-ios.mts` (Appium and simctl) and `driver-android.mts` (adb: screencap, `input`
 taps at a view's rect read from the app, System UI demo mode for the status bar, animation scales
 at 0 for reduced motion). The Android tablet runs the phone tour: the app's tablet layout is an
-iPad's only. The tour of screens is `tour.ts`: 173 desktop entries and 167 phone
+iPad's only. The tour of screens is `tour.ts`: 177 desktop entries and 168 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start

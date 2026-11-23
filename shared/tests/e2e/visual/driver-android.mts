@@ -6,7 +6,7 @@ import {execFileSync} from 'child_process'
 import {homedir} from 'os'
 import * as path from 'path'
 import {waitFor} from './driver-desktop.mts'
-import {clipToWindow, openNative, type AppHelpers, type Box, type NativeDevice, type NativeSession} from './driver-native.mts'
+import {boxToRect, clipToWindow, openNative, type AppHelpers, type Box, type NativeDevice, type NativeSession} from './driver-native.mts'
 import {makePng, pngBuffer, readPngBuffer, type PNGData, type Rect} from './compare.mts'
 
 export const PACKAGE = 'io.keybase.ossifrage'
@@ -21,7 +21,7 @@ const PROTECT_MS = 3_000
 // apart from the phone's captures by the window's smallest width, Android's own tablet line.
 const TABLET_MIN_DP = 600
 
-export const adbPath = () =>
+const adbPath = () =>
   path.join(process.env['ANDROID_HOME'] ?? process.env['ANDROID_SDK_ROOT'] ?? path.join(homedir(), 'Library/Android/sdk'), 'platform-tools', 'adb')
 
 const adbRaw = (serial: string | undefined, args: ReadonlyArray<string>) =>
@@ -41,12 +41,15 @@ export const parseAdbDevices = (out: string): Array<string> =>
     .filter(([serial, state]) => !!serial && state === 'device')
     .map(([serial]) => serial!)
 
-// KB_ANDROID_SERIAL, else the one device adb lists.
+// KB_ANDROID_SERIAL, else the one device adb lists, chosen once a run so a device attached partway
+// through can't move it.
+let chosenSerial: string | undefined
 export const androidSerial = (): string => {
+  if (chosenSerial) return chosenSerial
   const asked = process.env['KB_ANDROID_SERIAL']
-  if (asked) return asked
+  if (asked) return (chosenSerial = asked)
   const serials = parseAdbDevices(adb(undefined, 'devices'))
-  if (serials.length === 1) return serials[0]!
+  if (serials.length === 1) return (chosenSerial = serials[0]!)
   throw new Error(
     serials.length
       ? `adb lists ${serials.length} devices (${serials.join(', ')}); set KB_ANDROID_SERIAL to the one to capture`
@@ -66,8 +69,7 @@ export const parseWm = (out: string, key: 'size' | 'density'): string => {
   return v
 }
 
-export type AndroidFormFactor = 'phone' | 'tablet'
-export const androidFormFactor = (size: string, density: string): AndroidFormFactor => {
+export const androidFormFactor = (size: string, density: string): 'phone' | 'tablet' => {
   const [w, h] = size.split('x').map(Number)
   const dpi = Number(density)
   if (!w || !h || !dpi) throw new Error(`cannot read the screen from size ${size}, density ${density}`)
@@ -96,7 +98,7 @@ const demoBroadcast = (command: ReadonlyArray<string>) => {
 
 // What prepareDevice found: each animation scale and the demo-mode switch as `settings get` printed
 // them ('null' when unset), and the night mode `cmd uimode night` printed (yes, no, auto, custom).
-export type AndroidOriginal = {scales: Array<{key: string; value: string}>; demoAllowed: string; night: string}
+type AndroidOriginal = {scales: Array<{key: string; value: string}>; demoAllowed: string; night: string}
 
 export const parseNightMode = (out: string) => out.replace(/^Night mode:\s*/i, '').trim()
 
@@ -110,15 +112,16 @@ export const androidRestoreSteps = (original: AndroidOriginal): Array<Array<stri
   ...original.scales.map(({key, value}) => restoreSetting(key, value)),
 ]
 
-export const androidCleanupCommands = (serial: string, original: AndroidOriginal | undefined): Array<string> => {
-  if (!original) return []
-  const q = (a: string) => (/^[\w.:/=-]+$/.test(a) ? a : `'${a}'`)
-  return [
-    ...androidRestoreSteps(original).map(step => `adb -s ${serial} ${step.map(q).join(' ')}`),
-    // a relaunch drops the fixed Date and reads the animation scales again
-    ...relaunchCommands(serial),
-  ]
-}
+// A shell word that is exactly `a`, for commands printed for a person to paste.
+export const shellQuote = (a: string) => (/^[\w.:/=@%+-]+$/.test(a) ? a : `'${a.replaceAll("'", `'\\''`)}'`)
+const printed = (serial: string, steps: ReadonlyArray<ReadonlyArray<string>>) =>
+  steps.map(step => ['adb', '-s', serial, ...step].map(shellQuote).join(' '))
+
+export const androidCleanupCommands = (serial: string, original: AndroidOriginal | undefined): Array<string> =>
+  original
+    ? // a relaunch drops the fixed Date and reads the animation scales again
+      printed(serial, [...androidRestoreSteps(original), ...RELAUNCH_STEPS])
+    : []
 
 // The point in screen pixels at the centre of a rect in window points.
 export const centrePx = (box: Box, ratio: number) => ({
@@ -131,18 +134,16 @@ export const androidInspectorDevice = (serial: string) => {
   return friendlyDeviceName(sh('getprop', 'ro.product.model'), sh('getprop', 'ro.build.version.release'), sh('getprop', 'ro.build.version.sdk'))
 }
 
-export const relaunchCommands = (serial: string) => [
-  `adb -s ${serial} shell am force-stop ${PACKAGE}`,
-  `adb -s ${serial} reverse tcp:8081 tcp:8081`,
-  `adb -s ${serial} shell ${LAUNCH.join(' ')}`,
-]
-
 // Force-stop, then a launcher start: the launcher intent starts the app cold, as a person would. The
 // debug app loads its bundle from Metro on the host, through the reverse port.
+const RELAUNCH_STEPS: ReadonlyArray<ReadonlyArray<string>> = [
+  ['shell', 'am', 'force-stop', PACKAGE],
+  ['reverse', 'tcp:8081', 'tcp:8081'],
+  ['shell', ...LAUNCH],
+]
+export const relaunchCommands = (serial: string) => printed(serial, RELAUNCH_STEPS)
 export const relaunchAndroid = (serial: string) => {
-  adb(serial, 'shell', 'am', 'force-stop', PACKAGE)
-  adb(serial, 'reverse', 'tcp:8081', 'tcp:8081')
-  adb(serial, 'shell', ...LAUNCH)
+  for (const step of RELAUNCH_STEPS) adbRaw(serial, step)
 }
 
 // Whether the app's part of a screenshot is all black, as Android draws a secure window: the middle
@@ -159,23 +160,19 @@ export const appAreaBlank = (png: PNGData) => {
   return true
 }
 
-const SCREEN_CAPTURE = `const m = kbModule('node_modules/expo-screen-capture/build/ScreenCapture.js')`
-
 // What a screencap of a secure window gives: Android 14 and later draw it black; Android 12 refuses
 // the capture and prints nothing.
-export type ProtectedShot = {kind: 'blank'; png: Buffer} | {kind: 'refused'} | {kind: 'shows'}
+type ProtectedShot = {kind: 'blank'; png: Buffer} | {kind: 'refused'} | {kind: 'shows'}
 export const judgeProtectedShot = (raw: Buffer): ProtectedShot =>
   raw.length === 0 ? {kind: 'refused'} : appAreaBlank(readPngBuffer(raw)) ? {kind: 'blank', png: raw} : {kind: 'shows'}
 
 // The centre of the part of a rect that is in the window, or undefined when none of it is.
 export const visibleCentre = (box: Box, win: {width: number; height: number}) => {
-  const [v] = clipToWindow([{height: box.bottom - box.top, width: box.right - box.left, x: box.left, y: box.top}], win)
+  const [v] = clipToWindow([boxToRect(box)], win)
   return v && {bottom: v.y + v.height, left: v.x, right: v.x + v.width, top: v.y}
 }
 
-export type AndroidSession = NativeSession
-
-export function openAndroid(opts: {serial: string}): AndroidSession {
+export function openAndroid(opts: {serial: string}): NativeSession {
   const {serial} = opts
   const sh = (...args: Array<string>) => adb(serial, 'shell', ...args)
   const inspectorDevice = androidInspectorDevice(serial)
@@ -190,23 +187,13 @@ export function openAndroid(opts: {serial: string}): AndroidSession {
     )
     return ratio
   }
-  let win: {width: number; height: number} | undefined
-  const windowSize = async (h: AppHelpers) => {
-    win ??= await h.appEval<{width: number; height: number}>(
-      `const m = kbModule('node_modules/react-native/Libraries/Utilities/Dimensions.js')
-       const w = (m.default ?? m).get('window')
-       return {height: w.height, width: w.width}`,
-      'reading the window size'
-    )
-    return win
-  }
   // the centre of the part of a view that is in the window, in screen pixels, as a tap by element
   // presses it
   const pointOf = async (testID: string, h: AppHelpers) => {
     await h.waitForTarget(testID)
     const box = await h.targetBox(testID)
     if (!box) throw new Error(`${testID}: it went before it could be pressed`)
-    const shown = visibleCentre(box, await windowSize(h))
+    const shown = visibleCentre(box, await h.windowSize())
     if (!shown) throw new Error(`${testID}: none of it is in the window; scroll it into view first`)
     return centrePx(shown, await pixelRatio(h))
   }
@@ -224,32 +211,34 @@ export function openAndroid(opts: {serial: string}): AndroidSession {
         return undefined
       }
     },
-    cleanupCommands: prepared => (prepared ? androidCleanupCommands(serial, original) : []),
-    // Turns the protector on as the app does, captures, and puts the run's lifted state back. The
-    // window's secure flag takes a frame to reach the compositor, so the capture is retried briefly.
-    // A device that refuses the capture has no image to show, so the card gets a black frame of the
-    // screen's size and a note that says so.
+    cleanupCommands: () => androidCleanupCommands(serial, original),
+    // Turns the protector on as the app does and captures (the caller lifts it again). The window's
+    // secure flag takes a frame to reach the compositor, so the capture is retried briefly. A device
+    // that refuses the capture has no image to show, so the card gets a black frame of the window's
+    // size and a note that says so.
     captureProtected: async h => {
-      const size = readPngBuffer(screencap())
-      await h.appEval(`${SCREEN_CAPTURE}\n return m.preventScreenCaptureAsync('screenprotector')`, 'turning the screen protector on')
+      await h.appEval(
+        `const m = kbModule('node_modules/expo-screen-capture/build/ScreenCapture.js')
+         return m.preventScreenCaptureAsync('screenprotector')`,
+        'turning the screen protector on'
+      )
+      let shot: ProtectedShot = {kind: 'shows'}
       try {
-        let shot: ProtectedShot = {kind: 'shows'}
-        try {
-          await waitFor('the screen protector to blank the screen', PROTECT_MS, async () => {
-            shot = judgeProtectedShot(screencap())
-            return Promise.resolve(shot.kind !== 'shows')
-          })
-        } catch {
-          throw new Error('the screen protector is on but the app still shows in a screenshot')
-        }
-        const s = shot as ProtectedShot
-        if (s.kind === 'blank') return {png: s.png}
-        const black = makePng(size.width, size.height)
-        for (let i = 3; i < black.data.length; i += 4) black.data[i] = 255
-        return {note: 'screencap refused the secure window (Android 12 does); the image is a stand-in black frame', png: pngBuffer(black)}
-      } finally {
-        await h.appEval(`${SCREEN_CAPTURE}\n return m.allowScreenCaptureAsync('screenprotector')`, 'allowing screen capture')
+        await waitFor('the screen protector to blank the screen', PROTECT_MS, async () => {
+          shot = judgeProtectedShot(screencap())
+          return Promise.resolve(shot.kind !== 'shows')
+        })
+      } catch (e) {
+        // a screencap that failed outright says so itself
+        if (!(e as Error).message.startsWith('timed out')) throw e
+        throw new Error('the screen protector is on but the app still shows in a screenshot', {cause: e})
       }
+      const s = shot as ProtectedShot
+      if (s.kind === 'blank') return {png: s.png}
+      const [win, r] = [await h.windowSize(), await pixelRatio(h)]
+      const black = makePng(Math.round(win.width * r), Math.round(win.height * r))
+      for (let i = 3; i < black.data.length; i += 4) black.data[i] = 255
+      return {note: 'screencap refused the secure window (Android 12 does); the image is a stand-in black frame', png: pngBuffer(black)}
     },
     checkCapture: png => {
       if (png.length === 0 || appAreaBlank(readPngBuffer(png))) {
@@ -266,7 +255,7 @@ export function openAndroid(opts: {serial: string}): AndroidSession {
     },
     end: async () => Promise.resolve(),
     inspectorDevice,
-    longPress: async (_testID, box, h) => {
+    longPress: async (box, h) => {
       const p = centrePx(box, await pixelRatio(h))
       sh('input', 'swipe', String(p.x), String(p.y), String(p.x), String(p.y), String(LONG_PRESS_MS))
     },
@@ -274,10 +263,10 @@ export function openAndroid(opts: {serial: string}): AndroidSession {
       const rects: Array<Rect> = []
       if (!entry.masks?.length) return rects
       const r = await pixelRatio(h)
-      const w = await windowSize(h)
+      const w = await h.windowSize()
       for (const m of entry.masks) {
         const b = await h.targetBox(m.testID)
-        const visible = b ? clipToWindow([{height: b.bottom - b.top, width: b.right - b.left, x: b.left, y: b.top}], w) : []
+        const visible = b ? clipToWindow([boxToRect(b)], w) : []
         if (!visible.length) throw new Error(`mask target ${m.testID} is not on screen`)
         rects.push(...visible.map(v => ({height: v.height * r, width: v.width * r, x: v.x * r, y: v.y * r})))
       }
@@ -301,12 +290,6 @@ export function openAndroid(opts: {serial: string}): AndroidSession {
         }
       }
       return changed
-    },
-    // The screen protector (on by default) marks the window secure, which makes every screencap
-    // black. It is lifted for this JS runtime only, never in the saved setting: the reload that
-    // ends the session (or any relaunch) applies the saved setting again.
-    prepareRuntime: async h => {
-      await h.appEval(`${SCREEN_CAPTURE}\n return m.allowScreenCaptureAsync('screenprotector')`, 'allowing screen capture')
     },
     reduceTransparency: false,
     relaunch: async () => {

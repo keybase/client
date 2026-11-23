@@ -9,7 +9,7 @@ import {spawn} from 'child_process'
 import {parseArgs} from 'util'
 import {fileURLToPath} from 'url'
 import * as Store from './store.mts'
-import {SUITES} from './suites.ts'
+import {SUITE_NAMES, SUITES} from './suites.ts'
 import {idMatches} from './tour-types.ts'
 
 // `platform`: the store target the column shows (desktop, ios, ios-duo-folded, …), from a base (`sha`)
@@ -39,8 +39,6 @@ export const galleryRows = (columns: ReadonlyArray<GalleryColumn>): Array<Galler
   }))
 }
 
-const suiteNames = Object.keys(SUITES) as Array<keyof typeof SUITES>
-
 export const galleryHtml = (columns: ReadonlyArray<GalleryColumn>, rows: ReadonlyArray<GalleryRow>) => {
   const title = columns.map(columnName).join(', ')
   // keyed by the first column's base, so notes survive regenerating the page for the same base
@@ -58,7 +56,7 @@ export const galleryHtml = (columns: ReadonlyArray<GalleryColumn>, rows: Readonl
         })
         .join('')
       const id = escape(r.id)
-      const suites = suiteNames.filter(n => SUITES[n].some(p => idMatches(r.id, p))).join(' ')
+      const suites = SUITE_NAMES.filter(n => SUITES[n].some(p => idMatches(r.id, p))).join(' ')
       return `<section data-id="${id}" data-suites="${suites}"><h2>${id}</h2><div class="shots">${cells}</div><textarea placeholder="What's wrong on ${id}?"></textarea></section>`
     })
     .join('\n')
@@ -87,7 +85,7 @@ textarea{width:100%;box-sizing:border-box;margin-top:8px;min-height:40px;font:in
 </style>
 <header><strong>Visual gate captures</strong><span>${escape(title)} · ${rows.length} screens</span>
 <input type="search" id="q" placeholder="filter by id (e.g. modal, chat/)"><label><input type="checkbox" id="only"> only noted</label>
-${suiteNames.map(n => `<label><input type="checkbox" class="suite" data-suite="${n}"> only ${n} suite</label>`).join('')}
+${SUITE_NAMES.map(n => `<label><input type="checkbox" class="suite" data-suite="${n}"> only ${n} suite</label>`).join('')}
 ${columns.map(c => `<label><input type="checkbox" class="col" data-col="${c.platform}" checked> ${escape(Store.targetLabel(c.platform))}</label>`).join('')}
 <button id="copy">Copy notes</button><button id="clear">Clear notes</button><span id="msg"></span></header>
 ${sections}
