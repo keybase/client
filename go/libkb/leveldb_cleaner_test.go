@@ -51,9 +51,8 @@ func putKeys(t *testing.T, db *LevelDb, numKeys int) DbKey {
 }
 
 // A cleaner still cleans after its db is reopened (Nuke, or Close +
-// ForceOpen): a reopen must leave the cleaner's cache and shutdown state
-// working, since Close's Shutdown() call leaves a one-entry cache and a
-// permanent shutdown flag that neither is ever undone.
+// ForceOpen): start() must install a working cache, since Stop left a
+// one-entry cache that forgets everything.
 func TestCleanerCleansAfterReopen(t *testing.T) {
 	for _, name := range []string{"nuke", "close"} {
 		t.Run(name, func(t *testing.T) {
@@ -115,7 +114,7 @@ func TestCleanerStartsFromBeginningAfterReopen(t *testing.T) {
 }
 
 // Status reads cleaner state that a reopen replaces; -race only, it catches
-// a data race between the reopen's setDb and a concurrent Status/clearCache.
+// a data race between the reopen's start and a concurrent Status/clearCache.
 func TestCleanerStatusDuringReopen(t *testing.T) {
 	if !raceEnabled {
 		t.Skip("race-only test; run with -race")
