@@ -567,7 +567,8 @@ protocol chatUi {
     BLANK_3
   }
   record UIBotCommandsUpdateSettings {
-    map<string, keybase1.TeamBotSettings> settings;
+    // Bots, by username, whose restricted-bot settings keep them from taking commands in this conversation.
+    array<string> commandsBlocked;
   }
   variant UIBotCommandsUpdateStatus switch (UIBotCommandsUpdateStatusTyp typ) {
     case UPTODATE: UIBotCommandsUpdateSettings;

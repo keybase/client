@@ -156,6 +156,24 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	assertMatch(false)
 }
 
+func TestCommandsBlocked(t *testing.T) {
+	convID := chat1.ConversationID([]byte{1, 2, 3, 4})
+	otherConvID := chat1.ConversationID([]byte{5, 6, 7, 8})
+	for _, tc := range []struct {
+		name     string
+		settings keybase1.TeamBotSettings
+		blocked  bool
+	}{
+		{"commands off", keybase1.TeamBotSettings{}, true},
+		{"commands in every conversation", keybase1.TeamBotSettings{Cmds: true}, false},
+		{"commands in this conversation", keybase1.TeamBotSettings{Cmds: true, Convs: []string{convID.String()}}, false},
+		{"commands only elsewhere", keybase1.TeamBotSettings{Cmds: true, Convs: []string{otherConvID.String()}}, true},
+		{"this conversation but commands off", keybase1.TeamBotSettings{Convs: []string{convID.String()}}, true},
+	} {
+		require.Equal(t, tc.blocked, CommandsBlocked(tc.settings, convID), tc.name)
+	}
+}
+
 func TestBotInfoHash(t *testing.T) {
 	hash := sha256.New()
 	nilHash := chat1.BotInfoHash(hash.Sum(nil))

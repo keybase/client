@@ -40,6 +40,12 @@ func SortCommandsForMatching(cmds []chat1.UserBotCommandOutput) {
 	})
 }
 
+// CommandsBlocked reports whether a restricted bot's settings keep it from taking
+// commands in convID, the same checks ApplyTeamBotSettings makes before matching one.
+func CommandsBlocked(botSettings keybase1.TeamBotSettings, convID chat1.ConversationID) bool {
+	return !botSettings.Cmds || !botSettings.ConvIDAllowed(convID.String())
+}
+
 func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor1.UID,
 	botSettings keybase1.TeamBotSettings,
 	msg chat1.MessagePlaintext, convID *chat1.ConversationID,

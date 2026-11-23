@@ -360,7 +360,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       content = (
         <Commands.List
           {...listProps}
-          botSettings={botCommandsUpdateState.settings}
+          blockedBots={botCommandsUpdateState.blockedBots}
           inputSnapshot={commandInputSnapshot}
           suppressCommandSuggestions={suppressCommandSuggestions}
         />

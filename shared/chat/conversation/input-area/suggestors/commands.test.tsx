@@ -51,42 +51,55 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('useBotCommandsUpdateState ignores other conversations and applies uptodate settings', () => {
+test('useBotCommandsUpdateState ignores other conversations and applies the blocked bots', () => {
   const {result} = renderHook(() => useBotCommandsUpdateState(), {wrapper})
 
   notifyBotCommandsStatus(otherConvID, {typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.updating})
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
-  expect(result.current.settings.size).toBe(0)
+  expect(result.current.blockedBots.size).toBe(0)
 
-  const botSettings = {cmds: false, convs: [convID], mentions: true}
   notifyBotCommandsStatus(convID, {
     typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate,
-    uptodate: {settings: {helperbot: botSettings}},
+    uptodate: {commandsBlocked: ['helperbot']},
   })
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate)
-  expect(result.current.settings.get('helperbot')).toEqual(botSettings)
+  expect([...result.current.blockedBots]).toEqual(['helperbot'])
 })
 
-test('useBotCommandsUpdateState preserves settings during non-uptodate updates and blanks on conv changes', () => {
+test('useBotCommandsUpdateState keeps the blocked bots during non-uptodate updates and blanks on conv changes', () => {
   const {rerender, result} = renderHook(() => useBotCommandsUpdateState(), {wrapper})
-  const botSettings = {cmds: true, mentions: false}
 
   notifyBotCommandsStatus(convID, {
     typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate,
-    uptodate: {settings: {helperbot: botSettings}},
+    uptodate: {commandsBlocked: ['helperbot']},
   })
   notifyBotCommandsStatus(convID, {typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.failed})
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.failed)
-  expect(result.current.settings.get('helperbot')).toEqual(botSettings)
+  expect([...result.current.blockedBots]).toEqual(['helperbot'])
 
   threadID = otherConvID
   rerender()
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
-  expect(result.current.settings.size).toBe(0)
+  expect(result.current.blockedBots.size).toBe(0)
+})
+
+test('an uptodate status with no blocked bots clears the previous ones', () => {
+  const {result} = renderHook(() => useBotCommandsUpdateState(), {wrapper})
+
+  notifyBotCommandsStatus(convID, {
+    typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate,
+    uptodate: {commandsBlocked: ['helperbot']},
+  })
+  notifyBotCommandsStatus(convID, {
+    typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate,
+    uptodate: {commandsBlocked: null},
+  })
+
+  expect(result.current.blockedBots.size).toBe(0)
 })
 
 describe('transformer', () => {

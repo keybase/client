@@ -23,27 +23,21 @@ export const transformer = (
 
 const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + String(c.username)
 
-type BotSettingsMap = ReadonlyMap<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>
+type BlockedBots = ReadonlySet<string>
 type BotCommandsUpdateState = {
   conversationIDKey: T.Chat.ConversationIDKey
-  settings: BotSettingsMap
+  // bots whose restricted settings keep them from taking commands here, as the service decided
+  blockedBots: BlockedBots
   status: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 
-const BotCommandSettingsContext = React.createContext<BotSettingsMap | undefined>(undefined)
-BotCommandSettingsContext.displayName = 'BotCommandSettingsContext'
-const BotCommandConversationContext = React.createContext<
-  | {
-      botCommands: T.RPCChat.ConversationCommandGroups
-      conversationIDKey: T.Chat.ConversationIDKey
-    }
-  | undefined
->(undefined)
-BotCommandConversationContext.displayName = 'BotCommandConversationContext'
+const noBlockedBots: BlockedBots = new Set()
+const BlockedBotsContext = React.createContext<BlockedBots>(noBlockedBots)
+BlockedBotsContext.displayName = 'BlockedBotsContext'
 
 const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey): BotCommandsUpdateState => ({
+  blockedBots: noBlockedBots,
   conversationIDKey,
-  settings: new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>(),
   status: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
 })
 
@@ -57,17 +51,14 @@ export const useBotCommandsUpdateState = () => {
     const {status} = notification
     setUpdateState(previous => {
       if (status.typ !== T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate) {
-        const settings =
-          previous.conversationIDKey === conversationIDKey
-            ? previous.settings
-            : new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>()
-        return {conversationIDKey, settings, status: status.typ}
+        const blockedBots = previous.conversationIDKey === conversationIDKey ? previous.blockedBots : noBlockedBots
+        return {blockedBots, conversationIDKey, status: status.typ}
       }
-      const settings = new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>()
-      Object.entries(status.uptodate.settings ?? {}).forEach(([username, botSettings]) => {
-        settings.set(username, botSettings)
-      })
-      return {conversationIDKey, settings, status: status.typ}
+      return {
+        blockedBots: new Set(status.uptodate.commandsBlocked ?? []),
+        conversationIDKey,
+        status: status.typ,
+      }
     })
   })
 
@@ -76,24 +67,6 @@ export const useBotCommandsUpdateState = () => {
     : makeBotCommandsUpdateState(conversationIDKey)
 }
 
-const getBotRestrictBlockMap = (
-  settings: BotSettingsMap | undefined,
-  conversationIDKey: T.Chat.ConversationIDKey,
-  bots: ReadonlyArray<string>
-) => {
-  const blocks = new Map<string, boolean>()
-  bots.forEach(b => {
-    const botSettings = settings?.get(b)
-    if (!botSettings) {
-      blocks.set(b, false)
-      return
-    }
-    const convs = botSettings.convs
-    const cmds = botSettings.cmds
-    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
-  })
-  return blocks
-}
 const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
 // two stacked lines, whose desktop line-heights are 18 (Body) and 17 (BodySmall); this is
@@ -105,25 +78,8 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const theme = Kb.Styles.useTheme()
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
-  const botSettings = React.useContext(BotCommandSettingsContext)
-  const botCommandConversation = React.useContext(BotCommandConversationContext)
-  const conversationIDKey = botCommandConversation?.conversationIDKey ?? T.Chat.noConversationIDKey
-  const botCommands = botCommandConversation?.botCommands
-  const suggestBotCommands =
-    botCommands?.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-      ? botCommands.custom.commands || blankCommands
-      : blankCommands
-  const botRestrictMap = getBotRestrictBlockMap(botSettings, conversationIDKey, [
-    ...suggestBotCommands
-      .reduce((s, c) => {
-        if (c.username) {
-          s.add(c.username)
-        }
-        return s
-      }, new Set<string>())
-      .values(),
-  ])
-  const enabled = !botRestrictMap.get(command.username ?? '')
+  const blockedBots = React.useContext(BlockedBotsContext)
+  const enabled = !blockedBots.has(command.username ?? '')
   return (
     <Kb.Box2
       direction="horizontal"
@@ -222,7 +178,7 @@ type ListProps = Pick<
   Common.ListProps<CommandType>,
   'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  botSettings: BotSettingsMap
+  blockedBots: BlockedBots
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
@@ -232,22 +188,19 @@ type ListProps = Pick<
   inputSnapshot: CommandInputSnapshot
 }
 export const List = (p: ListProps) => {
-  const {botSettings, conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
-  const {botCommands} = useConversationMeta(conversationIDKey)
+  const {blockedBots, conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
   const items = useDataSource({conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions})
   return (
-    <BotCommandSettingsContext value={botSettings}>
-      <BotCommandConversationContext value={{botCommands, conversationIDKey}}>
-        <Common.List
-          {...rest}
-          filter={filter}
-          keyExtractor={keyExtractor}
-          items={items}
-          ItemRenderer={ItemRenderer}
-          loading={false}
-          rowHeight={rowHeight}
-        />
-      </BotCommandConversationContext>
-    </BotCommandSettingsContext>
+    <BlockedBotsContext value={blockedBots}>
+      <Common.List
+        {...rest}
+        filter={filter}
+        keyExtractor={keyExtractor}
+        items={items}
+        ItemRenderer={ItemRenderer}
+        loading={false}
+        rowHeight={rowHeight}
+      />
+    </BlockedBotsContext>
   )
 }
