@@ -1,0 +1,37 @@
+go/kbfs/libkbfs/errors.go
+  s_7a47aee68b0e8f::t_2c1dc24eddbdcc 109-124
+go/kbfs/libkbfs/folder_branch_ops.go
+  s_7a47aee68b0e8f::t_d5f23e0f31cddb 7801-7803,7806,7821-7834,7836
+go/kbfs/libkbfs/journal_manager.go
+  s_7a47aee68b0e8f::t_330adcc4149f08 944-947,950,956
+go/kbfs/libkbfs/kbfs_ops.go
+  s_7a47aee68b0e8f::t_95003328f4ff8c 1061-1069
+go/kbfs/libkbfs/kbfs_ops_test.go
+  s_7a47aee68b0e8f::t_f32ee743ad15f0 4952-5078
+go/kbfs/libkbfs/reporter_kbpki.go
+  s_7a47aee68b0e8f::t_f1776d481133f4 102-108
+go/kbfs/libkbfs/tlf_journal.go
+  s_7a47aee68b0e8f::t_8c212d14391c27 757-758,766,774,777-778
+shared/constants/fs.tsx
+  s_7a47aee68b0e8f::t_ffdf7c22238280 580-588,608-610
+shared/menubar/remote-proxy.desktop.tsx
+  s_7a47aee68b0e8f::t_2eb49f0f8eb113 3,94-97
+shared/stores/tests/fs.test.ts
+  s_7a47aee68b0e8f::t_92dd02a0975374 136-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "5c6b6b0ac356d9fd4a7d568b802a0cde3020d1fc",
+  "prompts": {},
+  "sessions": {
+    "s_7a47aee68b0e8f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e549e1c6-d826-4579-b4d9-5651a96009bc",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
