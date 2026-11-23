@@ -1,0 +1,32 @@
+go/kbfs/libkbfs/folder_block_manager.go
+  s_40c6bf3590a4be::t_6ec930a89fce14 1615-1617,1619-1620,1622
+  s_40c6bf3590a4be::t_baa6188c7ac84f 1288-1296,1330-1333
+  s_40c6bf3590a4be::t_27d3930353ed53 1618
+  s_40c6bf3590a4be::t_724f9e6a2c68e1 1297
+  s_40c6bf3590a4be::t_ec9114dcaa1b9b 1329
+  s_40c6bf3590a4be::t_e5f2729499ae97 1334-1336
+go/kbfs/search/indexer.go
+  s_40c6bf3590a4be::t_e96157b1be58f4 22
+  s_40c6bf3590a4be::t_678c533ce339ea 1392,1412,1414,1416-1421,1423
+  s_40c6bf3590a4be::t_dc2acee89ae21d 1390-1391
+  s_40c6bf3590a4be::t_6dbc944cf3e93b 1415
+go/kbfs/libkbfs/prefetcher.go
+  s_40c6bf3590a4be::t_02eb1516a7f600 1371-1375,1377-1379,1381-1382,1386-1396,1399-1406,1408-1409,1533,1536
+  s_40c6bf3590a4be::t_e7adfe26e81dbf 1383-1385
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9f857027295bf66def1ee31de5c45a56fdeccff6",
+  "prompts": {},
+  "sessions": {
+    "s_40c6bf3590a4be": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "19b05970-ffe9-403f-b767-c7be56da6fa4",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
