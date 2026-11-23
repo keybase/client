@@ -1,0 +1,32 @@
+go/chat/maps/livelocation.go
+  s_e80b30cd4a0add::t_1f6370c6ec417b 105-107,114-119
+  s_e80b30cd4a0add::t_8b2094e993b941 233-234
+  s_e80b30cd4a0add::t_425f5f6a7df0f0 301
+  s_e80b30cd4a0add::t_536026591a2661 316,321-327,333,344-348
+  s_e80b30cd4a0add::t_57307cf8d52b01 217-222,242,256,273
+  s_e80b30cd4a0add::t_5faddb9ec4cafb 339-342
+  s_e80b30cd4a0add::t_7a683adf7b4a71 120-121
+go/chat/maps/livelocation_bugs_test.go
+  s_e80b30cd4a0add::t_6c66f79c88c727 186-192,220
+  s_e80b30cd4a0add::t_fceb8e42d9a4f9 123-126
+  s_e80b30cd4a0add::t_34914d560eaae3 31,40-41,48
+  s_e80b30cd4a0add::t_785d1120573c1e 101-103
+  s_e80b30cd4a0add::t_584b8c874958ed 17
+  s_e80b30cd4a0add::t_74481e376e3561 145-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0101be43defe0c98f6f01b20bf7f7bd665275220",
+  "prompts": {},
+  "sessions": {
+    "s_e80b30cd4a0add": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bab3574f-5d71-48dd-a5b1-fba34b6d49e0",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
