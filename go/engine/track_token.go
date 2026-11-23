@@ -153,8 +153,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
 	m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
 
-	// Keep these:
-	m.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
+	// Keep this:
 	m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 
 	// Dismiss any associated gregor item.

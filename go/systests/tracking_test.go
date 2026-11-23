@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -91,13 +92,11 @@ func (*identifyUI) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.Displa
 
 type trackingNotifyHandler struct {
 	trackingCh chan keybase1.TrackingChangedArg
-	errCh      chan error
 }
 
 func newTrackingNotifyHandler() *trackingNotifyHandler {
 	return &trackingNotifyHandler{
-		trackingCh: make(chan keybase1.TrackingChangedArg),
-		errCh:      make(chan error),
+		trackingCh: make(chan keybase1.TrackingChangedArg, 10),
 	}
 }
 
@@ -171,13 +170,7 @@ func TestTrackingNotifications(t *testing.T) {
 		})
 	}
 
-	// Actually launch it in the background
-	go func() {
-		err := launchServer(nh)
-		if err != nil {
-			nh.errCh <- err
-		}
-	}()
+	require.NoError(t, launchServer(nh))
 
 	// Have our test user track t_alice.
 	trackCmd := client.NewCmdTrackRunner(tc2.G)
@@ -186,39 +179,25 @@ func TestTrackingNotifications(t *testing.T) {
 	err := trackCmd.Run()
 	require.NoError(t, err)
 
-	// Do a check for new tracking statements that should fire off a
-	// notification. Currently the track command above does not fetch the new
-	// chain link from the server, so this call is required. It's possible that
-	// TrackEngine (or our signature caching code) might change in the future,
-	// making this call unnecessary.
+	// The follow notifies about t_alice only, not about the follower.
+	tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
+	select {
+	case arg := <-nh.trackingCh:
+		require.Equal(t, "t_alice", arg.Username)
+		require.True(t, tAliceUID.Equal(arg.Uid), "Bad UID back: %s != %s", tAliceUID, arg.Uid)
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "no tracking notification for the follow")
+	}
+
+	// The self load here finds the link this device just posted; the follow
+	// already sent its notification, so this load must not send another.
 	checkTrackingCmd := client.NewCmdCheckTrackingRunner(tc2.G)
 	err = checkTrackingCmd.Run()
 	require.NoError(t, err)
-
-	// Wait to get a notification back as we expect.
-	// NOTE: If this test ever starts deadlocking here, it's possible that
-	// we've changed how we cache signatures that we make on the local client,
-	// in such a way that the fetch done by CheckTracking above doesn't find
-	// any "isOwnNewLinkFromServer" links. If so, one way to fix this test
-	// would be to blow away the local db before calling CheckTracking.
-	tc.G.Log.Debug("Waiting for two tracking notifications.")
-	for range 2 {
-		select {
-		case err := <-nh.errCh:
-			require.FailNow(t, fmt.Sprintf("Error before notify: %v", err))
-		case arg := <-nh.trackingCh:
-			tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
-			tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
-			if arg.Username == "t_alice" {
-				require.True(t, tAliceUID.Equal(arg.Uid),
-					"Bad UID back: %s != %s", tAliceUID, arg.Uid)
-			} else if userInfo.username == arg.Username {
-				require.True(t, tc.G.Env.GetUID().Equal(arg.Uid),
-					"Bad UID back: %s != %s", tc.G.Env.GetUID(), arg.Uid)
-			} else {
-				require.FailNow(t, fmt.Sprintf("Bad username back: %s != %s || %s", arg.Username, "t_alice", userInfo.username))
-			}
-		}
+	select {
+	case arg := <-nh.trackingCh:
+		require.FailNow(t, fmt.Sprintf("unexpected tracking notification: %#v", arg))
+	case <-time.After(2 * time.Second):
 	}
 
 	if err := CtlStop(tc2.G); err != nil {

@@ -1427,10 +1427,19 @@ func (idt *IdentityTable) populate(m MetaContext) (err error) {
 		tcl.insertIntoTable(idt)
 		if link.isOwnNewLinkFromServer {
 			link.isOwnNewLinkFromServer = false
-			tcl.DoOwnNewLinkFromServerNotifications(idt.G())
+			// The engine that posted a link from this device already sent its
+			// notification; this one is for links posted from other devices.
+			if !idt.signedByActiveDevice(link) {
+				tcl.DoOwnNewLinkFromServerNotifications(idt.G())
+			}
 		}
 	}
 	return nil
+}
+
+func (idt *IdentityTable) signedByActiveDevice(link *ChainLink) bool {
+	key := idt.G().ActiveDevice.SigningKeyForUID(link.GetUID())
+	return key != nil && key.GetKID().Equal(link.GetKID())
 }
 
 func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
