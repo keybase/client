@@ -1,5 +1,8 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as C from '@/constants'
+import * as NavTree from '@/constants/nav-tree'
+import * as Tabs from '@/constants/tabs'
+import {installNavigation, renders, stateShowing, uninstallNavigation} from '@/test/navigation'
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import {
@@ -208,16 +211,26 @@ test('an enable whose status reads keep failing reports the last failure', async
   expect(params.openFinder).not.toHaveBeenCalled()
 })
 
-test('a kext error from an enable started on another account opens no prompt', async () => {
-  const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
-  const {params, run} = enableWith([], {
-    enable: jest.fn(async () => Promise.resolve('kextPermissionError' as const)),
-    stillCurrent: () => false,
-  })
-  await run()
-  expect(params.setKextPermissionError).toHaveBeenCalledWith(true)
-  expect(navigateAppend).not.toHaveBeenCalled()
-  navigateAppend.mockRestore()
+test('a kext error opens the prompt only for the account that started the enable', async () => {
+  const kextModalShown = (nav: ReturnType<typeof installNavigation>) =>
+    NavTree.modalStack(nav.getRootState()).some(r => r.name === 'kextPermission')
+  const kextEnable = (stillCurrent: () => boolean) =>
+    enableWith([], {enable: jest.fn(async () => Promise.resolve('kextPermissionError' as const)), stillCurrent})
+  try {
+    const same = installNavigation({rootState: stateShowing('fsRoot', {tab: Tabs.fsTab})})
+    await kextEnable(always).run()
+    await renders()
+    expect(kextModalShown(same)).toBe(true)
+
+    const other = installNavigation({rootState: stateShowing('fsRoot', {tab: Tabs.fsTab})})
+    const {params, run} = kextEnable(() => false)
+    await run()
+    await renders()
+    expect(params.setKextPermissionError).toHaveBeenCalledWith(true)
+    expect(kextModalShown(other)).toBe(false)
+  } finally {
+    uninstallNavigation()
+  }
 })
 
 test("the user's enable opens Finder once, after the mount shows", async () => {
