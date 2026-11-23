@@ -31,7 +31,7 @@ const unfollowStep = async () => setFollowSecondFromCli(false)
 
 // Pressing "Following" unfollows (its hover label is checked in people-follow-hover).
 const unfollowFrom = async (page: Page, scope: Locator, what: string) =>
-  pressFollowChange(page, false, what, async () => button(scope, 'Following').click())
+  pressFollowChange(page, what, async () => button(scope, 'Following').click())
 
 test('follow from the profile', async ({page}, testInfo) => {
   test.setTimeout(120_000)
@@ -41,7 +41,7 @@ test('follow from the profile', async ({page}, testInfo) => {
     const profile = visibleProfile(page)
     await expect(followLabel(profile)).toBeVisible({timeout: 15_000})
     await step(page, testInfo, 'second profile, not followed')
-    await pressFollowChange(page, true, "the profile's Follow", async () => followLabel(profile).click())
+    await pressFollowChange(page, "the profile's Follow", async () => followLabel(profile).click())
     await expect(button(profile, 'Following')).toBeVisible({timeout: 15_000})
     await expectFollowsSecond(true, 'the second account in list-following after Follow')
     await step(page, testInfo, 'followed', {card: true})
@@ -64,7 +64,7 @@ test('follow from the tracker window', async ({page}, testInfo) => {
       const follow = button(buttons, 'Follow')
       await expect(follow).toBeVisible({timeout: 30_000})
       await step(tracker, testInfo, 'tracker window, not followed', {card: true})
-      const latest = await pressFollowChange(page, true, "the tracker window's Follow", async () => follow.click())
+      const latest = await pressFollowChange(page, "the tracker window's Follow", async () => follow.click())
       await expectFollowsSecond(true, 'the second account in list-following after the tracker Follow')
       // following, the window offers Close and Chat only
       await expect(follow).toHaveCount(0, {timeout: 15_000})
@@ -135,7 +135,7 @@ test.describe('profile card', () => {
       // wasn't ready"), so the press waits them out.
       const icons = card.getByTestId(T.PROFILE_CARD_SERVICE_ICONS)
       await expect(icons).toBeVisible({timeout: 15_000})
-      await pressFollowChange(page, true, "the card's Follow", async () => clickUnoccluded(followLabel(card)))
+      await pressFollowChange(page, "the card's Follow", async () => clickUnoccluded(followLabel(card)))
       await expect(icons).toBeVisible({timeout: 30_000})
       await expectFollowsSecond(true, 'the second account in list-following after the card Follow')
       // the pointer is still where the Follow press left it: over the followed button, which reads

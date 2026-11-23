@@ -241,7 +241,7 @@ const RemoteTrackers = () => {
       forceDisplay: false,
       fromDaemon: false,
       guiID: generateGUIID(),
-      ignoreCache: true,
+      ignoreCache: false,
       inTracker: true,
       reason: '',
     })

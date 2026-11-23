@@ -447,7 +447,7 @@ const ensureEngineSubscriptions = () => {
     if (!s?.details.guiID) {
       return
     }
-    loadProfileIdentify(s.username, {freshAfter: Date.now(), ignoreCache: true})
+    loadProfileIdentify(s.username, {freshAfter: Date.now(), ignoreCache: false})
   })
 
   subscribeToEngineAction('keybase.1.NotifyUsers.userChanged', action => {

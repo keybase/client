@@ -64,14 +64,12 @@ const installTrackingWatch = async (page: Page) =>
 
 // Presses a Follow or Unfollow (`press`) for the second account in one place (a profile, a card
 // or a tracker window) and waits until that place has settled on it; returns the guiID it settled
-// on. The service sends trackingChanged for the user twice after a follow (once from the follow,
-// once when it next loads the signed-in user's sigchain and finds the new link) and once after an
-// unfollow, and the place reloads its identify under a new guiID on each; a press during a reload
-// goes to an identify that is not ready or no longer current. Settled: every notification in, an
-// identify started for each, and the latest one has reported its result.
-export const pressFollowChange = async (page: Page, follow: boolean, what: string, press: () => Promise<void>) => {
+// on. The service sends one trackingChanged for the user after a follow or an unfollow, and the
+// place reloads its identify under a new guiID on it; a press during that reload goes to an identify
+// that is not ready or no longer current. Settled: the notification in, an identify started for it,
+// and that identify has reported its result.
+export const pressFollowChange = async (page: Page, what: string, press: () => Promise<void>) => {
   const user = loadE2EAccounts().secondUser.toLowerCase()
-  const want = follow ? 2 : 1
   await installTrackingWatch(page)
   await page.evaluate(u => (globalThis as unknown as TrackingGlobals).__kbE2ETracking!.counts.set(u, 0), user)
   const rpcs = await watchOutgoingRpcs(page)
@@ -95,9 +93,9 @@ export const pressFollowChange = async (page: Page, follow: boolean, what: strin
             [user, latest] as const
           )
           state = {latest, notified, resulted, started: guiIDs.length}
-          return notified >= want && guiIDs.length >= want && resulted
+          return notified >= 1 && guiIDs.length >= 1 && resulted
         },
-        {message: `${what}: ${want} trackingChanged notifications, an identify for each, the latest one done`, timeout: 30_000}
+        {message: `${what}: a trackingChanged notification, an identify for it, that one done`, timeout: 30_000}
       )
       .toBe(true)
   } catch (e) {

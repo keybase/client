@@ -255,6 +255,25 @@ test('a tracking change to a closed profile makes its reopen check again', async
   unsub()
 })
 
+// A follow changes the link to the user, not their proofs, so the rerun answers
+// from the proof cache instead of re-fetching every proof from its host.
+test('a tracking change to an open profile reruns its identify from the proof cache', async () => {
+  const unsub = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  await flush()
+
+  notifyEngineActionListeners({
+    payload: {params: {isTracking: true, uid: '', username: 'testuser'}},
+    type: 'keybase.1.NotifyTracking.trackingChanged',
+  } as never)
+
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  expect(identifySpy).toHaveBeenLastCalledWith(
+    expect.objectContaining({params: expect.objectContaining({ignoreCache: false})})
+  )
+  unsub()
+})
+
 test('a session with an identify still running is kept even with no subscribers', () => {
   const unsub = subscribeToProfile('testuser', () => {})
   loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: true})

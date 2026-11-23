@@ -19,7 +19,7 @@ test('the Following button reads Unfollow on hover', async ({page}, testInfo) =>
     async () => {
       await openUserProfile(page, loadE2EAccounts().secondUser)
       const profile = visibleProfile(page)
-      await pressFollowChange(page, true, "the profile's Follow", async () => followLabel(profile).click())
+      await pressFollowChange(page, "the profile's Follow", async () => followLabel(profile).click())
       await expectFollowsSecond(true, 'the second account in list-following after Follow')
       const following = button(profile, 'Following')
       await expect(following).toBeVisible({timeout: 15_000})

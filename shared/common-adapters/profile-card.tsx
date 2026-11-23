@@ -147,7 +147,7 @@ const ProfileCard = ({
   // a hover card is incidental, not "check this identity now" - the cached proof
   // results are what it should show, and forcing a check re-fetches every proof
   // from its third-party host
-  const {details: userDetails, loadProfile} = useTrackerProfile(username, {cachedOnMount: true})
+  const {details: userDetails} = useTrackerProfile(username, {cachedOnMount: true})
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const isSelf = useCurrentUserState(s => s.username === username)
@@ -167,7 +167,7 @@ const ProfileCard = ({
 
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
   const _changeFollow = (follow: boolean) =>
-    followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
+    followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => {}, () => {})
 
   const openProfile = () => {
     navToProfile(username)
