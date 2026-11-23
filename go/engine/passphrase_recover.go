@@ -239,8 +239,10 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 }
 
 func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error) {
-	// First log in using the paper key
+	// First log in using the paper key. The UI hears about the login only
+	// once the new password is set, so a failure here never shows as a login.
 	loginEng := NewLoginWithPaperKey(mctx.G(), e.arg.Username)
+	loginEng.skipLoginNotify = true
 	if err := RunEngine2(mctx, loginEng); err != nil {
 		return err
 	}
@@ -255,7 +257,7 @@ func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error
 	}
 
 	mctx.Debug("PassphraseRecover with paper key success, sending login notification")
-	mctx.G().NotifyRouter.HandleLogin(mctx.Ctx(), e.arg.Username)
+	mctx.G().NotifyRouter.HandleLogin(mctx.Ctx(), string(mctx.G().Env.GetUsername()))
 	mctx.Debug("PassphraseRecover with paper key success, calling login hooks")
 	mctx.G().CallLoginHooks(mctx)
 
