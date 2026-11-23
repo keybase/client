@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {invalidPasswordErrorString} from '@/constants/config'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
@@ -62,12 +61,16 @@ const startAttempt = async () => {
   return {push, reply: held[0]!.reply}
 }
 
+// the label the service sends with a server-rejected password
+const rejectedLabel = 'Bad password: Invalid password. Server rejected login attempt..'
+
 const pushPassphrase = async (
   push: (method: string, params: object) => Promise<unknown>,
   type: T.RPCGen.PassphraseType,
-  retryLabel = ''
+  retryLabel = '',
+  retryBadPassword = false
 ) => {
-  const answered = push(getPassphrase, {pinentry: {retryLabel, type}})
+  const answered = push(getPassphrase, {pinentry: {retryBadPassword, retryLabel, type}})
   await settle()
   return answered
 }
@@ -221,7 +224,7 @@ describe('passphrase prompts', () => {
 
   test('the service rejecting the password is rewritten to a readable error and replaces the screen', async () => {
     const {push} = await startAttempt()
-    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, invalidPasswordErrorString)
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, rejectedLabel, true)
     await settle()
 
     expect(navigations()).toEqual([
@@ -237,7 +240,7 @@ describe('passphrase prompts', () => {
     void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
     await settle()
     nav.clearActions()
-    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, invalidPasswordErrorString)
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, rejectedLabel, true)
     await settle()
 
     expect(nav.types()).toEqual(['SET_PARAMS'])

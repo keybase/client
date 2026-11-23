@@ -26,6 +26,8 @@ protocol passphraseCommon {
     string submitLabel;
     string cancelLabel;
     string retryLabel;
+    // Set when this prompt is a retry because the server rejected the password.
+    boolean retryBadPassword;
     PassphraseType type;
     GUIEntryFeatures features;
   }

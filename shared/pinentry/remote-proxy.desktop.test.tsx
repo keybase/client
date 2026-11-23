@@ -31,6 +31,7 @@ const pinentry = {
     cancelLabel: '',
     features: {showTyping: {allow: true, defaultValue: false, label: '', readonly: false}},
     prompt: 'Enter your password',
+    retryBadPassword: false,
     retryLabel: '',
     submitLabel: '',
     type: T.RPCGen.PassphraseType.passPhrase,

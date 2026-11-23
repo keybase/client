@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import isEqual from 'lodash/isEqual'
-import {invalidPasswordErrorString} from '@/constants/config'
 import {type Device, type ProvisionRouteError} from '@/constants/provision'
 import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
@@ -319,10 +318,10 @@ const runProvision = (initialUsername: string) => {
           'keybase.1.secretUi.getPassphrase': (params, response) => {
             if (isCanceled(response)) return
             const {pinentry} = params
-            const {retryLabel, type} = pinentry
+            const {retryBadPassword, retryLabel, type} = pinentry
             setPendingResponse(response)
             // Service asking us again due to an error?
-            const error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
+            const error = retryBadPassword ? 'Incorrect password.' : retryLabel
             handles.set(
               slots.submitPassphrase,
               wrapErrors((passphrase: string) => {

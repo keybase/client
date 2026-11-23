@@ -68,26 +68,28 @@ func (o PassphraseType) String() string {
 }
 
 type GUIEntryArg struct {
-	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
-	Prompt      string           `codec:"prompt" json:"prompt"`
-	Username    string           `codec:"username" json:"username"`
-	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
-	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
-	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
-	Type        PassphraseType   `codec:"type" json:"type"`
-	Features    GUIEntryFeatures `codec:"features" json:"features"`
+	WindowTitle      string           `codec:"windowTitle" json:"windowTitle"`
+	Prompt           string           `codec:"prompt" json:"prompt"`
+	Username         string           `codec:"username" json:"username"`
+	SubmitLabel      string           `codec:"submitLabel" json:"submitLabel"`
+	CancelLabel      string           `codec:"cancelLabel" json:"cancelLabel"`
+	RetryLabel       string           `codec:"retryLabel" json:"retryLabel"`
+	RetryBadPassword bool             `codec:"retryBadPassword" json:"retryBadPassword"`
+	Type             PassphraseType   `codec:"type" json:"type"`
+	Features         GUIEntryFeatures `codec:"features" json:"features"`
 }
 
 func (o GUIEntryArg) DeepCopy() GUIEntryArg {
 	return GUIEntryArg{
-		WindowTitle: o.WindowTitle,
-		Prompt:      o.Prompt,
-		Username:    o.Username,
-		SubmitLabel: o.SubmitLabel,
-		CancelLabel: o.CancelLabel,
-		RetryLabel:  o.RetryLabel,
-		Type:        o.Type.DeepCopy(),
-		Features:    o.Features.DeepCopy(),
+		WindowTitle:      o.WindowTitle,
+		Prompt:           o.Prompt,
+		Username:         o.Username,
+		SubmitLabel:      o.SubmitLabel,
+		CancelLabel:      o.CancelLabel,
+		RetryLabel:       o.RetryLabel,
+		RetryBadPassword: o.RetryBadPassword,
+		Type:             o.Type.DeepCopy(),
+		Features:         o.Features.DeepCopy(),
 	}
 }
 

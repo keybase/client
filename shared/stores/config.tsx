@@ -24,7 +24,6 @@ import {
   startNewAccountGeneration,
 } from "@/engine/account-generation";
 import { disposeDialogsForLogout } from "@/engine/dialog";
-import { invalidPasswordErrorString } from "@/constants/config";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
 import { useDaemonState } from "@/stores/daemon";
@@ -293,12 +292,10 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
                   if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response);
                     if (superseded()) return;
-                    let retryLabel = params.pinentry.retryLabel;
-                    if (retryLabel === invalidPasswordErrorString) {
-                      retryLabel = "Incorrect password.";
-                    }
                     const error = new RPCError(
-                      retryLabel,
+                      params.pinentry.retryBadPassword
+                        ? "Incorrect password."
+                        : params.pinentry.retryLabel,
                       T.RPCGen.StatusCode.scinputerror,
                     );
                     get().dispatch.setLoginError(error);
