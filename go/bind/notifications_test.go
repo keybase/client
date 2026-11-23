@@ -95,9 +95,6 @@ func TestPostTextReply(t *testing.T) {
 		require.Equal(t, []string{"hi"}, helper.sent)
 	})
 
-	// Bugs: HandlePostTextReply calls SendTextByIDNonblock unconditionally,
-	// before checking login state or the message ID, and never checks the
-	// send's returned error.
 	t.Run("send error is returned", func(t *testing.T) {
 		helper, inbox := setup(t, true)
 		helper.sendErr = errors.New("outbox full")
@@ -110,8 +107,10 @@ func TestPostTextReply(t *testing.T) {
 		require.Empty(t, helper.sent)
 	})
 	t.Run("invalid message ID doesn't send", func(t *testing.T) {
-		helper, _ := setup(t, true)
-		require.Error(t, HandlePostTextReply(convID, "testuser", -1, "hi"))
-		require.Empty(t, helper.sent)
+		for _, msgID := range []int{-1, 0} {
+			helper, _ := setup(t, true)
+			require.Error(t, HandlePostTextReply(convID, "testuser", msgID, "hi"), "msgID=%d", msgID)
+			require.Empty(t, helper.sent, "msgID=%d", msgID)
+		}
 	})
 }
