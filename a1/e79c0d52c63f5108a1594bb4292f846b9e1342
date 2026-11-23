@@ -1,0 +1,19 @@
+go/libkb/leveldb_test.go
+  s_fe3c8abadb0dfe::t_45d14a1e68c0cf 613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a1e79c0d52c63f5108a1594bb4292f846b9e1342",
+  "prompts": {},
+  "sessions": {
+    "s_fe3c8abadb0dfe": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8d839525-df59-4e88-ab26-d05f8a785cf9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
