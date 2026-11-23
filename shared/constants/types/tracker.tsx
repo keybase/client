@@ -67,7 +67,6 @@ export type Details = T.Immutable<{
   numAssertionsExpected?: number
   reason: string
   state: DetailsState
-  stellarHidden?: boolean
   teamShowcase?: ReadonlyArray<TeamShowcase>
   username: string
   resetBrokeTrack: boolean

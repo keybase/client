@@ -67,9 +67,7 @@ const chatNotificationTypes = [
   'chat.1.NotifyChat.ChatInboxSynced',
   'chat.1.NotifyChat.ChatLeftConversation',
   'chat.1.NotifyChat.ChatParticipantsInfo',
-  'chat.1.NotifyChat.ChatPaymentInfo',
   'chat.1.NotifyChat.ChatPromptUnfurl',
-  'chat.1.NotifyChat.ChatRequestInfo',
   'chat.1.NotifyChat.ChatResetConversation',
   'chat.1.NotifyChat.ChatSetConvRetention',
   'chat.1.NotifyChat.ChatSetConvSettings',
@@ -441,14 +439,6 @@ const stagesOf = (action: ChatNotification): Stages => {
             notification: {type: 'typing', typers: update.typers} as const,
           })),
       }
-    }
-    case 'chat.1.NotifyChat.ChatRequestInfo': {
-      const {convID, info, msgID} = action.payload.params
-      return {thread: () => one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'requestInfo'})}
-    }
-    case 'chat.1.NotifyChat.ChatPaymentInfo': {
-      const {convID, info, msgID} = action.payload.params
-      return {thread: () => one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'paymentInfo'})}
     }
     case 'chat.1.NotifyChat.ChatPromptUnfurl': {
       const {convID, domain, msgID} = action.payload.params

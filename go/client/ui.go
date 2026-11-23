@@ -523,12 +523,6 @@ func (ui *BaseIdentifyUI) DisplayCryptocurrency(_ libkb.MetaContext, l keybase1.
 	return nil
 }
 
-func (ui *BaseIdentifyUI) DisplayStellarAccount(_ libkb.MetaContext, l keybase1.StellarAccount) error {
-	msg := fmt.Sprintf("%s  Stellar %s (%s)", XLM, ColorString(ui.G(), "green", "%s", l.AccountID), l.FederationAddress)
-	ui.ReportHook(msg)
-	return nil
-}
-
 func (ui *BaseIdentifyUI) DisplayKey(_ libkb.MetaContext, key keybase1.IdentifyKey) error {
 	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {

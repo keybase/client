@@ -265,10 +265,6 @@ func (ui *FakeIdentifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryp
 	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
-	return nil
-}
-
 func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKey) error {
 	ui.Lock()
 	defer ui.Unlock()

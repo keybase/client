@@ -49,10 +49,6 @@ func (*identifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurre
 	return nil
 }
 
-func (*identifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
-	return nil
-}
-
 func (*identifyUI) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error {
 	return nil
 }

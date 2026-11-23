@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/protocol/chat1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -111,31 +110,6 @@ func (r *RemoteChatUI) ChatSearchBotHits(ctx context.Context, arg chat1.UIChatSe
 	return r.cli.ChatSearchBotHits(ctx, chat1.ChatSearchBotHitsArg{
 		SessionID: r.sessionID,
 		Hits:      arg,
-	})
-}
-
-func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
-	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
-		SessionID: r.sessionID,
-		Summary:   summary,
-	})
-}
-
-func (r *RemoteChatUI) ChatStellarShowConfirm(ctx context.Context) error {
-	return r.cli.ChatStellarShowConfirm(ctx, r.sessionID)
-}
-
-func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
-	return r.cli.ChatStellarDataError(ctx, chat1.ChatStellarDataErrorArg{
-		SessionID: r.sessionID,
-		Error:     err,
-	})
-}
-
-func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
-	return r.cli.ChatStellarDone(ctx, chat1.ChatStellarDoneArg{
-		SessionID: r.sessionID,
-		Canceled:  canceled,
 	})
 }
 

@@ -186,7 +186,6 @@ test('updateTrackerDetailsUserCard copies the card fields and flattens team show
     fullName: 'Alice A',
     hidFromFollowers: true,
     location: 'Anywhere',
-    stellarHidden: true,
     teamShowcase: [
       {description: 'a team', fqName: 'keybase.friends', numMembers: 3, open: true, publicAdmins: ['bob']},
       {description: '', fqName: 'other', numMembers: 1, open: false, publicAdmins: undefined},
@@ -204,7 +203,6 @@ test('updateTrackerDetailsUserCard copies the card fields and flattens team show
       fullname: 'Alice A',
       hidFromFollowers: true,
       location: 'Anywhere',
-      stellarHidden: true,
     })
   )
   expect(next.teamShowcase).toEqual([

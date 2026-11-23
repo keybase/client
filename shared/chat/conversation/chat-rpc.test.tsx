@@ -187,52 +187,6 @@ describe('service adapter', () => {
   const outboxID = new Uint8Array([7, 7])
   const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
 
-  test('postText declines stellar confirmations and reports a canceled payment', async () => {
-    const onStellarCanceled = jest.fn()
-    const held = fake.hold('chat.1.local.postTextNonblock')
-    const done = rpc().postText({
-      clientPrev: T.Chat.numberToMessageID(5),
-      conversationIDKey,
-      ephemeralLifetime: 0,
-      onStellarCanceled,
-      replyTo: T.Chat.numberToMessageID(4),
-      text: 'hi',
-      tlfName: 'testuser',
-      unfurlSuppress: ['https://a.com'],
-    })
-    await settle()
-    const sessionID = held[0]!.params.sessionID as number
-    await expect(fake.push('chat.1.chatUi.chatStellarDataConfirm', {summary: {}}, {sessionID})).resolves.toEqual({
-      result: false,
-    })
-    await expect(fake.push('chat.1.chatUi.chatStellarDataError', {error: {}}, {sessionID})).resolves.toEqual({
-      result: false,
-    })
-    await fake.push('chat.1.chatUi.chatStellarShowConfirm', {}, {sessionID})
-    await fake.push('chat.1.chatUi.chatStellarDone', {canceled: false}, {sessionID})
-    await settle()
-    expect(onStellarCanceled).not.toHaveBeenCalled()
-    await fake.push('chat.1.chatUi.chatStellarDone', {canceled: true}, {sessionID})
-    await settle()
-    expect(onStellarCanceled).toHaveBeenCalledTimes(1)
-    held[0]!.reply({})
-    await done
-    expect(sent('chat.1.local.postTextNonblock')).toEqual([
-      {
-        body: 'hi',
-        clientPrev: 5,
-        conversationID: convID,
-        identifyBehavior: chatGui,
-        // the service picks the outbox id
-        outboxID: null,
-        replyTo: 4,
-        tlfName: 'testuser',
-        tlfPublic: false,
-        unfurlSuppress: ['https://a.com'],
-      },
-    ])
-  })
-
   test('postText carries a lifetime only when exploding, and an empty suppress list by default', async () => {
     acks('chat.1.local.postTextNonblock')
     await rpc().postText({

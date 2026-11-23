@@ -13,8 +13,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {holdHandlerTimers, paramsOf} from '@/test/fake-thread-load'
-import {flush, settle} from '@/test/flush'
+import {paramsOf} from '@/test/fake-thread-load'
+import {flush} from '@/test/flush'
 import {navigationWrapper} from '@/test/navigation'
 import {sendTextToConversation, useConversationSendActions} from './send-actions'
 import {ConversationThreadProvider, useConversationThreadActions, useConversationThreadStore} from './thread-context'
@@ -32,33 +32,9 @@ const serviceError = (desc: string) => () => fakeError(T.RPCGen.StatusCode.scgen
 
 let fake: FakeEngine
 
-// The service posts the text. A payment in it makes the service ask the GUI to confirm, which chat
-// always declines, and then report the payment done before it answers. `answers` is when the
-// service's answer leaves once the GUI acked that report: 'after the handler' waits a timer turn,
-// by when the listener has handed the report to its handler; 'at once' holds that timer so the
-// answer lands first, as it can when the reply beats the listener's 0ms deferral.
-const mockPostText = (opts?: {stellarCanceled: boolean; answers?: 'after the handler' | 'at once'}) => {
-  fake.answer(postTextMethod, async (params: {sessionID: number}) => {
-    if (opts) {
-      const {sessionID} = params
-      await fake.push('chat.1.chatUi.chatStellarShowConfirm', {}, {sessionID})
-      await fake.push('chat.1.chatUi.chatStellarDataConfirm', {summary: {}}, {sessionID})
-      const timers = opts.answers === 'at once' ? holdHandlerTimers() : undefined
-      await fake.push('chat.1.chatUi.chatStellarDone', {canceled: opts.stellarCanceled}, {sessionID})
-      if (timers) {
-        return timers.replyFirst({})
-      }
-      await new Promise(resolve => setTimeout(resolve, 0))
-    }
-    return {}
-  })
+const mockPostText = () => {
+  fake.answer(postTextMethod, () => ({}))
   return () => paramsOf(fake, postTextMethod)
-}
-// The payment prompts each cross the wire and wait on a handler timer; let them all land
-const untilStellarDone = async () => {
-  for (let i = 0; i < 6; i++) {
-    await act(settle)
-  }
 }
 
 // What the service decodes for a postText
@@ -191,7 +167,6 @@ describe('sendMessage', () => {
   test('suppresses the snapshotted urls and drops the dismissals once sent', async () => {
     const post = mockPostText()
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
-    const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
     const result = renderSendActions()
     act(() => {
       result.current.send.sendMessage('see https://a.com', {
@@ -201,81 +176,17 @@ describe('sendMessage', () => {
     await flush()
     expect(post()[0]?.unfurlSuppress).toEqual(['https://a.com', 'https://b.com', 'https://c.com'])
     expect(remove).toHaveBeenCalledWith(conversationIDKey, ['https://a.com', 'https://b.com'])
-    expect(restore).not.toHaveBeenCalled()
   })
 
-  const sendCanceledPayment = (
-    onRestoreText?: (text: string) => void,
-    answers: 'after the handler' | 'at once' = 'after the handler'
-  ) => {
-    mockPostText({answers, stellarCanceled: true})
-    const result = renderSendActions()
-    act(() => {
-      result.current.send.sendMessage('+1xlm@testuser2', {
-        onRestoreText,
-        unfurlSuppress: {dismissed: ['https://a.com'], failed: []},
-      })
-    })
-  }
-
-  test('a canceled stellar send restores the text and the dismissals', async () => {
-    const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
-    const onRestoreText = jest.fn()
-    sendCanceledPayment(onRestoreText)
-    await untilStellarDone()
-    expect(restore).toHaveBeenCalledWith(conversationIDKey, ['https://a.com'])
-    expect(onRestoreText).toHaveBeenCalledWith('+1xlm@testuser2')
-  })
-
-  test('a canceled stellar send is not a send', async () => {
-    const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
-    sendCanceledPayment(jest.fn())
-    await untilStellarDone()
-    expect(remove).not.toHaveBeenCalled()
-  })
-
-  // sendText reads stellarCanceled as soon as postText resolves. The session acks chatStellarDone at
-  // once and the listener runs its handler on a timer, so the service's answer can arrive first;
-  // postText still resolves only after that handler has run.
-  test('a canceled stellar send the service answers at once is not a send', async () => {
-    const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
-    sendCanceledPayment(jest.fn(), 'at once')
-    await untilStellarDone()
-    expect(paramsOf(fake, postTextMethod)).toHaveLength(1)
-    expect(remove).not.toHaveBeenCalled()
-  })
-
-  test('a completed stellar send is a send', async () => {
-    mockPostText({answers: 'after the handler', stellarCanceled: false})
-    const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
-    const onRestoreText = jest.fn()
-    const result = renderSendActions()
-    act(() => {
-      result.current.send.sendMessage('+1xlm@testuser2', {onRestoreText})
-    })
-    await untilStellarDone()
-    expect(onRestoreText).not.toHaveBeenCalled()
-    expect(remove).toHaveBeenCalledWith(conversationIDKey, [])
-  })
-
-  test('a canceled stellar send with no restore callback restores nothing', async () => {
-    const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
-    sendCanceledPayment()
-    await untilStellarDone()
-    expect(restore).not.toHaveBeenCalled()
-  })
-
-  test('a failed post neither restores nor drops the dismissals', async () => {
+  test('a failed post does not drop the dismissals', async () => {
     fake.answer(postTextMethod, serviceError('offline'))
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
-    const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
     const result = renderSendActions()
     act(() => {
       result.current.send.sendMessage('hi', {unfurlSuppress: {dismissed: ['https://a.com'], failed: []}})
     })
     await flush()
     expect(remove).not.toHaveBeenCalled()
-    expect(restore).not.toHaveBeenCalled()
   })
 })
 

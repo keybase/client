@@ -138,16 +138,17 @@ const ProveIt = (p: BioTeamProofsProps) => {
 
 const Proofs = (p: BioTeamProofsProps) => {
   const assertions = [
-    ...(p.assertions || []).map(a => (
-      <Assertion
-        key={a.assertionKey}
-        assertion={a}
-        notAUser={p.notAUser}
-        onRefresh={p.onReload}
-        stellarHidden={!!p.stellarHidden}
-        username={p.username}
-      />
-    )),
+    ...(p.assertions || [])
+      .filter(a => a.type !== 'stellar')
+      .map(a => (
+        <Assertion
+          key={a.assertionKey}
+          assertion={a}
+          notAUser={p.notAUser}
+          onRefresh={p.onReload}
+          username={p.username}
+        />
+      )),
     ...(p.suggestions || []).map(s => (
       <Assertion
         assertion={s}
@@ -272,7 +273,6 @@ export type BioTeamProofsProps = {
   service: string
   serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   state: T.Tracker.DetailsState
-  stellarHidden: boolean
   sharedTeams?: ReadonlyArray<T.RPCChat.SharedTeam>
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   fullName?: string
@@ -491,7 +491,6 @@ const User = (props: {username: string}) => {
               notAUser={p.notAUser}
               onReload={p.onReload}
               state={p.state}
-              stellarHidden={!!p.stellarHidden}
               teamShowcase={p.teamShowcase}
               fullName={p.fullName}
               title={p.title}
@@ -543,7 +542,6 @@ const User = (props: {username: string}) => {
       p.service,
       p.serviceIcon,
       p.state,
-      p.stellarHidden,
       p.suggestions,
       p.sharedTeams,
       p.teamShowcase,

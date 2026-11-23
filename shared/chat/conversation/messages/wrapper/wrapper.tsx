@@ -35,8 +35,6 @@ import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
-type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
 type UnfurlPromptMap = ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>>
 
 export type Props = {
@@ -49,8 +47,6 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   [
     'text',
     'attachment',
-    'sendPayment',
-    'requestPayment',
     'setChannelname',
     'setDescription',
     'pin',
@@ -272,19 +268,15 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 }
 
 const getCommonMessageData = ({
-  accountsInfoMap,
   isCenteredHighlight,
   isEditing,
   message,
-  paymentStatusMap,
   unfurlPrompt,
   you,
 }: {
-  accountsInfoMap: AccountsInfoMap
   isCenteredHighlight?: boolean
   isEditing: boolean
   message: T.Chat.Message
-  paymentStatusMap: PaymentStatusMap
   unfurlPrompt: UnfurlPromptMap
   you: string
 }) => {
@@ -301,12 +293,11 @@ const getCommonMessageData = ({
     !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
   const showRevoked = !!message.deviceRevokedAt
   const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-  const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, message)
   const hasReactions = (message.reactions?.size ?? 0) > 0
   const botname = botUsername === author ? '' : (botUsername ?? '')
   const canShowReactionsPopup = hasMessageID && Chat.isMessageWithReactions(message)
   const ecrType = getEcrType(message, you)
-  const shouldShowPopup = hasMessageID && Chat.shouldShowPopup(accountsInfoMap, message)
+  const shouldShowPopup = hasMessageID && Chat.shouldShowPopup(message)
   const hasBeenEdited = message.hasBeenEdited ?? false
   const hasCoinFlip = message.type === 'text' && !!message.flipGameID
   const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
@@ -352,7 +343,6 @@ const getCommonMessageData = ({
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded,
     shouldShowPopup,
     showCenteredHighlight,
-    showCoinsIcon,
     showExplodingCountdown,
     showReplyTo,
     showRevoked,
@@ -412,11 +402,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
     C.useShallow(s => {
       const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
-        accountsInfoMap: s.accountsInfoMap,
         isCenteredHighlight,
         isEditing,
         message,
-        paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -491,23 +479,6 @@ type WrapperMessageProps = {
   messageData: ReturnType<typeof useMessageData>
 } & Props
 
-const successfulInlinePaymentStatuses = ['completed', 'claimable']
-const hasSuccessfulInlinePayments = (
-  paymentStatusMap: PaymentStatusMap,
-  message: T.Chat.Message
-): boolean => {
-  if (message.type !== 'text' || !message.inlinePaymentIDs) {
-    return false
-  }
-  return (
-    message.inlinePaymentSuccessful ||
-    message.inlinePaymentIDs.some(id => {
-      const s = paymentStatusMap.get(id)
-      return !!s && successfulInlinePaymentStatuses.includes(s.status)
-    })
-  )
-}
-
 type TSProps = {
   botname: string
   bottomChildren: React.ReactNode
@@ -538,7 +509,6 @@ type TSProps = {
   reply: RowActions['reply']
   setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
-  showCoinsIcon: boolean
   showExplodingCountdown: boolean
   failureDescription: string
   showRevoked: boolean
@@ -580,7 +550,7 @@ function TextAndSiblings(p: TSProps) {
   } = p
   const {showingPopup, ecrType, exploding, exploded, explodedBy, explodesAt, forceExplodingRetainer} = p
   const {hasReactions, popupAnchor, reactions, sendIndicatorFailed, sendIndicatorID} = p
-  const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
+  const {sendIndicatorSent, type, setShowingPicker, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   // Reactions appearing and an unfurl card loading both grow the row after first paint; flush the
   // measure so the list re-pins to the newest message instead of parking above it.
@@ -663,7 +633,6 @@ function TextAndSiblings(p: TSProps) {
         showSendIndicator={showSendIndicator}
         showExplodingCountdown={showExplodingCountdown}
         showRevoked={showRevoked}
-        showCoinsIcon={showCoinsIcon}
         showPopup={showPopup}
         popupAnchor={popupAnchor}
         submitState={submitState}
@@ -839,7 +808,6 @@ type RProps = {
   showSendIndicator: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
-  showCoinsIcon: boolean
   botname: string
   exploded: boolean
   exploding: boolean
@@ -855,7 +823,7 @@ type RProps = {
 function RightSide(p: RProps) {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
+  const {showPopup, showSendIndicator, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? (
     <SendIndicator
@@ -883,15 +851,13 @@ function RightSide(p: RProps) {
     </Kb.Box2>
   ) : null
 
-  const coinsIcon = showCoinsIcon ? <Kb.ImageIcon type="icon-stellar-coins-stacked-16" /> : null
-
   const bot = botname ? (
     <Kb.Box2 alignSelf="center" direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
       <Kb.Icon color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
 
-  const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!coinsIcon || !!bot
+  const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!bot
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
@@ -931,7 +897,6 @@ function RightSide(p: RProps) {
         {menu}
         {explodingCountdown}
         {revokedIcon}
-        {coinsIcon}
         {bot}
       </Kb.Box2>
     ) : null
@@ -952,7 +917,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {canShowReactionsPopup, ecrType, exploded, explodesAt, forceExplodingRetainer, messageKey} = mdata
   const {reactions, sendIndicatorFailed, sendIndicatorID, sendIndicatorSent, submitState} = mdata
   const {showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
+  const {botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
   const {failureDescription, messageDelete, messageRetry, outboxID} = mdata
   const {setEditing, reply, toggleMessageReaction} = mdata
   const {author, botAlias, hiddenHeader, isAdhocBot, showUsername, teamID, teamType, teamname} = mdata
@@ -1008,7 +973,6 @@ export function WrapperMessage(p: WrapperMessageProps) {
     reply,
     setShowingPicker,
     shouldShowPopup,
-    showCoinsIcon,
     showExplodingCountdown,
     showPopup,
     showRevoked,

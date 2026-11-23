@@ -30,7 +30,6 @@
 .text_BodySmallExtraboldSecondaryLink,
 .text_BodySmallError,
 .text_BodySmallSuccess,
-.text_BodySmallWallet,
 .text_BodyTiny,
 .text_BodyTinyLink,
 .text_BodyTinyBold,
@@ -104,9 +103,6 @@
 .text_BodySmallSuccess {
   color: var(--color-greenDark);
 }
-.text_BodySmallWallet {
-  color: var(--color-purpleDark);
-}
 
 /* Italic group */
 .text_HeaderItalic,
@@ -173,7 +169,6 @@
 .text_BodySmallExtraboldSecondaryLink,
 .text_BodySmallError,
 .text_BodySmallSuccess,
-.text_BodySmallWallet,
 .text_BodySmallSemibold {
   font-size: 13px;
   line-height: 17px;
@@ -200,7 +195,6 @@
 .text_BodySmallSecondaryLink,
 .text_BodySmallError,
 .text_BodySmallSuccess,
-.text_BodySmallWallet,
 .text_BodyTiny,
 .text_BodyTinyLink {
   font-weight: 400;

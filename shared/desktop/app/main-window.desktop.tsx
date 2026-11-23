@@ -323,8 +323,6 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
 }
 
 const registerForAppLinks = () => {
-  // Register for SEP7 and Keybase links.
-  Electron.app.setAsDefaultProtocolClient('web+stellar')
   Electron.app.setAsDefaultProtocolClient('keybase')
 }
 

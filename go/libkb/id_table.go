@@ -1051,28 +1051,6 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
-func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
-	// First get an up to date user card, since hiding the Stellar address affects it.
-	card, err := UserCard(m, s.GetUID(), true)
-	if err != nil {
-		m.Info("Could not get usercard, so skipping displaying stellar chain link: %s.", err)
-		return nil
-	}
-	selfUID := m.G().Env.GetUID()
-	if selfUID.IsNil() {
-		m.G().Log.Warning("Could not get self UID for api")
-	}
-	if card.StellarHidden && !selfUID.Equal(s.GetUID()) {
-		return nil
-	}
-	return ui.DisplayStellarAccount(m, keybase1.StellarAccount{
-		AccountID:         s.address,
-		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
-		SigID:             s.GetSigID(),
-		Hidden:            card.StellarHidden,
-	})
-}
-
 //
 // =========================================================================
 // UntrackChainLink
@@ -1613,12 +1591,6 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 	allAcc := idt.AllActiveCryptocurrency()
 	for _, acc := range allAcc {
 		if err := acc.Display(m, ui); err != nil {
-			return err
-		}
-	}
-
-	if stellar := idt.stellar; stellar != nil {
-		if err := stellar.Display(m, ui); err != nil {
 			return err
 		}
 	}

@@ -38,7 +38,6 @@ type bufferedIdentifyUI struct {
 	start               *start
 	proofChecks         []proofCheck
 	cryptocurrency      []keybase1.Cryptocurrency
-	stellar             *keybase1.StellarAccount
 	launchNetworkChecks *launchNetworkChecks
 	keys                []keybase1.IdentifyKey
 	lastTrack           **keybase1.TrackSummary
@@ -137,13 +136,6 @@ func (b *bufferedIdentifyUI) flush(m libkb.MetaContext, trackingBroke bool) (err
 		}
 	}
 
-	if b.stellar != nil {
-		err = b.raw.DisplayStellarAccount(m, *b.stellar)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -151,7 +143,6 @@ func (b *bufferedIdentifyUI) flushCleanup() {
 	b.start = nil
 	b.proofChecks = nil
 	b.cryptocurrency = nil
-	b.stellar = nil
 	b.bufferedMode = false
 	b.launchNetworkChecks = nil
 	b.keys = nil
@@ -190,13 +181,6 @@ func (b *bufferedIdentifyUI) DisplayCryptocurrency(m libkb.MetaContext, c keybas
 	b.Lock()
 	defer b.Unlock()
 	b.cryptocurrency = append(b.cryptocurrency, c)
-	return b.flush(m, false)
-}
-
-func (b *bufferedIdentifyUI) DisplayStellarAccount(m libkb.MetaContext, c keybase1.StellarAccount) error {
-	b.Lock()
-	defer b.Unlock()
-	b.stellar = &c
 	return b.flush(m, false)
 }
 

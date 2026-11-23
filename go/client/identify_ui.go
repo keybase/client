@@ -55,10 +55,6 @@ func (i *IdentifyUIServer) DisplayCryptocurrency(ctx context.Context, arg keybas
 	return i.ui.DisplayCryptocurrency(i.newMetaContext(ctx), arg.C)
 }
 
-func (i *IdentifyUIServer) DisplayStellarAccount(ctx context.Context, arg keybase1.DisplayStellarAccountArg) error {
-	return i.ui.DisplayStellarAccount(i.newMetaContext(ctx), arg.A)
-}
-
 func (i *IdentifyUIServer) DisplayKey(ctx context.Context, arg keybase1.DisplayKeyArg) error {
 	return i.ui.DisplayKey(i.newMetaContext(ctx), arg.Key)
 }
@@ -103,10 +99,6 @@ func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(ctx context.Context, arg k
 	return i.ui.DisplayTLFCreateWithInvite(i.newMetaContext(ctx), arg)
 }
 
-func NewNullIdentifyUIProtocol() rpc.Protocol {
-	return keybase1.IdentifyUiProtocol(&nullIdentifyUI{})
-}
-
 type nullIdentifyUI struct{}
 
 func (c nullIdentifyUI) Start(context.Context, keybase1.StartArg) error {
@@ -129,9 +121,6 @@ func (c nullIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayC
 	return nil
 }
 
-func (c nullIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
-	return nil
-}
 func (c nullIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error { return nil }
 func (c nullIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
 	return nil

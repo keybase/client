@@ -211,22 +211,6 @@ export type MessageTypes = {
     inParam: {readonly teamname: string},
     outParam: void,
   },
-  'chat.1.chatUi.chatStellarDataConfirm': {
-    inParam: {readonly summary: UIChatPaymentSummary},
-    outParam: boolean,
-  },
-  'chat.1.chatUi.chatStellarDataError': {
-    inParam: {readonly error: Keybase1.Status},
-    outParam: boolean,
-  },
-  'chat.1.chatUi.chatStellarDone': {
-    inParam: {readonly canceled: boolean},
-    outParam: void,
-  },
-  'chat.1.chatUi.chatStellarShowConfirm': {
-    inParam: undefined,
-    outParam: void,
-  },
   'chat.1.chatUi.chatThreadCached': {
     inParam: {readonly thread?: string | null},
     outParam: void,
@@ -1549,8 +1533,6 @@ export type UIAssetUrlInfo = {readonly previewUrl: string,readonly fullUrl: stri
 export type UIBotCommandsUpdateSettings = {readonly settings?: {[key: string]: Keybase1.TeamBotSettings} | null,}
 export type UIBotCommandsUpdateStatus ={ typ: UIBotCommandsUpdateStatusTyp.uptodate, uptodate: UIBotCommandsUpdateSettings } | { typ: UIBotCommandsUpdateStatusTyp.updating } | { typ: UIBotCommandsUpdateStatusTyp.failed } | { typ: UIBotCommandsUpdateStatusTyp.blank }
 export type UIChannelNameMention = {readonly name: string,readonly convID: ConvIDStr,}
-export type UIChatPayment = {readonly username: string,readonly fullName: string,readonly xlmAmount: string,readonly error?: string | null,readonly displayAmount?: string | null,}
-export type UIChatPaymentSummary = {readonly xlmTotal: string,readonly displayTotal: string,readonly payments?: ReadonlyArray<UIChatPayment> | null,}
 export type UIChatSearchBotHits = {readonly hits?: ReadonlyArray<Keybase1.FeaturedBot> | null,readonly suggestedMatches: boolean,}
 export type UIChatSearchConvHit = {readonly convID: ConvIDStr,readonly teamType: TeamType,readonly name: string,readonly mtime: Gregor1.Time,}
 export type UIChatSearchConvHits = {readonly hits?: ReadonlyArray<UIChatSearchConvHit> | null,readonly unreadMatches: boolean,}
@@ -1627,10 +1609,10 @@ export type VersionKind = string
 export type WelcomeMessage = {readonly set: boolean,readonly raw: string,}
 export type WelcomeMessageDisplay = {readonly set: boolean,readonly display: string,readonly raw: string,}
 
-type IncomingMethod = 'chat.1.NotifyChat.ChatArchiveComplete' | 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.NotifyChat.ChatAttachmentDownloadComplete' | 'chat.1.NotifyChat.ChatAttachmentDownloadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadStart' | 'chat.1.NotifyChat.ChatConvUpdate' | 'chat.1.NotifyChat.ChatIdentifyUpdate' | 'chat.1.NotifyChat.ChatInboxStale' | 'chat.1.NotifyChat.ChatInboxSyncStarted' | 'chat.1.NotifyChat.ChatInboxSynced' | 'chat.1.NotifyChat.ChatLeftConversation' | 'chat.1.NotifyChat.ChatParticipantsInfo' | 'chat.1.NotifyChat.ChatPaymentInfo' | 'chat.1.NotifyChat.ChatPromptUnfurl' | 'chat.1.NotifyChat.ChatRequestInfo' | 'chat.1.NotifyChat.ChatResetConversation' | 'chat.1.NotifyChat.ChatSetConvRetention' | 'chat.1.NotifyChat.ChatSetConvSettings' | 'chat.1.NotifyChat.ChatSetTeamRetention' | 'chat.1.NotifyChat.ChatSubteamRename' | 'chat.1.NotifyChat.ChatTLFFinalize' | 'chat.1.NotifyChat.ChatThreadsStale' | 'chat.1.NotifyChat.ChatTypingUpdate' | 'chat.1.NotifyChat.ChatWelcomeMessageLoaded' | 'chat.1.NotifyChat.NewChatActivity' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
+type IncomingMethod = 'chat.1.NotifyChat.ChatArchiveComplete' | 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.NotifyChat.ChatAttachmentDownloadComplete' | 'chat.1.NotifyChat.ChatAttachmentDownloadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadStart' | 'chat.1.NotifyChat.ChatConvUpdate' | 'chat.1.NotifyChat.ChatIdentifyUpdate' | 'chat.1.NotifyChat.ChatInboxStale' | 'chat.1.NotifyChat.ChatInboxSyncStarted' | 'chat.1.NotifyChat.ChatInboxSynced' | 'chat.1.NotifyChat.ChatLeftConversation' | 'chat.1.NotifyChat.ChatParticipantsInfo' | 'chat.1.NotifyChat.ChatPaymentInfo' | 'chat.1.NotifyChat.ChatPromptUnfurl' | 'chat.1.NotifyChat.ChatRequestInfo' | 'chat.1.NotifyChat.ChatResetConversation' | 'chat.1.NotifyChat.ChatSetConvRetention' | 'chat.1.NotifyChat.ChatSetConvSettings' | 'chat.1.NotifyChat.ChatSetTeamRetention' | 'chat.1.NotifyChat.ChatSubteamRename' | 'chat.1.NotifyChat.ChatTLFFinalize' | 'chat.1.NotifyChat.ChatThreadsStale' | 'chat.1.NotifyChat.ChatTypingUpdate' | 'chat.1.NotifyChat.ChatWelcomeMessageLoaded' | 'chat.1.NotifyChat.NewChatActivity' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
-type CustomIncomingMethod = 'chat.1.chatUi.chatBotCommandsUpdateStatus' | 'chat.1.chatUi.chatClearWatch' | 'chat.1.chatUi.chatCoinFlipStatus' | 'chat.1.chatUi.chatCommandMarkdown' | 'chat.1.chatUi.chatCommandStatus' | 'chat.1.chatUi.chatGiphySearchResults' | 'chat.1.chatUi.chatGiphyToggleResultWindow' | 'chat.1.chatUi.chatInboxConversation' | 'chat.1.chatUi.chatInboxFailed' | 'chat.1.chatUi.chatInboxLayout' | 'chat.1.chatUi.chatInboxUnverified' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatMaybeMentionUpdate' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatShowManageChannels' | 'chat.1.chatUi.chatStellarDataConfirm' | 'chat.1.chatUi.chatStellarDataError' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus' | 'chat.1.chatUi.chatWatchPosition' | 'chat.1.chatUi.triggerContactSync'
+type CustomIncomingMethod = 'chat.1.chatUi.chatBotCommandsUpdateStatus' | 'chat.1.chatUi.chatClearWatch' | 'chat.1.chatUi.chatCoinFlipStatus' | 'chat.1.chatUi.chatCommandMarkdown' | 'chat.1.chatUi.chatCommandStatus' | 'chat.1.chatUi.chatGiphySearchResults' | 'chat.1.chatUi.chatGiphyToggleResultWindow' | 'chat.1.chatUi.chatInboxConversation' | 'chat.1.chatUi.chatInboxFailed' | 'chat.1.chatUi.chatInboxLayout' | 'chat.1.chatUi.chatInboxUnverified' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatMaybeMentionUpdate' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatShowManageChannels' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus' | 'chat.1.chatUi.chatWatchPosition' | 'chat.1.chatUi.triggerContactSync'
 export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>
 export const localAddBotConvSearchRpcPromise = createRpc('chat.1.local.addBotConvSearch')
 export const localAddBotMemberRpcPromise = createRpc('chat.1.local.addBotMember')

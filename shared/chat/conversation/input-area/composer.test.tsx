@@ -1320,23 +1320,6 @@ describe.each([desktop, native])('on the $name input', kit => {
       expect(composer.getText()).toBe('typed before')
     })
 
-    // a stellar send the user cancels hands its text back after the send cleared it and its draft
-    test("a restore puts the user's own text back, and reports it so it is saved again", () => {
-      jest.useFakeTimers()
-      const {composer, mount, reports, send, setReadOnly} = setup()
-      const {field} = mount()
-      field.type('+1xlm@testuser')
-      composer.submit(send)
-      jest.runAllTimers()
-      setReadOnly(true)
-
-      composer.restore('+1xlm@testuser')
-
-      expect(field.text).toBe('+1xlm@testuser')
-      expect(composer.getText()).toBe('+1xlm@testuser')
-      expect(reports.at(-1)?.text).toBe('+1xlm@testuser')
-    })
-
     test('a clear still clears, and leaves the saved draft alone', () => {
       const {composer, drafts, mount, setReadOnly} = setup()
       const {field} = mount()

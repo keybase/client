@@ -6,11 +6,11 @@ protocol common {
   @typedef("string") record SecretKey {}
   @typedef("string") record TransactionID {}
   @typedef("string") record PaymentID {}
-  @typedef("string") record KeybaseTransactionID {}
-  @typedef("long")   record TimeMs {} // ms since epoch
-  @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
-  @typedef("string") record AssetCode {}
+  @typedef("bytes")  record Hash {}
+
+  // OutsideCurrencyCode examples: "USD", "EUR"
+  @typedef("string") record OutsideCurrencyCode {}
 
   record Asset {
     string type; // 'native' | 'credit_alphanum4' | 'credit_alphanum12'
@@ -33,29 +33,11 @@ protocol common {
     boolean useSep24; // anchor uses sep24 instead of sep6
   }
 
-  record AssetListResult {
-    array<Asset> assets;
-    int totalCount;
-  }
-
   record Balance {
     Asset asset;
     string amount;
     string limit;
     boolean isAuthorized;
-  }
-
-  record AccountReserve {
-    string amount; // "-1"
-    string description; // e.g. "HUGZ/Unknown trustline" or "account"
-  }
-
-  enum TransactionStatus {
-    NONE_0,
-    PENDING_1,
-    SUCCESS_2,
-    ERROR_TRANSIENT_3,
-    ERROR_PERMANENT_4
   }
 
   enum RequestStatus {
@@ -64,124 +46,9 @@ protocol common {
     DONE_2
   }
 
-  enum PaymentStrategy {
-    NONE_0,
-    DIRECT_1,
-    RELAY_2
-  }
-
-  enum RelayDirection {
-    CLAIM_0,
-    YANK_1
-  }
-
-  record PaymentResult {
-    AccountID senderAccountID;
-    KeybaseTransactionID keybaseID;
-    // Direct: tx ID of the payment tx
-    // Relay : tx ID of the funding payment tx
-    TransactionID stellarID;
-    // If (arg.quickReturn && result.pending) then the payment
-    //   was recorded but may still be pending on the stellar network
-    //   and could still fail.
-    // If arg.quickReturn == false then result.pending should be ignored.
-    boolean pending;
-  }
-
-  record RelayClaimResult {
-    // tx ID of the submitted claim tx (not the fund tx)
-    TransactionID claimStellarID;
-  }
-
-  // A note encrypted for one or two keybase users.
-  // Decrypts to a NoteContents.
-  record EncryptedNote {
-    int v;               // version
-    bytes e;             // encrypted data
-    keybase1.BoxNonce n; // nonce
-    NoteRecipient sender;
-    union { null, NoteRecipient } recipient;
-  }
-
-  record NoteRecipient {
-    keybase1.UserVersion user;
-    keybase1.PerUserKeyGeneration pukGen;
-  }
-
-  record NoteContents {
-    string note;
-    TransactionID stellarID;
-  }
-
-  // A stellar secret key encrypted for an iteam.
-  // Decrypts to a stellar1.SecretKey.
-  record EncryptedRelaySecret {
-    int v;               // version
-    bytes e;             // encrypted data
-    keybase1.BoxNonce n; // nonce
-    keybase1.PerTeamKeyGeneration gen; // key generation that was used
-  }
-
-  record RelayContents {
-    TransactionID stellarID;
-    SecretKey sk;
-    string note;
-  }
-
-  // OutsideCurrencyCode examples: "USD", "EUR"
-  @typedef("string") record OutsideCurrencyCode {}
-
-  record OutsideExchangeRate {
-    OutsideCurrencyCode currency; // Example: PLN
-    string rate; // Example: "0.9389014463" = PLN / XLM
-  }
-
-  record CurrencySymbol {
-    @jsonkey("str")
-    string symbol; // Example: "$"
-    boolean ambigious; // whether the symbol is used by multiple currencies
-    boolean postfix; // whether symbol goes after the number
-  }
-
-  record OutsideCurrencyDefinition {
-    string name; // Example: "US Dollar"
-    CurrencySymbol symbol;
-  }
-
-  record StellarServerDefinitions {
-    int revision;
-    map<OutsideCurrencyCode, OutsideCurrencyDefinition> currencies;
-  }
-
-  record PageCursor {
-    string horizonCursor;
-    string directCursor;
-    string relayCursor;
-  }
-
   enum AccountMode {
     NONE_0,
     USER_1,  // Each of the user's devices has access to the keys
     MOBILE_2 // Only the user's mobile devices have access to the keys
-  }
-
-  // Record describing trustline input argument for trustline operations - when
-  // changing trustlines, caller only needs to supply issuer account ID and asset
-  // code.
-  record Trustline {
-    AssetCode assetCode;
-    AccountID issuer;
-  }
-
-  record PaymentPath {
-    string sourceAmount;
-    string sourceAmountMax;
-    Asset sourceAsset;
-    array<Asset> path;
-    string destinationAmount;
-    Asset destinationAsset;
-    // Populated only if source account balance isn't sufficient to make this
-    // balance. If populated it will be the source account balance.
-    string sourceInsufficientBalance;
   }
 }

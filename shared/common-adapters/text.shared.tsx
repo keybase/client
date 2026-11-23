@@ -30,7 +30,6 @@ export const allTextTypes = {
   BodySmallSemiboldSecondaryLink: 'BodySmallSemiboldSecondaryLink',
   BodySmallSemiboldPrimaryLink: 'BodySmallSemiboldPrimaryLink',
   BodySmallSuccess: 'BodySmallSuccess',
-  BodySmallWallet: 'BodySmallWallet',
   BodyTiny: 'BodyTiny',
   BodyTinyLink: 'BodyTinyLink',
   BodyTinySemibold: 'BodyTinySemibold',

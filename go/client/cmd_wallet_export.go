@@ -68,16 +68,25 @@ func (c *cmdWalletExport) Run() (err error) {
 		}
 	}
 	if len(accountID) == 0 {
-		accounts, err := cli.WalletGetAccountsCLILocal(context.Background())
+		accounts, err := cli.GetWalletAccountsLocal(context.Background(), 0)
 		if err != nil {
 			return err
 		}
-		if len(accounts) == 1 {
+		switch len(accounts) {
+		case 0:
+			return fmt.Errorf("no wallet accounts found")
+		case 1:
 			accountID = accounts[0].AccountID
-		} else {
-			dui.Printf("You have multiple accounts.\n")
-			dui.Printf("Run 'keybase wallet balances' to list them.\n")
-			dui.Printf("Then run 'keybase wallet export <account ID>' to export one.\n")
+		default:
+			dui.Printf("You have multiple accounts:\n")
+			for _, acct := range accounts {
+				name := acct.Name
+				if name == "" {
+					name = "(unnamed)"
+				}
+				dui.Printf("  %s  %s  %s\n", acct.AccountID, name, acct.BalanceDescription)
+			}
+			dui.Printf("Run 'keybase wallet export <account ID>' to export one.\n")
 			return fmt.Errorf("account selection required")
 		}
 	}

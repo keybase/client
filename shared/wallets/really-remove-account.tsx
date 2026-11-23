@@ -24,10 +24,18 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const deleteAccount = C.useRPC(T.RPCStellar.localDeleteWalletAccountLocalRpcPromise)
+  const [removeError, setRemoveError] = React.useState('')
   const onFinish = () => {
-    deleteAccount([{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey], () => {
-      C.Router2.navigateUp()
-    }, () => {})
+    setRemoveError('')
+    deleteAccount(
+      [{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey],
+      () => {
+        C.Router2.navigateUp()
+      },
+      e => {
+        setRemoveError(e.desc)
+      }
+    )
   }
 
   React.useEffect(() => {
@@ -56,6 +64,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       padding="none"
       footer={
         <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} gap="tiny" fullWidth={true}>
+          {!!removeError && <Kb.Text type="BodySmallError">{removeError}</Kb.Text>}
           <Kb.Button
             fullWidth={isMobile}
             label="Copy secret key"

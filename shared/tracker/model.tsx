@@ -68,7 +68,6 @@ export const noDetails: T.Tracker.Details = {
   reason: '',
   resetBrokeTrack: false,
   state: 'unknown' as const,
-  stellarHidden: false,
   teamShowcase: [],
   username: '',
 }
@@ -289,7 +288,6 @@ export const updateTrackerDetailsUserCard = (
     fullname: card.fullName,
     hidFromFollowers: card.hidFromFollowers,
     location: card.location,
-    stellarHidden: card.stellarHidden,
     teamShowcase:
       card.teamShowcase?.map(t => ({
         description: t.description,

@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -70,8 +69,6 @@ type NotifyListener interface {
 	ChatArchiveProgress(jobID chat1.ArchiveJobID,
 		messagesComplete, messagesTotal int64)
 	ChatArchiveComplete(jobID chat1.ArchiveJobID)
-	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
-	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessageDisplay)
@@ -93,13 +90,6 @@ type NotifyListener interface {
 	TeambotKeyNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
-	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
-	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
-	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
-	WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal)
-	WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal)
-	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
-	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
 	TeamMetadataUpdate()
 	CanUserPerformChanged(teamName string)
 	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
@@ -213,14 +203,6 @@ func (n *NoopNotifyListener) ChatArchiveProgress(jobID chat1.ArchiveJobID, messa
 func (n *NoopNotifyListener) ChatArchiveComplete(jobID chat1.ArchiveJobID) {
 }
 
-func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
-}
-
-func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, info chat1.UIRequestInfo) {
-}
-
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
@@ -265,20 +247,7 @@ func (n *NoopNotifyListener) TeambotKeyNeeded(teamID keybase1.TeamID, botUID key
 func (n *NoopNotifyListener) NewlyAddedToTeam(teamID keybase1.TeamID)                    {}
 func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat) {}
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                      {}
-func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
-}
 
-func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
-}
-func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
-func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
-}
-func (n *NoopNotifyListener) WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal) {}
-func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
-}
-
-func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
-}
 func (n *NoopNotifyListener) TeamMetadataUpdate()                   {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string) {}
 func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
@@ -1748,195 +1717,6 @@ func (n *NotifyRouter) notifyChatCommon(ctx context.Context, debugLabel string, 
 	n.G().Log.CDebugf(ctx, "- Sent %v notification", debugLabel)
 }
 
-func (n *NotifyRouter) HandleWalletPaymentNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet PaymentNotification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				arg := stellar1.PaymentNotificationArg{
-					AccountID: accountID,
-					PaymentID: paymentID,
-				}
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PaymentNotification(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletPaymentNotification(accountID, paymentID)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentNotification")
-}
-
-func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet PaymentStatusNotification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				arg := stellar1.PaymentStatusNotificationArg{
-					AccountID: accountID,
-					PaymentID: paymentID,
-				}
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PaymentStatusNotification(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletPaymentStatusNotification(accountID, paymentID)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentStatusNotification")
-}
-
-func (n *NotifyRouter) HandleWalletRequestStatusNotification(ctx context.Context, reqID stellar1.KeybaseRequestID) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet RequestStatusNotification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).RequestStatusNotification(context.Background(), reqID)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletRequestStatusNotification(reqID)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet RequestStatusNotification")
-}
-
-func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountDetailsUpdate")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				arg := stellar1.AccountDetailsUpdateArg{
-					AccountID: accountID,
-					Account:   account,
-				}
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).AccountDetailsUpdate(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletAccountDetailsUpdate(accountID, account)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet AccountDetailsUpdate")
-}
-
-func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts []stellar1.WalletAccountLocal) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountsUpdate")
-
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).AccountsUpdate(context.Background(), accounts)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletAccountsUpdate(accounts)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet AccountsUpdate")
-}
-
-func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet PendingPaymentsUpdate")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				arg := stellar1.PendingPaymentsUpdateArg{
-					AccountID: accountID,
-					Pending:   pending,
-				}
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PendingPaymentsUpdate(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletPendingPaymentsUpdate(accountID, pending)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet PendingPaymentsUpdate")
-}
-
-func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
-	if n == nil {
-		return
-	}
-	n.G().Log.CDebugf(ctx, "+ Sending wallet RecentPaymentsUpdate")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Wallet` notification type
-		if n.getNotificationChannels(id).Wallet {
-			// In the background do...
-			go func() {
-				arg := stellar1.RecentPaymentsUpdateArg{
-					AccountID: accountID,
-					FirstPage: firstPage,
-				}
-				_ = (stellar1.NotifyClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).RecentPaymentsUpdate(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.WalletRecentPaymentsUpdate(accountID, firstPage)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent wallet RecentPaymentsUpdate")
-}
-
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -2679,64 +2459,6 @@ func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, list []key
 	n.runListeners(func(listener NotifyListener) {
 		listener.EmailsChanged(list, category, emailAddress)
 	})
-}
-
-func (n *NotifyRouter) HandleChatPaymentInfo(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
-	if n == nil {
-		return
-	}
-	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending ChatPaymentInfo notification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
-			wg.Go(func() {
-				_ = (chat1.NotifyChatClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatPaymentInfo(context.Background(), chat1.ChatPaymentInfoArg{
-					Uid:    uid,
-					ConvID: convID,
-					MsgID:  msgID,
-					Info:   info,
-				})
-			})
-		}
-		return true
-	})
-	wg.Wait()
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.ChatPaymentInfo(uid, convID, msgID, info)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent ChatPaymentInfo notification")
-}
-
-func (n *NotifyRouter) HandleChatRequestInfo(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
-	if n == nil {
-		return
-	}
-	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending ChatRequestInfo notification")
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
-			wg.Go(func() {
-				_ = (chat1.NotifyChatClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatRequestInfo(context.Background(), chat1.ChatRequestInfoArg{
-					Uid:    uid,
-					ConvID: convID,
-					MsgID:  msgID,
-					Info:   info,
-				})
-			})
-		}
-		return true
-	})
-	wg.Wait()
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.ChatRequestInfo(uid, convID, msgID, info)
-	})
-	n.G().Log.CDebugf(ctx, "- Sent ChatRequestInfo notification")
 }
 
 func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context, passphraseState keybase1.PassphraseState) {

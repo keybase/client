@@ -66,7 +66,6 @@ const _metaDataDesktop = (theme: Styles.Theme): {[K in TextType]: MetaType} => {
     BodySmallSemiboldPrimaryLink: {colorForBackground: {...whiteNegative, positive: theme.blueDark}, fontSize: 13, isLink: true, styleOverride: Styles.globalStyles.fontSemibold},
     BodySmallSemiboldSecondaryLink: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 13, isLink: true, styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined}},
     BodySmallSuccess: {colorForBackground: {...whiteNegative, positive: theme.greenDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
-    BodySmallWallet: {colorForBackground: {...whiteNegative, positive: theme.purpleDark}, fontSize: 13, styleOverride: Styles.globalStyles.fontRegular},
     BodyTiny: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontRegular},
     BodyTinyBold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontBold},
     BodyTinyExtrabold: {colorForBackground: {...whiteNegative, positive: theme.black_50}, fontSize: 12, styleOverride: Styles.globalStyles.fontExtrabold},
@@ -163,14 +162,6 @@ const _metaDataNative = (theme: Styles.Theme): {[K in TextType]: MetaType} => {
       colorForBackground: {
         get negative() { return theme.white },
         get positive() { return theme.greenDark },
-      },
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallWallet: {
-      colorForBackground: {
-        get negative() { return theme.white },
-        get positive() { return theme.purpleDark },
       },
       fontSize: 15,
       styleOverride: Styles.globalStyles.fontRegular,

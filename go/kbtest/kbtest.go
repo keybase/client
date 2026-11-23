@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -92,10 +91,6 @@ func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, 
 
 func CreateAndSignupFakeUserPaper(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
 	return createAndSignupFakeUser(prefix, g, false /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
-}
-
-func CreateAndSignupFakeUserMobile(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_MOBILE, false /* randomPW */)
 }
 
 func CreateAndSignupFakeUserRandomPW(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
@@ -526,12 +521,6 @@ func EditProfile(mctx libkb.MetaContext, arg keybase1.ProfileEditArg) error {
 func RunningInCI() bool {
 	x := os.Getenv("KEYBASE_RUN_CI")
 	return len(x) > 0 && x != "0" && x[0] != byte('n')
-}
-
-func SkipTestOnNonMasterCI(t *testing.T, reason string) {
-	if RunningInCI() && os.Getenv("BRANCH_NAME") != "master" {
-		t.Skipf("skip test on non-master CI run: %v", reason)
-	}
 }
 
 // CORE-10146

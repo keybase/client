@@ -41,7 +41,6 @@ import {
 } from './thread-load'
 
 export type ConversationThreadState = {
-  accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
   // Bumped on every messagesClear. The desktop list remounts on it: LegendList cannot recover
   // from a non-empty -> empty -> non-empty data transition (it resets its layout state and waits
   // for a container layout event that never comes), so the thread renders blank forever.
@@ -77,7 +76,6 @@ export type ConversationThreadState = {
   // read reads it. Cached passes do not count: the cache can hold a placeholder above a gap that
   // hides a visible message. Dropped with the window by messagesClear.
   newestLoadedMessageID?: T.Chat.MessageID
-  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
   // clearPendingDeletesInThreadState), when the delete fails (its RPC or, once queued, its outbox
   // entry) and by messagesClear. A thread load still carrying the row does not clear it: loads never
@@ -167,8 +165,6 @@ export type ConversationThreadActions = {
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
   messagesClear: () => void
-  receivePaymentInfo: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
-  receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
   retryMessage: (outboxID: T.Chat.OutboxID) => void
   setExplodingMode: (seconds: number, incoming?: boolean) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
@@ -234,7 +230,6 @@ const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
 const makeEmptyThreadState = (): ConversationThreadState =>
   produce(
     {
-      accountsInfoMap: new Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>(),
       clearVersion: 0,
       explodingMode: 0,
       flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
@@ -247,7 +242,6 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       moreToLoadBack: false,
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
-      paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingDeleteMap: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
@@ -736,17 +730,6 @@ export const makeThreadStore = (
     },
     markThreadAsRead,
     messagesClear,
-    receivePaymentInfo: (messageID, paymentInfo) => {
-      updateThreadState(s => {
-        s.accountsInfoMap.set(messageID, paymentInfo)
-        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-      })
-    },
-    receiveRequestInfo: (messageID, requestInfo) => {
-      updateThreadState(s => {
-        s.accountsInfoMap.set(messageID, requestInfo)
-      })
-    },
     removeOptimisticReaction: outboxID => {
       updateThreadState(s => {
         s.optimisticReactionMap.delete(outboxID)

@@ -701,16 +701,11 @@ describe('store writes', () => {
     expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(5))?.reactions?.size).toBe(1)
   })
 
-  test('payments, requests, unfurl prompts and coin flips', () => {
+  test('unfurl prompts and coin flips', () => {
     const {actions, store} = makeThread()
-    const payment = {paymentID: 'p1'} as unknown as T.Chat.ChatPaymentInfo
-    actions.receivePaymentInfo(T.Chat.numberToMessageID(1), payment)
-    actions.receiveRequestInfo(T.Chat.numberToMessageID(2), {amount: '1'} as unknown as T.Chat.ChatRequestInfo)
     actions.showUnfurlPrompt(T.Chat.numberToMessageID(3), 'a.com')
     actions.updateCoinFlipStatuses([{gameID: 'g'} as unknown as T.RPCChat.UICoinFlipStatus])
     const s = store.getState()
-    expect(s.accountsInfoMap.size).toBe(2)
-    expect(s.paymentStatusMap.get('p1')).toBe(payment)
     expect([...(s.unfurlPrompt.get(T.Chat.numberToMessageID(3)) ?? [])]).toEqual(['a.com'])
     expect(s.flipStatusMap.has('g')).toBe(true)
   })

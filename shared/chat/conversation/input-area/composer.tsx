@@ -48,10 +48,6 @@ export type Composer = {
   // draft, and never into an edit. Where the composer can't show it now (no input, an edit on, the
   // user can't post) it is saved after the draft, and shows once the composer loads that.
   append: (text: string) => void
-  // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
-  // as inject does, and reports it so it is saved as the draft again. It lands even where the user
-  // can't post: the text was theirs before the send.
-  restore: (text: string) => void
   // Fills the composer with the text of the message to edit. Where the user can't post an edit
   // could never be sent, so it is refused (false) and the composer is left as it was.
   // An edit is not a draft: from here until the edit ends (a clear, or its send) nothing the
@@ -85,8 +81,7 @@ type ComposerDeps = {
   // The composer saves the draft: what the user types, and what it writes when that changes the
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
-  // Where the user can't post, only a clear and a restore write, and only a restore saves the
-  // draft. Read at every write from the store, which turns read-only before React renders it, so
+  // Where the user can't post, the only write is a clear, and nothing is saved. Read at every write from the store, which turns read-only before React renders it, so
   // no write in that commit (a ref being set, a child's effect) can come first.
   isReadOnly: () => boolean
   saveDraft: (text: string) => void
@@ -122,9 +117,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // when a focus asked for while no input was attached stops waiting
   let focusUntil: number | undefined
 
-  // only a restore saves where the user can't post: it puts back the user's own text
-  const saveDraft = (next: string, evenReadOnly = false) => {
-    if (editing || next === saved || (!evenReadOnly && deps.isReadOnly())) return
+  const saveDraft = (next: string) => {
+    if (editing || next === saved || deps.isReadOnly()) return
     saved = next
     deps.saveDraft(next)
   }
@@ -143,7 +137,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     asComposer(() => {
       if (target.replaceText({selection: injectedSelection(next), text: next}, true)) {
         text = next
-        saveDraft(next, true)
+        saveDraft(next)
       }
     })
   }
@@ -328,9 +322,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         }
       })
       return false
-    },
-    restore: next => {
-      whenAttached(target => show(target, next))
     },
     startEdit: next => {
       if (deps.isReadOnly()) return false

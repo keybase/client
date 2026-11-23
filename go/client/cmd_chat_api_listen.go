@@ -14,17 +14,15 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdChatAPIListen struct {
 	libkb.Contextified
 
-	chatConfig      chatNotificationConfig
-	subscribeDev    bool
-	subscribeWallet bool
-	channelFilters  []ChatChannel
+	chatConfig     chatNotificationConfig
+	subscribeDev   bool
+	channelFilters []ChatChannel
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -55,10 +53,6 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "dev",
 				Usage: "Subscribe to notifications for chat dev channels",
 			},
-			cli.BoolFlag{
-				Name:  "wallet",
-				Usage: "Subscribe to notifications for wallet events",
-			},
 			cli.StringFlag{
 				Name:  "filter-channel",
 				Usage: "Only show notifications for specified (one) channel.",
@@ -68,8 +62,8 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Usage: "Only show notifications for specified list of channels.",
 			},
 		},
-		Description: `"keybase chat api-listen" is a command that will print incoming chat messages, conversation, or
-   wallet notifications until it's exited. Messages are printed to standard output in
+		Description: `"keybase chat api-listen" is a command that will print incoming chat messages and conversation
+   notifications until it's exited. Messages are printed to standard output in
    a JSON format similar to the format used in "keybase chat api" command.
 
    For chat messages, all messages will be relayed by default. Filtering can be enabled using
@@ -100,7 +94,6 @@ func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
 		hideExploding: ctx.Bool("hide-exploding"),
 	}
 	c.subscribeDev = ctx.Bool("dev")
-	c.subscribeWallet = ctx.Bool("wallet")
 
 	return nil
 }
@@ -167,11 +160,6 @@ func (c *CmdChatAPIListen) Run() error {
 	protocols := []rpc.Protocol{
 		chat1.NotifyChatProtocol(chatDisplay),
 	}
-	if c.subscribeWallet {
-		stellarDisplay := newWalletNotificationDisplay(c.G())
-		protocols = append(protocols, stellar1.NotifyProtocol(stellarDisplay))
-	}
-
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
@@ -182,7 +170,6 @@ func (c *CmdChatAPIListen) Run() error {
 	channels := keybase1.NotificationChannels{
 		Chat:    true,
 		Chatdev: c.subscribeDev,
-		Wallet:  c.subscribeWallet,
 	}
 	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
@@ -192,12 +179,6 @@ func (c *CmdChatAPIListen) Run() error {
 		c.chatConfig, c.subscribeDev)
 	if err != nil {
 		return err
-	}
-	if c.subscribeWallet {
-		_, err := errWriter.Write([]byte("Listening for wallet notifications\n"))
-		if err != nil {
-			return err
-		}
 	}
 
 	for {

@@ -21,7 +21,6 @@ export const FIXTURES = {
       T.CHAT_EXPLODING_META,
       T.CHAT_JOURNEY_CARD,
       T.CHAT_MAP_UNFURL,
-      T.CHAT_PAYMENT,
     ],
   },
   'global-error': {files: ['debug.ts'], ready: [T.GLOBAL_ERROR]},

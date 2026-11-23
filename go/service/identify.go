@@ -445,12 +445,6 @@ func (u *RemoteIdentifyUI) DisplayCryptocurrency(mctx libkb.MetaContext, c keyba
 	return u.uicli.DisplayCryptocurrency(mctx.Ctx(), keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 }
 
-func (u *RemoteIdentifyUI) DisplayStellarAccount(mctx libkb.MetaContext, a keybase1.StellarAccount) error {
-	mctx, cancel := u.newMetaContext(mctx)
-	defer cancel()
-	return u.uicli.DisplayStellarAccount(mctx.Ctx(), keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
-}
-
 func (u *RemoteIdentifyUI) DisplayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) error {
 	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()

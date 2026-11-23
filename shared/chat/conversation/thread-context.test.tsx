@@ -189,40 +189,6 @@ const makeFailedOutboxRecord = (
     },
   }) as T.RPCChat.OutboxRecord
 
-const makeUIPaymentInfo = (): T.RPCChat.UIPaymentInfo =>
-  ({
-    accountID: 'account-id',
-    amountDescription: '1 XLM',
-    delta: T.RPCStellar.BalanceDelta.none,
-    fromUsername: 'alice',
-    issuerDescription: 'Lumens',
-    note: 'payment note',
-    paymentID: 'payment-1',
-    showCancel: false,
-    sourceAmount: '1',
-    sourceAsset: {
-      code: 'XLM',
-      issuer: '',
-      issuerName: 'Lumens',
-      verifiedDomain: '',
-    } as T.RPCStellar.Asset,
-    status: T.RPCStellar.PaymentStatus.completed,
-    statusDescription: 'Completed',
-    statusDetail: '',
-    toUsername: 'bob',
-    worth: '$1.00',
-    worthAtSendTime: '$1.00',
-  }) as T.RPCChat.UIPaymentInfo
-
-const makeUIRequestInfo = (): T.RPCChat.UIRequestInfo => ({
-  amount: '1',
-  amountDescription: '1 USD',
-  asset: null,
-  currency: 'USD',
-  status: T.RPCStellar.RequestStatus.ok,
-  worthAtRequestTime: '$1.00',
-})
-
 // the thread is the conversation on desktop's chat root
 let Nav: ReturnType<typeof navigationWrapper>['wrapper']
 
@@ -1343,45 +1309,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     decorated: 'server-plus-one',
     users: [{timestamp: 300, username: 'alice'}],
   })
-})
-
-test('mounted thread listener applies request and payment decorators for the active conversation', () => {
-  const {result} = renderHook(
-    () => ({
-      accountsInfoMap: useConversationThreadSelector(s => s.accountsInfoMap),
-      paymentInfo: useConversationThreadSelector(s => s.paymentStatusMap.get('payment-1')),
-    }),
-    {wrapper}
-  )
-
-  act(() => {
-    routeChatNotification({
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          info: makeUIRequestInfo(),
-          msgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(901)),
-          uid: new Uint8Array([1]),
-        },
-      },
-      type: 'chat.1.NotifyChat.ChatRequestInfo',
-    } as never)
-    routeChatNotification({
-      payload: {
-        params: {
-          convID: T.Chat.keyToConversationID(convID),
-          info: makeUIPaymentInfo(),
-          msgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(902)),
-          uid: new Uint8Array([1]),
-        },
-      },
-      type: 'chat.1.NotifyChat.ChatPaymentInfo',
-    } as never)
-  })
-
-  expect(result.current.accountsInfoMap.get(T.Chat.numberToMessageID(901))?.type).toBe('requestInfo')
-  expect(result.current.accountsInfoMap.get(T.Chat.numberToMessageID(902))?.type).toBe('paymentInfo')
-  expect(result.current.paymentInfo?.status).toBe('completed')
 })
 
 test('mounted thread listener applies unfurl prompts and coin flip status for the active conversation', () => {

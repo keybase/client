@@ -31,7 +31,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/unfurl"
-	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
@@ -48,9 +47,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvl"
 	"github.com/keybase/client/go/runtimestats"
-	"github.com/keybase/client/go/stellar"
-	"github.com/keybase/client/go/stellar/remote"
-	"github.com/keybase/client/go/stellar/stellargregor"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/client/go/teams"
@@ -76,7 +72,6 @@ type Service struct {
 	home             *home.Home
 	tlfUpgrader      *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader     *teams.Upgrader
-	walletState      *stellar.WalletState
 	offlineRPCCache  *offline.RPCCache
 	trackerLoader    *TrackerLoader
 	httpSrv          *manager.Srv
@@ -117,7 +112,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		trackerLoader:    NewTrackerLoader(g),
 		teamUpgrader:     teams.NewUpgrader(),
-		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 		httpSrv:          manager.NewSrv(g),
 
@@ -199,12 +193,12 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
-	walletHandler := newWalletHandler(xp, g, d.walletState)
+	walletHandler := newWalletHandler(xp, g)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
 	userHandler := NewUserHandler(xp, g, d.ChatG(), d)
 	protocols = append(protocols, keybase1.UserProtocol(userHandler))
-	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return err
@@ -351,7 +345,6 @@ func (d *Service) SetupCriticalSubServices() error {
 	mctx := d.MetaContext(context.TODO())
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
-	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	avatars.CreateSourceFromEnvAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
@@ -381,7 +374,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
-	d.runBackgroundWalletUpkeep()
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
 	d.runBackgroundContactSync()
@@ -608,9 +600,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	}
 	g.AddDbNukeHook(g.AttachmentURLSrv, "AttachmentURLSrv")
 
-	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
-	g.StellarSender = wallet.NewSender(g)
-	g.StellarPushHandler = g.ExternalG().GetStellar()
+	g.StellarLoader = types.DummyStellarLoader{}
 
 	convStorage := chat.NewDevConversationBackedStorage(g, ri)
 
@@ -720,7 +710,6 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
-		d.gregor.PushHandler(stellargregor.New(d.G(), d.walletState))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newTeambotHandler(d.G()))
@@ -950,23 +939,6 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 	})
 }
 
-func (d *Service) runBackgroundWalletUpkeep() {
-	eng := engine.NewWalletUpkeepBackground(d.G(), &engine.WalletUpkeepBackgroundArgs{})
-	go func() {
-		m := libkb.NewMetaContextBackground(d.G())
-		err := engine.RunEngine2(m, eng)
-		if err != nil {
-			m.Warning("background WalletUpkeep error: %v", err)
-		}
-	}()
-
-	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
-		d.G().Log.Debug("stopping background WalletUpkeep")
-		eng.Shutdown()
-		return nil
-	})
-}
-
 func (d *Service) runBackgroundBoxAuditRetry() {
 	eng := engine.NewBoxAuditRetryBackground(d.G())
 	go func() {
@@ -1094,11 +1066,6 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("shutting down TLF upgrader")
 	if d.tlfUpgrader != nil {
 		_ = d.tlfUpgrader.Shutdown(m)
-	}
-
-	log("resetting wallet state on logout")
-	if d.walletState != nil {
-		d.walletState.Reset(m)
 	}
 
 	log("shutting down tracker loader")

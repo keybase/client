@@ -24,7 +24,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -338,7 +337,6 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
 	DisplayCryptocurrency(MetaContext, keybase1.Cryptocurrency) error
-	DisplayStellarAccount(MetaContext, keybase1.StellarAccount) error
 	DisplayKey(MetaContext, keybase1.IdentifyKey) error
 	ReportLastTrack(MetaContext, *keybase1.TrackSummary) error
 	LaunchNetworkChecks(MetaContext, *keybase1.Identity, *keybase1.User) error
@@ -436,10 +434,6 @@ type ChatUI interface {
 	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error
 	ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error
-	ChatStellarShowConfirm(context.Context) error
-	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
-	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 		results chat1.GiphySearchResults) error
 	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error
@@ -804,53 +798,6 @@ type TeamBoxAuditor interface {
 	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
 	MaybeScheduleDelayedBoxAuditTeam(m MetaContext, id keybase1.TeamID)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
-}
-
-// MiniChatPayment is the argument for sending an in-chat payment.
-type MiniChatPayment struct {
-	Username NormalizedUsername
-	Amount   string
-	Currency string
-}
-
-// MiniChatPaymentResult is the result of sending an in-chat payment to
-// one username.
-type MiniChatPaymentResult struct {
-	Username  NormalizedUsername
-	PaymentID stellar1.PaymentID
-	Error     error
-}
-
-// MiniChatPaymentSpec describes the amounts involved in a MiniChatPayment.
-type MiniChatPaymentSpec struct {
-	Username      NormalizedUsername
-	Error         error
-	XLMAmount     string
-	DisplayAmount string // optional
-}
-
-// MiniChatPaymentSummary contains all the recipients and the amounts they
-// will receive plus a total in XLM and in the sender's preferred currency.
-type MiniChatPaymentSummary struct {
-	Specs        []MiniChatPaymentSpec
-	XLMTotal     string
-	DisplayTotal string
-}
-
-type Stellar interface {
-	CreateWalletSoft(context.Context)
-	Upkeep(context.Context) error
-	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
-	KickAutoClaimRunner(MetaContext, gregor.MsgID)
-	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
-	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
-	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
-	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
-	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
-	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
-	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
-	InformDefaultCurrencyChange(MetaContext)
-	Refresh(mctx MetaContext, reason string)
 }
 
 type DeviceEKStorage interface {

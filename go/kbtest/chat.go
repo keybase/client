@@ -1144,7 +1144,6 @@ type ChatUI struct {
 	InboxSearchDoneCb     chan chat1.ChatSearchInboxDoneArg
 	InboxSearchConvHitsCb chan []chat1.UIChatSearchConvHit
 	StellarShowConfirm    chan struct{}
-	StellarDataConfirm    chan chat1.UIChatPaymentSummary
 	StellarDataError      chan keybase1.Status
 	StellarDone           chan struct{}
 	ShowManageChannels    chan string
@@ -1166,7 +1165,6 @@ func NewChatUI() *ChatUI {
 		InboxSearchDoneCb:     make(chan chat1.ChatSearchInboxDoneArg, 50),
 		InboxSearchConvHitsCb: make(chan []chat1.UIChatSearchConvHit, 50),
 		StellarShowConfirm:    make(chan struct{}, 10),
-		StellarDataConfirm:    make(chan chat1.UIChatPaymentSummary, 10),
 		StellarDataError:      make(chan keybase1.Status, 10),
 		StellarDone:           make(chan struct{}, 10),
 		ShowManageChannels:    make(chan string, 10),
@@ -1297,26 +1295,6 @@ func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchIn
 }
 
 func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
-	return nil
-}
-
-func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context) error {
-	c.StellarShowConfirm <- struct{}{}
-	return nil
-}
-
-func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
-	c.StellarDataConfirm <- summary
-	return true, nil
-}
-
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
-	c.StellarDataError <- err
-	return false, nil
-}
-
-func (c *ChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
-	c.StellarDone <- struct{}{}
 	return nil
 }
 

@@ -371,21 +371,6 @@ type SenderPrepareResult struct {
 	TopicNameStateConvs []chat1.ConversationID
 }
 
-type ParsedStellarPayment struct {
-	Username libkb.NormalizedUsername
-	Full     string
-	Amount   string
-	Currency string
-}
-
-func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
-	return libkb.MiniChatPayment{
-		Username: p.Username,
-		Amount:   p.Amount,
-		Currency: p.Currency,
-	}
-}
-
 type ParticipantResult struct {
 	Uids []gregor1.UID
 	Err  error
@@ -630,32 +615,6 @@ func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.
 
 func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
-}
-
-type DummyStellarSender struct{}
-
-var _ StellarSender = (*DummyStellarSender)(nil)
-
-func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string, replyTo *chat1.MessageID,
-) []ParsedStellarPayment {
-	return nil
-}
-
-func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, payments []ParsedStellarPayment,
-) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
-	return res, toSend, nil
-}
-
-func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
-	return nil, nil
-}
-
-func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
-	payments []chat1.TextPayment,
-) string {
-	return body
 }
 
 type DummyCoinFlipManager struct{}

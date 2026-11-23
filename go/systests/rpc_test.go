@@ -1128,10 +1128,6 @@ func (p *simpleIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.Displ
 	return simpleIdentifyUIError("DisplayCryptocurrency")
 }
 
-func (p *simpleIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
-	return simpleIdentifyUIError("DisplayStellarAccount")
-}
-
 func (p *simpleIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return nil
 }

@@ -5,7 +5,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -366,45 +365,6 @@ func (c *ChatCLIUI) ChatSearchBotHits(ctx context.Context, arg chat1.ChatSearchB
 		_ = c.terminal.Output(fmt.Sprintf("\tBot: %s found with matching name\n", hit.DisplayName()))
 	}
 	_ = c.terminal.Output("\n")
-	return nil
-}
-
-func (c *ChatCLIUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
-	return nil
-}
-
-func (c *ChatCLIUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
-	term := c.G().UI.GetTerminalUI()
-	term.Printf("Confirm Stellar Payments:\n\n")
-	term.Printf("Total: %s (%s)\n", arg.Summary.XlmTotal, arg.Summary.DisplayTotal)
-	for _, p := range arg.Summary.Payments {
-		if p.Error != nil {
-			term.Printf("Payment Error: %s\n", *p.Error)
-		} else {
-			out := fmt.Sprintf("-> %s %s", p.Username, p.XlmAmount)
-			if p.DisplayAmount != nil {
-				out += fmt.Sprintf(" (%s)", *p.DisplayAmount)
-			}
-			term.Printf(out + "\n")
-		}
-	}
-	confirm := "sendmoney"
-	response, err := term.Prompt(PromptDescriptorStellarConfirm,
-		fmt.Sprintf("** if you are sure, please type: %q > ", confirm))
-	if err != nil {
-		return false, err
-	}
-	return strings.TrimSpace(response) == confirm, nil
-}
-
-func (c *ChatCLIUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
-	w := c.terminal.ErrorWriter()
-	msg := "Failed to obtain Stellar payment information, aborting send"
-	fmt.Fprintf(w, "%s", msg+"\n")
-	return false, errors.New(msg)
-}
-
-func (c *ChatCLIUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
 	return nil
 }
 

@@ -52,10 +52,6 @@ type Chat1IncomingAction =
   'chat.1.chatUi.chatSearchIndexStatus' |
   'chat.1.chatUi.chatSearchTeamHits' |
   'chat.1.chatUi.chatShowManageChannels' |
-  'chat.1.chatUi.chatStellarDataConfirm' |
-  'chat.1.chatUi.chatStellarDataError' |
-  'chat.1.chatUi.chatStellarDone' |
-  'chat.1.chatUi.chatStellarShowConfirm' |
   'chat.1.chatUi.chatThreadCached' |
   'chat.1.chatUi.chatThreadFull' |
   'chat.1.chatUi.chatThreadStatus' |
@@ -178,8 +174,6 @@ export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly para
 // Custom calls that return a value: with no session and no registered answerer the engine answers
 // them with an error, since an empty result would be read as a real answer.
 export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([
-  'chat.1.chatUi.chatStellarDataConfirm',
-  'chat.1.chatUi.chatStellarDataError',
   'chat.1.chatUi.chatWatchPosition',
   'keybase.1.gpgUi.selectKey',
   'keybase.1.gpgUi.wantToAddGPGKey',

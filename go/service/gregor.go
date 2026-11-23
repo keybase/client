@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -1335,18 +1336,14 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		}
 	}
 
-	// Send the oobm to the wallet system so that it can potentially handle it
-	if g.G().StellarPushHandler != nil {
-		handled, err := g.G().StellarPushHandler.HandleOobm(ctx, obm)
-		if err != nil {
-			return err
-		}
-		if handled {
-			return nil
-		}
+	system := obm.System().String()
+	if strings.HasPrefix(system, "stellar.") {
+		// Wallet pushes have no handler any more; ignore them.
+		g.Debug(ctx, "ignoring wallet push: %s", system)
+		return nil
 	}
 
-	switch obm.System().String() {
+	switch system {
 	case "internal.reconnect":
 		g.Debug(ctx, "reconnected to push server")
 		return nil
