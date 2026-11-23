@@ -972,8 +972,10 @@ func (g *PushHandler) refreshParticipants(ctx context.Context, uid gregor1.UID,
 	for _, c := range membersRes.UserJoinedConvs {
 		refresh(c.GetConvID(), c.GetTopicType())
 	}
-	for _, l := range [][]chat1.ConversationMember{membersRes.UserRemovedConvs, membersRes.OthersJoinedConvs,
-		membersRes.OthersRemovedConvs, membersRes.OthersResetConvs} {
+	for _, l := range [][]chat1.ConversationMember{
+		membersRes.UserRemovedConvs, membersRes.OthersJoinedConvs,
+		membersRes.OthersRemovedConvs, membersRes.OthersResetConvs,
+	} {
 		for _, cm := range l {
 			refresh(cm.ConvID, cm.TopicType)
 		}
