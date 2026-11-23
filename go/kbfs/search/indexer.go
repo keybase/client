@@ -19,6 +19,7 @@ import (
 	"github.com/blevesearch/bleve/registry"
 	billy "github.com/go-git/go-billy/v5"
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -1386,6 +1387,9 @@ func (i *Indexer) loop(ctx context.Context) {
 			ctx, "Couldn't register for synced TLF updates: %+v", err)
 	}
 
+	// Drop queued TLF work on exit so indexWG is not left elevated.
+	defer i.drainTlfCh()
+
 outerLoop:
 	for {
 		err := i.loadIndex(ctx)
@@ -1402,18 +1406,21 @@ outerLoop:
 				i.log.CDebugf(ctx, "User changed")
 				continue outerLoop
 			case <-kbCtx.NextAppStateUpdate(state):
-				state = kbCtx.AppState()
 				// TODO(HOTPOT-1494): once we are doing actual
 				// indexing in a separate goroutine, pause/unpause it
 				// via a channel send from here.
-				for state != keybase1.MobileAppState_FOREGROUND {
+				if s := kbCtx.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 					i.log.CDebugf(ctx,
-						"Pausing indexing while not foregrounded: state=%s",
-						state)
-					<-kbCtx.NextAppStateUpdate(state)
-					state = kbCtx.AppState()
+						"Pausing indexing while not foregrounded: state=%s", s)
+					if !env.WaitForeground(kbCtx, ctx.Done(), i.shutdownCh) {
+						if ctx.Err() == nil {
+							i.cancelLoop()
+						}
+						return
+					}
+					i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
 				}
-				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
+				state = keybase1.MobileAppState_FOREGROUND
 				continue
 			case m := <-i.tlfCh:
 				ctx := i.makeContext(ctx)
@@ -1430,6 +1437,18 @@ outerLoop:
 				i.cancelLoop()
 				return
 			}
+		}
+	}
+}
+
+func (i *Indexer) drainTlfCh() {
+	for {
+		select {
+		case m := <-i.tlfCh:
+			i.progress.tlfUnqueue(m.tlfID)
+			i.indexWG.Done()
+		default:
+			return
 		}
 	}
 }
