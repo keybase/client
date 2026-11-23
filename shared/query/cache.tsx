@@ -12,7 +12,7 @@ type Snapshot = {
   /** undefined until a load lands */
   readonly data: unknown
   readonly error: Error | undefined
-  /** dropped on purpose (forgetKey): nothing will load it until it is asked for again */
+  /** dropped on purpose (forgetKey): only a screen asking for it, or a refresh naming its key, loads it again */
   readonly forgotten: boolean
   /** successful loads so far; never goes back, so it tells one load's data from the next */
   readonly loadCount: number
@@ -32,7 +32,10 @@ export type Entry = {
   readonly subscribe: (listener: () => void) => () => void
   readonly getSnapshot: () => Snapshot
   readonly getData: () => unknown
-  /** load now; a load on the wire may predate what the caller knows, so its answer is dropped */
+  /**
+   * load now if a screen is loading it, else when one next mounts; a load on the wire may predate
+   * what the caller knows, so its answer is dropped
+   */
   readonly reload: () => void
   /** reload, resolving once it is over: answered, failed, or cut off by a lost link */
   readonly reloadAndWait: () => Promise<void>
@@ -301,7 +304,13 @@ export const getEntry = (key: string, method: string, load: Entry['load']): Entr
     queued: false,
     reload: () => {
       stop(e)
-      start(e)
+      if (e.loaders) {
+        start(e)
+      } else {
+        // its load may belong to a screen that is gone (or be noLoader once emptied): the next
+        // screen to mount loads it instead
+        e.stale = true
+      }
     },
     reloadAndWait: async () => {
       e.reload()
@@ -412,7 +421,8 @@ const refreshEntry = (e: Entry) => {
 /**
  * The service says what this method returns has changed. A load on the wire may carry the old
  * answer, so it finishes and one more follows it: a burst of notices costs at most two loads.
- * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry.
+ * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry, and
+ * reloads it even if it was forgotten: a notice about that exact data says it exists again.
  * debounceMs is for notices that keep coming (one per message in a busy team): the first reloads
  * at once, and the rest reload once, debounceMs after the last of them.
  */
@@ -421,7 +431,7 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
   const now = Date.now()
   for (const [entryKey, e] of entries) {
     if (e.method !== method || (key !== undefined && key !== entryKey)) continue
-    if (e.lastNotice === notice || e.snapshot.forgotten) continue
+    if (e.lastNotice === notice || (e.snapshot.forgotten && key === undefined)) continue
     e.lastNotice = notice
     e.stale = true
     const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs

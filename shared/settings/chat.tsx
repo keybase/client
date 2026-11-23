@@ -166,7 +166,9 @@ const useCompressPreference = () => {
           refreshRpc(T.RPCGen.incomingShareGetPreferenceRpcPromise)
         },
         () => {
+          // the optimistic write dropped any load on the wire, so the service has to be asked again
           setRpcData(T.RPCGen.incomingShareGetPreferenceRpcPromise, undefined, () => previous)
+          refreshRpc(T.RPCGen.incomingShareGetPreferenceRpcPromise)
           setSaveError('Unable to save the attachment setting, please try again.')
         }
       )

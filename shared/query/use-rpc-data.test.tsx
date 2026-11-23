@@ -854,7 +854,7 @@ test('an explicit reload that fails leaves data a notice made stale still stale'
   })
 })
 
-test('forgotten data is not loaded again by a notice or a stale check, only by asking for it', async () => {
+test('forgotten data is not loaded again by a method-wide notice or a stale check, only by asking for it or naming it', async () => {
   fake.answer(teamMethod, (params: {teamID: string}) => ({name: `name-of-${params.teamID}`}))
   const {rerender, result} = renderHook(
     ({refreshKey}: {refreshKey: number}) =>
@@ -871,7 +871,6 @@ test('forgotten data is not loaded again by a notice or a stale check, only by a
   expect(calls()).toBe(1)
 
   act(() => forgetLoad('test.teamName', 'team-gone'))
-  act(() => refreshLoad('test.teamName', 'team-gone'))
   act(() => refreshLoad('test.teamName'))
   rerender({refreshKey: 2})
   await flush()
@@ -882,6 +881,38 @@ test('forgotten data is not loaded again by a notice or a stale check, only by a
   await flush()
   expect(calls()).toBe(2)
   expect(result.current.data).toBe('name-of-team-gone')
+
+  // a notice about this very team (re-added while its screen stayed up) brings it back
+  act(() => forgetLoad('test.teamName', 'team-gone'))
+  act(() => refreshLoad('test.teamName', 'team-gone'))
+  await flush()
+  expect(calls()).toBe(3)
+  expect(result.current.data).toBe('name-of-team-gone')
+})
+
+test('a reload once no screen loads it waits for the next screen instead of reporting an error', async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const first = renderHook(useDevices)
+  await flush()
+  const {reload, reloadAndWait} = first.result.current
+  first.unmount()
+  // what a screen's handler does after its own await, by which time the screen is gone
+  act(() => {
+    resetAllStores()
+  })
+  act(() => reload())
+  await act(async () => reloadAndWait())
+  await flush()
+  const reader = renderHook(() => useCachedRpcData(listRpc, undefined, toNames))
+  expect(reader.result.current).toBeUndefined()
+  expect(listCalls()).toBe(1)
+
+  fake.answer(listMethod, () => [device('laptop'), device('phone')])
+  const next = renderHook(() => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000}))
+  await flush()
+  expect(next.result.current.error).toBeUndefined()
+  expect(next.result.current.data).toEqual(['laptop', 'phone'])
+  expect(listCalls()).toBe(2)
 })
 
 test('data that lands after its last screen left is still dropped once idle, and its closures let go', async () => {

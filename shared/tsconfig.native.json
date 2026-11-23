@@ -63,6 +63,8 @@
     "./common-adapters/toast.test.tsx",
     "./common-adapters/zoomable-image.test.tsx",
     "./devices/index.test.tsx",
+    "./devices/device-revoke.test.tsx",
+    "./settings/advanced-remember.test.tsx",
     "./devices/row.test.tsx",
     "./git/delete-repo.test.tsx",
     "./git/index.test.tsx",

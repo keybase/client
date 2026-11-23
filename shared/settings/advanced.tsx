@@ -191,7 +191,9 @@ const Advanced = () => {
       [{remember}],
       () => refreshRpc(T.RPCGen.configGetRememberPassphraseRpcPromise),
       () => {
+        // the optimistic write dropped any load on the wire, so the service has to be asked again
         setRememberPassword(previous)
+        refreshRpc(T.RPCGen.configGetRememberPassphraseRpcPromise)
       }
     )
   }
@@ -210,6 +212,7 @@ const Advanced = () => {
       () => {
         console.log('cant save spell check?')
         setDisableSpellcheck(!next)
+        refreshRpc(T.RPCGen.configGuiGetValueRpcPromise)
       }
     )
   }

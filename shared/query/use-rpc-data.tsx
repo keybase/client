@@ -111,7 +111,8 @@ const rpcEntry = <F extends AnyRpc>(rpc: F, params: ParamsOf<F>, load = rpcLoad(
  * @returns loaded: a load has succeeded, so data is the service's answer
  * @returns settled: a load finished, with data or an error
  * @returns loading: a load is on the wire or about to be
- * @returns reload: load now, dropping the answer of a load already on the wire
+ * @returns reload: load now (or, if no screen is loading it, when one next mounts), dropping the
+ * answer of a load already on the wire
  * @returns reloadAndWait: reload, resolving once it is over: answered, failed, or cut off by a lost link
  */
 export const useRpcData = <F extends AnyRpc, DATA = DataOf<F>>(

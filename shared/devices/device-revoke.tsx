@@ -83,8 +83,8 @@ const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   })
   // The cached list may predate the device (one added elsewhere sends no notice): only a load
   // that landed or failed since this screen opened says it is not there.
-  const [loadCountAtOpen] = React.useState(loadCount)
-  const loaded = loadCount !== loadCountAtOpen || !!loadError
+  const [atOpen] = React.useState({error: loadError, loadCount})
+  const loaded = loadCount !== atOpen.loadCount || (!!loadError && loadError !== atOpen.error)
   const loadedDevice = details?.map(rpcDeviceDetailToDevice).find(c => c.deviceID === selectedDeviceID)
   const device = ownProps.device ?? loadedDevice
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
