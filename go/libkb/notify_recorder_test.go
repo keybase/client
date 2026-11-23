@@ -24,7 +24,12 @@ func (noopNotifySession) LoggedOut(context.Context) error { return nil }
 func (noopNotifySession) LoggedIn(context.Context, keybase1.LoggedInArg) error {
 	return nil
 }
+
 func (noopNotifySession) ClientOutOfDate(context.Context, keybase1.ClientOutOfDateArg) error {
+	return nil
+}
+
+func (noopNotifySession) SessionChanged(context.Context, keybase1.BootstrapStatus) error {
 	return nil
 }
 

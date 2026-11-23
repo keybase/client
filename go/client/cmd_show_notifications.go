@@ -107,6 +107,10 @@ func (d *notificationDisplay) LoggedIn(_ context.Context, arg keybase1.LoggedInA
 	return d.printf("Logged in as %q, signedUp: %t\n", arg.Username, arg.SignedUp)
 }
 
+func (d *notificationDisplay) SessionChanged(_ context.Context, status keybase1.BootstrapStatus) error {
+	return d.printf("Session changed: loggedIn: %t, username: %q, seq: %d\n", status.LoggedIn, status.Username, status.SessionSeq)
+}
+
 func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) (err error) {
 	if arg.UpgradeMsg != "" {
 		var decodedMsg []byte

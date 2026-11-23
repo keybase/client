@@ -352,7 +352,17 @@ type NotifyRouter struct {
 	senders      map[ConnectionID]*connSender
 	listeners    map[NotifyListenerID]NotifyListener
 	shuttingDown bool
+
+	// sessionMu orders sessionChanged builds: each status is read, numbered and queued on every
+	// connection before the next is read.
+	sessionMu     sync.Mutex
+	sessionSource SessionStatusSource
+	sessionSeq    int
 }
+
+// SessionStatusSource reads the current session for NotifySession.sessionChanged and
+// config.getBootstrapStatus. It must not take switchUserMu.
+type SessionStatusSource func(MetaContext) keybase1.BootstrapStatus
 
 // NewNotifyRouter makes a new notification router; we should only
 // make one of these per process.
@@ -516,6 +526,70 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 	n.state[i] = nc
 }
 
+// SetSessionStatusSource sets what reads the session for sessionChanged. Until it is set, no
+// sessionChanged is sent.
+func (n *NotifyRouter) SetSessionStatusSource(f SessionStatusSource) {
+	if n == nil {
+		return
+	}
+	n.sessionMu.Lock()
+	defer n.sessionMu.Unlock()
+	n.sessionSource = f
+}
+
+// SessionStatus reads the session for a caller that asked for it. Its SessionSeq is that of the
+// latest sessionChanged built before the read, so the status is at least as new as that one.
+func (n *NotifyRouter) SessionStatus(m MetaContext) keybase1.BootstrapStatus {
+	n.sessionMu.Lock()
+	f, seq := n.sessionSource, n.sessionSeq
+	n.sessionMu.Unlock()
+	var status keybase1.BootstrapStatus
+	if f != nil {
+		status = f(m)
+	}
+	status.SessionSeq = seq
+	return status
+}
+
+// sendSessionChanged reads the session and queues it on every connection that wants session
+// notifications. It runs in the background so that a logout holding switchUserMu does not wait on
+// the read; since every read follows the change that asked for it, the last one sent is current.
+func (n *NotifyRouter) sendSessionChanged(ctx context.Context) {
+	ctx = CopyTagsToBackground(ctx)
+	go func() {
+		n.sessionMu.Lock()
+		defer n.sessionMu.Unlock()
+		if n.sessionSource == nil {
+			return
+		}
+		var targets []ConnectionID
+		xps := make(map[ConnectionID]rpc.Transporter)
+		n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+			if n.getNotificationChannels(id).Session {
+				targets = append(targets, id)
+				xps[id] = xp
+			}
+			return true
+		})
+		if len(targets) == 0 {
+			return
+		}
+		status := n.sessionSource(NewMetaContext(ctx, n.G()))
+		n.sessionSeq++
+		status.SessionSeq = n.sessionSeq
+		n.G().Log.CDebugf(ctx, "| NotifyRouter: sessionChanged seq %d loggedIn %t to %d connections",
+			status.SessionSeq, status.LoggedIn, len(targets))
+		for _, id := range targets {
+			xp := xps[id]
+			n.enqueue(id, func() {
+				_ = (keybase1.NotifySessionClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SessionChanged(ctx, status)
+			})
+		}
+	}()
+}
+
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a message.
 func (n *NotifyRouter) HandleLogout(ctx context.Context) {
@@ -545,6 +619,7 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
 		return true
 	})
+	n.sendSessionChanged(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
@@ -595,6 +670,7 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 		}
 		return true
 	})
+	n.sendSessionChanged(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)

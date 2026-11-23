@@ -340,9 +340,29 @@ func (d *Service) Run() (err error) {
 	return err
 }
 
+// sessionStatus reads the session for NotifySession.sessionChanged and config.getBootstrapStatus.
+func (d *Service) sessionStatus(m libkb.MetaContext) keybase1.BootstrapStatus {
+	eng := engine.NewBootstrap(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		m.Warning("reading the session: %v", err)
+	}
+	status := eng.Status()
+	status.HttpSrvInfo = d.httpSrvInfo()
+	return status
+}
+
+func (d *Service) httpSrvInfo() *keybase1.HttpSrvInfo {
+	addr, err := d.httpSrv.Addr()
+	if err != nil {
+		return nil
+	}
+	return &keybase1.HttpSrvInfo{Address: addr, Token: d.httpSrv.Token()}
+}
+
 func (d *Service) SetupCriticalSubServices() error {
 	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
+	d.G().NotifyRouter.SetSessionStatusSource(d.sessionStatus)
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
 	pvl.NewPvlSourceAndInstall(d.G())

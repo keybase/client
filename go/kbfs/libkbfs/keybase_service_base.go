@@ -603,6 +603,12 @@ func (k *KeybaseServiceBase) ClientOutOfDate(ctx context.Context,
 	return nil
 }
 
+// SessionChanged implements keybase1.NotifySessionInterface. KBFS follows
+// LoggedIn and LoggedOut instead.
+func (k *KeybaseServiceBase) SessionChanged(context.Context, keybase1.BootstrapStatus) error {
+	return nil
+}
+
 // RootAuditError implements keybase1.NotifyAuditInterface.
 func (k *KeybaseServiceBase) RootAuditError(ctx context.Context,
 	arg keybase1.RootAuditErrorArg,
