@@ -1,0 +1,49 @@
+go/libkb/leveldb_test.go
+  s_fe3c8abadb0dfe::t_45d14a1e68c0cf 587
+  s_fe3c8abadb0dfe::t_bf39bb86997ea3 77-78,162,187,195,212,358,369
+go/libkb/leveldb_cleaner.go
+  s_fe3c8abadb0dfe::t_655aafca63bcfb 156,216-226,233-235,238,241,259-262
+  s_12cc3adcd6e063::t_6a023fe1334429 320
+  s_12cc3adcd6e063::t_cf2f59ce3a505a 118-120,124-129,131-133,135-139,142-147,150-151,160-161
+  s_12cc3adcd6e063::t_5711dadf35592c 162-164
+  s_fe3c8abadb0dfe::t_5a5c70f5ca98d6 263-265
+  s_12cc3adcd6e063::t_8017589ef2d7ae 319
+go/libkb/leveldb_cleaner_test.go
+  s_fe3c8abadb0dfe::t_6eb61e3479987a 55
+  s_12cc3adcd6e063::t_3f6850a43db9e4 54
+go/libkb/leveldb.go
+  s_fe3c8abadb0dfe::t_4e68aab5760bb1 252-254,259-260,263
+  s_fe3c8abadb0dfe::t_e203745f00b86e 427-429,431-432
+  s_12cc3adcd6e063::t_50bda7805f3c53 430
+  s_fe3c8abadb0dfe::t_026b81084b961a 119-121,229,305,444
+  s_12cc3adcd6e063::t_235e909254d724 170-171
+  s_fe3c8abadb0dfe::t_6a790547642815 228
+  s_fe3c8abadb0dfe::t_6aa9b0b20e0dbc 251
+  s_fe3c8abadb0dfe::t_ab1bfb87a6049d 304
+  s_fe3c8abadb0dfe::t_70535aa0d4568a 306-308
+  s_fe3c8abadb0dfe::t_ea641604600379 424-426
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1034fe640b41a722745ebe47d2664481613e0ae9",
+  "prompts": {},
+  "sessions": {
+    "s_12cc3adcd6e063": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d45f91cd-6104-45ab-b5ce-a813fca737b3",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_fe3c8abadb0dfe": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8d839525-df59-4e88-ab26-d05f8a785cf9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
