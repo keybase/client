@@ -74,4 +74,10 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@legendapp|sf-symbols-typescript|emoji-regex|nanoid|use-latest-callback|query-string|decode-uri-component|split-on-first|filter-obj|escape-string-regexp)/)',
   ],
+  // What each test file leaves behind isn't reclaimed until V8 nears its heap limit, so one long-lived
+  // process grows to ~3.8GB over the suite and spends up to a second per mark-compact even on a fast
+  // machine -- on a loaded CI box, long enough to time out whatever test is running. Recycle a worker
+  // once it passes this size.
+  // Has no effect under --runInBand, which keeps everything in a single process.
+  workerIdleMemoryLimit: '1GB',
 }
