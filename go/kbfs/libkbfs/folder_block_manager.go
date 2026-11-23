@@ -1285,6 +1285,16 @@ func isPermanentQRError(err error) bool {
 }
 
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
+	// A force may be queued while paused; release its wait-group credit if
+	// we exit without reading it.
+	defer func() {
+		select {
+		case <-fbm.forceReclamationChan:
+			fbm.reclamationGroup.Done()
+		default:
+		}
+	}()
+
 	autoQR := true
 	timer := time.NewTimer(fbm.config.Mode().QuotaReclamationPeriod())
 
@@ -1314,15 +1324,18 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-			state = fbm.appStateUpdater.AppState()
-			for state != keybase1.MobileAppState_FOREGROUND {
+			if s := fbm.appStateUpdater.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
-					"Pausing QR while not foregrounded: state=%s", state)
-				<-fbm.appStateUpdater.NextAppStateUpdate(state)
-				state = fbm.appStateUpdater.AppState()
+					"Pausing QR while not foregrounded: state=%s", s)
+				// forceReclamationChan is not read while paused; a force is
+				// queued (or dropped) until the app is foregrounded again
+				// or this loop shuts down.
+				if !env.WaitForeground(fbm.appStateUpdater, fbm.shutdownChan, nil) {
+					return
+				}
+				fbm.log.CDebugf(
+					context.Background(), "Resuming QR while foregrounded")
 			}
-			fbm.log.CDebugf(
-				context.Background(), "Resuming QR while foregrounded")
 			continue
 		case <-timerChan:
 			fbm.reclamationGroup.Add(1)
@@ -1580,6 +1593,16 @@ func (fbm *folderBlockManager) doCleanDiskCaches() (err error) {
 }
 
 func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
+	// A latest-merged signal may be queued while paused; release its
+	// wait-group credit if we exit without reading it.
+	defer func() {
+		select {
+		case <-fbm.latestMergedChan:
+			fbm.cleanDiskCachesGroup.Done()
+		default:
+		}
+	}()
+
 	// While in the foreground, clean the disk caches every time we learn about
 	// a newer latest merged revision for this TLF.
 	for {
@@ -1589,16 +1612,15 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-			state = fbm.appStateUpdater.AppState()
-			for state != keybase1.MobileAppState_FOREGROUND {
+			if s := fbm.appStateUpdater.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
-					"Pausing sync-cache cleaning while not foregrounded: "+
-						"state=%s", state)
-				<-fbm.appStateUpdater.NextAppStateUpdate(state)
-				state = fbm.appStateUpdater.AppState()
+					"Pausing sync-cache cleaning while not foregrounded: state=%s", s)
+				if !env.WaitForeground(fbm.appStateUpdater, fbm.shutdownChan, nil) {
+					return
+				}
+				fbm.log.CDebugf(context.Background(),
+					"Resuming sync-cache cleaning while foregrounded")
 			}
-			fbm.log.CDebugf(context.Background(),
-				"Resuming sync-cache cleaning while foregrounded")
 			continue
 		}
 

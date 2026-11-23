@@ -41,6 +41,25 @@ type AppStateUpdater interface {
 	NetworkState() keybase1.MobileNetworkState
 }
 
+// WaitForeground blocks until u reports the app state as FOREGROUND, and
+// returns false if any non-nil stop channel closes first.
+func WaitForeground(
+	u AppStateUpdater, stop1, stop2 <-chan struct{},
+) bool {
+	state := u.AppState()
+	for state != keybase1.MobileAppState_FOREGROUND {
+		select {
+		case <-u.NextAppStateUpdate(state):
+		case <-stop1:
+			return false
+		case <-stop2:
+			return false
+		}
+		state = u.AppState()
+	}
+	return true
+}
+
 // EmptyAppStateUpdater is an implementation of AppStateUpdater that
 // never returns an update, for testing.
 type EmptyAppStateUpdater struct{}
