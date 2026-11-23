@@ -113,6 +113,33 @@ const loadUploadStatusImpl = async (
   }
 }
 
+const loadJournalStatusImpl = async (
+  isCurrentRequest: () => boolean,
+  journalUpdate: (
+    syncingPaths: ReadonlyArray<T.FS.Path>,
+    totalSyncingBytes: number,
+    endEstimate?: number
+  ) => void,
+  onError: () => void
+) => {
+  try {
+    const {syncingPaths, totalSyncingBytes, endEstimate} = await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
+      filter: T.RPCGen.ListFilter.filterSystemHidden,
+    })
+    if (!isCurrentRequest()) {
+      return
+    }
+    journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
+    useNotifState.getState().dispatch.badgeApp('kbfsUploading', totalSyncingBytes > 0 || !!syncingPaths?.length)
+  } catch {
+    if (!isCurrentRequest()) {
+      return
+    }
+    useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
+    onError()
+  }
+}
+
 const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
@@ -209,30 +236,13 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const loadJournalStatus = React.useEffectEvent(() => {
     const generation = generationRef.current
     const request = ++journalStatusRequestRef.current
-    const isCurrentRequest = () =>
-      request === journalStatusRequestRef.current && isCurrentGeneration(generation)
-    const f = async () => {
-      try {
-        const {syncingPaths, totalSyncingBytes, endEstimate} =
-          await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
-            filter: T.RPCGen.ListFilter.filterSystemHidden,
-          })
-        if (!isCurrentRequest()) {
-          return
-        }
-        journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
-        useNotifState
-          .getState()
-          .dispatch.badgeApp('kbfsUploading', totalSyncingBytes > 0 || !!syncingPaths?.length)
-      } catch {
-        if (!isCurrentRequest()) {
-          return
-        }
-        useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
-        checkKbfsDaemonRpcStatus()
-      }
-    }
-    C.ignorePromise(f())
+    C.ignorePromise(
+      loadJournalStatusImpl(
+        () => request === journalStatusRequestRef.current && isCurrentGeneration(generation),
+        journalUpdate,
+        checkKbfsDaemonRpcStatus
+      )
+    )
   })
 
   const syncStatusChanged = React.useEffectEvent((status: T.RPCGen.FolderSyncStatus) => {
