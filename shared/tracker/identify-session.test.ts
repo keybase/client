@@ -7,7 +7,8 @@ import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
-import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {_onEngineIncoming} from '@/constants/init/shared'
 import {settle} from '@/test/flush'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {
@@ -272,6 +273,56 @@ test('a tracking change to an open profile reruns its identify from the proof ca
     expect.objectContaining({params: expect.objectContaining({ignoreCache: false})})
   )
   unsub()
+})
+
+describe('a tracking change to a profile with an identify running', () => {
+  const identify = 'keybase.1.identify3.identify3'
+  let fake: FakeEngine
+
+  const start = async (ignoreCache: boolean) => {
+    identifySpy.mockRestore()
+    fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    const held = fake.hold(identify)
+    const unsub = subscribeToProfile('testuser', () => {})
+    loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache})
+    await settle()
+    return {held, unsub}
+  }
+
+  const trackingChanged = async () => {
+    await fake.push(
+      'keybase.1.NotifyTracking.trackingChanged',
+      {isTracking: true, uid: '', username: 'testuser'},
+      {oneway: true}
+    )
+    await settle()
+  }
+
+  const identifyCalls = () => fake.calls.filter(c => c.method === identify).map(c => c.params as {ignoreCache: boolean})
+
+  afterEach(() => {
+    uninstallFakeEngine()
+  })
+
+  test('lets a forced check finish, then reruns it forced', async () => {
+    const {held, unsub} = await start(true)
+    const firstGuiID = getProfileDetails('testuser')?.guiID
+    await trackingChanged()
+    expect(identifyCalls().map(p => p.ignoreCache)).toEqual([true])
+    expect(getProfileDetails('testuser')?.guiID).toBe(firstGuiID)
+
+    held[0]!.reply(null)
+    await settle()
+    expect(identifyCalls().map(p => p.ignoreCache)).toEqual([true, true])
+    unsub()
+  })
+
+  test('replaces a cached check with another cached one at once', async () => {
+    const {unsub} = await start(false)
+    await trackingChanged()
+    expect(identifyCalls().map(p => p.ignoreCache)).toEqual([false, false])
+    unsub()
+  })
 })
 
 test('a session with an identify still running is kept even with no subscribers', () => {

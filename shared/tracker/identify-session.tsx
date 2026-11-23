@@ -375,6 +375,21 @@ export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOp
   ignorePromise(loadFollowing(s, generation))
 }
 
+// Runs one more identify, as strong as the running one, once it finishes, and
+// keeps the profile checking until then: its result may predate the change.
+const rerunAfterInFlight = (s: Session) => {
+  s.rerunWhenDone = true
+  // its result may already have landed, before the RPC returns
+  if (s.details.state !== 'checking') {
+    setDetails(
+      s,
+      produce(s.details, draft => {
+        draft.state = 'checking'
+      })
+    )
+  }
+}
+
 // Registered once, for the lifetime of the module: each listener looks its session up when an
 // action arrives, and a store reset clears the sessions, not the subscriptions.
 let engineSubscribed = false
@@ -447,6 +462,11 @@ const ensureEngineSubscriptions = () => {
     if (!s?.details.guiID) {
       return
     }
+    // a forced remote check the user asked for is not swapped for a cached one
+    if (s.inFlight && s.ignoreCache) {
+      rerunAfterInFlight(s)
+      return
+    }
     loadProfileIdentify(s.username, {freshAfter: Date.now(), ignoreCache: false})
   })
 
@@ -465,16 +485,7 @@ const ensureEngineSubscriptions = () => {
     // cache stale). Restarting on each one queues an identify per notice behind the service's per-uid
     // lock and keeps the profile checking until the last; one identify after the running one is enough.
     if (s.inFlight) {
-      s.rerunWhenDone = true
-      // its result may already have landed, before the RPC returns
-      if (s.details.state !== 'checking') {
-        setDetails(
-          s,
-          produce(s.details, draft => {
-            draft.state = 'checking'
-          })
-        )
-      }
+      rerunAfterInFlight(s)
       return
     }
     loadProfileIdentify(username, {freshAfter: Date.now(), ignoreCache: false})

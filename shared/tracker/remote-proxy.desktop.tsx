@@ -132,6 +132,9 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
 const RemoteTrackers = () => {
   const [popupState, setPopupState] = React.useState<PopupState>(initialPopupState)
   const popupStateRef = React.useRef(popupState)
+  // username -> guiID of the popup's forced remote check, while it runs and is
+  // the popup's latest identify
+  const forcedInFlightRef = React.useRef(new Map<string, string>())
 
   React.useEffect(() => {
     popupStateRef.current = popupState
@@ -157,15 +160,24 @@ const RemoteTrackers = () => {
       return {showTrackerSet, usernameToDetails}
     })
 
+    const forcedInFlight = forcedInFlightRef.current
+    forcedInFlight.delete(assertion)
     if (fromDaemon) {
       return
     }
 
-    ignorePromise(
-      runPopupIdentify({assertion, guiID, ignoreCache}, () =>
+    if (ignoreCache) {
+      forcedInFlight.set(assertion, guiID)
+    }
+    const run = async () => {
+      await runPopupIdentify({assertion, guiID, ignoreCache}, () =>
         setPopupState(prev => updateResult(prev, guiID, 'error'))
       )
-    )
+      if (forcedInFlight.get(assertion) === guiID) {
+        forcedInFlight.delete(assertion)
+      }
+    }
+    ignorePromise(run())
   }, [])
 
   const closeTracker = React.useCallback((guiID: string) => {
@@ -241,7 +253,8 @@ const RemoteTrackers = () => {
       forceDisplay: false,
       fromDaemon: false,
       guiID: generateGUIID(),
-      ignoreCache: false,
+      // the rerun replaces the running identify, so a forced one it replaces stays forced
+      ignoreCache: forcedInFlightRef.current.has(username),
       inTracker: true,
       reason: '',
     })
