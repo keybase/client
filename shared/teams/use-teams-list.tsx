@@ -29,9 +29,10 @@ const warnUnlessNetwork = (what: string) => (error: Error) => {
 const warnTeamsList = warnUnlessNetwork('teams list')
 const warnTeamsRoleMap = warnUnlessNetwork('teams role map')
 
-// Incoming team chat messages fire teamMetadataUpdate, which reloads the list; the result is
-// usually deep-equal to what we have. The cache keeps prior identities (the whole array when
-// nothing changed), so consumers like TeamsRoot can bail.
+// Most reloads come back deep-equal: the service sends teamMetadataUpdate the first time it loads
+// each team in a session, and teamChangedByID for changes (channels, settings) that the list does
+// not show. The cache keeps prior identities (the whole array when nothing changed), so consumers
+// like TeamsRoot can bail.
 const toTeams = (result: T.RPCGen.AnnotatedTeamList | null): ReadonlyArray<T.Teams.TeamMeta> => [
   ...Teams.teamListToMeta(result?.teams ?? []).values(),
 ]
