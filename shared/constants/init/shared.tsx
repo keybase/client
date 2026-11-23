@@ -46,6 +46,7 @@ import {
 } from "@/chat/notification-router";
 import { onChatRouteChanged } from "@/chat/inbox/metadata";
 import { watchChatSelection } from "@/chat/inbox/selection";
+import { watchChatLayout } from "@/chat/layout-watch";
 import { syncInboxBadgeState } from "@/chat/inbox/badge-state";
 import { clearSignupEmail } from "@/people/signup-email";
 import { clearSignupDeviceNameDraft } from "@/signup/device-name-draft";
@@ -525,7 +526,7 @@ export const onEngineConnected = () => {
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
             deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
+            paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
@@ -594,6 +595,7 @@ export const initSharedSubscriptions = (
     ),
   );
   _sharedUnsubs.push(watchChatSelection());
+  _sharedUnsubs.push(watchChatLayout());
   _sharedUnsubs.push(
     subscribeValue(
       useShellState,

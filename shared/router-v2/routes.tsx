@@ -102,7 +102,6 @@ type LayoutFn = (props: {
 type MakeLayoutFn = (
   isModal: boolean,
   isLoggedOut: boolean,
-  isTabScreen: boolean,
   getOptions?: GetOptions
 ) => LayoutFn
 type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
@@ -118,9 +117,9 @@ function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
 // Only headerless->headered pushes hit it; header->header is fine, and modals present rather than
 // push so they may hide their bar freely. A pushed screen that wants no header must therefore keep
 // an EMPTY bar instead: see the RNS_EMPTY_BAR options on the tabs screen in router.tsx and the
-// `{headerShown: true, title: ''}` login route in login/routes.tsx.
+// iOS `{headerShown: true, title: ''}` login route in login/routes.tsx. Android has no such slide.
 const assertHeaderShown = (name: string, opts: NativeStackNavigationOptions, isModal: boolean) => {
-  if (!isMobile || isModal || opts.headerShown !== false) return
+  if (!isIOS || isModal || opts.headerShown !== false) return
   throw new Error(
     `Route '${name}' sets headerShown:false on a pushed screen. Pushing from it to a headered ` +
       `screen judders on iOS (react-native-screens#3773). Render an empty bar instead: ` +
@@ -132,8 +131,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
   rs: RS,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
-  isLoggedOut: boolean,
-  isTabScreen: boolean
+  isLoggedOut: boolean
 ) {
   const result: Record<
     string,
@@ -149,7 +147,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
       ...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams as object}),
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
-      layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
+      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions) as (props: any) => React.ReactElement,
       options: ({route, navigation}: {route: any; navigation: any}) => {
         const go = rd.getOptions
         const opts = typeof go === 'function' ? go({navigation, route}) : go

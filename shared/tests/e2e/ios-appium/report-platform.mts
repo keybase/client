@@ -1,5 +1,6 @@
 // The iOS release report's configuration (report.mts runs it).
-import {darkVariantOf, type FlowReportPlatform} from '../shared/gate/flow-report.mts'
+import {type FlowReportPlatform} from '../shared/gate/flow-report.mts'
+import {iosDeviceOf, iosVariantOf} from './theme.ts'
 import {IOS_KNOWN_FAILURES, IOS_KNOWN_FAILURES_FILE} from './gate/lists/known-failures.ts'
 import {IOS_MANUAL_ONLY} from './gate/lists/manual-only.ts'
 
@@ -14,5 +15,6 @@ export const iosReportPlatform: FlowReportPlatform = {
   resultsPath: 'tests/results/ios-report/results.json',
   runHint: 'yarn test:e2e:ios:release',
   title: 'Keybase iOS release gate',
-  variantOf: darkVariantOf,
+  deviceOf: iosDeviceOf,
+  variantOf: iosVariantOf,
 }

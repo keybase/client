@@ -107,18 +107,20 @@ const recoverPasswordGetOptions = {
 export const newRoutes = defineRouteMap({
   feedback: settingsRoutes[settingsFeedbackTab],
   login: {
-    // Keep an empty bar visible instead of hiding the header. Unhiding a hidden bar during a
+    // iOS keeps an empty bar visible instead of hiding the header. Unhiding a hidden bar during a
     // push makes iOS slide the whole UINavigationBar in from the right as its own animated
     // plane, desynced from the screen slide (RNS issue #3773) — pushing "Create account" from
     // here juddered and flashed the target screen. A visible bar on both sides turns it into a
-    // coordinated bar-content transition.
-    getOptions: isMobile
+    // coordinated bar-content transition. Android has no such slide, so it shows no empty bar.
+    getOptions: isIOS
       ? {headerShown: true, title: ''}
-      : {
-          headerLeft: () => null,
-          headerRightActions: () => <LoginHeaderRight />,
-          headerTitle: () => <LoginHeaderTitle />,
-        },
+      : isAndroid
+        ? {headerShown: false}
+        : {
+            headerLeft: () => null,
+            headerRightActions: () => <LoginHeaderRight />,
+            headerTitle: () => <LoginHeaderTitle />,
+          },
     screen: React.lazy(async () => import('.')),
   },
   recoverPasswordDeviceSelector: {

@@ -21,10 +21,10 @@ export const toggleConversationThreadSearch = (conversationIDKey: T.Chat.Convers
     return
   }
   const threadSearch = {}
-  if (Common.isSplit) {
+  if (Common.isChatSplit()) {
     setChatRootParams({conversationIDKey, threadSearch})
   } else {
-    navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
+    navigateAppend({name: Common.threadRouteName(), params: {conversationIDKey, threadSearch}}, true)
   }
 }
 
@@ -56,7 +56,8 @@ export const showConversationInfoPanel = (
   show: boolean,
   tab: ConversationInfoPanelTab
 ) => {
-  if (isPhone) {
+  // a phone's split chat shows the panel beside the thread, as iPad does
+  if (isPhone && !Common.isChatSplit()) {
     const visibleScreen = getVisibleScreen()
     if (show) {
       navigateAppend(

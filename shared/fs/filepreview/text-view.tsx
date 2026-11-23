@@ -33,6 +33,8 @@ const fetchContent = (
 const TextView = (props: Props) => {
   const styles = useStyles()
   const {onUrlError, url} = props
+  // the page's own margins sit inside the screen's side strips (iPhone Duo), not under them
+  const {left, right} = Kb.useScreenSideInsets()
 
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
@@ -59,7 +61,12 @@ const TextView = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
+    <Kb.Box2
+      fullHeight={true}
+      fullWidth={true}
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([styles.container, {paddingLeft: left, paddingRight: right}])}
+    >
       <Kb.WebView
         url={url}
         pinnedURLMode={true}
@@ -108,16 +115,16 @@ const useStyles = Kb.Styles.createStyleHook(
 const webviewCSS = `
 html{
   background-color: ${colors.blueLighter3};
-  padding-top: ${Kb.Styles.globalMargins.mediumLarge};
-  padding-bottom: ${Kb.Styles.globalMargins.mediumLarge};
+  padding-top: ${Kb.Styles.globalMargins.mediumLarge}px;
+  padding-bottom: ${Kb.Styles.globalMargins.mediumLarge}px;
   margin: 0;
 }
 body{
   background-color: ${colors.white};
-  padding: ${Kb.Styles.globalMargins.medium};
+  padding: ${Kb.Styles.globalMargins.medium}px;
   margin: 0;
   color: ${colors.black};
-  font-size: 15;
+  font-size: 15px;
   line-height: 1.6;
 }
 @media (prefers-color-scheme: dark) {

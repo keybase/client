@@ -5,7 +5,12 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
+import {
+  attachmentDownloadMessage,
+  messageAttachmentAndroidDownloadMessage,
+  messageAttachmentNativeShareMessage,
+  takePDFMessage,
+} from '../conversation/attachment-actions'
 import {useConversationMessage} from '../conversation/data-hooks'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
@@ -54,6 +59,46 @@ const ChatPDF = (props: Props) => {
     )
   }
 
+  // Android's WebView can't display a PDF, so the screen offers the file to another app, or to Downloads
+  if (isAndroid) {
+    return (
+      <Kb.ModalScreen scroll={false} padding="none">
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          centerChildren={true}
+          gap="small"
+          style={nativeStyles.noPreview}
+          testID={TestIDs.CHAT_PDF_VIEWER}
+        >
+          <Kb.ImageIcon type="icon-file-64" />
+          <Kb.Text type="BodySemibold" center={true}>
+            {title}
+          </Kb.Text>
+          <Kb.Text type="BodySmall" center={true}>
+            This PDF can&apos;t be opened here. Share it to open it in another app, or download it.
+          </Kb.Text>
+          <Kb.ButtonBar direction="column" fullWidth={true}>
+            <Kb.Button
+              label="Share"
+              fullWidth={true}
+              disabled={!message}
+              onClick={() => message && messageAttachmentNativeShareMessage(conversationIDKey, message)}
+            />
+            <Kb.Button
+              label="Download"
+              mode="Secondary"
+              fullWidth={true}
+              disabled={!message}
+              onClick={() => message && messageAttachmentAndroidDownloadMessage(conversationIDKey, message)}
+            />
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.ModalScreen>
+    )
+  }
+
   return (
     <Kb.ModalScreen scroll={false} padding="none">
       {url && !error ? (
@@ -84,6 +129,7 @@ const ChatPDF = (props: Props) => {
 }
 
 const useNativeStyles = Kb.Styles.createStyleHook(() => ({
+  noPreview: Kb.Styles.padding(Kb.Styles.globalMargins.large),
   progressContainer: {position: 'absolute'},
   webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},
 }))

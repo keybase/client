@@ -76,6 +76,7 @@ import {
 } from '../shared/gate/release-lib.ts'
 import {portHolders, type PortHolder} from '../shared/gate/ports.ts'
 import {runSync, udidForName} from './helpers/app.ts'
+import {readFormFactor} from './helpers/form-factor.mts'
 import {notSmokeProblem} from './gate/app-account-lib.ts'
 import {IOS_KNOWN_FAILURES} from './gate/lists/known-failures.ts'
 import {
@@ -323,6 +324,10 @@ const stderrOf = (e: unknown) => {
 const simulatorState = (): IosPreflightState['simulator'] => {
   try {
     udid = udidForName(device)
+    // the release summarizes one project, ios-flows(-dark); a Duo run's results go under its own
+    if (readFormFactor(udid).startsWith('duo-')) {
+      return {error: `${device} is an iPhone Duo; the release gate runs on an iPhone. Run the Duo with KB_IOS_DEVICE and yarn test:e2e:ios:flows`}
+    }
     const listed = simulatorFromList(runSync('xcrun', ['simctl', 'list', 'devices', 'booted', '-j'], 60_000), device)
     if ('error' in listed) return listed
     const windows = spawnSync('pgrep', ['-f', 'DeviceHub.app/Contents/MacOS/DeviceHub|Simulator.app/Contents/MacOS/Simulator'], {timeout: 10_000})

@@ -7,6 +7,7 @@ import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
 import {AppRegistry, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
+import {WindowInsetsProvider} from '@/common-adapters/safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
@@ -148,10 +149,12 @@ const Keybase = () => {
           <GestureHandlerRootView style={[styles.gesture, {backgroundColor}]}>
             <PortalProvider>
               <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-                <StoreHelper>
-                  <Main />
-                  {unmountAll}
-                </StoreHelper>
+                <WindowInsetsProvider>
+                  <StoreHelper>
+                    <Main />
+                    {unmountAll}
+                  </StoreHelper>
+                </WindowInsetsProvider>
               </SafeAreaProvider>
             </PortalProvider>
           </GestureHandlerRootView>

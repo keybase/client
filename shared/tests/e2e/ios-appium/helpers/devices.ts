@@ -10,6 +10,7 @@ import {step} from '../gate/step'
 import {deviceRowPredicate, deviceRowsIn, mergeRows, rowDevice, showsRevokedDivider} from '../gate/devices-lib'
 import {el, labeled, maskingName} from './elements'
 import {escapeToTabs, navigateToMore, tapSettingsRow} from './navigate'
+import {shownNow} from '../gate/shown-lib.ts'
 
 // A device the helpers find by its exact name. A paper key's name is the first two words of its
 // phrase, so it never goes into an error: it is passed with the label errors use instead, and any
@@ -102,7 +103,7 @@ export const findDeviceRow = async (device: NamedDevice, timeoutMs = 240_000) =>
     // the list's own header, the Add button, sits above its rows and does not scroll; it is drawn a
     // moment after a screen over the list (the paper key's) closes
     const add = labeled('Other', 'Add a device or paper key')
-    await add.waitForDisplayed({timeout: 10_000})
+    await browser.waitUntil(async () => shownNow(add), {interval: 250, timeout: 10_000, timeoutMsg: 'the Add a device or paper key header never showed'})
     const until = Date.now() + timeoutMs
     const {height} = await browser.getWindowRect()
     const listTop = (await add.getLocation('y')) + (await add.getSize('height'))

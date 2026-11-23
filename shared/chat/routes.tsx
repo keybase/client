@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/constants/chat'
 import {makeChatScreen} from './make-chat-screen'
 import * as FS from '@/constants/fs'
 import type * as T from '@/constants/types'
@@ -13,6 +12,8 @@ import {ModalTitle} from '@/teams/common'
 import {useChatTeam} from './conversation/team-hooks'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
+import {narrowOptions as phoneChatRootOptions} from './phone-chat-root-options'
+import {chatAlwaysSplit, chatSplitsByWidth} from '@/constants/chat/layout'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
@@ -46,12 +47,6 @@ const emptyChatRootRouteParams: ChatRootRouteParams = {}
 const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen {...p} onComplete={onTeamBuildingFinished} />
 )
-
-const PDFShareButton = ({url}: {url?: string}) => {
-  return (
-    <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet(url ?? '', '', 'application/pdf')} />
-  )
-}
 
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
@@ -148,7 +143,7 @@ export const newRoutes = defineRouteMap({
     getOptions: {title: 'Enter paper key'},
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
-  chatRoot: Chat.isSplit
+  chatRoot: chatAlwaysSplit
     ? {
         ...makeChatScreen(
           React.lazy(async () => import('./inbox-and-conversation')),
@@ -159,16 +154,27 @@ export const newRoutes = defineRouteMap({
         ),
         initialParams: emptyChatRootRouteParams,
       }
-    : {
-        ...makeChatScreen(
-          React.lazy(async () => import('./inbox')),
-          {
-            getOptions: inboxGetOptions,
-            skipProvider: true,
-          }
-        ),
-        initialParams: emptyChatRootRouteParams,
-      },
+    : chatSplitsByWidth
+      ? {
+          ...makeChatScreen(
+            React.lazy(async () => import('./phone-chat-root')),
+            {
+              getOptions: phoneChatRootOptions,
+              skipProvider: true,
+            }
+          ),
+          initialParams: emptyChatRootRouteParams,
+        }
+      : {
+          ...makeChatScreen(
+            React.lazy(async () => import('./inbox')),
+            {
+              getOptions: inboxGetOptions,
+              skipProvider: true,
+            }
+          ),
+          initialParams: emptyChatRootRouteParams,
+        },
 })
 
 export const newModalRoutes = defineRouteMap({
@@ -191,6 +197,8 @@ export const newModalRoutes = defineRouteMap({
         ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
         modalSize: 'large',
+        // the media runs under the side strips (an iPhone Duo's); its controls clear them
+        safeAreaEdges: ['top', 'bottom'] as const,
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
@@ -303,7 +311,7 @@ export const newModalRoutes = defineRouteMap({
                 ),
               ],
             }
-          : {headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined}),
+          : {}),
         modalSize: 'large',
         title: 'PDF',
       }),

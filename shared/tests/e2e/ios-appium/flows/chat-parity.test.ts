@@ -123,7 +123,10 @@ describe('chat parity', function () {
       // the account pinned it, so the close asks before unpinning for everyone
       await hideKeyboard()
       await el(T.CHAT_PINNED_UNPIN).click()
-      await el(T.CHAT_UNPIN_PROMPT).waitForExist({timeout: 5_000})
+      // the prompt's box, or (a sheet that keeps only its texts in the tree, as an iPhone Duo's) its question
+      await browser
+        .$(`-ios predicate string:name == "${T.CHAT_UNPIN_PROMPT}" OR (type == "XCUIElementTypeStaticText" AND label == "Unpin this message?")`)
+        .waitForExist({timeout: 5_000, timeoutMsg: 'the unpin prompt did not show'})
       await byText('Yes, unpin').click()
       await pinnedBanner().waitForExist({reverse: true, timeout: 10_000})
       await expectPinnedOnHost('no pin', null)

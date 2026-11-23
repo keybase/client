@@ -10,7 +10,7 @@ import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runAa, runCheck, runGate, runRender, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
+const {parseCommand, guardLabel, runAa, runCheck, runGate, runRender, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
   await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
@@ -36,6 +36,7 @@ const deps = (over = {}) => ({
   readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}),
   readSeal: async () => ({fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 1}),
   servedFrom: () => '/tree/shared',
+  storeTarget: async (p: 'desktop' | 'ios' | 'android') => p,
   team: () => 'testteam',
   ...over,
 })
@@ -118,7 +119,7 @@ test('the capture session is closed even when a capture throws', async () => {
 })
 
 test('parseCommand: flags, themes and refusals', () => {
-  assert.deepEqual(parseCommand(['tab/*', '--ios']), {base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
+  assert.deepEqual(parseCommand(['tab/*', '--ios']), {android: false, base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
   assert.deepEqual(parseCommand(['--themes', 'dark', 'a', 'b']).themes, ['dark'])
   assert.deepEqual(parseCommand(['--theme', 'dark']).themes, ['dark'])
   assert.deepEqual(parseCommand([]).themes, ['light'])
@@ -127,11 +128,14 @@ test('parseCommand: flags, themes and refusals', () => {
   assert.throws(() => parseCommand(['--ios', '--theme', 'dark']), /iOS captures are light only/)
   assert.throws(() => parseCommand(['--themes', 'sepia']), /unknown theme sepia/)
   assert.throws(() => parseCommand(['--bogus']), /bogus/)
+  assert.equal(parseCommand(['--android']).android, true)
+  assert.throws(() => parseCommand(['--android', '--ios']), /pick one/)
+  assert.throws(() => parseCommand(['--android', '--theme', 'dark']), /Android captures are light only/)
 })
 
 test('check and gate resolve the --base the command was given, in either spelling', async () => {
   for (const argv of [['tab/*', '--base=no-such-ref-for-visual-test'], ['tab/*', '--base', 'no-such-ref-for-visual-test']]) {
-    await assert.rejects(realDeps(parseCommand(argv)).baseSha(), /cannot resolve the base no-such-ref-for-visual-test/)
+    await assert.rejects(realDeps(parseCommand(argv)).baseSha('desktop'), /cannot resolve the base no-such-ref-for-visual-test/)
   }
 })
 
@@ -145,7 +149,7 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
     [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')",
     [mark]: 'Object.assign(KbSrcMark, {__kbVisualSrcMark: true})',
   }
-  const desktop = (coverage: boolean) => ({coverage, ios: false})
+  const desktop = (coverage: boolean) => ({coverage, native: false})
   assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), desktop(true)))
   assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), desktop(false)), /abc has no visual gate .*--base <ref>/s)
   assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), desktop(false)), /--base <ref>/)
@@ -160,7 +164,7 @@ test('checkBaseInfra refuses fixture entries from a base without the fixture run
   const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
   const runtime = 'shared/tests/e2e/visual/fixtures/runtime.ts'
   const names = 'shared/tests/e2e/visual/fixtures/names.ts'
-  const ios = {coverage: false, fixtures: true, ios: true}
+  const ios = {coverage: false, fixtures: true, native: true}
   const version = (v: number) => `export const FIXTURE_RUNTIME_VERSION = ${v}\n`
   assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios), /abc has no fixture runtime/)
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION), [runtime]: 'x'}), ios))
@@ -176,7 +180,7 @@ test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook fo
   const files = (m: Record<string, string>) => (p: string) => m[p]
   const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
   const babel = 'shared/babel.config.js'
-  const ios = (coverage: boolean) => ({coverage, ios: true})
+  const ios = (coverage: boolean) => ({coverage, native: true})
   // the desktop pieces are not what iOS needs
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios(false)))
   assert.throws(() => checkBaseInfra('abc', files({}), ios(false)), /abc has no visual gate infra \(.*driver-ios\.mts\).*--base <ref>/)
@@ -344,6 +348,34 @@ test('selecting a desktop entry that leaves a popup open brings the entry after 
   assert.deepEqual(selectEntries(es, ['team/menu'], 'ios').map(e => e.id), ['team/menu'])
 })
 
+test('a suite adds its entries on the platform, skipping patterns absent there', async () => {
+  const {tour} = await import('./tour.ts')
+  const {SUITES} = await import('./suites.ts')
+  for (const platform of ['desktop', 'ios', 'android'] as const) {
+    const ids = selectEntries(tour, [], platform, 'layout').map(e => e.id)
+    const all = selectEntries(tour, [], platform).map(e => e.id)
+    assert.ok(ids.length > 0 && ids.length < 60, `${platform}: ${ids.length} entries`)
+    assert.ok(ids.includes('settings/account'))
+    // every suite id the platform has is picked
+    assert.ok(SUITES.layout.every(p => p.includes('*') || ids.includes(p) || !all.includes(p)))
+    assert.equal(ids.includes('settings/screen-protector-on'), platform === 'android')
+  }
+  const withId = selectEntries(tour, ['settings/about'], 'ios', 'layout').map(e => e.id)
+  assert.ok(withId.includes('settings/about') && withId.includes('settings/account'))
+  assert.equal(parseCommand(['--suite', 'layout', '--ios']).suite, 'layout')
+  assert.throws(() => parseCommand(['--suite', 'bogus']), /unknown suite bogus \(layout\)/)
+})
+
+test('a screen protector entry is selected on Android only', () => {
+  const es: ReadonlyArray<TourEntry> = [
+    {id: 'settings/sp', nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready: 'x', seal: []},
+    {id: 'settings/sp-on', nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready: 'x', screenProtector: true, seal: []},
+  ]
+  assert.deepEqual(selectEntries(es, [], 'android').map(e => e.id), ['settings/sp', 'settings/sp-on'])
+  assert.deepEqual(selectEntries(es, [], 'ios').map(e => e.id), ['settings/sp'])
+  assert.throws(() => selectEntries(es, ['settings/sp-on'], 'ios'), /no tour entry matches settings\/sp-on on ios/)
+})
+
 test('a fixture entry needs a base that ran the fixture as this tree defines it', async () => {
   const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
   const meta = (fixtures?: Record<string, string>) => () => ({createdAt: 0, fixtures, frozenAt: 1000, seal: {fields: {}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
@@ -421,6 +453,7 @@ test('aa, check and gate never capture a live entry after a fixture entry withou
 // a run directory per run: its name is the start time
 let renderClock = 1_000_000
 const renderDeps = (over = {}) => ({
+  storeTarget: async (p: 'desktop' | 'ios' | 'android') => p,
   capture: async (): Promise<Capture> => {
     throw new Error('should not capture')
   },
@@ -546,4 +579,84 @@ test('render: a fixture entry that tried to mark its thread read is not noted: t
   const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), recorded: recorded(['chat.1.local.markAsReadLocal']), status: 'ok'})
   assert.equal(await runRender(renderDeps({capture, entries: [fx], log: (l: string) => lines.push(l)}), []), 0)
   assert.doesNotMatch(lines.join('\n'), /opened an unread conversation/)
+})
+
+// ---------------------------------------------------------------- form factors
+
+test('--posture folds or unfolds an iOS run and needs --ios', () => {
+  assert.equal(parseCommand(['--ios', '--posture', 'folded']).posture, 'folded')
+  assert.equal(parseCommand(['--ios']).posture, undefined)
+  assert.throws(() => parseCommand(['--posture', 'folded']), /--posture needs --ios/)
+  assert.throws(() => parseCommand(['--ios', '--posture', 'half']), /folded, unfolded, split-left or split-right/)
+  assert.equal(parseCommand(['--ios', '--posture', 'split-right']).posture, 'split-right')
+})
+
+test('render on a Duo records its form factor as the render platform and hands it to each capture', async () => {
+  const lines: Array<string> = []
+  const asked: Array<string> = []
+  const targets: Array<string> = []
+  const capture = async (_e: TourEntry, o: {target: string}): Promise<Capture> => {
+    targets.push(o.target)
+    return {coverage: null, masks: [], png: pngOf(false), recorded: recorded(), status: 'ok'}
+  }
+  const storeTarget = async (p: string, posture?: string) => {
+    asked.push(`${p} ${posture}`)
+    return 'ios-duo-folded' as const
+  }
+  assert.equal(await runRender(renderDeps({capture, log: (l: string) => lines.push(l), storeTarget}), ['--ios', '--posture', 'folded']), 0)
+  assert.deepEqual(asked, ['ios folded'])
+  assert.deepEqual(targets, ['ios-duo-folded'])
+  const dir = /^render: (.*)$/m.exec(lines.join('\n'))?.[1]
+  assert.equal((JSON.parse(fs.readFileSync(path.join(dir!, 'render.json'), 'utf8')) as {platform: string}).platform, 'ios-duo-folded')
+})
+
+test("check on a Duo reads its own form factor's base, and names it when there is none", async () => {
+  const meta = {createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}
+  const readBaseMeta = (_sha: string, t: string) => (t === 'ios' ? meta : undefined)
+  await assert.rejects(
+    runCheck(deps({readBaseMeta, storeTarget: async () => 'ios-duo-unfolded' as const}), ['tab/*', '--ios']),
+    /no iPhone Duo Unfolded base for tab\/\* at abc/
+  )
+})
+
+test('guardLabel fails a Duo capture taken after the hinge moved, without capturing', async () => {
+  let captured = 0
+  const capture = async (): Promise<Capture> => {
+    captured++
+    return {coverage: null, masks: [], png: pngOf(false), status: 'ok'}
+  }
+  const o = {frozenAt: 1, platform: 'ios' as const, target: 'ios-duo-folded' as const, theme: 'light' as const}
+  const moved = await guardLabel(capture, async () => 'ios-duo-unfolded' as const)(entries[0]!, o)
+  assert.equal(moved.status, 'failed')
+  assert.equal(moved.error, 'label changed: iPhone Duo Folded → iPhone Duo Unfolded')
+  assert.equal(captured, 0)
+  assert.equal((await guardLabel(capture, async () => 'ios-duo-folded' as const)(entries[0]!, o)).status, 'ok')
+  let read = 0
+  await guardLabel(capture, async () => {
+    read++
+    return 'ios' as const
+  })(entries[0]!, {...o, target: 'ios' as const})
+  assert.equal(read, 0)
+})
+
+test('guardLabel puts a moved Duo back once and captures, noting it; still moved, it fails', async () => {
+  let captured = 0
+  const capture = async (): Promise<Capture> => {
+    captured++
+    return Promise.resolve({coverage: null, masks: [], png: pngOf(false), status: 'ok' as const})
+  }
+  const o = {frozenAt: 1, platform: 'ios' as const, target: 'ios-duo-split-right' as const, theme: 'light' as const}
+  const reads = ['ios-duo-folded', 'ios-duo-split-right'] as const
+  let restored = 0
+  const back = await guardLabel(capture, async () => Promise.resolve(reads[Math.min(restored, 1)]!), async () => {
+    restored++
+    return Promise.resolve()
+  })(entries[0]!, o)
+  assert.equal(back.status, 'ok')
+  assert.equal(restored, 1)
+  assert.match(back.note ?? '', /put back in iPhone Duo Split Right after it moved to iPhone Duo Folded/)
+  const stuck = await guardLabel(capture, async () => Promise.resolve('ios-duo-folded' as const), async () => Promise.resolve())(entries[0]!, o)
+  assert.equal(stuck.status, 'failed')
+  assert.equal(stuck.error, 'label changed: iPhone Duo Split Right → iPhone Duo Folded')
+  assert.equal(captured, 1)
 })

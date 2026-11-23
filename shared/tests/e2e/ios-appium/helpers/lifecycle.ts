@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import {hostAppPid, runSync, udidForName} from './app'
+import {hostAppPid, iosUdid, runSync} from './app'
 import * as T from '../../shared/test-ids'
 import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
@@ -14,6 +14,7 @@ import {appSnapshotBody} from '../gate/screen-params-lib.ts'
 import {goLogIn, markFile, type LogMark} from '../gate/go-log-lib.ts'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
+import {threadRoute} from '../gate/thread-route.ts'
 
 // Lifecycle flows assert on state and logs, never on screenshots:
 // - JS state is read from the running app through the Metro inspector (Runtime.evaluate).
@@ -25,7 +26,7 @@ export const BUNDLE_ID = 'keybase.ios'
 const APP_EXECUTABLE = 'Keybase'
 
 export const deviceName = () => process.env['KB_IOS_DEVICE'] ?? 'iPhoneTest'
-export const deviceUdid = () => process.env['KB_IOS_UDID'] ?? udidForName(deviceName())
+export const deviceUdid = () => iosUdid(deviceName())
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -336,7 +337,7 @@ export const openSelfConversation = async (username: string) => {
     'the self conversation to open',
     async () => {
       const {screen} = await appSnapshot()
-      return screen?.name === 'chatConversation' && screen.params?.['conversationIDKey'] === convID ? true : undefined
+      return screen?.name === threadRoute() && screen.params?.['conversationIDKey'] === convID ? true : undefined
     },
     {interval: 500, timeout: 20000}
   )

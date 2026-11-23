@@ -12,8 +12,20 @@ import {fileURLToPath} from 'url'
 import type {Rect} from './compare.mts'
 import type {Seal} from './seal.mts'
 import type {Theme} from './tour-types.ts'
+import {formFactorLabel} from '../ios-appium/helpers/form-factor.mts'
 
-export type RunPlatform = 'desktop' | 'ios'
+export type RunPlatform = 'desktop' | 'ios' | 'android'
+// Where a platform's captures are kept: desktop, ios (iPhone), ios-<form factor> (an iPad's or an
+// iPhone Duo's, e.g. ios-duo-folded), android (a phone) or android-tablet, so no two form factors'
+// captures mix
+export type StoreTarget = RunPlatform | `ios-${string}` | `android-${string}`
+const ANDROID_LABELS: Record<string, string> = {android: 'Android Phone', 'android-tablet': 'Android Tablet'}
+// A store target as a person reads it: desktop, iPhone, iPhone Duo Folded, Android Tablet, …
+export const targetLabel = (t: StoreTarget) =>
+  t === 'ios' ? 'iPhone' : t.startsWith('ios-') ? formFactorLabel(t.slice(4)) : (ANDROID_LABELS[t] ?? t)
+// Every phone and tablet target a gallery or report can show, in display order
+export const IOS_TARGETS: ReadonlyArray<StoreTarget> = ['ios', 'ios-ipad', 'ios-duo-folded', 'ios-duo-unfolded', 'ios-duo-split-left', 'ios-duo-split-right']
+export const ANDROID_TARGETS: ReadonlyArray<StoreTarget> = ['android', 'android-tablet']
 // `fixtures`: the definition hash (fixtures/drive.mts) of each fixture the base's entries ran under
 export type BaseMeta = {seal: Seal; frozenAt: number; createdAt: number; fixtures?: Record<string, string>}
 
@@ -24,24 +36,24 @@ export const resultsDir = () => process.env['KB_VISUAL_RESULTS'] ?? path.join(sh
 export const idFile = (id: string) => id.replaceAll('/', '__')
 
 export const baseDir = (sha: string) => path.join(resultsDir(), 'base', sha)
-export const basePlatformDir = (sha: string, platform: RunPlatform) => path.join(baseDir(sha), platform)
-export const baseThemeDir = (sha: string, platform: RunPlatform, theme: Theme) =>
+export const basePlatformDir = (sha: string, platform: StoreTarget) => path.join(baseDir(sha), platform)
+export const baseThemeDir = (sha: string, platform: StoreTarget, theme: Theme) =>
   path.join(basePlatformDir(sha, platform), theme)
-export const basePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
+export const basePng = (sha: string, platform: StoreTarget, theme: Theme, id: string) =>
   path.join(baseThemeDir(sha, platform, theme), `${idFile(id)}.png`)
-export const baseMasksPath = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
+export const baseMasksPath = (sha: string, platform: StoreTarget, theme: Theme, id: string) =>
   path.join(baseThemeDir(sha, platform, theme), `${idFile(id)}.masks.json`)
-export const baseCoveragePath = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
+export const baseCoveragePath = (sha: string, platform: StoreTarget, theme: Theme, id: string) =>
   path.join(baseThemeDir(sha, platform, theme), 'coverage', `${idFile(id)}.json`)
 
-const metaPath = (sha: string, platform: RunPlatform) => path.join(basePlatformDir(sha, platform), 'meta.json')
+const metaPath = (sha: string, platform: StoreTarget) => path.join(basePlatformDir(sha, platform), 'meta.json')
 
-export const writeBaseMeta = (sha: string, platform: RunPlatform, meta: BaseMeta) => {
+export const writeBaseMeta = (sha: string, platform: StoreTarget, meta: BaseMeta) => {
   fs.mkdirSync(basePlatformDir(sha, platform), {recursive: true})
   fs.writeFileSync(metaPath(sha, platform), JSON.stringify(meta, null, 2))
 }
 
-export const readBaseMeta = (sha: string, platform: RunPlatform): BaseMeta | undefined => {
+export const readBaseMeta = (sha: string, platform: StoreTarget): BaseMeta | undefined => {
   try {
     return JSON.parse(fs.readFileSync(metaPath(sha, platform), 'utf8')) as BaseMeta
   } catch (e) {
@@ -52,14 +64,14 @@ export const readBaseMeta = (sha: string, platform: RunPlatform): BaseMeta | und
 
 // The base commit the last `visual:base` for a platform captured; check, gate and coverage use it
 // when no --base is given.
-const lastBasePath = (platform: RunPlatform) => path.join(resultsDir(), 'base', `last-${platform}.json`)
+const lastBasePath = (platform: StoreTarget) => path.join(resultsDir(), 'base', `last-${platform}.json`)
 
-export const writeLastBase = (platform: RunPlatform, sha: string) => {
+export const writeLastBase = (platform: StoreTarget, sha: string) => {
   fs.mkdirSync(path.dirname(lastBasePath(platform)), {recursive: true})
   fs.writeFileSync(lastBasePath(platform), JSON.stringify({sha}))
 }
 
-export const readLastBase = (platform: RunPlatform): string | undefined => {
+export const readLastBase = (platform: StoreTarget): string | undefined => {
   try {
     return (JSON.parse(fs.readFileSync(lastBasePath(platform), 'utf8')) as {sha: string}).sha
   } catch (e) {
@@ -68,7 +80,7 @@ export const readLastBase = (platform: RunPlatform): string | undefined => {
   }
 }
 
-export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, id: string): Array<Rect> => {
+export const readBaseMasks = (sha: string, platform: StoreTarget, theme: Theme, id: string): Array<Rect> => {
   try {
     return JSON.parse(fs.readFileSync(baseMasksPath(sha, platform, theme, id), 'utf8')) as Array<Rect>
   } catch (e) {
@@ -77,7 +89,7 @@ export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, 
   }
 }
 
-export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
+export const hasBasePng = (sha: string, platform: StoreTarget, theme: Theme, id: string) =>
   fs.existsSync(basePng(sha, platform, theme, id))
 
 // A coverage file: the `file:line` ids drawn in the entry's capture (`visible`: an instance on
@@ -123,3 +135,21 @@ export const readBaseCoverage = (sha: string): {drawn: Array<string>; masked: Ar
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')
 export const runDir = (stamp: string) => path.join(resultsDir(), 'runs', stamp)
 export const renderDir = (stamp: string) => path.join(resultsDir(), 'render', stamp)
+
+// The newest render run (by its stamp) whose render.json names `target` as its platform, or undefined
+export const newestRender = (target: StoreTarget): string | undefined => {
+  const root = path.join(resultsDir(), 'render')
+  if (!fs.existsSync(root)) return undefined
+  return fs
+    .readdirSync(root)
+    .sort()
+    .reverse()
+    .map(stamp => path.join(root, stamp))
+    .find(dir => {
+      try {
+        return (JSON.parse(fs.readFileSync(path.join(dir, 'render.json'), 'utf8')) as {platform?: string}).platform === target
+      } catch {
+        return false
+      }
+    })
+}

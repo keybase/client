@@ -36,7 +36,7 @@ import {accountLinkLines, deepLinkEvents, focusChanges, GO_BACKGROUND, launchedI
 import {attemptRecording} from '../gate/recording'
 import {conversationOpened, expectScreen, fromPeople, leaveOnPeople} from '../gate/screens'
 import {step} from '../gate/step'
-import {findBanner, tapBanner, withNotificationCenter} from '../gate/system-ui'
+import {findBanner, notificationCenterReachable, tapBanner, withNotificationCenter} from '../gate/system-ui'
 import {waitSignedIn} from '../helpers/chat'
 import {goLogMark, waitFor, waitForAppState} from '../helpers/lifecycle'
 import {linesSince} from '../gate/go-log-lib.ts'
@@ -45,6 +45,7 @@ import {escapeToTabs} from '../helpers/navigate'
 import {throwawayChannels} from '../helpers/chat-host'
 import {expectShown, openNotificationSettings, settles, switchOf, tapAndCall} from '../helpers/setting-controls'
 import {masked} from '../helpers/teams'
+import {threadRoute} from '../gate/thread-route.ts'
 
 const POST_JSON = 'keybase.1.apiserver.PostJSON'
 
@@ -86,6 +87,12 @@ describe('app push notifications', function () {
   // 1, the app active 11, the springboard settings 8).
   const clearBanners = async () => {
     if (!pushed) return
+    // where Notification Center cannot be pulled, this run's notifications stay delivered: nothing in
+    // the run opens it there
+    if (!notificationCenterReachable()) {
+      pushed = false
+      return
+    }
     await withNotificationCenter(async () => Promise.resolve())
     pushed = false
   }
@@ -233,7 +240,7 @@ describe('app push notifications', function () {
     // the new runtime's first recording: up on the conversation as it started, People never shown
     const rec = attemptRecording()
     await rec.checkpoint()
-    check(launchedInto(rec.recordings.at(-1), 'chatConversation'), 'the launched app did not come up on the conversation the push named')
+    check(launchedInto(rec.recordings.at(-1), threadRoute()), 'the launched app did not come up on the conversation the push named')
     creditSurface('push-notification')
     creditSurface('relaunch')
     await step('The tapped banner launched the app into its conversation', {card: true})

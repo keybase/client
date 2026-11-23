@@ -300,23 +300,24 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
   if (!isMobile) return null
 
   const bar = (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      gap={Kb.Styles.isTablet ? 'small' : 'tiny'}
-      alignItems="flex-start"
-      padding="small"
-      style={styles.inputActionsBarContainer}
-    >
-      {children}
-      <Kb.WaitingButton
-        mode="Primary"
-        waitingKey={C.waitingKeyCrypto}
-        label={runLabel}
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.inputActionsBarContainer}>
+      <Kb.Box2
+        direction="vertical"
         fullWidth={true}
-        onClick={onClick}
-        testID={TestIDs.CRYPTO_RUN_BUTTON}
-      />
+        gap={Kb.Styles.isTablet ? 'small' : 'tiny'}
+        alignItems="flex-start"
+        style={styles.inputActionsColumn}
+      >
+        {children}
+        <Kb.WaitingButton
+          mode="Primary"
+          waitingKey={C.waitingKeyCrypto}
+          label={runLabel}
+          fullWidth={true}
+          onClick={onClick}
+          testID={TestIDs.CRYPTO_RUN_BUTTON}
+        />
+      </Kb.Box2>
     </Kb.Box2>
   )
 
@@ -384,6 +385,12 @@ const useStyles = Kb.Styles.createStyleHook(
       }),
       inputActionsBarContainer: {
         backgroundColor: theme.blueGrey,
+      },
+      // the run button stops at its max width, so the options and it sit in a centered column of
+      // that width on a wide window (iPhone Duo unfolded, iPad)
+      inputActionsColumn: {
+        alignSelf: 'center',
+        maxWidth: 460,
       },
       // RNScreens' SafeAreaView forces flex: 1; neutralize it so the bar wraps its
       // content height instead of stretching inside the keyboard sticky view.

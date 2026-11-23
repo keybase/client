@@ -21,14 +21,12 @@ import {
   phoneReachesServer,
   rememberPassphrase,
   removeArchiveJobs,
-  runtimeStatsEnabled,
   setCompressPreference,
   setDebugLevel,
   setFilesSettings,
   setFolderSyncConfig,
   setProxyData,
   setRememberPassphrase,
-  toggleRuntimeStats,
 } from './app-ask'
 
 // jest's global (this project's types are mocha's and wdio's)
@@ -48,8 +46,6 @@ const mockApp = {
   assets: [] as Array<{height: number; id: string; mediaType: string; width: number}>,
   // the phone service's downloads
   downloads: [] as Array<{canceled: boolean; done: boolean; downloadID: string}>,
-  // the service config's runtime stats flag; undefined: never set
-  statsEnabled: undefined as undefined | boolean,
 }
 
 jest.mock('../helpers/lifecycle', () => ({
@@ -74,7 +70,6 @@ beforeEach(() => {
   mockApp.evalFails = false
   mockApp.holdThreshold = undefined
   mockApp.failNext = ''
-  mockApp.statsEnabled = undefined
   mockApp.assets = []
   mockApp.downloads = []
   const log = (s: string) => mockApp.log.push(s)
@@ -130,7 +125,6 @@ beforeEach(() => {
     configGuiSetValueRpcPromise: async (p: {path: string; value: unknown}) => answer(`gui set ${p.path} ${JSON.stringify(p.value)}`),
     configSetProxyDataRpcPromise: async (p: {proxyData: unknown}) => answer(`set proxy ${JSON.stringify(p.proxyData)}`),
     configSetRememberPassphraseRpcPromise: async (p: {remember: boolean}) => answer(`set remember ${p.remember}`),
-    configToggleRuntimeStatsRpcPromise: async () => answer('toggle stats'),
     incomingShareGetPreferenceRpcPromise: async () => answer('get compress', {compressPreference: 0}),
     incomingShareSetPreferenceRpcPromise: async (p: {preference: {compressPreference: number}}) =>
       answer(`set compress ${p.preference.compressPreference}`),
@@ -142,11 +136,9 @@ beforeEach(() => {
   }
   const callPort = {
     getCallPort: () => ({
-      call: (p: {method: string; params: {path: string}; callback: (e?: Error, v?: unknown) => void}) => {
+      call: (p: {method: string; params: {path: string}; callback: (e?: Error) => void}) => {
         log(`call ${p.method} ${p.params.path}`)
-        if (p.method !== 'keybase.1.config.getValue') p.callback()
-        else if (mockApp.statsEnabled === undefined) p.callback(new Error(`no such key: ${p.params.path}`))
-        else p.callback(undefined, {b: mockApp.statsEnabled, isNull: false})
+        p.callback()
         return 1
       },
     }),
@@ -273,16 +265,10 @@ describe("the phone's local settings", () => {
     )
   })
 
-  test("the runtime stats flag, the server read and the theme state are each answered with the recorder paused", async () => {
-    await expect(runtimeStatsEnabled()).resolves.toBe(false)
-    mockApp.statsEnabled = true
-    await expect(runtimeStatsEnabled()).resolves.toBe(true)
-    mockApp.statsEnabled = false
-    await expect(runtimeStatsEnabled()).resolves.toBe(false)
+  test('the server read and the theme state are each answered with the recorder paused', async () => {
     await expect(phoneReachesServer()).resolves.toBe(true)
     await expect(darkModeState()).resolves.toEqual({preference: 'alwaysLight', supported: true, systemDark: false})
     expect(mockApp.log).toEqual([
-      ...Array.from({length: 3}, () => ['pause', 'call keybase.1.config.getValue runtime_stats_enabled', 'resume tok']).flat(),
       ...['pause', 'get account/subscriptions', 'resume tok'],
       ...['pause', 'resume tok'],
     ])
@@ -300,7 +286,6 @@ describe("the phone's local settings", () => {
     await setCompressPreference('compressed')
     await setDebugLevel('vlog1')
     await setDebugLevel('vlog1,dump-payload')
-    await toggleRuntimeStats()
     expect(mockApp.log.filter(l => l !== 'pause' && l !== 'resume tok')).toEqual([
       'set remember false',
       'set proxy {"addressWithPort":"","certPinning":true,"proxyType":0}',
@@ -309,7 +294,6 @@ describe("the phone's local settings", () => {
       'set compress 1',
       'debug vlog1',
       'debug vlog1,dump-payload',
-      'toggle stats',
     ])
   })
 

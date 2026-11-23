@@ -4,6 +4,7 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
 import * as InputState from '@/chat/conversation/input-area/input-state'
+import {useIsChatSplit} from '@/constants/chat/layout'
 // we need to use the raw colors to animate
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
@@ -206,6 +207,8 @@ const useIconAndOverlay = (p: {
   // is closed (KeyboardStickyView offset). Recording always happens keyboard-closed, so
   // shift the overlay up by the same amount to keep the circles centered on the mic.
   const insets = Kb.useSafeAreaInsets()
+  // the composer clears the screen's side strips (an iPhone Duo's), and so must the mic's circles
+  const sideInsets = Kb.useScreenSideInsets()
 
   const lockedSV = useSharedValue(0)
   const canceledSV = useSharedValue(0)
@@ -283,7 +286,7 @@ const useIconAndOverlay = (p: {
   const overlay =
     visible === Visible.HIDDEN ? null : (
       <Portal hostName="convOverlay" useFullScreenOverlay={false}>
-        <Animated.View style={[styles.container, {bottom: insets.bottom}]} pointerEvents="box-none">
+        <Animated.View style={[styles.container, {bottom: insets.bottom, left: sideInsets.left, right: sideInsets.right}]} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
           <InnerCircle
@@ -578,12 +581,19 @@ const BigBackground = (props: {fadeSV: SVN}) => {
   const theme = Kb.Styles.useTheme()
   const {fadeSV} = props
   const backgroundColor = Kb.Styles.undynamicColor(theme.white)
+  // a wide window (a tablet, an unfolded iPhone Duo) needs a bigger circle to cover the composer
+  const wide = useIsChatSplit()
   const animatedStyle = useAnimatedStyle(() => ({
     backgroundColor,
     opacity: fadeSV.value * 0.9,
     transform: [{scale: fadeSV.value}],
   }))
-  return <Animated.View pointerEvents="box-none" style={[styles.bigBackgroundStyle, animatedStyle]} />
+  return (
+    <Animated.View
+      pointerEvents="box-none"
+      style={[wide ? styles.bigBackgroundWideStyle : styles.bigBackgroundStyle, animatedStyle]}
+    />
+  )
 }
 
 const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; lockedSV: SVN}) => {
@@ -845,7 +855,10 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     position: 'absolute',
   },
   bigBackgroundStyle: {
-    ...circleAroundIcon(Kb.Styles.isTablet ? 2000 : 750),
+    ...circleAroundIcon(750),
+  },
+  bigBackgroundWideStyle: {
+    ...circleAroundIcon(2000),
   },
   cancelHintStyle: {
     ...Kb.Styles.globalStyles.flexBoxRow,

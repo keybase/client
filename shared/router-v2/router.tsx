@@ -116,7 +116,7 @@ if (!isMobile) {
   const desktopTab = createLeftTabNavigator()
   const desktopTabComponents: Record<string, React.ComponentType> = {}
 
-  const desktopTabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false, true)
+  const desktopTabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false)
 
   const appTabsInnerOptions = {
     ...Common.defaultNavigationOptions,
@@ -159,8 +159,7 @@ if (!isMobile) {
     loggedOutRoutes,
     makeLayout,
     false,
-    true,
-    false
+    true
   )
   const desktopLoggedOutOptions = {
     header: (p: Record<string, unknown>) => {
@@ -203,7 +202,7 @@ if (!isMobile) {
     return loaded && !loggedIn
   }
 
-  const desktopModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
+  const desktopModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
 
   const desktopRootNav = createNativeStackNavigator({
     groups: {
@@ -379,7 +378,7 @@ if (isMobile) {
   // Tablet tab stacks hold every route; phone tab stacks hold only their root screen
   // (everything else lives in the root stack so it renders above the tab bar).
   const tabletScreensConfig = C.isTablet
-    ? routeMapToStaticScreens(routes, makeLayout, false, false, true)
+    ? routeMapToStaticScreens(routes, makeLayout, false, false)
     : undefined
 
   for (const tab of nativeTabs) {
@@ -390,8 +389,7 @@ if (isMobile) {
         {[rootName]: routes[rootName as keyof typeof routes]} as typeof routes,
         makeLayout,
         false,
-        false,
-        true
+        false
       )
     const nav = createNativeStackNavigator({
       initialRouteName: rootName,
@@ -562,8 +560,7 @@ if (isMobile) {
     loggedOutRoutes,
     makeLayout,
     false,
-    true,
-    false
+    true
   )
 
   const loggedOutNav = createNativeStackNavigator({
@@ -605,11 +602,10 @@ if (isMobile) {
   const useIsLoggedInNative = () => useLoggedInScreens()
   const useIsLoggedOutNative = () => !useLoggedInScreens()
 
-  const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
+  const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
   const nativePhoneRootScreensConfig = routeMapToStaticScreens(
     C.isTablet ? {} : phoneRootRoutes,
     makeLayout,
-    false,
     false,
     false
   )

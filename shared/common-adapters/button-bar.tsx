@@ -33,9 +33,11 @@ const ButtonBar = (props: Props) => {
     minHeight: isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
   }
 
+  // On a phone or tablet a column bar is as wide as its buttons can be (460), centered, so the
+  // buttons stay centered on a window wider than that
   const style = Styles.collapseStyles([
     {
-      ...(Styles.isTablet ? {maxWidth: 460} : {}),
+      ...(isMobile && isColumn ? columnMobileStyle : Styles.isTablet ? tabletStyle : {}),
       ...(!isColumn
         ? {
             justifyContent: props.align ?? 'center',
@@ -57,6 +59,9 @@ const ButtonBar = (props: Props) => {
     </Kb.Box2>
   )
 }
+
+const tabletStyle = {maxWidth: 460} as const
+const columnMobileStyle = {alignSelf: 'center', maxWidth: 460} as const
 
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
 const BigSpacer = () => <Kb.Box2 direction="vertical" noShrink={true} style={bigSpacerStyle} />

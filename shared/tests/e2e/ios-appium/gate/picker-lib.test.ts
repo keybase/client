@@ -1,5 +1,5 @@
 import {sourceElements} from './page-source-lib'
-import {corpusCellOf, corpusCells, fileCellName, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
+import {corpusCellOf, corpusCells, fileCellName, LIBRARY_GRID_ORDER_REVERSED, folderCellName, LIBRARY_PHOTO_ORDER, libraryCells, pickedFilePath, requirePicked} from './picker-lib'
 
 const cell = (label: string, i: number, selected = false) =>
   `<XCUIElementTypeImage type="XCUIElementTypeImage" name="PXGGridLayout-Info" label="${label}" enabled="true" visible="false" accessible="true" x="${(i % 3) * 134}" y="${307 + Math.floor(i / 3) * 134}" width="133" height="133" index="${i}" traits="${selected ? 'Selected, Image' : 'Image'}"/>`
@@ -83,5 +83,19 @@ describe('picker-lib', () => {
     expect(() => requirePicked([{sha256: 'aa'}, {sha256: 'bb'}], want)).not.toThrow()
     expect(() => requirePicked([{sha256: 'bb'}, {sha256: 'aa'}], want)).toThrow('picked file 1 is not')
     expect(() => requirePicked([{sha256: 'aa'}], want)).toThrow('handed 1 files, not 2')
+  })
+})
+
+describe('the corpus in reverse (iOS 27 Photos)', () => {
+  const reversed = [`Video, two seconds, ${NEW}`, `Video, two seconds, ${NEW}`, ...Array.from({length: 5}, () => `Photo, ${NEW}`)]
+
+  test('the reversed run is found with the reversed order, and each file is its place in it', () => {
+    const run = corpusCells(grid([...older, ...reversed]), LIBRARY_GRID_ORDER_REVERSED)
+    expect(corpusCellOf(run, 'e2e-c.png', LIBRARY_GRID_ORDER_REVERSED)).toBe(run[6])
+    expect(corpusCellOf(run, 'e2e-c.mp4', LIBRARY_GRID_ORDER_REVERSED)).toBe(run[0])
+  })
+
+  test('the reversed run is not the corpus in the added order', () => {
+    expect(() => corpusCells(grid(reversed))).toThrow('0 runs')
   })
 })

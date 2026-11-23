@@ -7,9 +7,9 @@ import {HeaderHeightContext} from '@react-navigation/elements'
 import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
+import {useWindowDimensions, type LayoutChangeEvent} from 'react-native'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {previousRouteIsModal} from '@/constants/nav-tree'
-
 
 type LayoutProps = {
   children: React.ReactNode
@@ -25,18 +25,54 @@ type LayoutProps = {
 // Wraps both tab-root and pushed stack screens. Android targets SDK 35+ which enforces
 // edge-to-edge, so content draws under the system nav bar unless we apply the bottom
 // inset ourselves.
+// iOS reserves side strips on the iPhone Duo (its status column, and in Split View the column of
+// header buttons). Screens still lay out on the full window, so centered content stays centered;
+// scrolling content clears the strips through ScreenSideInsetsContext. Only the screen's own safe
+// area includes the header column (the root provider's window insets report 0 for it), so an
+// invisible RNScreens SafeAreaView is measured for them. Every screen keeps both strips: a screen
+// pushed above the tabs still has Split View's left column, drawn over it with its back button.
+const androidEdges = {bottom: true} as const
+const probeEdges = {left: true, right: true} as const
+type LayoutEvent = {nativeEvent: {layout: {width: number; x: number}}}
 const ScreenWrapper = ({children}: {children: React.ReactNode}) => {
   const styles = useStyles()
+  // the two measurements live in refs: a screen re-renders only when its strips change, which on a
+  // screen with none is never
+  const screenWidth = React.useRef(0)
+  const probe = React.useRef({width: 0, x: 0})
+  const [sideInsets, setSideInsets] = React.useState(Kb.noSideInsets)
   if (isAndroid) {
     return (
-      <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
+      <RNScreensSafeAreaView edges={androidEdges} style={styles.tabScreen}>
         {children}
       </RNScreensSafeAreaView>
     )
   }
+  const update = () => {
+    const {width, x} = probe.current
+    if (screenWidth.current <= 0 || width <= 0) return
+    const left = x
+    const right = Math.max(0, screenWidth.current - x - width)
+    setSideInsets(was => (was.left === left && was.right === right ? was : left || right ? {left, right} : Kb.noSideInsets))
+  }
+  const onScreenLayout = (e: LayoutEvent) => {
+    screenWidth.current = e.nativeEvent.layout.width
+    update()
+  }
+  const onProbeLayout = (e: LayoutEvent) => {
+    const {width, x} = e.nativeEvent.layout
+    probe.current = {width, x}
+    update()
+  }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
-      {children}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen} onLayout={onScreenLayout}>
+      <RNScreensSafeAreaView
+        edges={probeEdges}
+        pointerEvents="none"
+        style={styles.insetProbe}
+        onLayout={onProbeLayout}
+      />
+      <Kb.ScreenSideInsetsContext value={sideInsets}>{children}</Kb.ScreenSideInsetsContext>
     </Kb.Box2>
   )
 }
@@ -68,7 +104,12 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
         style={Kb.Styles.collapseStyles([
           styles.tabScreen,
           styles.loggedOutBackground,
-          {paddingBottom: keyboardVisible ? 0 : insets.bottom, paddingTop: headerHeight > 0 ? 0 : insets.top},
+          {
+            paddingBottom: keyboardVisible ? 0 : insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+            paddingTop: headerHeight > 0 ? 0 : insets.top,
+          },
         ])}
       >
         {children}
@@ -80,7 +121,6 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
 export const desktopMakeLayout = (
   isModal: boolean,
   _isLoggedOut: boolean,
-  _isTabScreen: boolean,
   _getOptions?: GetOptions
 ) => {
   return ({children, options: navigationOptions, route, navigation}: LayoutProps) => {
@@ -105,6 +145,8 @@ export const desktopMakeLayout = (
   }
 }
 
+const allEdges = ['top', 'right', 'bottom', 'left'] as const
+
 // Modal screens: their own SafeAreaProvider plus keyboard avoidance. Kept as a component
 // (not inlined into Layout below) because Layout runs inside the navigator's render and may
 // not call hooks.
@@ -118,8 +160,23 @@ const ModalScreenWrapper = ({
   const styles = useStyles()
   const modalSize = navigationOptions?.modalSize ?? 'small'
   const modalBox = {size: modalSize}
+  // Sides come from the window's insets, not the sheet's own safe area: in an iPhone Duo's Split
+  // View the sheet's safe area also holds the column iOS keeps for header buttons, which a sheet
+  // leaves empty. The window insets still clear the Duo's status column, but only where the sheet
+  // reaches it: iOS centers a sheet narrower than its window (an unfolded Duo), clear of the strips.
+  const windowInsets = useSafeAreaInsets()
+  const {width: windowWidth} = useWindowDimensions()
+  const [sheetWidth, setSheetWidth] = React.useState<number | undefined>(undefined)
+  const onLayout = (e: LayoutChangeEvent) => setSheetWidth(e.nativeEvent.layout.width)
+  const sheetGap = Math.max(0, (windowWidth - (sheetWidth ?? windowWidth)) / 2)
+  const edges = navigationOptions?.safeAreaEdges ?? allEdges
+  const verticalEdges = edges.filter(e => e === 'top' || e === 'bottom')
+  const sidePadding = {
+    paddingLeft: edges.includes('left') ? Math.max(0, windowInsets.left - sheetGap) : 0,
+    paddingRight: edges.includes('right') ? Math.max(0, windowInsets.right - sheetGap) : 0,
+  }
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+    <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none" onLayout={onLayout}>
       {/* Android's default 'height' behavior is a no-op here: it animates height plus flex:0
           onto a view whose static style is flexGrow:1 and whose child SafeAreaView forces
           flex:1, so the shrink never reaches layout and the keyboard covers the content.
@@ -131,8 +188,8 @@ const ModalScreenWrapper = ({
         compensateNotBeingOnBottom={isTablet}
       >
         <Kb.SafeAreaView
-          edges={navigationOptions?.safeAreaEdges}
-          style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+          edges={verticalEdges}
+          style={Kb.Styles.collapseStyles([styles.keyboard, sidePadding, navigationOptions?.safeAreaStyle])}
         >
           <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
         </Kb.SafeAreaView>
@@ -149,7 +206,6 @@ const ModalScreenWrapper = ({
 export const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
-  _isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
   return function Layout({children, route, navigation}: LayoutProps) {
@@ -178,6 +234,13 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   },
   loggedOutBackground: {
     backgroundColor: theme.blueGrey,
+  },
+  insetProbe: {
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   tabScreen: {
     flex: 1,

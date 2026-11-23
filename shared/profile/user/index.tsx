@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as React from 'react'
+import {HeaderHeightContext} from '@react-navigation/elements'
 import Actions from './actions'
 import Assertion from '@/tracker/assertion'
 import Bio from '@/tracker/bio'
@@ -278,13 +279,20 @@ export type BioTeamProofsProps = {
   fullName?: string
   title: string
 }
+// The list's content clears an iPhone Duo's side strips; the color band still runs to the screen's
+// edges under them
 const BackgroundColorBox = (p: {backgroundColorType: BackgroundColorType}) => {
   const styles = useStyles()
+  const {left, right} = Kb.useScreenSideInsets()
+  // absolutely placed edge to edge (no width, which would pin it against the negative offsets)
   return (
     <Kb.Box2
       direction="vertical"
-      fullWidth={true}
-      style={Kb.Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(p.backgroundColorType, styles)])}
+      style={Kb.Styles.collapseStyles([
+        styles.backgroundColor,
+        colorTypeToStyle(p.backgroundColorType, styles),
+        (left || right) && {left: -left, right: -right},
+      ])}
     />
   )
 }
@@ -371,7 +379,7 @@ type Tab = 'followers' | 'following'
 const User = (props: {username: string}) => {
   const styles = useStyles()
   const p = useUserData(props.username)
-  const insetTop = Kb.useSafeAreaInsets().top
+  const {bottom: insetBottom, top: insetTop} = Kb.useSafeAreaInsets()
   const {username} = p
   const [selectedTab, setSelectedTab] = React.useState<Tab>(usernameSelectedTab.get(username) ?? 'followers')
   const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
@@ -396,9 +404,16 @@ const User = (props: {username: string}) => {
     return () => observer.disconnect()
   }, [])
 
+  // on mobile the screen can be narrower than the window (iPhone Duo Split View), and the list's
+  // content is narrower still by the screen's side insets
+  const sideInsets = Kb.useScreenSideInsets()
+  const onWrapperLayout = isMobile
+    ? (e: {nativeEvent: {layout: {width: number}}}) => setWidth(e.nativeEvent.layout.width)
+    : undefined
+
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
-  const {itemsInARow, itemWidth} = widthToDimensions(width)
+  const {itemsInARow, itemWidth} = widthToDimensions(width - sideInsets.left - sideInsets.right)
   const chunks: Array<Item> = React.useMemo(() => {
     const friends = selectedTab === 'following' ? p.following : p.followers
     const result: Array<Item> = width
@@ -426,9 +441,22 @@ const User = (props: {username: string}) => {
     return result
   }, [selectedTab, p.following, p.followers, width, itemsInARow, itemWidth, p.userIsYou, p.username])
 
+  // The header is transparent, so the list starts below it. The bar's real height beats a guess from
+  // the status bar: in an iPhone Duo's Split View there is no status bar inset but the bar still sits
+  // 24pt down, and content under the bar gets iOS's blurred scroll edge.
+  const headerHeight = React.useContext(HeaderHeightContext)
+  const belowHeader = isIOS && !Kb.Styles.isTablet && !!headerHeight
   const containerStyle = {
-    paddingTop: (isAndroid ? 56 : Kb.Styles.isTablet ? 80 : isIOS ? 46 : 80) + insetTop,
+    paddingTop: belowHeader ? headerHeight : (isAndroid ? 56 : Kb.Styles.isTablet ? 80 : isIOS ? 46 : 80) + insetTop,
   }
+  // iOS would inset the list's bottom by the home indicator, which scrolls the page's blue background
+  // into view below the content: the content runs down behind the indicator instead
+  const listContentStyle = belowHeader
+    ? Kb.Styles.collapseStyles([
+        styles.sectionListContentStyle,
+        {paddingBottom: Kb.Styles.globalMargins.xtiny + insetBottom},
+      ])
+    : styles.sectionListContentStyle
 
   const loadingFollowing = p.following === undefined
   const loadingFollowers = p.followers === undefined
@@ -568,14 +596,21 @@ const User = (props: {username: string}) => {
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType, styles)])}
         testID={TestIDs.PROFILE_PAGE}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={wrapperRef}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          ref={wrapperRef}
+          onLayout={onWrapperLayout}
+        >
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}
             renderSectionHeader={renderSectionHeader}
             sections={sections}
             style={styles.sectionList}
-            contentContainerStyle={styles.sectionListContentStyle}
+            contentContainerStyle={listContentStyle}
+            contentInsetAdjustmentBehavior={belowHeader ? 'never' : 'automatic'}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -675,6 +710,9 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   proofsArea: Kb.Styles.platformStyles({
     isMobile: {
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
+      // a wide window (iPhone Duo unfolded, iPad) would stretch the rows across it
+      alignSelf: 'center',
+      maxWidth: 500,
     },
   }),
   proveIt: {paddingTop: Kb.Styles.globalMargins.small},

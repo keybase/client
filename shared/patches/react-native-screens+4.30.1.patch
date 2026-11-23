@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
-index 049fd22..4daf6e5 100644
+index 049fd22..f4c4a5b 100644
 --- a/node_modules/react-native-screens/ios/RNSScreen.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreen.mm
 @@ -1589,6 +1589,21 @@ - (void)viewDidDisappear:(BOOL)animated
@@ -24,6 +24,24 @@ index 049fd22..4daf6e5 100644
  
    // The below code makes the screen view adapt dimensions provided by the system. We take these
    // into account only when the view is mounted under RNSNavigationController, in which case the
+@@ -2002,6 +2017,17 @@ - (BOOL)prefersHomeIndicatorAutoHidden
+ {
+   return self.screenView.homeIndicatorHidden;
+ }
++
++#if RNS_IPHONE_OS_VERSION_AVAILABLE(27_1)
++// A presentation gets its own vertical bar (an iPhone Duo's side column), which reserves a strip of
++// the sheet next to the screen edge for the header's icon items. A modal keeps its items in its
++// header instead, and its title centers on the whole sheet.
++- (UIVerticalBarBehavior)preferredVerticalBarBehavior API_AVAILABLE(ios(27.1))
++{
++  return self.screenView.isPresentedAsNativeModal ? UIVerticalBarBehaviorDisabled
++                                                  : [super preferredVerticalBarBehavior];
++}
++#endif
+ - (int)getParentChildrenCount
+ {
+   return (int)[[self.screenView.reactSuperview reactSubviews] count];
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
 index 5da1196..033522f 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
@@ -51,7 +69,7 @@ index 5da1196..033522f 100644
    if (@available(iOS 26.0, *)) {
      [self requestLayoutIfNavigationBarFrameChanged];
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
-index 12f2272..fd83766 100644
+index 12f2272..2df3e41 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
 @@ -213,7 +213,13 @@ - (void)updateHeaderStateInShadowTreeInContextOfNavigationBar:(nullable UINaviga
@@ -69,6 +87,21 @@ index 12f2272..fd83766 100644
      [subview updateShadowStateInContextOfAncestorView:navigationBar];
    }
  }
+@@ -631,6 +637,14 @@ + (void)updateViewController:(UIViewController *)vc
+   navitem.largeTitleDisplayMode =
+       config.largeTitle ? UINavigationItemLargeTitleDisplayModeAlways : UINavigationItemLargeTitleDisplayModeNever;
+ 
++#if RNS_IPHONE_OS_VERSION_AVAILABLE(27_2)
++  if (@available(iOS 27.2, *)) {
++    // Automatic leading-aligns the title in an iPhone Duo split, where the bar shares the
++    // half with a side column. Titles are centered everywhere else in the app.
++    navitem.titleAlignment = UINavigationItemTitleAlignmentCenter;
++  }
++#endif
++
+ #if RNS_IPHONE_OS_VERSION_AVAILABLE(27_0)
+   if (@available(iOS 27.0, *)) {
+     // Due to native limitations related to opaque header and minimization behavior, we disable it for opaque headers.
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
 index 882761c..9bf87c0 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm

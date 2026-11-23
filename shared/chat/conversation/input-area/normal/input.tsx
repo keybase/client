@@ -8,6 +8,7 @@ import SetExplodingMessagePopup from './set-explode-popup'
 import Typing from './typing'
 import type {Props as InputLowLevelProps, TextInfo, RefType} from './input.shared'
 import {useComposer} from '../composer'
+import {useIsChatSplit} from '@/constants/chat/layout'
 import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
@@ -1236,6 +1237,10 @@ const NativeAnimatedInput = (() => {
 
 const NativePlatformInput = (p: Props) => {
   const nativeStyles = useNativeStyles()
+  // In a phone's split chat the tab bar floats over the right strip, beside the composer. A thread on
+  // its own (a narrow window) has no tab bar, and nothing else in a strip reaches the composer.
+  const screenSideInsets = Kb.useScreenSideInsets()
+  const sideInsets = useIsChatSplit() ? screenSideInsets : Kb.noSideInsets
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [showAudioSend, setShowAudioSend] = React.useState(false)
@@ -1400,6 +1405,7 @@ const NativePlatformInput = (p: Props) => {
           style={Kb.Styles.collapseStyles([
             nativeStyles.container,
             isExploding && nativeStyles.explodingContainer,
+            Kb.withSideInsets(null, sideInsets),
           ])}
           fullWidth={true}
         >

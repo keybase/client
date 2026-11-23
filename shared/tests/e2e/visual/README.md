@@ -4,8 +4,17 @@ Pixel-exact screenshots of read-only screens, compared between a base commit and
 tree. Use it to prove a layout refactor changes nothing on screen, or to see exactly what it
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
-Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 173 desktop entries and 167 phone
+Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), iOS light on the `iPhoneTest` simulator
+(`KB_IOS_DEVICE` overrides; an iPad or an iPhone Duo is kept as its own form factor), and Android
+light with `--android` on the emulator adb lists (`KB_ANDROID_SERIAL` picks one of several; a screen
+600dp or more on its short side is kept as `android-tablet`, else `android`).
+
+iOS and Android share the in-app half of a capture (`driver-native.mts`: navigation, the frozen
+clock, remounts, fixtures, scrolling and typing, all through Metro's inspector). Each has its own
+device half: `driver-ios.mts` (Appium and simctl) and `driver-android.mts` (adb: screencap, `input`
+taps at a view's rect read from the app, System UI demo mode for the status bar, animation scales
+at 0 for reduced motion). The Android tablet runs the phone tour: the app's tablet layout is an
+iPad's only. The tour of screens is `tour.ts`: 177 desktop entries and 168 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -14,6 +23,8 @@ entries, all signed in as the e2e smoke account.
   `node tests/e2e/electron/launch-app.mts --visual` (from `shared/`).
 - iOS: Metro from this tree (`yarn rn:start`) and the dev app on the simulator, logged in. The
   drivers start and stop Appium themselves.
+- Android: Metro from this tree and the debug app on the emulator, logged in; the driver sets up
+  `adb reverse` for Metro's port.
 - Env: `KB_SMOKE_USER`, `KB_SECOND_USER` and `KB_E2E_TEAM` (the seal reads through the `keybase` CLI).
 
 ## Commands
@@ -33,6 +44,11 @@ All from `shared/`. Add `--ios` for the phone; iOS is light only.
 | `yarn visual:unit` | The gate's own unit tests, and the e2e report generator's |
 
 Ids are like `settings/display` or `team/members`; globs use `*` (`'settings/*'`).
+
+`--suite <name>` adds a named subset from `suites.ts` to `base`, `check`, `gate`, `aa` and `render`
+(a suite pattern with no entry on the platform is skipped there). `layout` is one or two screens per
+shared layout area (tab roots, headers, the chat and settings splits, sheets, modals), about 36 per
+platform: `yarn visual:render --ios --suite layout`, `yarn visual:check --suite layout`.
 
 Typical loop for a refactor:
 

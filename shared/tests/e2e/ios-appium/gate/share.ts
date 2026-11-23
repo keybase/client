@@ -17,10 +17,11 @@ import {requireCurrentAttempt} from './attempt.ts'
 import {FILES_APP, groupContainer, openLink, preflightUdid, seedFolderPath} from './device.ts'
 import {labelHas, sourceElements, sourceRect} from './page-source-lib.ts'
 import {clearGatePoison, poisonGate} from './poison-lib.ts'
-import {corpusCellOf, corpusCells, fileCellName, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
+import {corpusCellOf, corpusCells, fileCellName, LIBRARY_GRID_ORDER_REVERSED, libraryCells, type LibraryName, type Rect} from './picker-lib.ts'
 import {MANIFEST_NAMES, parseManifest, payloadFolder, type Handed, type ManifestItem, type ServedRequest} from './share-lib.ts'
 import {typeInFilter} from '../helpers/files'
 import {expectScreen, visibleScreen} from '../gate/screens'
+import {holdAt, tapAt} from '../helpers/elements'
 import {tapFrame} from '../helpers/menus'
 import {appState, BUNDLE_ID, FOREGROUND, simctl, waitFor} from '../helpers/lifecycle'
 
@@ -199,7 +200,7 @@ const holdThenTap = async (rect: () => Promise<Rect>, item: 'Copy' | 'Share', wh
     },
     {interval: 500, timeout: 10_000}
   )
-  await browser.execute('mobile: touchAndHold', {duration: 1.3, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2)})
+  await holdAt(r.x + r.width / 2, r.y + r.height / 2, 1.3)
   const button = pred(`type == "XCUIElementTypeButton" AND name == "${item}"`)
   await button.waitForExist({interval: 200, timeout: 5_000, timeoutMsg: `${what}'s menu did not offer ${item}`})
   await button.click()
@@ -211,7 +212,16 @@ const holdThenTap = async (rect: () => Promise<Rect>, item: 'Copy' | 'Share', wh
 // its sort: the run is found by its dates, so the sort is never changed). Bound: the grid 20 overrun
 // by one read 2, the hold 20 = 42.
 const photoMenu = async (name: LibraryName, item: 'Copy' | 'Share') => {
-  const cellNow = async () => corpusCellOf(corpusCells(libraryCells(sourceElements(await browser.getPageSource()))), name).rect
+  const cellNow = async () => {
+    const cells = libraryCells(sourceElements(await browser.getPageSource()))
+    // iOS 27's Photos draws the corpus in the reverse order (picker-lib.ts): the grid's own order where
+    // it shows
+    try {
+      return corpusCellOf(corpusCells(cells), name).rect
+    } catch {
+      return corpusCellOf(corpusCells(cells, LIBRARY_GRID_ORDER_REVERSED), name, LIBRARY_GRID_ORDER_REVERSED).rect
+    }
+  }
   await waitFor('the corpus in the Photos library', cellNow, {interval: 1_000, timeout: 20_000})
   await holdThenTap(cellNow, item, 'the corpus photo')
 }
@@ -274,12 +284,13 @@ export const safariTextSheet = (url: string, label: string) => async () => {
     {interval: 1_500, timeout: 10_000}
   )
   await selectAll.click()
-  // the edit menu now holds Cut, Copy, Paste and Replace, with a chevron (Forward) that opens the full
-  // list, where Share sits; Forward is tapped once, only while that short menu is up
+  // the edit menu now holds Cut, Copy, Paste and Replace, with a chevron that opens the full list, where
+  // Share sits; the chevron is tapped once, only while that short menu is up. iOS 26 draws the items as
+  // menu items and names the chevron Forward (Safari's toolbar button of that label is ForwardButton);
+  // iOS 27 draws them as buttons and names it Next Page.
   const share = pred('(type == "XCUIElementTypeButton" OR type == "XCUIElementTypeMenuItem") AND label == "Share…"')
-  const shortMenu = pred('type == "XCUIElementTypeMenuItem" AND label == "Cut"')
-  // the menu's own chevron is named Forward; Safari's toolbar button of that label is ForwardButton
-  const forward = pred('type == "XCUIElementTypeButton" AND name == "Forward" AND label == "Forward"')
+  const shortMenu = pred('(type == "XCUIElementTypeMenuItem" OR type == "XCUIElementTypeButton") AND label == "Cut"')
+  const forward = pred('type == "XCUIElementTypeButton" AND ((name == "Forward" AND label == "Forward") OR name == "Next Page")')
   let opened = false
   await waitFor(
     "the edit menu's Share",
@@ -304,7 +315,8 @@ export const safariTextSheet = (url: string, label: string) => async () => {
 export const mapsSheet = (lat: number, lon: number, place: string) => async () => {
   if (!/^[A-Za-z0-9_-]{1,120}$/.test(place)) throw new Error('a Maps place is not a stamped marker')
   const link = `maps://?ll=${lat},${lon}&q=${encodeURIComponent(place)}`
-  const share = pred('name == "CardButtonTypeShare"')
+  // iOS 26 names the place card's share CardButtonTypeShare, iOS 27 Share
+  const share = pred('name == "CardButtonTypeShare" OR (type == "XCUIElementTypeButton" AND name == "Share")')
   const named = pred(`label CONTAINS "${place}"`)
   let reopenAt = 0
   await waitFor(
@@ -319,7 +331,21 @@ export const mapsSheet = (lat: number, lon: number, place: string) => async () =
     },
     {interval: 1_000, timeout: 45_000}
   )
-  await share.click()
+  // the element found can be a card the view no longer holds (seen live on iOS 27: the Share found was
+  // "not present in the current view anymore"), so the tap goes to the frame the page source draws it
+  // at, the shown one's
+  await share.click().catch(async (e: unknown) => {
+    if (!(e instanceof Error) || !/stale element|not present in the current view/i.test(e.message)) throw e
+    const drawn = sourceElements(await browser.getPageSource()).find(
+      el =>
+        el.type === 'XCUIElementTypeButton' &&
+        (el.attrs['name'] === 'CardButtonTypeShare' || el.attrs['name'] === 'Share') &&
+        el.attrs['visible'] === 'true'
+    )
+    if (!drawn) throw e
+    const r = sourceRect(drawn.attrs)
+    await tapAt(r.x + r.width / 2, r.y + r.height / 2)
+  })
 }
 
 // -- the share ---------------------------------------------------------------------------------------

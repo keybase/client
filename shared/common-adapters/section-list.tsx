@@ -8,6 +8,7 @@ import {
   type SectionListData,
 } from 'react-native'
 import noop from 'lodash/noop'
+import {useScreenSideInsets, withSideInsets} from './screen-side-insets'
 
 export type SectionType<Item> = {
   title?: string | React.ReactElement
@@ -42,6 +43,7 @@ function SectionListImpl<ItemT, SectionT>(
 ) {
   const {ref} = props
   const {getItemHeight, getSectionHeaderHeight, onSectionChange, renderSectionHeader, ...rest} = props
+  const sideInsets = useScreenSideInsets()
   const getItemLayout = getItemHeight
     ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
     : undefined
@@ -67,6 +69,7 @@ function SectionListImpl<ItemT, SectionT>(
       ref={ref}
       {...rest}
       style={[stableScrollbarGutter, rest.style]}
+      contentContainerStyle={withSideInsets(rest.contentContainerStyle, sideInsets)}
       renderSectionHeader={resolvedRenderSectionHeader}
     />
   )

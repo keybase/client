@@ -10,6 +10,9 @@ let disableScreenshotInitialValue: boolean | undefined
 const Screenprotector = () => {
   const [disableScreenshot, setDisableScreenshot] = React.useState<boolean | undefined>(undefined)
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
+  // one change at a time, so a quick second tap can't leave the box, the saved setting and the
+  // protection disagreeing
+  const [saving, setSaving] = React.useState(false)
   const loadDisableScreenshot = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
@@ -49,20 +52,12 @@ const Screenprotector = () => {
     const changeSecureFlagOption = (nextValue: boolean) => {
       const f = async () => {
         setSecureFlag(nextValue)
-        const success = await setSecureFlagSetting(nextValue)
-        if (success) {
-          setSecureFlag(nextValue)
-        }
+        setSaving(true)
+        // a failed apply or save leaves the box showing what was there before
+        if (!(await setSecureFlagSetting(nextValue))) setSecureFlag(!nextValue)
+        setSaving(false)
       }
       C.ignorePromise(f())
-    }
-
-    if (!isAndroid) {
-      return (
-        <Kb.Box2 direction="vertical" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
-          <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
-        </Kb.Box2>
-      )
     }
 
     return (
@@ -71,7 +66,7 @@ const Screenprotector = () => {
           label="Disable App switcher preview and screenshots"
           onCheck={changeSecureFlagOption}
           checked={!!secureFlag}
-          disabled={secureFlag === undefined}
+          disabled={secureFlag === undefined || saving}
         />
       </Kb.Box2>
     )

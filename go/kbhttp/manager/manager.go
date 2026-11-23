@@ -118,12 +118,20 @@ func (r *Srv) monitorAppState() {
 	for {
 		<-r.G().MobileAppState.NextUpdate(state)
 		state = r.G().MobileAppState.State()
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-			r.startHTTPSrv()
-		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
-			r.httpSrv.Stop()
-		}
+		r.handleAppState(state)
+	}
+}
+
+// The server stops only when iOS backgrounds the app, which can take its listening socket. An
+// inactive app is still running and usually still on screen (Split View resizing, Control Center,
+// the app switcher), and its rendered URLs keep working only while the server keeps its address
+// and token.
+func (r *Srv) handleAppState(state keybase1.MobileAppState) {
+	switch state {
+	case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+		r.startHTTPSrv()
+	case keybase1.MobileAppState_BACKGROUND:
+		r.httpSrv.Stop()
 	}
 }
 

@@ -32,44 +32,7 @@ import {setPasteboard} from '../gate/device'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {manualEdge, step} from '../gate/step'
-import {
-  appPinnedMessageID,
-  appSkinTone,
-  cancelAppOutbox,
-  clearComposer,
-  closeInfoPanel,
-  closeMessageMenu,
-  composerText,
-  dragUntilOnScreen,
-  editCancel,
-  elementInRow,
-  expectPersists,
-  explodingModeSeconds,
-  giphyGalleryShown,
-  hideKeyboard,
-  messageIDAt,
-  openConversation,
-  openHeaderMenuItem,
-  openMessageMenu,
-  ordinalsWithText,
-  outboxIDsWithText,
-  pasteIntoComposer,
-  pinnedBanner,
-  pressInlineText,
-  readThread,
-  resetComposer,
-  restoreAppSkinTone,
-  sendMessage,
-  shownSkinTone,
-  signedInAs,
-  storedAttachment,
-  storedMessageState,
-  typeInComposer,
-  typeInSearchFilter,
-  visibleConversation,
-  waitForComposerText,
-  waitForRow,
-} from '../helpers/chat'
+import {appPinnedMessageID, appSkinTone, cancelAppOutbox, clearComposer, closeInfoPanel, closeMessageMenu, composerText, dragUntilOnScreen, editCancel, elementInRow, expectPersists, explodingModeSeconds, giphyGalleryShown, hideKeyboard, infoPanelShown, messageIDAt, openConversation, openHeaderMenuItem, openMessageMenu, ordinalsWithText, outboxIDsWithText, pasteIntoComposer, pinnedBanner, pressInlineText, readThread, resetComposer, restoreAppSkinTone, sendMessage, shownSkinTone, signedInAs, storedAttachment, storedMessageState, typeInComposer, typeInSearchFilter, visibleConversation, waitForComposerText, waitForRow} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, expectHost, pinnedOnHost, secondSender, textBodies, throwawayChannels} from '../helpers/chat-host'
 import {el, els} from '../helpers/elements'
@@ -498,7 +461,7 @@ describe('chat messages', function () {
     await openConversation(convID)
     for (const t of texts) await waitForRow(t, 30_000)
 
-    await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+    await openHeaderMenuItem('Info', infoPanelShown)
     await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).waitForExist({timeout: 10_000})
     await el(T.CHAT_INFO_PANEL_SETTINGS_TAB).click()
     const clear = () => browser.$('-ios predicate string:type == "XCUIElementTypeButton" AND label == "Clear entire conversation"')

@@ -21,7 +21,7 @@ const LeftNav = (props: Props) => {
 
   return (
     <Kb.ScrollView style={styles.container} testID={TestIDs.SETTINGS_ACCOUNT}>
-      {Kb.Styles.isTablet && (
+      {isMobile && (
         <>
           <SettingsItem
             icon="iconfont-nav-2-crypto"
@@ -79,12 +79,14 @@ const LeftNav = (props: Props) => {
         selected={props.selected === Settings.settingsChatTab}
         onClick={props.onClick}
       />
-      {Kb.Styles.isTablet && props.contactsLabel && (
+      {props.contactsLabel && (
+        // contacts is not a page of the split: it opens over it, as from the phone list
         <SettingsItem
           text={props.contactsLabel}
+          testID={TestIDs.SETTINGS_ROW_CONTACTS}
           type={Settings.settingsContactsTab}
-          selected={props.selected === Settings.settingsContactsTab}
-          onClick={props.onClick}
+          selected={false}
+          onClick={navigate}
         />
       )}
       <SettingsItem
@@ -116,15 +118,13 @@ const LeftNav = (props: Props) => {
         selected={props.selected === Settings.settingsNotificationsTab}
         onClick={props.onClick}
       />
-      {!Kb.Styles.isTablet && (
-        <SettingsItem
-          text="Screen protector"
-          testID={TestIDs.SETTINGS_ROW_SCREENPROTECTOR}
-          type={Settings.settingsScreenprotectorTab}
-          selected={props.selected === Settings.settingsScreenprotectorTab}
-          onClick={props.onClick}
-        />
-      )}
+      <SettingsItem
+        text="Screen protector"
+        testID={TestIDs.SETTINGS_ROW_SCREENPROTECTOR}
+        type={Settings.settingsScreenprotectorTab}
+        selected={props.selected === Settings.settingsScreenprotectorTab}
+        onClick={props.onClick}
+      />
       <SettingsItem
         text="Wallet"
         testID={TestIDs.SETTINGS_ROW_WALLET}

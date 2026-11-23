@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import NewChatButton from '@/chat/inbox/new-chat-button'
 import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from '@/chat/inbox/header-portal-state'
 import {useChatTeam} from '@/chat/conversation/team-hooks'
 import {useRoute} from '@react-navigation/native'
@@ -17,6 +16,7 @@ import {navToPath} from '@/constants/fs'
 import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-navigation'
 import {muteConversation} from '@/chat/conversation/status-actions'
 import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
+import {splitInboxWidth} from '@/chat/inbox/row/sizes'
 
 const emptyMeta = Chat.makeConversationMeta()
 const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
@@ -173,21 +173,20 @@ const Header = () => {
   }
 
   const leftSide = (
-    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.left}>
-      {C.isTablet ? (
+    <Kb.Box2 alignSelf="center" alignItems="center" direction="horizontal" style={styles.left}>
+      {isMobile ? (
         <>
           <AccountSwitchHeaderAvatar />
           <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
         </>
-      ) : !isMobile ? (
+      ) : (
         <Kb.BoxGrow2>
           <div
             style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
             ref={node => setInboxHeaderPortalNode(node)}
           />
         </Kb.BoxGrow2>
-      ) : null}
-      {!isElectron && !C.isTablet && <NewChatButton />}
+      )}
     </Kb.Box2>
   )
 
@@ -357,7 +356,7 @@ const useStyles = Kb.Styles.createStyleHook(
       },
       descriptionTextContainer: Kb.Styles.platformStyles({
         isElectron: {alignItems: 'baseline'},
-        isTablet: {alignItems: 'baseline'},
+        isMobile: {alignItems: 'baseline'},
       }),
       descriptionTooltip: {alignItems: 'flex-start'},
       headerTitle: Kb.Styles.platformStyles({
@@ -366,15 +365,15 @@ const useStyles = Kb.Styles.createStyleHook(
           width: '100%',
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-        isTablet: {flex: 1},
+        isMobile: {flex: 1},
       }),
       left: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
-          height: Kb.Styles.isTablet ? 36 : 32,
-          width: Kb.Styles.globalStyles.mediumSubNavWidth,
+          height: isMobile ? 36 : 32,
+          width: splitInboxWidth,
         },
-        isTablet: {paddingLeft: Kb.Styles.globalMargins.small},
+        isMobile: {paddingLeft: Kb.Styles.globalMargins.small},
       }),
       markdownOverride: Kb.Styles.platformStyles({
         common: {

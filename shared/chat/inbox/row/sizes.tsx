@@ -8,6 +8,8 @@ export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
 export const floatingDivider = isMobile ? 48 : 40
 export const inboxWidth = Kb.Styles.globalStyles.mediumSubNavWidth
+// the inbox pane's width in a split layout (mediumSubNavWidth is the whole width on a phone)
+export const splitInboxWidth = isMobile ? 270 : inboxWidth
 
 export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {

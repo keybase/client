@@ -28,53 +28,9 @@ import {e2eMarker} from '../../shared/run-marker'
 import * as T from '../../shared/test-ids'
 import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {requireSecondNotBlocked} from '../gate/blocks'
-import {step} from '../gate/step'
-import {
-  catchUpPill,
-  centreOffset,
-  centreTolerance,
-  clearComposer,
-  closeInfoPanel,
-  closeSearch,
-  dragThread,
-  editCancel,
-  expectAtEnd,
-  expectCentred,
-  flickThread,
-  hideKeyboard,
-  isAtEnd,
-  isKeyboardUp,
-  jumpToRecentButton,
-  newestGap,
-  openConversation,
-  openHeaderMenuItem,
-  openMessageMenu,
-  openThreadSearch,
-  ordinalsWithText,
-  pickAnchor,
-  readThread,
-  requireThread,
-  resetComposer,
-  rowOf,
-  rowText,
-  sampleThreadWhile,
-  sampleTop,
-  searchAgain,
-  searchFor,
-  searchOpen,
-  sendMessage,
-  summary,
-  tapStatusBar,
-  threadListPrelude,
-  type ThreadReading,
-  type ThreadSample,
-  viewport,
-  type Viewport,
-  waitForKeyboard,
-  waitForRow,
-  waitForThreadStable,
-  wholly,
-} from '../helpers/chat'
+import {skipBecause, step} from '../gate/step'
+import {isDuoUnfolded} from '../gate/thread-route'
+import {catchUpPill, centreOffset, centreTolerance, clearComposer, closeInfoPanel, closeSearch, dragThread, editCancel, expectAtEnd, expectCentred, flickThread, hideKeyboard, infoPanelShown, isAtEnd, isKeyboardUp, jumpToRecentButton, newestGap, openConversation, openHeaderMenuItem, openMessageMenu, openThreadSearch, ordinalsWithText, pickAnchor, readThread, requireThread, resetComposer, rowOf, rowText, sampleThreadWhile, sampleTop, searchAgain, searchFor, searchOpen, sendMessage, summary, tapStatusBar, threadListPrelude, type ThreadReading, type ThreadSample, type Viewport, viewport, waitForKeyboard, waitForRow, waitForThreadStable, wholly} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
@@ -503,7 +459,7 @@ describe('chat scroll', function () {
       const after = await waitForThreadStable()
       const v = await viewport(after)
       const tops = samples.map(s => sampleTop(s, ordinal))
-      const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i]! - before.top) > stillTolerance)
+      const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i] - before.top) > stillTolerance)
       const most = Math.max(0, ...tops.map(top => (top === undefined ? 0 : Math.abs(top - before.top))))
       console.log(
         `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
@@ -767,6 +723,9 @@ describe('chat scroll', function () {
     it('dragging up loads older pages without moving the reader, back to the first message', async function () {
       // worst case (s): open 100, end 21, stable 10, 50 steps of drag 2 and stable 10 = 600, stable 10, row 15, two steps 4 = 760
       this.timeout(780_000)
+      // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
+      // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded has no drag that holds before it lifts')
       await openLong()
       const start = (await expectAtEnd()).t.ordinals.length
       await step('The long thread at its end')
@@ -822,6 +781,9 @@ describe('chat scroll', function () {
     it('a status-bar tap from an old hit loads newer pages until the present', async function () {
       // worst case (s): openOnOldHit 248, 12 taps of stable 10, a page 15 and the tap 1 = 312, expectAtThePresent 43, stable 10, 20 flicks of 1 and stable 10 = 220, step 2 = 835
       this.timeout(860_000)
+      // an iPhone Duo unfolded has no top inset, and there the thread takes no status-bar tap (its top
+      // strip holds the app's header): nothing to test
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
       const start = await openOnOldHit()
       await tapToThePresent()
       await expectAtThePresent('a status-bar tap')
@@ -846,6 +808,7 @@ describe('chat scroll', function () {
     it('resting on the newest row of a window of history, the next page leaves the reader where they are', async function () {
       // worst case (s): open 100, search 106, centred 20, close 5, stable 10, 5 taps of 1, the rest 5 and a page 4 = 50, stable 10, two steps 4 = 305
       this.timeout(320_000)
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
       await openLong()
       const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
       await expectCentred(ordinal)
@@ -924,6 +887,7 @@ describe('chat scroll', function () {
       it(`${how} re-pins it, and a later incoming message keeps the end`, async function () {
         // worst case (s): open 100, end 21, the drags 30 overrun by one 12, back to the end 72 (6 drags of stable 10 and drag 2), end 21, peer 70, send 60, row 20, two stables 20, three steps 6 = 432
         this.timeout(440_000)
+        if (toEnd === tapStatusBar && isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded takes no status-bar tap in a thread')
         await openScratch()
         await expectAtEnd()
         // the first drag from the end can stop short as the first older page lands (see paging)
@@ -1046,6 +1010,9 @@ describe('chat scroll', function () {
     it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async function () {
       // worst case (s): open 100, the keyboard top 36 (keyboard 10, keyboard hidden 5, stable 20, the tap 1), sent 25, keyboard 5, peer 70, eight sends 480, row 20, bringRowTo 192 (8 of stable 20 and two drags 4), stable 10, the edit 55 (menu 35, edit bar 5, keyboard 5, stable 10), the cancel 6, two steps 4 = 1003
       this.timeout(1020_000)
+      // an iPhone Duo unfolded takes only a drag that lifts while moving (a pointer at screen points
+      // touches nothing there), and the list flings on: its travel is not a drag's, to measure against
+      if (isDuoUnfolded()) skipBecause(this, 'an iPhone Duo unfolded has no drag that holds before it lifts')
       await openScratch()
       const kbTop = await keyboardTopWhenUp()
       const {ordinal, text} = await sendWithRowsBelow(8)
@@ -1342,6 +1309,9 @@ describe('chat scroll', function () {
       const changes = samples.filter((x, i) => i === 0 || x.rows !== samples[i - 1]!.rows || x.offset !== samples[i - 1]!.offset)
       console.log(`sparse thread, each change (ms: rows, content/view, offset): ${changes.map(x => `${x.t}: ${x.rows}, ${x.content}/${x.view}, ${x.offset}`).join('; ')}`)
       check(!!first, 'the list never drew a row')
+      // an iPhone Duo unfolded shows the thread in a landscape column too short for this: the sparse
+      // thread's first page fills it, so there is nothing to test
+      if (first!.content >= first!.view && isDuoUnfolded()) skipBecause(this, `the sparse thread's first page fills a Duo's view: ${JSON.stringify(first)}`)
       check(first!.content < first!.view, `the first page drew enough to fill the view: ${JSON.stringify(first)}`)
       const t = await waitForThreadStable()
       check(
@@ -1367,7 +1337,7 @@ describe('chat scroll', function () {
       const anchor = pickAnchor(before, await viewport(before))
       await step('The reader up in the history of the long thread')
 
-      await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+      await openHeaderMenuItem('Info', infoPanelShown)
       await step('The info panel over the thread')
       await closeInfoPanel()
       await waitFor('the thread to show again', async () => ((await readThread()) ? true : undefined), {timeout: 5_000})

@@ -423,6 +423,13 @@ const _initNativePlatformListener = () => {
     if (s.mobileAppState === 'active') {
       // only reload on foreground
       useSettingsContactsState.getState().dispatch.loadContactPermissions()
+      if (isIOS) {
+        const f = async () => {
+          const {reapplyScreenProtectorIOS} = await import('@/constants/platform')
+          await reapplyScreenProtectorIOS()
+        }
+        ignorePromise(f())
+      }
     }
   }))
 
@@ -475,22 +482,10 @@ const _initNativePlatformListener = () => {
     persistRoute(false, false, () => useConfigState.getState().startup.loaded)
   }))
 
-  // Default to screen capture prevention on Android (matches native default of secure).
-  // Once daemon is ready, sync with the user's saved preference.
+  // Android starts protected (matching its native default of a secure window) until the saved
+  // preference loads in the handshake (screenProtectorStep)
   if (isAndroid) {
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
-    _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
-      if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
-      const f = async () => {
-        const {getSecureFlagSetting} = await import('@/constants/platform')
-        const secure = await getSecureFlagSetting()
-        if (!secure) {
-          const SC = await import('expo-screen-capture')
-          await SC.allowScreenCaptureAsync('screenprotector')
-        }
-      }
-      ignorePromise(f())
-    }))
   }
 
   // Start this immediately instead of waiting so we can do more things in parallel
@@ -524,9 +519,28 @@ const _initNativePlatformListener = () => {
             configureAndroidCacheDir()
             return Promise.resolve()
           },
+          screenProtectorStep,
         ]
-      : []
+      : [screenProtectorStep]
   )
+}
+
+// Applies the screen protector's saved setting during the handshake, which the app's screens wait on
+// before they first render, so none renders before it holds. A setting the user changed while it was
+// being read is left as they set it. An apply that fails (iOS with no window yet, a launch into the
+// background) leaves the handshake going; iOS applies it again when the app becomes active.
+const screenProtectorStep = async () => {
+  const {applyScreenProtector, getSecureFlagSetting, screenProtectorWriteCount} = await import('@/constants/platform')
+  const writes = screenProtectorWriteCount()
+  const secure = await getSecureFlagSetting()
+  if (screenProtectorWriteCount() !== writes) return
+  // iOS starts unprotected, so only a protected preference changes anything there
+  if (isAndroid ? secure : !secure) return
+  try {
+    await applyScreenProtector(secure)
+  } catch (e) {
+    logger.warn(`screen protector: applying the saved setting failed: ${String(e)}`)
+  }
 }
 
 const _initDesktopPlatformListener = () => {

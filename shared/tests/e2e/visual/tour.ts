@@ -305,15 +305,10 @@ const threadContentEntry = (id: string, at: ReadonlyArray<SetupStep>, ready: str
   setup: [...at, ...more],
 })
 const fixtureEntries: Array<TourEntry> = [
-  // Debug overlays over a screen whose content never moves: the git tab, the phone's settings list.
-  // The global-error fixture keeps the error bar up past desktop's 10s auto-dismiss.
-  ...(['global-error', 'runtime-stats'] as const).flatMap((name): Array<TourEntry> => {
-    const ready = name === 'global-error' ? T.GLOBAL_ERROR : T.RUNTIME_STATS
-    return [
-      {fixture: {name}, id: `overlay/${name}`, nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready, seal: []},
-      {fixture: {name}, id: `overlay/${name}`, nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready, seal: []},
-    ]
-  }),
+  // The debug error bar over a screen whose content never moves: the git tab, the phone's settings
+  // list. The global-error fixture keeps the bar up past desktop's 10s auto-dismiss.
+  {fixture: {name: 'global-error'}, id: 'overlay/global-error', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: T.GLOBAL_ERROR, seal: []},
+  {fixture: {name: 'global-error'}, id: 'overlay/global-error', nav: {tab: 'tabs.settingsTab'}, platforms: ['phone'], ready: T.GLOBAL_ERROR, seal: []},
   // the unread line, a system add, a journey card, a bot's message, a revoked device's, mention,
   // path and custom emoji decorations, and an exploding message
   threadContentEntry('top', [...toExploding, ...scrollTo(T.CHAT_ADDED_TO_TEAM)], T.CHAT_ADDED_TO_TEAM),
@@ -766,16 +761,10 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...settingsPage('typography', 'typographyTab', T.SETTINGS_ROW_TYPOGRAPHY, T.SETTINGS_TYPOGRAPHY),
   ...settingsPage('markdown', 'markdownTab', T.SETTINGS_ROW_MARKDOWN, T.SETTINGS_MARKDOWN),
   ...settingsPage('about', 'aboutTab', T.SETTINGS_ROW_ABOUT, T.SETTINGS_ABOUT),
-  {
-    id: 'settings/screen-protector',
-    nav: {tab: 'tabs.settingsTab'},
-    platforms: ['desktop'],
-    ready: T.SETTINGS_SCREENPROTECTOR,
-    seal: [],
-    setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_SCREENPROTECTOR}],
-  },
-  // iOS lists no row for it (it shows a notice that only Android supports it), but the route opens
-  phoneSettingsPage('settings/screen-protector', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []),
+  ...settingsPage('screen-protector', 'screenprotector', T.SETTINGS_ROW_SCREENPROTECTOR, T.SETTINGS_SCREENPROTECTOR),
+  // the same page with the protector on: the capture must come out blank. Android only: iOS draws
+  // simctl's screenshots with the protector on all the same, so they can't show it working
+  {...phoneSettingsPage('settings/screen-protector-on', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []), screenProtector: true},
   ...settingsPage('icons', 'iconsTab', T.SETTINGS_ROW_ICONS, T.SETTINGS_ICONS),
   ...settingsPage('wallet', 'walletsTab', T.SETTINGS_ROW_WALLET, T.SETTINGS_WALLET),
   // The settings list: the phone's settings tab root. Desktop's sits beside a sub-page, always the
@@ -1150,7 +1139,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 // modal/profile-avatar (the phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
 // pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success
 // step needs a paper key submitted, and the menubar's logged-out views a signed-out app); the
-// global error bar and runtime stats are debug overlays, toured as overlay/* under fixtures (not the
+// global error bar is a debug overlay, toured as overlay/global-error under fixtures (not the
 // disconnect overlay, whose illustration animates without end).
 //
 // One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's

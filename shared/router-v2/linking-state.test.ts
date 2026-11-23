@@ -2,7 +2,7 @@
 import * as Tabs from '@/constants/tabs'
 import {createLinkingConfig, isHandledByLinkingConfig, makeChatConversationState} from './linking'
 
-// isSplit is true in this (desktop) test environment, so the split-view shapes are the
+// chatAlwaysSplit is true in this (desktop) test environment, so the split-view shapes are the
 // ones exercised here.
 const getStateFromPath = (path: string) => {
   const config = createLinkingConfig(jest.fn())

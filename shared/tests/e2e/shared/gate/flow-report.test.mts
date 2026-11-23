@@ -295,3 +295,17 @@ test('a store that does not parse stops the build instead of starting over', () 
   assert.throws(() => runFlowReport(platform(dir), []))
   assert.equal(shot(dir, 'chat-a'), T1)
 })
+
+test('deviceOf tags each card, stored ones from before included, by its variant', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-flow-report-'))
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(twoProjectResults()))
+  // the first report predates devices: its cards are stored with none
+  assert.equal(runFlowReport({...platform(dir), variantOf: darkVariantOf}, []), 0)
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({suites: []}))
+  const p = {...platform(dir), deviceOf: (v: string | undefined) => (v === 'dark' ? 'iPhone Duo Folded' : 'iPhone'), variantOf: darkVariantOf}
+  assert.equal(runFlowReport(p, []), 0)
+  const html = fs.readFileSync(p.outputPath, 'utf8')
+  assert.match(html, /data-device="iPhone Duo Folded"/)
+  assert.match(html, /data-device="iPhone"/)
+  assert.match(html, /<option value="iPhone">iPhone<\/option><option value="iPhone Duo Folded">/)
+})

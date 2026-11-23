@@ -1,7 +1,11 @@
 import {View} from 'react-native'
-import {SafeAreaView, useSafeAreaInsets as useSafeAreaInsetsNative} from 'react-native-safe-area-context'
+import {
+  SafeAreaView,
+  useSafeAreaInsets as useSafeAreaInsetsNative,
+  type EdgeInsets,
+} from 'react-native-safe-area-context'
 import * as Styles from '@/styles'
-import type * as React from 'react'
+import * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 
 type Props = {
@@ -36,3 +40,13 @@ export const useSafeAreaInsets = isMobile
   : () => desktopInsets
 
 export default isMobile ? SafeAreaView : PassThrough
+
+// The window's live insets, from the app's root SafeAreaProvider. A provider nested inside a
+// react-native-screens scene (every modal route) measures that scene instead, and
+// initialWindowMetrics is the window at launch (on an iPhone Duo, a posture since changed).
+const WindowInsetsContext = React.createContext<EdgeInsets | undefined>(undefined)
+export const WindowInsetsProvider = ({children}: {children: React.ReactNode}) => {
+  const insets = useSafeAreaInsetsNative()
+  return <WindowInsetsContext value={insets}>{children}</WindowInsetsContext>
+}
+export const useWindowInsets = () => React.useContext(WindowInsetsContext)

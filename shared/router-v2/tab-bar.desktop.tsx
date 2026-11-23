@@ -9,7 +9,6 @@ import * as Tabs from '@/constants/tabs'
 import * as Common from './common'
 import {CommonActions} from '@react-navigation/core'
 import AccountSwitcher from './account-switcher'
-import RuntimeStats from '../app/runtime-stats'
 import {openURL} from '@/util/misc'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron'
@@ -234,7 +233,6 @@ function TabBar(props: Props) {
           onSelectTab={onSelectTab}
         />
       ))}
-      <RuntimeStats />
     </Kb.Box2>
   )
 }

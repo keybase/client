@@ -37,4 +37,69 @@ await test('the page escapes ids and keys notes by the bases shown', () => {
   assert.doesNotMatch(html, /<h2>a\/<b>/)
   assert.match(html, /"notes-abc"/)
   assert.match(html, /not captured/)
+  assert.match(html, /<button id="clear">Clear notes<\/button>/)
+})
+
+await test('each screen is tagged with the suites that include it, and each suite gets a filter', () => {
+  const html = galleryHtml(
+    [{platform: 'desktop', sha: 'abc'}],
+    [
+      {id: 'settings/account', shots: [undefined]},
+      {id: 'tab/fs', shots: [undefined]},
+      {id: 'settings/about', shots: [undefined]},
+    ]
+  )
+  assert.match(html, /data-id="settings\/account" data-suites="layout"/)
+  // a glob in the suite (tab/*) tags what it matches
+  assert.match(html, /data-id="tab\/fs" data-suites="layout"/)
+  assert.match(html, /data-id="settings\/about" data-suites=""/)
+  assert.match(html, /class="suite" data-suite="layout"> only layout suite/)
+})
+
+await test('each column is labeled by its device and can be hidden', () => {
+  png('s1', 'ios', 'tab__chat.png')
+  png('s1', 'ios-duo-folded', 'tab__chat.png')
+  png('s1', 'ios-duo-unfolded', 'tab__chat.png')
+  const columns = [
+    {platform: 'ios' as const, sha: 's1'},
+    {platform: 'ios-duo-folded' as const, sha: 's1'},
+    {platform: 'ios-duo-unfolded' as const, sha: 's1'},
+  ]
+  const html = galleryHtml(columns, galleryRows(columns))
+  for (const [col, label] of [
+    ['ios', 'iPhone'],
+    ['ios-duo-folded', 'iPhone Duo Folded'],
+    ['ios-duo-unfolded', 'iPhone Duo Unfolded'],
+  ]) {
+    assert.match(html, new RegExp(`<label><input type="checkbox" class="col" data-col="${col}" checked> ${label}</label>`))
+    assert.match(html, new RegExp(`<figure class="${col}" data-col="${col}">.*?<figcaption>${label}</figcaption>`))
+  }
+})
+
+await test('a column can show a render run instead of a base', () => {
+  png('r1', 'ios', 'tab__chat.png')
+  const render = path.join(root, 'render', '2026-11-17T00-00-00')
+  mkdirSync(render, {recursive: true})
+  writeFileSync(path.join(render, 'tab__chat.png'), '')
+  writeFileSync(path.join(render, 'tab__git.png'), '')
+  const columns = [
+    {platform: 'ios' as const, sha: 'r1'},
+    {platform: 'ios-duo-split-left' as const, render},
+  ]
+  assert.deepEqual(galleryRows(columns), [
+    {id: 'tab/chat', shots: [path.join('base', 'r1', 'ios', 'light', 'tab__chat.png'), path.join('render', '2026-11-17T00-00-00', 'tab__chat.png')]},
+    {id: 'tab/git', shots: [undefined, path.join('render', '2026-11-17T00-00-00', 'tab__git.png')]},
+  ])
+  assert.match(galleryHtml(columns, galleryRows(columns)), /iPhone Duo Split Left render 2026-11-17T00-00-00/)
+})
+
+await test('newestRender finds the newest render run of a store target', async () => {
+  const {newestRender} = await import('./store.mts')
+  for (const [stamp, platform] of [['2026-11-17T01-00-00', 'ios-duo-folded'], ['2026-11-17T02-00-00', 'ios'], ['2026-11-17T00-30-00', 'ios-duo-folded']]) {
+    const dir = path.join(root, 'render', stamp!)
+    mkdirSync(dir, {recursive: true})
+    writeFileSync(path.join(dir, 'render.json'), JSON.stringify({platform}))
+  }
+  assert.equal(newestRender('ios-duo-folded'), path.join(root, 'render', '2026-11-17T01-00-00'))
+  assert.equal(newestRender('ios-duo-unfolded'), undefined)
 })

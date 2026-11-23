@@ -21,7 +21,7 @@ const otherConvID = T.Chat.stringToConversationIDKey('conv2')
 const showing = (route: string, params?: object) => {
   installNavigation({rootState: stateShowing(route, {params})})
 }
-const showingThread = (conversationIDKey = convID) => showing(threadRouteName, {conversationIDKey})
+const showingThread = (conversationIDKey = convID) => showing(threadRouteName(), {conversationIDKey})
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -47,7 +47,7 @@ describe('getSelectedConversation', () => {
   })
 
   test('is none when the thread route carries no conversation', () => {
-    showing(threadRouteName)
+    showing(threadRouteName())
     expect(getSelectedConversation()).toBe(T.Chat.noConversationIDKey)
   })
 
@@ -60,7 +60,7 @@ describe('getSelectedConversation', () => {
     installNavigation({
       rootState: makeRootState({
         above: [{name: 'chatInfoPanel', params: {conversationIDKey: convID}}],
-        tabStack: [{name: threadRouteName, params: {conversationIDKey: convID}}],
+        tabStack: [{name: threadRouteName(), params: {conversationIDKey: convID}}],
       }),
     })
     expect(getSelectedConversation()).toBe(convID)

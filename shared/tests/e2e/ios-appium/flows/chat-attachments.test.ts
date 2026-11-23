@@ -25,33 +25,13 @@ import {isAttemptOver} from '../gate/attempt-binding-lib'
 import {currentCallSeq, waitForUiCall} from '../gate/recorder'
 import {requireSecondNotBlocked} from '../gate/blocks'
 import {step} from '../gate/step'
-import {
-  closeInfoPanel,
-  closeMessageMenu,
-  deletePhase,
-  elementInRow,
-  expectPersists,
-  galleryListing,
-  hideKeyboard,
-  openConversation,
-  openHeaderMenuItem,
-  openMessageMenu,
-  ordinalsWithText,
-  scrollRowIntoView,
-  storedAttachment,
-  type StoredAttachment,
-  tapTextIn,
-  typeInComposer,
-  videoFullscreenButton,
-  waitForComposerText,
-  waitForRow,
-  waitForThreadStable,
-} from '../helpers/chat'
+import {closeInfoPanel, closeMessageMenu, deletePhase, elementInRow, expectPersists, galleryListing, hideKeyboard, infoPanelShown, openConversation, openHeaderMenuItem, openMessageMenu, ordinalsWithText, scrollRowIntoView, storedAttachment, tapTextIn, type StoredAttachment, typeInComposer, videoFullscreenButton, waitForComposerText, waitForRow, waitForThreadStable} from '../helpers/chat'
 import {check, chooseMenuItem} from '../helpers/menus'
 import {expectCli, secondSender} from '../helpers/chat-host'
 import {el} from '../helpers/elements'
 import {appSnapshot, waitFor} from '../helpers/lifecycle'
-import {goBackUntilGone} from '../helpers/navigate'
+import {closeAttachmentFullscreen, goBackUntilGone} from '../helpers/navigate'
+import {readsFrames} from '../gate/shown-lib.ts'
 
 describe('chat attachments', function () {
   // Each test's timeout is the sum of its helpers' bounds (s), so its own checks always fail first:
@@ -99,15 +79,14 @@ describe('chat attachments', function () {
   })
 
   // No menu, keyboard or fullscreen view left open, after a timeout too. Worst case (s): close 19,
-  // keyboard 5, the back 10, gone 5 = 39.
+  // keyboard 5, closeFullscreen 15 = 39.
   afterEach(async function () {
     this.timeout(40_000)
     await withCleanup(closeMessageMenu, [
       hideKeyboard,
       async () => {
         if (!(await el(T.CHAT_ATTACHMENT_FULLSCREEN).isExisting())) return
-        await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
-        await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
+        await closeFullscreen()
       },
     ])
   })
@@ -137,6 +116,14 @@ describe('chat attachments', function () {
     check(a.author === loadE2EEnv().secondUser, 'the attachment did not come from the second account')
   }
 
+  // Closes the fullscreen view and waits for it to go: back, or where back is no gesture the view takes
+  // (an iPhone Duo unfolded) closeAttachmentFullscreen. Bound: the back 10, gone 5 = 15.
+  const closeFullscreen = async () => {
+    if (readsFrames()) return closeAttachmentFullscreen()
+    await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
+    await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
+  }
+
   // Taps `button` and checks the fullscreen view that opens is the attachment's, then goes back.
   const openFullscreen = async (button: WebdriverIO.Element, a: StoredAttachment, what: string) => {
     await button.click()
@@ -144,8 +131,7 @@ describe('chat attachments', function () {
     const {screen} = await appSnapshot()
     check(screen?.name === 'chatAttachmentFullscreen' && screen.params?.['messageID'] === a.id, `the fullscreen view is not the ${what}`)
     await step(`The ${what} fullscreen`)
-    await goBackUntilGone(T.CHAT_ATTACHMENT_FULLSCREEN)
-    await el(T.CHAT_ATTACHMENT_FULLSCREEN).waitForExist({reverse: true, timeout: 5_000})
+    await closeFullscreen()
   }
 
   // Sends a conversation command (it posts no message) from the composer, and waits for it to leave
@@ -309,7 +295,7 @@ describe('chat attachments', function () {
     const {a: videoA} = await waitForAttachment(video, 'attachment:video')
     const {a: fileA} = await waitForAttachment(file, 'attachment:file')
 
-    await openHeaderMenuItem('Info', async () => el(T.CHAT_INFO_PANEL).isExisting())
+    await openHeaderMenuItem('Info', infoPanelShown)
     await el(T.CHAT_INFO_PANEL_ATTACHMENTS_TAB).waitForExist({timeout: 10_000})
     await el(T.CHAT_INFO_PANEL_ATTACHMENTS_TAB).click()
     await el(T.CHAT_INFO_PANEL_MEDIA).waitForExist({timeout: 10_000})

@@ -90,7 +90,7 @@ const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unkno
 const DesktopCryptoSubNavigator = createLeftTabNavigator({
   backBehavior: 'none',
   initialRouteName: Crypto.encryptTab,
-  screens: routeMapToStaticScreens(cryptoSubRoutes, makeLayout, false, false, false),
+  screens: routeMapToStaticScreens(cryptoSubRoutes, makeLayout, false, false),
 }).getComponent()
 
 const NativeCryptoSubNav = () => {

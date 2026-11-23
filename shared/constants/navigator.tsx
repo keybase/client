@@ -60,7 +60,9 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
   // already did. False means the nav tree was not in a state where anything could happen.
-  setChatRootParams: (params: Partial<NonNullable<RootParamList['chatRoot']>>) => boolean
+  // focus (default true): a chatRoot already showing is focused too, which closes any modal over
+  // the tabs, as opening a thread should; false leaves what is above it up.
+  setChatRootParams: (params: Partial<NonNullable<RootParamList['chatRoot']>>, opts?: {focus?: boolean}) => boolean
   // Phone: select `tab` on its root screen and push `screen` above the tab bar, in one reset.
   // Returns whether it dispatched.
   showAboveTabs: (tab: Tabs.AppTab, screen: NavTree.ScreenSpec) => boolean
@@ -262,7 +264,10 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
     })
   }
 
-  const setChatRootParams = (params: Partial<NonNullable<RootParamList['chatRoot']>>): boolean => {
+  const setChatRootParams = (
+    params: Partial<NonNullable<RootParamList['chatRoot']>>,
+    opts?: {focus?: boolean}
+  ): boolean => {
     if (!ref.isReady()) return false
     const tabNavState = NavTree.tabNavigatorState(ref.getRootState())
     if (!tabNavState?.key) return false
@@ -300,11 +305,21 @@ const makeNavigator = (ref: NavigatorRef): Navigator => {
       // When split chat is already showing chatRoot, update that route in place instead of
       // resetting the whole tab navigator. This avoids an extra same-screen navigation when
       // the tab becomes visible and chat selects a thread immediately afterward.
+      // A navigate focuses the route that takes it, up to loggedIn, which pops the modals above it.
+      // Without focus, setParams on the route itself changes nothing else.
       if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
-        ref.dispatch({
-          ...CommonActions.navigate('chatRoot', nextChatRoot.params, {merge: true}),
-          target: chatStackState.key,
-        })
+        ref.dispatch(
+          opts?.focus === false
+            ? {
+                ...CommonActions.setParams(nextChatRoot.params),
+                source: currentChatRoute.key,
+                target: chatStackState.key,
+              }
+            : {
+                ...CommonActions.navigate('chatRoot', nextChatRoot.params, {merge: true}),
+                target: chatStackState.key,
+              }
+        )
       }
       // Either we just merged the params in, or they were already what we wanted.
       return true
