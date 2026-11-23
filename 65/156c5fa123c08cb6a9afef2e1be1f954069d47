@@ -1,0 +1,28 @@
+go/chat/maps/livelocation_bugs_test.go
+  s_e80b30cd4a0add::t_6c66f79c88c727 186-192,220
+  s_e80b30cd4a0add::t_34914d560eaae3 31,40-41,48
+  s_e80b30cd4a0add::t_fceb8e42d9a4f9 123-126
+  s_e80b30cd4a0add::t_a0589fa73409aa 145-147
+  s_e80b30cd4a0add::t_785d1120573c1e 101-103
+  s_e80b30cd4a0add::t_584b8c874958ed 17
+go/chat/maps/livelocation.go
+  s_e80b30cd4a0add::t_5faddb9ec4cafb 311-312,314-319,326-330,333-336,338
+  s_e80b30cd4a0add::t_425f5f6a7df0f0 283,289
+  s_e80b30cd4a0add::t_8b2094e993b941 218-222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "65156c5fa123c08cb6a9afef2e1be1f954069d47",
+  "prompts": {},
+  "sessions": {
+    "s_e80b30cd4a0add": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bab3574f-5d71-48dd-a5b1-fba34b6d49e0",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
