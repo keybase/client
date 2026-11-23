@@ -475,23 +475,21 @@ const _initNativePlatformListener = () => {
     persistRoute(false, false, () => useConfigState.getState().startup.loaded)
   }))
 
-  // Default to screen capture prevention on Android (matches native default of secure).
-  // Once daemon is ready, sync with the user's saved preference.
+  // Android starts protected (matching its native default of a secure window) until the saved
+  // preference loads; once the daemon is ready, both platforms apply the saved preference.
   if (isAndroid) {
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
-    _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
-      if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
-      const f = async () => {
-        const {getSecureFlagSetting} = await import('@/constants/platform')
-        const secure = await getSecureFlagSetting()
-        if (!secure) {
-          const SC = await import('expo-screen-capture')
-          await SC.allowScreenCaptureAsync('screenprotector')
-        }
-      }
-      ignorePromise(f())
-    }))
   }
+  _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
+    const f = async () => {
+      const {applyScreenProtector, getSecureFlagSetting} = await import('@/constants/platform')
+      const secure = await getSecureFlagSetting()
+      // iOS starts unprotected, so only a protected preference changes anything there
+      if (isAndroid ? !secure : secure) await applyScreenProtector(secure)
+    }
+    ignorePromise(f())
+  }))
 
   // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())

@@ -118,15 +118,13 @@ const LeftNav = (props: Props) => {
         selected={props.selected === Settings.settingsNotificationsTab}
         onClick={props.onClick}
       />
-      {isElectron && (
-        <SettingsItem
-          text="Screen protector"
-          testID={TestIDs.SETTINGS_ROW_SCREENPROTECTOR}
-          type={Settings.settingsScreenprotectorTab}
-          selected={props.selected === Settings.settingsScreenprotectorTab}
-          onClick={props.onClick}
-        />
-      )}
+      <SettingsItem
+        text="Screen protector"
+        testID={TestIDs.SETTINGS_ROW_SCREENPROTECTOR}
+        type={Settings.settingsScreenprotectorTab}
+        selected={props.selected === Settings.settingsScreenprotectorTab}
+        onClick={props.onClick}
+      />
       <SettingsItem
         text="Wallet"
         testID={TestIDs.SETTINGS_ROW_WALLET}

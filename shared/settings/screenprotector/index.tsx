@@ -57,14 +57,6 @@ const Screenprotector = () => {
       C.ignorePromise(f())
     }
 
-    if (!isAndroid) {
-      return (
-        <Kb.Box2 direction="vertical" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
-          <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
-        </Kb.Box2>
-      )
-    }
-
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
         <Kb.Checkbox

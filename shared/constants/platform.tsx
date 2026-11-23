@@ -227,21 +227,35 @@ export const getAssetPath = (...a: Array<string>): string => {
   return KB2.constants.assetRoot + a.join('/')
 }
 
+// The screen protector when the setting was never saved: on for Android (its native default is a
+// secure window), off for iOS, which shipped without one, so updating changes nothing there.
+const secureByDefault = isAndroid
+
 export const getSecureFlagSetting = async (): Promise<boolean> => {
   if (!isMobile) {
     await Promise.resolve()
     return false
   }
-  if (!isAndroid) return false
   try {
     const RPCGen = await import('@/constants/rpc/rpc-gen')
     const screenProtectorConfigKey = 'ui.screenprotector'
     const value = await RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
-    // Default to secure (true) if not explicitly set
-    if (!value.isNull && value.b === false) return false
-    return true
+    return value.isNull ? secureByDefault : value.b !== false
   } catch {
-    return true
+    return secureByDefault
+  }
+}
+
+// Turns the screen protector on or off: screenshots and screen recording show nothing of the app,
+// nor does the app switcher's preview (Android's secure window covers that itself; iOS blurs it).
+export const applyScreenProtector = async (secure: boolean) => {
+  const ScreenCapture = await import('expo-screen-capture')
+  if (secure) {
+    await ScreenCapture.preventScreenCaptureAsync('screenprotector')
+    if (isIOS) await ScreenCapture.enableAppSwitcherProtectionAsync()
+  } else {
+    await ScreenCapture.allowScreenCaptureAsync('screenprotector')
+    if (isIOS) await ScreenCapture.disableAppSwitcherProtectionAsync()
   }
 }
 
@@ -250,16 +264,10 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
     await Promise.resolve()
     return false
   }
-  if (!isAndroid) return false
   try {
-    const ScreenCapture = await import('expo-screen-capture')
     const RPCGen = await import('@/constants/rpc/rpc-gen')
     const screenProtectorConfigKey = 'ui.screenprotector'
-    if (secure) {
-      await ScreenCapture.preventScreenCaptureAsync('screenprotector')
-    } else {
-      await ScreenCapture.allowScreenCaptureAsync('screenprotector')
-    }
+    await applyScreenProtector(secure)
     await RPCGen.configGuiSetValueRpcPromise({
       path: screenProtectorConfigKey,
       value: {b: secure, isNull: false},

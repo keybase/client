@@ -136,16 +136,12 @@ function SettingsNav() {
           },
           text: 'Notifications',
         },
-        ...(isAndroid
-          ? [
-              {
-                onClick: () => {
-                  navigateAppend({name: Settings.settingsScreenprotectorTab, params: {}})
-                },
-                text: 'Screen protector',
-              } as const,
-            ]
-          : []),
+        {
+          onClick: () => {
+            navigateAppend({name: Settings.settingsScreenprotectorTab, params: {}})
+          },
+          text: 'Screen protector',
+        },
       ] as const,
       title: 'Settings' as const,
     },
