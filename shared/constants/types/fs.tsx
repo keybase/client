@@ -311,6 +311,8 @@ export type Uploads = Readonly<{
   totalSyncingBytes: number
   endEstimate?: number
   syncingPaths: ReadonlySet<Path>
+  // syncingPaths minus the ones the service knows are folders
+  syncingFilePaths: ReadonlyArray<Path>
 }>
 
 // 'both' is only supported on macOS

@@ -2565,16 +2565,19 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 		return keybase1.FSSyncStatus{}, nil
 	}
 
-	var syncingPaths []string
-	if filter == keybase1.ListFilter_NO_FILTER {
-		syncingPaths = status.UnflushedPaths
-	} else {
-		for _, p := range status.UnflushedPaths {
-
-			if isFiltered(filter, stdpath.Base(p)) {
-				continue
-			}
-			syncingPaths = append(syncingPaths, p)
+	dirPaths := make(map[string]bool, len(status.UnflushedDirPaths))
+	for _, p := range status.UnflushedDirPaths {
+		dirPaths[p] = true
+	}
+	var syncingPaths, syncingFilePaths []string
+	for _, p := range status.UnflushedPaths {
+		if filter != keybase1.ListFilter_NO_FILTER &&
+			isFiltered(filter, stdpath.Base(p)) {
+			continue
+		}
+		syncingPaths = append(syncingPaths, p)
+		if !dirPaths[p] {
+			syncingFilePaths = append(syncingFilePaths, p)
 		}
 	}
 
@@ -2583,6 +2586,7 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 	return keybase1.FSSyncStatus{
 		TotalSyncingBytes: status.UnflushedBytes,
 		SyncingPaths:      syncingPaths,
+		SyncingFilePaths:  syncingFilePaths,
 		EndEstimate:       keybase1.ToTimePtr(status.EndEstimate),
 	}, nil
 }

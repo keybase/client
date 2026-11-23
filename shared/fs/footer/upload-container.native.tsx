@@ -4,7 +4,6 @@ import {useColorScheme, Image} from 'react-native'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import {useFsUploadStatus, useKbfsDaemonStatus} from '../common'
-import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
 const lightPatternImage = require('../../images/upload-pattern-80.png') as number
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
@@ -13,7 +12,7 @@ const UploadAccessory = () => {
   const styles = useStyles()
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
-  const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
+  const filePaths = uploads.syncingFilePaths
   const {files, timeLeft, totalSyncingBytes} = useUploadCountdown({
     endEstimate: uploads.endEstimate || 0,
     fileName:
@@ -51,7 +50,7 @@ const UploadAccessory = () => {
 const UploadContainer = () => {
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
-  const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
+  const filePaths = uploads.syncingFilePaths
   const np = useUploadCountdown({
     endEstimate: uploads.endEstimate || 0,
     fileName:

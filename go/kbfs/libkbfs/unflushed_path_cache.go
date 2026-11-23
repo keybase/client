@@ -28,6 +28,8 @@ const (
 )
 
 type (
+	// unflushedPathsPerRevMap maps each path to whether the revision's
+	// ops show it is a directory.
 	unflushedPathsPerRevMap map[string]bool
 	unflushedPathsMap       map[kbfsmd.Revision]unflushedPathsPerRevMap
 )
@@ -226,17 +228,40 @@ func addUnflushedPaths(ctx context.Context,
 			// paths.
 			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().
 				CanonicalPathPlaintext()
+			isDir := unflushedChainIsDir(chain)
 			for _, op := range chain.ops {
 				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
 				if !ok {
 					panic(fmt.Sprintf("No rev map for revision %d",
 						op.getWriterInfo().revision))
 				}
-				revPaths[finalPath] = true
+				revPaths[finalPath] = revPaths[finalPath] || isDir
 			}
 		}
 	}
 	return nil
+}
+
+// unflushedChainIsDir reports whether the chain's ops show it is a
+// directory, without fetching any blocks: create and rm ops (renames
+// are split into both) live in the parent directory's chain, while
+// sync ops and non-mtime setAttr ops live in a file's chain. A chain
+// with only mtime setAttr ops could be either, and is not reported as
+// a directory.
+func unflushedChainIsDir(chain *crChain) bool {
+	for _, op := range chain.ops {
+		switch realOp := op.(type) {
+		case *createOp, *rmOp, *renameOp:
+			return true
+		case *syncOp:
+			return false
+		case *setAttrOp:
+			if realOp.Attr != mtimeAttr {
+				return false
+			}
+		}
+	}
+	return false
 }
 
 // prepUnflushedPaths returns a set of paths that were updated in the

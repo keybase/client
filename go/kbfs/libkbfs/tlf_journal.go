@@ -126,14 +126,18 @@ type TLFJournalStatus struct {
 	// The byte counters below are signed because
 	// os.FileInfo.Size() is signed. The file counter is signed
 	// for consistency.
-	StoredBytes     int64
-	StoredFiles     int64
-	UnflushedBytes  int64
-	UnflushedPaths  []string
-	EndEstimate     *time.Time
-	QuotaUsedBytes  int64
-	QuotaLimitBytes int64
-	LastFlushErr    string `json:",omitempty"`
+	StoredBytes    int64
+	StoredFiles    int64
+	UnflushedBytes int64
+	UnflushedPaths []string
+	// UnflushedDirPaths are the UnflushedPaths known to be
+	// directories. Left out of the JSON so `.kbfs_status` keeps its
+	// plain path list.
+	UnflushedDirPaths []string `json:"-"`
+	EndEstimate       *time.Time
+	QuotaUsedBytes    int64
+	QuotaLimitBytes   int64
+	LastFlushErr      string `json:",omitempty"`
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -1944,13 +1948,21 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			"trying again to get the status")
 	}
 
-	pathsSeen := make(map[string]bool)
+	// A path is a directory if any revision's ops show it is one; a
+	// later revision may only touch its mtime, which can't tell.
+	pathIsDir := make(map[string]bool)
 	for _, revPaths := range unflushedPaths {
-		for path := range revPaths {
-			if !pathsSeen[path] {
+		for path, isDir := range revPaths {
+			prevIsDir, seen := pathIsDir[path]
+			if !seen {
 				jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, path)
-				pathsSeen[path] = true
 			}
+			pathIsDir[path] = prevIsDir || isDir
+		}
+	}
+	for _, path := range jStatus.UnflushedPaths {
+		if pathIsDir[path] {
+			jStatus.UnflushedDirPaths = append(jStatus.UnflushedDirPaths, path)
 		}
 	}
 

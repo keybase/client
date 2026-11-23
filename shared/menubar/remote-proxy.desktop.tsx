@@ -16,7 +16,6 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
 import {useFsOverallSyncStatus, useFsUploadStatus, useKbfsDaemonStatus} from '@/fs/common/status'
-import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
 import {
   fuseStatusToDriverStatus,
   refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
@@ -377,10 +376,10 @@ function useMenubarRemoteProps(): Props {
   const remoteTlfUpdates = tlfUpdates.map(t => toRemoteTlfUpdate(t, uploads))
 
   // Filter some data based on visible users.
-  // We just use syncingPaths rather than merging with writingToJournal here
+  // We just use syncingFilePaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
   // flakes on our perception of overall upload status.
-  const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
+  const filePaths = uploads.syncingFilePaths
 
   const upDown = {
     endEstimate: uploads.endEstimate ?? 0,

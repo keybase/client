@@ -1819,6 +1819,126 @@ func TestBadgeState(t *testing.T) {
 	jManager.ResumeBackgroundWork(ctx, tlfID)
 }
 
+// The sync status lists every unflushed path, folders included; its file
+// list leaves out the paths whose ops show they are folders, and keeps the
+// ones whose type the ops can't tell (an mtime change alone).
+func TestSyncStatusFilePaths(t *testing.T) {
+	ctx := context.Background()
+	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_sync_status")
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	require.NoError(t, err)
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+	config := sfs.config.(*libkbfs.ConfigLocal)
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := libkbfs.GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	opCtx, err := sfs.startOpWrapContext(ctx)
+	require.NoError(t, err)
+	remoteFS, _, err := sfs.getFS(opCtx, pathPriv)
+	require.NoError(t, err)
+	fs := remoteFS.(*libfs.FS)
+
+	err = fs.MkdirAll("a", 0o755)
+	require.NoError(t, err)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/old.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	_, tlfIDs := jManager.Status(ctx)
+	require.Len(t, tlfIDs, 1)
+	tlfID := tlfIDs[0]
+	err = jManager.Wait(ctx, tlfID)
+	require.NoError(t, err)
+
+	checkStatus := func(paths, filePaths []string) {
+		t.Helper()
+		status, err := sfs.SimpleFSSyncStatus(ctx, keybase1.ListFilter_NO_FILTER)
+		require.NoError(t, err)
+		require.ElementsMatch(t, paths, status.SyncingPaths)
+		require.ElementsMatch(t, filePaths, status.SyncingFilePaths)
+	}
+	flush := func() {
+		t.Helper()
+		jManager.ResumeBackgroundWork(ctx, tlfID)
+		err := jManager.Wait(ctx, tlfID)
+		require.NoError(t, err)
+		checkStatus(nil, nil)
+	}
+
+	t.Log("A new file lists its parent folder, which the file list drops")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/new.txt`), []byte(`bar`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/new.txt"},
+		[]string{"/keybase/private/jdoe/a/new.txt"})
+
+	t.Log("The .kbfs_status JSON keeps its plain path list")
+	folderStatus, _, err := config.KBFSOps().FolderStatus(
+		ctx, data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
+	require.NoError(t, err)
+	require.NotNil(t, folderStatus.Journal)
+	statusJSON, err := json.Marshal(folderStatus.Journal)
+	require.NoError(t, err)
+	var statusFields map[string]any
+	err = json.Unmarshal(statusJSON, &statusFields)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []any{
+		"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/new.txt",
+	}, statusFields["UnflushedPaths"])
+	require.NotContains(t, statusFields, "UnflushedDirPaths")
+	flush()
+
+	t.Log("A rename and a delete only touch the parent folder")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	err = fs.Rename("a/old.txt", "a/renamed.txt")
+	require.NoError(t, err)
+	err = fs.Remove("a/new.txt")
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus([]string{"/keybase/private/jdoe/a"}, nil)
+	flush()
+
+	t.Log("An mtime change alone can't tell a file from a folder, so both stay")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	mtime := time.Now().Add(-time.Hour)
+	err = fs.Chtimes("a/renamed.txt", mtime, mtime)
+	require.NoError(t, err)
+	err = fs.Chtimes("a", mtime, mtime)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	unknown := []string{
+		"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/renamed.txt",
+	}
+	checkStatus(unknown, unknown)
+	flush()
+
+	t.Log("A folder stays known once one revision shows it, even if a " +
+		"later one only changes its mtime")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/later.txt`), []byte(`baz`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	err = fs.Chtimes("a", mtime, mtime)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/later.txt"},
+		[]string{"/keybase/private/jdoe/a/later.txt"})
+	flush()
+}
+
 func TestProfiles(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(
