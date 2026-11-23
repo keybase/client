@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"sync"
 	"testing"
 
@@ -135,4 +136,53 @@ func TestFollowSendsOneTrackingChangedForThem(t *testing.T) {
 	_, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G).WithForcePoll(true))
 	require.NoError(t, err)
 	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
+}
+
+// lostResponseAPI lets the server take a post to endpoint and then fails the
+// call, as when the response is lost on the way back.
+type lostResponseAPI struct {
+	libkb.API
+	endpoint string
+}
+
+func (a *lostResponseAPI) Post(m libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	res, err := a.API.Post(m, arg)
+	if err == nil && arg.Endpoint == a.endpoint {
+		return nil, errors.New("response lost")
+	}
+	return res, err
+}
+
+func loseResponsesFrom(tc libkb.TestContext, endpoint string) {
+	tc.G.API = &lostResponseAPI{API: tc.G.API, endpoint: endpoint}
+}
+
+func TestFollowWithLostResponseSendsTrackingChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "follow_lost_notify")
+	defer tc.Cleanup()
+
+	alice, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, "t_alice"))
+	require.NoError(t, err)
+
+	loseResponsesFrom(tc, "follow")
+	sv := keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	_, _, err = runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
+	require.Error(t, err)
+	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
+	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+}
+
+func TestUnfollowWithLostResponseSendsTrackingChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "unfollow_lost_notify")
+	defer tc.Cleanup()
+
+	alice, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, "t_alice"))
+	require.NoError(t, err)
+	trackAlice(tc, fu, libkb.KeybaseSignatureV2)
+	listener.reset()
+
+	loseResponsesFrom(tc, "follow")
+	require.Error(t, runUntrack(tc, fu, "t_alice", libkb.KeybaseSignatureV2))
+	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
+	require.Contains(t, listener.userChangedUIDs(), fu.UID())
 }

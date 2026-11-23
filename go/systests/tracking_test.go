@@ -191,6 +191,10 @@ func TestTrackingNotifications(t *testing.T) {
 
 	// The self load here finds the link this device just posted; the follow
 	// already sent its notification, so this load must not send another.
+	// Without the stored chain, the load is sure to import that link from the
+	// server rather than find it already stored by an earlier load.
+	_, err = tc.G.LocalDb.Nuke()
+	require.NoError(t, err)
 	checkTrackingCmd := client.NewCmdCheckTrackingRunner(tc2.G)
 	err = checkTrackingCmd.Run()
 	require.NoError(t, err)

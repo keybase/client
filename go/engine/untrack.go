@@ -19,6 +19,8 @@ type UntrackEngine struct {
 	signingKeyPub         libkb.GenericKey
 	untrackStatementBytes []byte
 	untrackStatement      *libkb.ProofMetadataRes
+	// set once a local follow is removed or the unfollow link is sent to the server
+	changed bool
 	libkb.Contextified
 }
 
@@ -65,6 +67,21 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
+	// The server can accept the link even when the post or a later step
+	// errors, and the self load that finds a link signed by this device does
+	// not announce it, so every exit after the post has to.
+	defer func() {
+		if !e.changed {
+			return
+		}
+		e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+		e.G().UserChanged(m.Ctx(), them.GetUID())
+		e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
+		if err == nil {
+			m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
+		}
+	}()
+
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
 	if err != nil {
 		return
@@ -89,6 +106,7 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return
 		}
+		e.changed = true
 		didUntrack = true
 	}
 
@@ -104,12 +122,6 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		err = libkb.NewUntrackError("User %s is already untracked", e.arg.Username)
 		return
 	}
-
-	e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
-	e.G().UserChanged(m.Ctx(), them.GetUID())
-
-	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
-	m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
 
 	return
 }
@@ -228,6 +240,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		httpsArgs["sig_inner"] = libkb.S{Val: string(e.untrackStatementBytes)}
 	}
 
+	e.changed = true
 	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,
