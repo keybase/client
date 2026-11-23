@@ -48,12 +48,6 @@ const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen {...p} onComplete={onTeamBuildingFinished} />
 )
 
-const PDFShareButton = ({url}: {url?: string}) => {
-  return (
-    <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet(url ?? '', '', 'application/pdf')} />
-  )
-}
-
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
   // has to be a Text: the desktop modal header only wraps a bare string title, and a
@@ -317,7 +311,7 @@ export const newModalRoutes = defineRouteMap({
                 ),
               ],
             }
-          : {headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined}),
+          : {}),
         modalSize: 'large',
         title: 'PDF',
       }),

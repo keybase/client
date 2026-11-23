@@ -5,7 +5,12 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
+import {
+  attachmentDownloadMessage,
+  messageAttachmentAndroidDownloadMessage,
+  messageAttachmentNativeShareMessage,
+  takePDFMessage,
+} from '../conversation/attachment-actions'
 import {useConversationMessage} from '../conversation/data-hooks'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
@@ -54,8 +59,7 @@ const ChatPDF = (props: Props) => {
     )
   }
 
-  // Android's WebView can't display a PDF, so the screen points at the header's share button,
-  // which hands the file to an app that can
+  // Android's WebView can't display a PDF, so the screen offers the file to another app, or to Downloads
   if (isAndroid) {
     return (
       <Kb.ModalScreen scroll={false} padding="none">
@@ -73,8 +77,23 @@ const ChatPDF = (props: Props) => {
             {title}
           </Kb.Text>
           <Kb.Text type="BodySmall" center={true}>
-            This PDF can&apos;t be previewed here. Use the share button to open it in another app.
+            This PDF can&apos;t be opened here. Share it to open it in another app, or download it.
           </Kb.Text>
+          <Kb.ButtonBar direction="column" fullWidth={true}>
+            <Kb.Button
+              label="Share"
+              fullWidth={true}
+              disabled={!message}
+              onClick={() => message && messageAttachmentNativeShareMessage(conversationIDKey, message)}
+            />
+            <Kb.Button
+              label="Download"
+              mode="Secondary"
+              fullWidth={true}
+              disabled={!message}
+              onClick={() => message && messageAttachmentAndroidDownloadMessage(conversationIDKey, message)}
+            />
+          </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.ModalScreen>
     )
