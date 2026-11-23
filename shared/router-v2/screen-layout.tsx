@@ -121,7 +121,6 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
 export const desktopMakeLayout = (
   isModal: boolean,
   _isLoggedOut: boolean,
-  _isTabScreen: boolean,
   _getOptions?: GetOptions
 ) => {
   return ({children, options: navigationOptions, route, navigation}: LayoutProps) => {
@@ -207,7 +206,6 @@ const ModalScreenWrapper = ({
 export const nativeMakeLayout = (
   isModal: boolean,
   isLoggedOut: boolean,
-  _isTabScreen: boolean,
   getOptions?: GetOptions
 ) => {
   return function Layout({children, route, navigation}: LayoutProps) {

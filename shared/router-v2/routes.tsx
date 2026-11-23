@@ -102,7 +102,6 @@ type LayoutFn = (props: {
 type MakeLayoutFn = (
   isModal: boolean,
   isLoggedOut: boolean,
-  isTabScreen: boolean,
   getOptions?: GetOptions
 ) => LayoutFn
 type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
@@ -132,8 +131,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
   rs: RS,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
-  isLoggedOut: boolean,
-  isTabScreen: boolean
+  isLoggedOut: boolean
 ) {
   const result: Record<
     string,
@@ -149,7 +147,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
       ...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams as object}),
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
-      layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
+      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions) as (props: any) => React.ReactElement,
       options: ({route, navigation}: {route: any; navigation: any}) => {
         const go = rd.getOptions
         const opts = typeof go === 'function' ? go({navigation, route}) : go

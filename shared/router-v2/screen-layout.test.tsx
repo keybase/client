@@ -36,7 +36,7 @@ describe('native screen layouts', () => {
     ['logged out', false, true],
     ['tab screen', false, false],
   ])('%s layout calls no hooks outside a render', (_label, isModal, isLoggedOut) => {
-    const layout = nativeMakeLayout(isModal, isLoggedOut, false, () => ({}))
+    const layout = nativeMakeLayout(isModal, isLoggedOut, () => ({}))
 
     expect(() => callLayout(layout)).not.toThrow()
   })
@@ -48,7 +48,7 @@ describe('desktop modal layout', () => {
   // React Navigation hands the layout the route's live options: getOptions merged with
   // anything the screen set through navigation.setOptions. The modal header must show those.
   test('draws the header from the live options, not a fresh getOptions', () => {
-    const layout = desktopMakeLayout(true, false, false, () => ({title: 'From getOptions'}))
+    const layout = desktopMakeLayout(true, false, () => ({title: 'From getOptions'}))
     const navigation = {addListener: () => () => {}, getState: () => ({routes: [{key: 'k', name: 'chatNewChat'}]}), pop: () => {}}
     const {queryByText} = render(
       <>

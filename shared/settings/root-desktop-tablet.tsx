@@ -120,8 +120,7 @@ const paneScreens = isMobile
       ) as typeof routes,
       makeLayout,
       false,
-      false,
-      true
+      false
     )
   : undefined
 
@@ -173,7 +172,7 @@ const pageScreens = paneScreens
         },
       ])
     )
-  : routeMapToStaticScreens(settingsDesktopTabRoutes, makeLayout, false, false, false)
+  : routeMapToStaticScreens(settingsDesktopTabRoutes, makeLayout, false, false)
 
 // annotated: router-v2/routes lazily imports this module, so an inferred type would be circular
 const SettingsSubNavigator: React.ComponentType = createLeftTabNavigator({
