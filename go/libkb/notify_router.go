@@ -551,10 +551,15 @@ func (n *NotifyRouter) SessionStatus(m MetaContext) keybase1.BootstrapStatus {
 	return status
 }
 
-// sendSessionChanged reads the session and queues it on every connection that wants session
-// notifications. It runs in the background so that a logout holding switchUserMu does not wait on
-// the read; since every read follows the change that asked for it, the last one sent is current.
-func (n *NotifyRouter) sendSessionChanged(ctx context.Context) {
+// SendSessionChanged reads the session and queues it as sessionChanged on every connection that
+// wants session notifications. Logout and login send it; call it directly only where the session
+// may have changed without either. It runs in the background so that a logout holding
+// switchUserMu does not wait on the read; since every read follows the change that asked for it,
+// the last one sent is current.
+func (n *NotifyRouter) SendSessionChanged(ctx context.Context) {
+	if n == nil {
+		return
+	}
 	ctx = CopyTagsToBackground(ctx)
 	go func() {
 		n.sessionMu.Lock()
@@ -619,7 +624,7 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
 		return true
 	})
-	n.sendSessionChanged(ctx)
+	n.SendSessionChanged(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
@@ -670,7 +675,7 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 		}
 		return true
 	})
-	n.sendSessionChanged(ctx)
+	n.SendSessionChanged(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
