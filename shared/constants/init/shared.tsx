@@ -118,6 +118,26 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig);
 };
 
+// The service sends a notification only to a connection subscribed to its channel, so every
+// handshake subscribes before it reads anything.
+const subscribeNotificationsStep = async () => {
+  try {
+    // prettier-ignore
+    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+      channels: {
+        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+        paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
+        team: true, teambot: false, tracking: true, users: true, wallet: false,
+      },
+    })
+  } catch (error) {
+    logger.warn("error in toggling notifications: ", error);
+  }
+};
+
 export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts;
   // refreshAccounts is local (config/keychain + offline uidmap). Handshake must
@@ -514,28 +534,6 @@ export const onEngineConnected = () => {
   }
   useConfigState.getState().dispatch.onEngineConnected();
   useDaemonState.getState().dispatch.startHandshake();
-  {
-    const notifyCtl = async () => {
-      try {
-        // prettier-ignore
-        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-          channels: {
-            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-            devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
-            team: true, teambot: false, tracking: true, users: true, wallet: false,
-          },
-        })
-      } catch (error) {
-        if (error) {
-          logger.warn("error in toggling notifications: ", error);
-        }
-      }
-    };
-    ignorePromise(notifyCtl());
-  }
 };
 
 export const onEngineDisconnected = () => {
@@ -556,7 +554,7 @@ export const initSharedSubscriptions = (
       loadChatStaticConfigStep,
       loadAccountsStep,
       ...platformBootstrapSteps,
-    ]);
+    ], subscribeNotificationsStep);
 
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub();

@@ -7,7 +7,13 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {_onEngineIncoming, initSharedSubscriptions, loadAccountsStep, onNetworkOnlineChanged} from './shared'
+import {
+  _onEngineIncoming,
+  initSharedSubscriptions,
+  loadAccountsStep,
+  onEngineConnected,
+  onNetworkOnlineChanged,
+} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -388,5 +394,66 @@ describe('email notifications', () => {
       uid: 'u2',
     })
     expect([...useSettingsEmailState.getState().emails.keys()]).toEqual(['a@keybase.io'])
+  })
+})
+
+describe('a new connection subscribes before it reads', () => {
+  const userA = {
+    deviceID: 'd1',
+    deviceName: 'testuser-mac',
+    fullname: '',
+    httpSrvInfo: null,
+    loggedIn: true,
+    registered: true,
+    sessionSeq: 0,
+    uid: 'u1',
+    userReacjis: {skinTone: 0, topReacjis: null},
+    username: 'testuser',
+  } as T.RPCGen.BootstrapStatus
+  const loggedOut = {...userA, deviceID: '', deviceName: '', loggedIn: false, uid: '', username: ''}
+
+  afterEach(() => {
+    uninstallFakeEngine()
+    resetAllStores()
+  })
+
+  // The service sends a change only to a connection subscribed to its channel, so a change made
+  // after the handshake read the session but before the subscription landed would reach no one.
+  test('a login between the read and the subscription still reaches the app', async () => {
+    const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    let session = loggedOut
+    let subscribed = false
+    const subscribes = fake.hold('keybase.1.notifyCtl.setNotifications')
+    fake.answer('keybase.1.config.getBootstrapStatus', () => session)
+    fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
+    for (const m of [
+      'keybase.1.delegateUiCtl.registerChatUI',
+      'keybase.1.delegateUiCtl.registerLogUI',
+      'keybase.1.delegateUiCtl.registerHomeUI',
+      'keybase.1.delegateUiCtl.registerSecretUI',
+      'keybase.1.delegateUiCtl.registerIdentify3UI',
+      'keybase.1.delegateUiCtl.registerRekeyUI',
+      'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+      'keybase.1.config.helloIAm',
+    ]) {
+      fake.answer(m, () => null)
+    }
+    fake.answer('keybase.1.config.guiGetValue', () => fakeError(1, 'no value'))
+    useConfigState.setState({chatBuiltinCommands: {} as any, chatDeletableByDeleteHistory: new Set()})
+    initSharedSubscriptions()
+    onEngineConnected()
+    await settle()
+
+    // The user logs in on the service; a subscribed connection is told
+    session = userA
+    if (subscribed) {
+      await fake.push('keybase.1.NotifySession.sessionChanged', {status: {...userA, sessionSeq: 1}}, {oneway: true})
+    }
+    subscribed = true
+    subscribes.forEach(c => c.reply(null))
+    await settle()
+
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(useConfigState.getState().loggedIn).toBe(true)
   })
 })

@@ -33,7 +33,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    initBootstrapSteps: (steps: Array<BootstrapStep>) => void
+    initBootstrapSteps: (steps: Array<BootstrapStep>, subscribe?: BootstrapStep) => void
     loadDaemonBootstrapStatus: () => Promise<void>
     onSessionChanged: (status: T.RPCGen.BootstrapStatus) => void
     refreshSessionFromDaemon: (reason: string) => void
@@ -50,6 +50,8 @@ const retryDelayMs = 1000
 
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   let bootstrapSteps: Array<BootstrapStep> = []
+  // Runs before anything is read: a change between a read and the subscription would never reach us
+  let subscribeStep: BootstrapStep | undefined
   // bumped on every startHandshake (engine reconnect, splash Reload) so a stale in-flight
   // run can't write results over a newer one
   let generation = 0
@@ -85,8 +87,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    initBootstrapSteps: steps => {
+    initBootstrapSteps: (steps, subscribe) => {
       bootstrapSteps = steps
+      subscribeStep = subscribe
     },
     loadDaemonBootstrapStatus: readBootstrapStatus,
     onSessionChanged: status => {
@@ -140,6 +143,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       const run = async () => {
         while (gen === generation) {
           try {
+            await subscribeStep?.()
             await get().dispatch.loadDaemonBootstrapStatus()
             await Promise.all(bootstrapSteps.map(async step => step()))
             if (gen !== generation) {
