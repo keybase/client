@@ -280,9 +280,9 @@ func TestUnfurlerPreviewURLsFailureNotRescraped(t *testing.T) {
 
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1, 2})
-	var hits int32
+	var hits atomic.Int32
 	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&hits, 1)
+		hits.Add(1)
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 	addr := srv.Start()
@@ -291,12 +291,12 @@ func TestUnfurlerPreviewURLsFailureNotRescraped(t *testing.T) {
 	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
 	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		res := unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Unfurl, "a cached failure still reports the url for suppression")
 	}
-	require.Equal(t, int32(1), atomic.LoadInt32(&hits))
+	require.Equal(t, int32(1), hits.Load())
 }
 
 func makeTextMsgWithMsgID(msgBody string, outboxID chat1.OutboxID, msgID chat1.MessageID) chat1.MessageUnboxed {
@@ -477,12 +477,12 @@ func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1, 2})
 
-	var scrapes int64
+	var scrapes atomic.Int64
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Query().Get("name")
-		if name == "wsj0.html" && atomic.AddInt64(&scrapes, 1) == 1 {
+		if name == "wsj0.html" && scrapes.Add(1) == 1 {
 			started <- struct{}{}
 			<-release
 		}
@@ -529,7 +529,7 @@ func TestUnfurlerPreviewURLsCallerCancel(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "surviving caller never returned")
 	}
-	require.Equal(t, int64(1), atomic.LoadInt64(&scrapes), "the two callers did not share one scrape")
+	require.Equal(t, int64(1), scrapes.Load(), "the two callers did not share one scrape")
 }
 
 // only generic unfurls get a card, and a map is a generic unfurl the message view itself

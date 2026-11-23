@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,10 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Every notification a NotifyRouter sends goes out on its own goroutine
-// (HandleLogout, SendLogin), so two notifications queued to the same
-// connection in one order can be written to it in the other. A client that
-// applies loggedIn/loggedOut as state can end up with the wrong one last.
+// Notifications for one connection are queued onto a per-connection serial
+// sender, so HandleLogout then SendLogin must arrive in that order even when
+// many pairs are queued back to back.
 func TestNotificationsArriveInOrder(t *testing.T) {
 	tc := SetupTest(t, "NotifyRouter", 0)
 	defer tc.Cleanup()
@@ -27,7 +27,7 @@ func TestNotificationsArriveInOrder(t *testing.T) {
 
 	ctx := context.Background()
 	const rounds = 200
-	for i := 0; i < rounds; i++ {
+	for range rounds {
 		g.NotifyRouter.HandleLogout(ctx)
 		g.NotifyRouter.SendLogin(ctx, "testuser", false)
 	}
@@ -46,9 +46,7 @@ func TestNotificationsArriveInOrder(t *testing.T) {
 	}
 }
 
-// NotifyRouter.Shutdown is a no-op on master: nothing stops a connection's
-// in-flight notification goroutines, so a notification queued right before
-// shutdown still reaches a recorder that outlives the router.
+// After Shutdown, a notification handler must not deliver to a live connection.
 func TestShutdownStopsSenders(t *testing.T) {
 	tc := SetupTest(t, "NotifyRouter", 0)
 	defer tc.Cleanup()
@@ -64,6 +62,44 @@ func TestShutdownStopsSenders(t *testing.T) {
 	require.Never(t, func() bool {
 		return len(rec.Messages()) > 0
 	}, 200*time.Millisecond, 10*time.Millisecond, "Shutdown must stop senders before they deliver")
+}
+
+// Dropping a queued WaitGroup send (Shutdown) must still Done the group, or
+// every enqueueWG caller hangs forever.
+func TestShutdownDropsEnqueueWGWithoutHang(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+
+	// Hold the sender so a later enqueueWG job stays queued until Shutdown.
+	release := make(chan struct{})
+	held := make(chan struct{})
+	require.True(t, g.NotifyRouter.enqueue(rec.ID, func() {
+		close(held)
+		<-release
+	}))
+	<-held
+
+	var wg sync.WaitGroup
+	g.NotifyRouter.enqueueWG(&wg, rec.ID, func() {})
+
+	g.NotifyRouter.Shutdown()
+	close(release)
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("wg.Wait hung; dropped enqueueWG job did not Done the WaitGroup")
+	}
 }
 
 // A late SetChannels for a connection that has already closed must not bring

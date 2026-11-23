@@ -34,7 +34,7 @@ func countAvatarsPackageGoroutines() int {
 
 func parseAvatarsPackageGoroutines(dump string) int {
 	count := 0
-	for _, block := range strings.Split(strings.TrimRight(dump, "\n"), "\n\n") {
+	for block := range strings.SplitSeq(strings.TrimRight(dump, "\n"), "\n\n") {
 		if !strings.HasPrefix(block, "goroutine ") {
 			continue
 		}

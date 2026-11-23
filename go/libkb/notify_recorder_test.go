@@ -4,16 +4,29 @@
 package libkb
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
+
+// noopNotifySession answers session notification Calls so a serial
+// send queue is not stuck waiting for a response. loggedIn is a Call
+// (not a Notify) in the protocol.
+type noopNotifySession struct{}
+
+func (noopNotifySession) LoggedOut(context.Context) error { return nil }
+func (noopNotifySession) LoggedIn(context.Context, keybase1.LoggedInArg) error {
+	return nil
+}
+func (noopNotifySession) ClientOutOfDate(context.Context, keybase1.ClientOutOfDateArg) error {
+	return nil
+}
 
 // NotifyRecorder is a connection registered with a NotifyRouter, for tests.
 // It records the notifications and calls sent to it in the order they were
@@ -22,6 +35,7 @@ import (
 type NotifyRecorder struct {
 	ID        ConnectionID
 	conn      *recorderConn
+	server    net.Conn
 	closed    chan error
 	closeOnce sync.Once
 }
@@ -45,16 +59,25 @@ func (r RecordedNotify) Decode(v any) error {
 // NewNotifyRecorder adds a connection to g's router and registers it for the
 // given channels.
 func NewNotifyRecorder(g *GlobalContext, channels keybase1.NotificationChannels) *NotifyRecorder {
-	conn := &recorderConn{readDone: make(chan struct{})}
+	client, server := net.Pipe()
+	conn := &recorderConn{Conn: client}
 	xp := rpc.NewTransport(conn, NewRPCLogFactory(g), g.LocalNetworkInstrumenterStorage,
 		MakeWrapError(g), rpc.DefaultMaxFrameLength)
 	closed := make(chan error, 1)
-	// runs the transport's reader, as the service does, so that closing the
-	// connection fails the calls that were never answered
-	rpc.NewServer(xp, MakeWrapError(g)).Run()
+
+	// Serve the far end of the pipe so Call-style notifications (loggedIn)
+	// get a response and a serial send queue can proceed.
+	srvXP := rpc.NewTransport(server, NewRPCLogFactory(g), g.LocalNetworkInstrumenterStorage,
+		MakeWrapError(g), rpc.DefaultMaxFrameLength)
+	srv := rpc.NewServer(srvXP, MakeWrapError(g))
+	if err := srv.Register(keybase1.NotifySessionProtocol(noopNotifySession{})); err != nil {
+		panic(err)
+	}
+	srv.Run()
+
 	id := g.NotifyRouter.AddConnection(xp, closed)
 	g.NotifyRouter.SetChannels(id, channels)
-	return &NotifyRecorder{ID: id, conn: conn, closed: closed}
+	return &NotifyRecorder{ID: id, conn: conn, server: server, closed: closed}
 }
 
 // Messages returns what has been recorded so far, oldest first.
@@ -69,15 +92,15 @@ func (r *NotifyRecorder) Messages() []RecordedNotify {
 func (r *NotifyRecorder) Close() {
 	r.closeOnce.Do(func() {
 		_ = r.conn.Close()
+		_ = r.server.Close()
 		r.closed <- io.EOF
 	})
 }
 
 type recorderConn struct {
-	mu        sync.Mutex
-	msgs      []RecordedNotify
-	closeOnce sync.Once
-	readDone  chan struct{}
+	net.Conn
+	mu   sync.Mutex
+	msgs []RecordedNotify
 }
 
 var _ net.Conn = (*recorderConn)(nil)
@@ -103,7 +126,10 @@ func (c *recorderConn) Write(b []byte) (int, error) {
 	if len(frame) < 3 {
 		return 0, errors.New("NotifyRecorder: not a call or a notification")
 	}
-	method, _ := frame[1].(string)
+	method, ok := frame[1].(string)
+	if !ok || method == "" {
+		return c.Conn.Write(b)
+	}
 	args, _ := frame[2].([]any)
 	var arg []byte
 	if len(args) > 0 {
@@ -114,21 +140,5 @@ func (c *recorderConn) Write(b []byte) (int, error) {
 	c.mu.Lock()
 	c.msgs = append(c.msgs, RecordedNotify{Method: method, arg: arg})
 	c.mu.Unlock()
-	return len(b), nil
+	return c.Conn.Write(b)
 }
-
-func (c *recorderConn) Read([]byte) (int, error) {
-	<-c.readDone
-	return 0, io.EOF
-}
-
-func (c *recorderConn) Close() error {
-	c.closeOnce.Do(func() { close(c.readDone) })
-	return nil
-}
-
-func (c *recorderConn) LocalAddr() net.Addr              { return nil }
-func (c *recorderConn) RemoteAddr() net.Addr             { return nil }
-func (c *recorderConn) SetDeadline(time.Time) error      { return nil }
-func (c *recorderConn) SetReadDeadline(time.Time) error  { return nil }
-func (c *recorderConn) SetWriteDeadline(time.Time) error { return nil }
