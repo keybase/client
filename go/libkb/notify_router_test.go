@@ -376,6 +376,39 @@ func TestSessionChangedDropsAnOvertakenRead(t *testing.T) {
 	require.Equal(t, 1, got[0].SessionSeq)
 }
 
+// A sessionChanged read that a caller's read began after is read again: sent as read, its older
+// status would outrank the caller's newer one.
+func TestSessionChangedRereadsAfterACallersRead(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	source, reading, release := stallFirstRead(state)
+	g.NotifyRouter.SetSessionStatusSource(source)
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+	ctx := context.Background()
+
+	state.set("testuser")
+	g.NotifyRouter.HandleLogin(ctx, "testuser")
+	<-reading
+	// the push's read saw testuser; the session then ends and a caller reads it
+	state.set("")
+	status, err := g.NotifyRouter.SessionStatus(NewMetaContext(ctx, g))
+	require.NoError(t, err)
+	require.False(t, status.LoggedIn)
+	require.Equal(t, 0, status.SessionSeq)
+
+	release()
+	require.Eventually(t, func() bool {
+		return len(sessionChanges(t, rec)) == 1
+	}, 5*time.Second, time.Millisecond)
+	got := sessionChanges(t, rec)
+	require.False(t, got[0].LoggedIn, "the push sent its older read above the caller's")
+	require.Equal(t, 1, got[0].SessionSeq)
+}
+
 func TestSessionStatusFailsWithoutASource(t *testing.T) {
 	tc := SetupTest(t, "NotifyRouter", 0)
 	defer tc.Cleanup()

@@ -363,6 +363,8 @@ type NotifyRouter struct {
 	sessionSeq          int
 	sessionReadsStarted int
 	sessionReadSent     int
+	// the number of the latest SessionStatus read begun, from the same count
+	sessionDirectRead int
 }
 
 // SessionStatusSource reads the current session for NotifySession.sessionChanged and
@@ -550,6 +552,8 @@ func (n *NotifyRouter) SessionStatus(m MetaContext) (keybase1.BootstrapStatus, e
 	}
 	n.sessionMu.Lock()
 	f, seq := n.sessionSource, n.sessionSeq
+	n.sessionReadsStarted++
+	n.sessionDirectRead = n.sessionReadsStarted
 	n.sessionMu.Unlock()
 	if f == nil {
 		return keybase1.BootstrapStatus{}, errors.New("the session cannot be read yet")
@@ -567,7 +571,8 @@ func (n *NotifyRouter) SessionStatus(m MetaContext) (keybase1.BootstrapStatus, e
 // may have changed without either. It runs in the background so that a logout holding
 // switchUserMu does not wait on the read. Reads run concurrently and can finish in any order, so
 // one that finishes after a read that began later is dropped: the later one follows every change
-// the earlier one could have missed, and the one that began last is always sent.
+// the earlier one could have missed, and the one that began last is always sent. One that a
+// caller's SessionStatus read began after reads again, so it never outranks that read's status.
 func (n *NotifyRouter) SendSessionChanged(ctx context.Context) {
 	if n == nil {
 		return
@@ -586,33 +591,46 @@ func (n *NotifyRouter) SendSessionChanged(ctx context.Context) {
 		if len(targets) == 0 {
 			return
 		}
-		n.sessionMu.Lock()
-		source := n.sessionSource
-		n.sessionReadsStarted++
-		read := n.sessionReadsStarted
-		n.sessionMu.Unlock()
-		if source == nil {
-			return
-		}
-		n.Lock()
-		shuttingDown := n.shuttingDown
-		n.Unlock()
-		if shuttingDown {
-			return
-		}
+		var read int
+		var status keybase1.BootstrapStatus
+		for {
+			n.sessionMu.Lock()
+			source := n.sessionSource
+			n.sessionReadsStarted++
+			read = n.sessionReadsStarted
+			n.sessionMu.Unlock()
+			if source == nil {
+				return
+			}
+			n.Lock()
+			shuttingDown := n.shuttingDown
+			n.Unlock()
+			if shuttingDown {
+				return
+			}
 
-		status, err := source(NewMetaContext(ctx, n.G()))
-		if err != nil {
-			n.G().Log.CWarningf(ctx, "| NotifyRouter: reading the session for sessionChanged: %v", err)
-			return
-		}
+			var err error
+			status, err = source(NewMetaContext(ctx, n.G()))
+			if err != nil {
+				n.G().Log.CWarningf(ctx, "| NotifyRouter: reading the session for sessionChanged: %v", err)
+				return
+			}
 
-		n.sessionMu.Lock()
+			n.sessionMu.Lock()
+			if read < n.sessionReadSent {
+				n.G().Log.CDebugf(ctx, "| NotifyRouter: sessionChanged read %d superseded by read %d", read, n.sessionReadSent)
+				n.sessionMu.Unlock()
+				return
+			}
+			// A caller's read that began after this one can be newer, and this one's seq would rank
+			// above it: read again rather than send an older status as the newer one.
+			if read < n.sessionDirectRead {
+				n.sessionMu.Unlock()
+				continue
+			}
+			break
+		}
 		defer n.sessionMu.Unlock()
-		if read < n.sessionReadSent {
-			n.G().Log.CDebugf(ctx, "| NotifyRouter: sessionChanged read %d superseded by read %d", read, n.sessionReadSent)
-			return
-		}
 		n.sessionReadSent = read
 		n.sessionSeq++
 		status.SessionSeq = n.sessionSeq
