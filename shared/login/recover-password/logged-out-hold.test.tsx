@@ -45,6 +45,17 @@ beforeEach(() => {
   NavTree.setModalRouteNames(modalRouteNames)
   fake = installFakeEngine()
   roots = []
+  // a failed run reads the session after; Go logged out, as it does after a failure
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
+    deviceID: '',
+    deviceName: '',
+    fullname: '',
+    loggedIn: false,
+    registered: true,
+    uid: '',
+    userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
+    username: '',
+  }))
 })
 
 afterEach(() => {
@@ -307,5 +318,14 @@ describe('the run ends on what the daemon says', () => {
     // A login the service reports later still lands.
     await notifyLogin()
     expect(roots).toEqual(['loggedOut', 'loggedIn'])
+  })
+
+  test('a failed run the daemon still reads as logged in shows the app it is logged in to', async () => {
+    await mount()
+    const {reply} = await toSaved()
+    reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'password change failed'))
+    await flush()
+    expect(roots).toEqual(['loggedOut', 'loggedIn'])
+    expect(useConfigState.getState().recoverPasswordHold).toBe(0)
   })
 })

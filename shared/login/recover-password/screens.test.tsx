@@ -40,6 +40,17 @@ const install = (above: ReadonlyArray<{name: string; params?: object}>) => {
 
 beforeEach(() => {
   fake = installFakeEngine()
+  // a failed run reads the session after; Go logged out, as it does after a failure
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
+    deviceID: '',
+    deviceName: '',
+    fullname: '',
+    loggedIn: false,
+    registered: true,
+    uid: '',
+    userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
+    username: '',
+  }))
 })
 
 afterEach(() => {

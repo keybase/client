@@ -294,6 +294,10 @@ export const startRecoverPassword = ({
       if (config.recoverPasswordHold === run && !config.loggedIn) {
         navUpToScreen('login')
       }
+    } else if (hadError && askedAfterPaperKey) {
+      // Go logs out after a failed run, but if that fails it is still logged in with the paper key;
+      // read which so the screens match it
+      await useDaemonState.getState().dispatch.readSessionFromDaemon('password recovery failed')
     }
     configDispatch.holdForRecoverPassword(run, false)
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
