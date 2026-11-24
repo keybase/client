@@ -802,7 +802,9 @@ const useFsSubscriptionEffect = ({
   enabled?: boolean
   errorPath?: T.FS.Path
   // called once the service holds the subscription and it is still wanted: a change made before
-  // then sent no notification, so whatever was loaded before it is reloaded here
+  // then sent no notification, so whatever was loaded before it is reloaded here. On a first mount
+  // this repeats the mount load, which runs first so the screen paints without waiting on the
+  // subscribe; the repeat covers what changed between the two.
   onSubscribed?: () => void
   subscribe: (subscriptionID: string) => Promise<unknown>
   subscriptionKey: string
@@ -861,6 +863,8 @@ const useFsSubscriptionEffect = ({
         if (!manager) {
           if (subscription.count === 0) {
             unsubscribeFsSubscription(subscriptionID)
+          } else {
+            onSubscribedEvent()
           }
           return
         }

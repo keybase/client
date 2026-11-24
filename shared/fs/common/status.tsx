@@ -354,7 +354,8 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     const settingsSubID = makeUUID()
     const uploadStatusSubID = makeUUID()
     const journalStatusSubID = makeUUID()
-    const subscribed = Promise.all([
+    // allSettled: a subscribe that throws still lets the others' reads run
+    const subscribed = Promise.allSettled([
       subscribeNonPath(settingsSubID, T.RPCGen.SubscriptionTopic.settings, subscriptionErrorToActionOrThrow),
       subscribeNonPath(
         uploadStatusSubID,

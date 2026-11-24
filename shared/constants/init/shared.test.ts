@@ -551,6 +551,7 @@ describe('a new connection', () => {
       }
       await settle()
     }
+    throw new Error('the handshake never finished registering the UIs')
   }
   let connections = 0
   const connect = async () => {

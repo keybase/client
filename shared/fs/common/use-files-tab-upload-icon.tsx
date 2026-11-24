@@ -1,3 +1,4 @@
+import logger from '@/logger'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -88,9 +89,14 @@ export const useFilesTabUploadIcon = () => {
           topic: T.RPCGen.SubscriptionTopic.filesTabBadge,
         })
       } catch (error) {
-        onError(error)
+        try {
+          onError(error)
+        } catch (thrown) {
+          logger.warn('files tab badge subscribe failed:', thrown)
+        }
       }
-      // Read once the service holds the subscription: a change before then sent no notification
+      // Read once the service holds the subscription (or failed to): a change before then sent no
+      // notification
       if (current) {
         loadUploadIcon()
       }

@@ -298,6 +298,14 @@ const onHandshakeStateChanged = (
     uid === uidAtHandshakeStart
   ) {
     afterFirstPaint(() => {
+      // a switch or logout during the wait makes this another account's reload
+      if (
+        useCurrentUserState.getState().uid !== uid ||
+        !useConfigState.getState().loggedIn ||
+        useConfigState.getState().userSwitching
+      ) {
+        return;
+      }
       requestFollowerInfoForStartup();
       // The service's chat sync runs when it reaches the server, not when the app reconnects to it
       refreshStartupChat("reconnected");
