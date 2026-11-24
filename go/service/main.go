@@ -341,14 +341,14 @@ func (d *Service) Run() (err error) {
 }
 
 // sessionStatus reads the session for NotifySession.sessionChanged and config.getBootstrapStatus.
-func (d *Service) sessionStatus(m libkb.MetaContext) keybase1.BootstrapStatus {
+func (d *Service) sessionStatus(m libkb.MetaContext) (keybase1.BootstrapStatus, error) {
 	eng := engine.NewBootstrap(d.G())
 	if err := engine.RunEngine2(m, eng); err != nil {
-		m.Warning("reading the session: %v", err)
+		return keybase1.BootstrapStatus{}, err
 	}
 	status := eng.Status()
 	status.HttpSrvInfo = d.httpSrvInfo()
-	return status
+	return status, nil
 }
 
 func (d *Service) httpSrvInfo() *keybase1.HttpSrvInfo {
@@ -770,6 +770,8 @@ func (d *Service) StartLoopbackServer(loginMode libkb.LoginAttempt) error {
 	if l, err = d.G().MakeLoopbackServer(); err != nil {
 		return err
 	}
+	// This listens before SetupCriticalSubServices runs, and the login below announces the session
+	d.G().NotifyRouter.SetSessionStatusSource(d.sessionStatus)
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.

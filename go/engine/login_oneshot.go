@@ -96,7 +96,10 @@ func (e *LoginOneshot) commitLoginChanges(m libkb.MetaContext) (err error) {
 
 func (e *LoginOneshot) rollbackLoginChanges(m libkb.MetaContext) (err error) {
 	defer m.Trace("LoginOneshot#rollbackLoginChanges", &err)()
-	return m.SwitchUserLoggedOut()
+	err = m.SwitchUserLoggedOut()
+	// The session was valid since makeLoginChanges, unannounced, so a client may have read it then
+	m.G().NotifyRouter.SendSessionChanged(m.Ctx())
+	return err
 }
 
 func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {

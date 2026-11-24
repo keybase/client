@@ -355,7 +355,9 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	// attempt (which can be slow: leveldb open/recovery, keychain reads) so
 	// we don't report loggedIn=false while it is still in flight.
 	h.svc.awaitInitialLoginAttempt(m, 30*time.Second)
-	res = h.G().NotifyRouter.SessionStatus(m)
+	if res, err = h.G().NotifyRouter.SessionStatus(m); err != nil {
+		return res, err
+	}
 	for i := 0; res.HttpSrvInfo == nil && i < 40; i++ { // wait at most 2 seconds
 		m.Debug("GetBootstrapStatus: waiting for the HTTP server address")
 		time.Sleep(50 * time.Millisecond)
