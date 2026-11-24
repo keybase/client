@@ -124,7 +124,7 @@ const subscribeTimeoutMs = 10000;
 // read on a connection before it subscribes.
 const subscribeNotifications = async () => {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timedOut = new Promise<never>((_, reject) => {
+  const timedOut = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(
       () => reject(new Error("Subscribing to notifications timed out")),
       subscribeTimeoutMs,

@@ -821,7 +821,7 @@ const useFsSubscriptionEffect = ({
   const subscribeEvent = React.useEffectEvent(subscribe)
   const onSubscribedEvent = React.useEffectEvent(() => onSubscribed?.())
   React.useEffect(() => {
-    if (!connected || !enabled || handshakeGeneration === undefined) {
+    if (!connected || !enabled) {
       return
     }
 
