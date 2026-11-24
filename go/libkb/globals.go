@@ -1399,7 +1399,8 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 }
 
 // notifyDeviceHistoryIfSelf tells device lists that our devices may have
-// changed; call it after our cached keys are refreshed so a reload sees it.
+// changed; call it only once our cached user is busted or freshly loaded, so
+// the reload it triggers sees the new devices.
 func (g *GlobalContext) notifyDeviceHistoryIfSelf(u keybase1.UID) {
 	if g.NotifyRouter != nil && g.GetMyUID().Equal(u) {
 		g.NotifyRouter.HandleDeviceHistoryChanged()
