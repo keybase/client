@@ -174,16 +174,16 @@ describe('useTeamTreeMemberships', () => {
       expect(loads()).toHaveLength(1)
 
       await change('elsewhere', {membership: true})
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(1)
 
       await change('sub2', {membership: true})
       expect(loads()).toHaveLength(1)
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(2)
 
       await change(teamID, {renamed: true})
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(3)
     })
 
@@ -191,7 +191,7 @@ describe('useTeamTreeMemberships', () => {
       await mountNow()
 
       await change('sub1', {channels: true, keyRotated: true, memberShowcase: true, settings: true})
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(1)
     })
 
@@ -200,7 +200,7 @@ describe('useTeamTreeMemberships', () => {
       for (const id of [teamID, 'sub1', 'sub2']) {
         await change(id, {memberCount: true})
       }
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(1)
     })
 
@@ -208,20 +208,20 @@ describe('useTeamTreeMemberships', () => {
       await mountNow()
 
       await change('sub1', {membership: true})
-      await advance(1000)
+      await advance(3500)
       await change('sub2', {membership: true})
-      await advance(1000)
+      await advance(3500)
       await change('sub1', {roles: true})
       expect(loads()).toHaveLength(1)
-      await advance(1000)
+      await advance(3500)
       expect(loads()).toHaveLength(2)
 
       await change('sub2', {membership: true})
-      await advance(1000)
+      await advance(3500)
       await change('sub1', {membership: true})
-      await advance(1000)
+      await advance(3500)
       expect(loads()).toHaveLength(2)
-      await advance(1000)
+      await advance(3500)
       expect(loads()).toHaveLength(3)
     })
 
@@ -230,19 +230,19 @@ describe('useTeamTreeMemberships', () => {
       const held = fake.hold(loadTree)
 
       await change('sub1', {membership: true})
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(2)
       await change('sub2', {membership: true})
-      await advance(3000)
+      await advance(10_000)
       await change(teamID, {membership: true})
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(2)
 
       held[0]?.reply(tree)
       await advance(0)
       expect(loads()).toHaveLength(3)
       held[1]?.reply(tree)
-      await advance(3000)
+      await advance(10_000)
       expect(loads()).toHaveLength(3)
     })
 

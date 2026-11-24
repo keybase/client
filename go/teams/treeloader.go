@@ -241,8 +241,10 @@ func (l *Treeloader) ProcessSigchainState(mctx libkb.MetaContext, teamName keyba
 		}
 	}
 	var memberCount *int
-	count, err := TeamSigChainState{inner: *s}.memberCount()
-	if err != nil {
+	// the team load counted it already; count here only if that cache missed
+	if count, ok := mctx.G().TeamMemberCountCache.Get(s.Id); ok {
+		memberCount = &count
+	} else if count, err := (TeamSigChainState{inner: *s}).memberCount(); err != nil {
 		mctx.Debug("Treeloader.ProcessSigchainState: failed to count members of %s: %s",
 			teamName, err)
 	} else {

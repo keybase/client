@@ -59,8 +59,9 @@ const toTeamTree = (memberships: ReadonlyArray<T.RPCGen.TeamTreeMembership> | nu
 // does for each team, and the rows carry the count the load computed
 const changesTree = (kinds: T.RPCGen.TeamChangedKinds) =>
   kinds.deleted || kinds.exited || kinds.membership || kinds.renamed || kinds.roles
-// A tree load polls the server for every team in it, so changes reload at most once per window
-const refreshWindowMs = 3000
+// A tree load polls the server for every team in it, so changes reload at most once per window,
+// long enough that a team changing steadily cannot keep the page polling the whole tree
+const refreshWindowMs = 10_000
 
 export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   const currentUsername = useCurrentUserState(s => s.username)
