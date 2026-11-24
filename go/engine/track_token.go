@@ -19,7 +19,8 @@ type TrackToken struct {
 	trackStatementBytes []byte
 	trackStatement      *libkb.ProofMetadataRes
 	// set once the follow is stored locally or its link is sent to the server
-	changed bool
+	// whether the link may be stored, locally or on the server
+	stored bool
 }
 
 type TrackTokenArg struct {
@@ -100,12 +101,19 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// The server can accept the link even when the post or a later step
-	// errors, and the self load that finds a link signed by this device does
-	// not announce it, so every exit after the post has to.
+	// Once the link may be stored, both users' cached copies are stale on
+	// every exit: the server can accept it even when the post or a later step
+	// errors. The follow itself is announced only once it is known to have
+	// happened (the self load that finds a link signed by this device does not
+	// announce it); an ignore is not a follow.
 	defer func() {
-		if e.changed {
-			e.notifyChanged(m)
+		if !e.stored {
+			return
+		}
+		m.G().UserChanged(m.Ctx(), e.them.GetUID())
+		m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+		if err == nil && !e.arg.Options.ExpiringLocal {
+			m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 		}
 	}()
 
@@ -134,8 +142,9 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
 		m.Debug("| Local")
 		err = e.storeLocalTrack(m)
-		e.changed = err == nil
+		e.stored = err == nil
 	} else {
+		e.stored = true
 		err = e.storeRemoteTrack(m, signingKeyPub.GetKID())
 		if err == nil {
 			// if the remote track succeeded, remove local tracks
@@ -165,14 +174,6 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	}
 
 	return err
-}
-
-func (e *TrackToken) notifyChanged(m libkb.MetaContext) {
-	// Both users' cached copies are stale: their tracker list and our
-	// following list now include the new link.
-	m.G().UserChanged(m.Ctx(), e.them.GetUID())
-	m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
-	m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 }
 
 func (e *TrackToken) isTrackTokenStale(m libkb.MetaContext, o *libkb.IdentifyOutcome) (err error) {
@@ -276,7 +277,6 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	if sigVersion == libkb.KeybaseSignatureV2 {
 		httpsArgs["sig_inner"] = libkb.S{Val: string(e.trackStatementBytes)}
 	}
-	e.changed = true
 	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,

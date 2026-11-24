@@ -20,7 +20,8 @@ type UntrackEngine struct {
 	untrackStatementBytes []byte
 	untrackStatement      *libkb.ProofMetadataRes
 	// set once a local follow is removed or the unfollow link is sent to the server
-	changed bool
+	// whether the link may be stored, locally or on the server
+	stored bool
 	libkb.Contextified
 }
 
@@ -67,17 +68,19 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	// The server can accept the link even when the post or a later step
-	// errors, and the self load that finds a link signed by this device does
-	// not announce it, so every exit after the post has to.
+	// Once the link may be stored, both users' cached copies are stale on
+	// every exit: the server can accept it even when the post or a later step
+	// errors. The unfollow itself is announced only once it is known to have
+	// happened (the self load that finds a link signed by this device does not
+	// announce it).
 	defer func() {
-		if !e.changed {
+		if !e.stored {
 			return
 		}
 		e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
 		e.G().UserChanged(m.Ctx(), them.GetUID())
-		e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
 		if err == nil {
+			e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
 			m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
 		}
 	}()
@@ -106,11 +109,12 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return
 		}
-		e.changed = true
+		e.stored = true
 		didUntrack = true
 	}
 
 	if remoteLink != nil && !remoteLink.IsRevoked() {
+		e.stored = true
 		err = e.storeRemoteUntrack(m, them)
 		if err != nil {
 			return
@@ -240,7 +244,6 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		httpsArgs["sig_inner"] = libkb.S{Val: string(e.untrackStatementBytes)}
 	}
 
-	e.changed = true
 	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,

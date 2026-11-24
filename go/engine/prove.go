@@ -439,10 +439,11 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 	stage("PostProofToServer")
 	err = p.postProofToServer(m)
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
-	// Sent now rather than when the flow below ends, which can wait minutes on
-	// the user, and even if the post errored, since the server may have
-	// accepted the link before the response was lost.
-	m.G().UserChanged(m.Ctx(), p.me.GetUID())
+	// On every exit from here, even if the post errored, since the server may
+	// have accepted the link before the response was lost. Not before the flow
+	// ends: an identify the notice starts would check a proof the user has not
+	// posted yet, and the proof cache would keep that failure.
+	defer m.G().UserChanged(m.Ctx(), p.me.GetUID())
 	if err != nil {
 		return err
 	}
@@ -472,8 +473,6 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 			return err
 		}
 	}
-	// the proof checked out since the post, which no sigchain link records
-	m.G().NotifyRouter.HandleUserChanged(m, p.me.GetUID(), "Prove")
 	m.UIs().LogUI.Notice("Success!")
 	return nil
 }

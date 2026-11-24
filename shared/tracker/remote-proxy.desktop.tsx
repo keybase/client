@@ -132,8 +132,8 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
 const RemoteTrackers = () => {
   const [popupState, setPopupState] = React.useState<PopupState>(initialPopupState)
   const popupStateRef = React.useRef(popupState)
-  // username -> guiID of the popup's forced remote check, while it runs and is
-  // the popup's latest identify
+  // assertion (a tracker popup's is its username) -> guiID of the popup's forced
+  // remote check, while it runs and is the popup's latest identify
   const forcedInFlightRef = React.useRef(new Map<string, string>())
 
   React.useEffect(() => {

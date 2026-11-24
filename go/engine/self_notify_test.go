@@ -138,6 +138,17 @@ func TestFollowSendsOneTrackingChangedForThem(t *testing.T) {
 	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
 }
 
+// An ignore is a local expiring track, not a follow.
+func TestIgnoreSendsNoTrackingChanged(t *testing.T) {
+	tc, fu, listener := setupSelfNotifyTest(t, "ignore_notify")
+	defer tc.Cleanup()
+
+	sv := keybase1.SigVersion(libkb.KeybaseSignatureV2)
+	_, _, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{BypassConfirm: true, ExpiringLocal: true, SigVersion: &sv}, fu.NewSecretUI(), false)
+	require.NoError(t, err)
+	require.Empty(t, listener.trackingChangedUIDs())
+}
+
 // lostResponseAPI lets the server take a post to endpoint and then fails the
 // call, as when the response is lost on the way back.
 type lostResponseAPI struct {
@@ -157,7 +168,9 @@ func loseResponsesFrom(tc libkb.TestContext, endpoint string) {
 	tc.G.API = &lostResponseAPI{API: tc.G.API, endpoint: endpoint}
 }
 
-func TestFollowWithLostResponseSendsTrackingChanged(t *testing.T) {
+// The server may hold the link, so both users' caches go, but the app is not
+// told a follow happened that it cannot know of.
+func TestFollowWithLostResponseBustsCachesWithoutTrackingChanged(t *testing.T) {
 	tc, fu, listener := setupSelfNotifyTest(t, "follow_lost_notify")
 	defer tc.Cleanup()
 
@@ -168,11 +181,12 @@ func TestFollowWithLostResponseSendsTrackingChanged(t *testing.T) {
 	sv := keybase1.SigVersion(libkb.KeybaseSignatureV2)
 	_, _, err = runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
 	require.Error(t, err)
-	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
+	require.Empty(t, listener.trackingChangedUIDs())
 	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+	require.Contains(t, listener.userChangedUIDs(), alice.GetUID())
 }
 
-func TestUnfollowWithLostResponseSendsTrackingChanged(t *testing.T) {
+func TestUnfollowWithLostResponseBustsCachesWithoutTrackingChanged(t *testing.T) {
 	tc, fu, listener := setupSelfNotifyTest(t, "unfollow_lost_notify")
 	defer tc.Cleanup()
 
@@ -183,8 +197,9 @@ func TestUnfollowWithLostResponseSendsTrackingChanged(t *testing.T) {
 
 	loseResponsesFrom(tc, "follow")
 	require.Error(t, runUntrack(tc, fu, "t_alice", libkb.KeybaseSignatureV2))
-	require.Equal(t, []keybase1.UID{alice.GetUID()}, listener.trackingChangedUIDs())
+	require.Empty(t, listener.trackingChangedUIDs())
 	require.Contains(t, listener.userChangedUIDs(), fu.UID())
+	require.Contains(t, listener.userChangedUIDs(), alice.GetUID())
 }
 
 func TestProveWithLostResponseSendsUserChanged(t *testing.T) {
