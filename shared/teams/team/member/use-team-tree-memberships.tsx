@@ -57,8 +57,9 @@ const toTeamTree = (memberships: ReadonlyArray<T.RPCGen.TeamTreeMembership> | nu
 
 // memberCount is left out: the service sends it when it caches a count, which every tree load
 // does for each team, and the rows carry the count the load computed
+// settings is in: a subteam made or deleted under a team of the tree comes as that team's settings
 const changesTree = (kinds: T.RPCGen.TeamChangedKinds) =>
-  kinds.deleted || kinds.exited || kinds.membership || kinds.renamed || kinds.roles
+  kinds.deleted || kinds.exited || kinds.membership || kinds.renamed || kinds.roles || kinds.settings
 // A tree load polls the server for every team in it, so changes reload at most once per window,
 // long enough that a team changing steadily cannot keep the page polling the whole tree
 const refreshWindowMs = 10_000
@@ -120,7 +121,8 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
   // the newest load failed: its error replaces the rows of an older one
   const tree = (error ? undefined : data) ?? emptyTree
 
-  const refreshSoon = useThrottledCallback(refresh, refreshWindowMs, {leading: false})
+  // leading, so a lone change (an edit made on this page) shows at once
+  const refreshSoon = useThrottledCallback(refresh, refreshWindowMs, {leading: true})
   React.useEffect(() => refreshSoon.cancel, [key, refreshSoon])
 
   const watchedTeamIDs = React.useMemo(() => new Set([targetTeamID, ...tree.teamIDs]), [targetTeamID, tree])

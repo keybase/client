@@ -177,20 +177,24 @@ describe('useTeamTreeMemberships', () => {
       await advance(10_000)
       expect(loads()).toHaveLength(1)
 
+      // the first change in a window reloads at once
       await change('sub2', {membership: true})
-      expect(loads()).toHaveLength(1)
-      await advance(10_000)
       expect(loads()).toHaveLength(2)
 
-      await change(teamID, {renamed: true})
       await advance(10_000)
+      await change(teamID, {renamed: true})
       expect(loads()).toHaveLength(3)
+
+      // a subteam made under a team of the tree comes as that team's settings
+      await advance(10_000)
+      await change('sub1', {settings: true})
+      expect(loads()).toHaveLength(4)
     })
 
     test('ignores kinds the rows do not show', async () => {
       await mountNow()
 
-      await change('sub1', {channels: true, keyRotated: true, memberShowcase: true, settings: true})
+      await change('sub1', {channels: true, keyRotated: true, memberShowcase: true})
       await advance(10_000)
       expect(loads()).toHaveLength(1)
     })
@@ -207,19 +211,13 @@ describe('useTeamTreeMemberships', () => {
     test('a trickle of changes costs at most one reload per window', async () => {
       await mountNow()
 
+      // the first reloads at once; the rest of the window costs one more, at its end
       await change('sub1', {membership: true})
+      expect(loads()).toHaveLength(2)
       await advance(3500)
       await change('sub2', {membership: true})
       await advance(3500)
       await change('sub1', {roles: true})
-      expect(loads()).toHaveLength(1)
-      await advance(3500)
-      expect(loads()).toHaveLength(2)
-
-      await change('sub2', {membership: true})
-      await advance(3500)
-      await change('sub1', {membership: true})
-      await advance(3500)
       expect(loads()).toHaveLength(2)
       await advance(3500)
       expect(loads()).toHaveLength(3)
