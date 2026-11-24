@@ -48,6 +48,8 @@ type blockServerRemoteClientHandler struct {
 	connMu sync.RWMutex
 	conn   *rpc.Connection
 	client keybase1.BlockInterface
+
+	refresher authRefresher
 }
 
 func newBlockServerRemoteClientHandler(
@@ -211,7 +213,20 @@ func (b *blockServerRemoteClientHandler) RefreshAuthToken(
 		return
 	}
 
-	if err := b.resetAuth(ctx, b.client); err != nil {
+	// With no session there is nothing to authenticate, so don't wait
+	// behind a running refresh: logout calls this synchronously.
+	if _, err := b.csg.GetCurrentSession(ctx); err != nil {
+		b.log.CDebugf(
+			ctx, "%s: User logged out, skipping auth refresh", b.name)
+		return
+	}
+	b.refresher.refresh(ctx, b.refreshAuthTokenOnce)
+}
+
+func (b *blockServerRemoteClientHandler) refreshAuthTokenOnce(
+	ctx context.Context,
+) {
+	if err := b.resetAuth(ctx, b.getClient()); err != nil {
 		b.log.CDebugf(ctx, "%s: error refreshing auth token: %v", b.name, err)
 	}
 }
