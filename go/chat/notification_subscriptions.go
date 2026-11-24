@@ -91,6 +91,11 @@ func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
 	uid gregor1.UID, arg chat1.SetNotificationSettingsLocalArg,
 ) error {
+	// each write goes to whichever account is logged in when it runs, so check
+	// the account the caller meant before each one
+	if err := assertStillLoggedInAs(ctx, g, uid); err != nil {
+		return err
+	}
 	mctx := libkb.NewMetaContext(ctx, g.ExternalG())
 	if _, err := mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "account/subscribe",
@@ -99,6 +104,13 @@ func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 	}); err != nil {
 		return err
 	}
+	if err := assertStillLoggedInAs(ctx, g, uid); err != nil {
+		return err
+	}
+	return setGlobalAppNotificationSettings(ctx, g, ri, arg.ChatGlobal)
+}
+
+func assertStillLoggedInAs(ctx context.Context, g *globals.Context, uid gregor1.UID) error {
 	current, err := utils.AssertLoggedInUID(ctx, g)
 	if err != nil {
 		return err
@@ -106,5 +118,5 @@ func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 	if !current.Eq(uid) {
 		return libkb.LoginRequiredError{Context: "the account changed while saving notification settings"}
 	}
-	return setGlobalAppNotificationSettings(ctx, g, ri, arg.ChatGlobal)
+	return nil
 }

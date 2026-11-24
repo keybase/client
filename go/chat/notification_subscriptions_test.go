@@ -74,6 +74,13 @@ func TestSetNotificationSettingsStopsOnAccountSwitch(t *testing.T) {
 	tc.G.API = &subscribeAPI{onPost: func() { setActiveUserForTest(t, tc, "testuser2") }}
 	require.Error(t, setNotificationSettings(context.TODO(), g, ri, uid, arg))
 	require.Len(t, remote.saved, 1, "testuser's chat settings were written while testuser2 was active")
+
+	// another account is already active when the save starts: nothing is posted for it
+	posted := false
+	tc.G.API = &subscribeAPI{onPost: func() { posted = true }}
+	require.Error(t, setNotificationSettings(context.TODO(), g, ri, uid, arg))
+	require.False(t, posted, "testuser's subscriptions were posted while testuser2 was active")
+	require.Len(t, remote.saved, 1)
 }
 
 func TestNotificationSubscriptionGroupsFromServer(t *testing.T) {
