@@ -291,6 +291,8 @@ describe('the run ends on what the daemon says', () => {
   test('a failed run the daemon still reads as logged in shows the app it is logged in to', async () => {
     await mount()
     const {reply} = await toSaved()
+    // the service announces the login it could not undo, so the session it reads is a newer one
+    sessionSeq++
     reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'password change failed'))
     await flush()
     expect(roots).toEqual(['loggedOut', 'loggedIn'])
