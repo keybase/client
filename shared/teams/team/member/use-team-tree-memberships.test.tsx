@@ -187,16 +187,12 @@ describe('useTeamTreeMemberships', () => {
       expect(loads()).toHaveLength(3)
     })
 
-    test('ignores kinds the rows do not show, and reloads for a change with no kind', async () => {
+    test('ignores kinds the rows do not show', async () => {
       await mountNow()
 
       await change('sub1', {channels: true, keyRotated: true, memberShowcase: true, settings: true})
       await advance(3000)
       expect(loads()).toHaveLength(1)
-
-      await change('sub1', {})
-      await advance(3000)
-      expect(loads()).toHaveLength(2)
     })
 
     test("the member counts a tree load caches for each team do not reload it", async () => {

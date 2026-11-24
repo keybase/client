@@ -57,13 +57,8 @@ const toTeamTree = (memberships: ReadonlyArray<T.RPCGen.TeamTreeMembership> | nu
 
 // memberCount is left out: the service sends it when it caches a count, which every tree load
 // does for each team, and the rows carry the count the load computed
-const onRows = new Set<keyof T.RPCGen.TeamChangedKinds>(['deleted', 'exited', 'membership', 'renamed', 'roles'])
-// A server change can come with no kind set, which says nothing about what changed, so it
-// reloads too
-const changesTree = (kinds: T.RPCGen.TeamChangedKinds) => {
-  const set = (Object.keys(kinds) as Array<keyof T.RPCGen.TeamChangedKinds>).filter(k => kinds[k])
-  return set.length === 0 || set.some(k => onRows.has(k))
-}
+const changesTree = (kinds: T.RPCGen.TeamChangedKinds) =>
+  kinds.deleted || kinds.exited || kinds.membership || kinds.renamed || kinds.roles
 // A tree load polls the server for every team in it, so changes reload at most once per window
 const refreshWindowMs = 3000
 
