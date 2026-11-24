@@ -924,6 +924,13 @@ func notifyTeamChannelsChanged(ctx context.Context, g *globals.Context,
 		g.GetLog().CDebugf(ctx, "notifyTeamChannelsChanged: bad team ID %s: %v", tlfID, err)
 		return
 	}
-	go g.NotifyRouter.HandleTeamChangedByID(context.WithoutCancel(ctx), teamID, 0, false,
-		keybase1.TeamChangeSet{}, 0, 0, keybase1.TeamChangedSource_LOCAL)
+	uid := g.ActiveDevice.UID()
+	go func() {
+		// the account signed in when the change was made, not whoever is now
+		if !g.ActiveDevice.UID().Equal(uid) {
+			return
+		}
+		g.NotifyRouter.HandleTeamChangedByID(context.WithoutCancel(ctx), teamID, 0, false,
+			keybase1.TeamChangeSet{}, 0, 0, keybase1.TeamChangedSource_LOCAL)
+	}()
 }

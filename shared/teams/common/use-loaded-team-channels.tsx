@@ -2,8 +2,11 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import {subscribeToEngineAction, useEngineActionListener} from '@/engine/action-listener'
+import type {DebouncedFunc} from 'lodash'
+import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import * as React from 'react'
+import {registerExternalResetter} from '@/util/zustand'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 
@@ -54,16 +57,37 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
-const teamChannelsNoticeDebounceMs = 1_000
+// Teams whose channels this session loaded: the only ones a notice has anything to reload
+const loadedTeams = new Set<T.Teams.TeamID>()
+const teamChannelsChangedDebouncers = new Map<T.Teams.TeamID, DebouncedFunc<() => void>>()
 
-// Reload a team's channel list wherever it is shown, and mark it stale where it is not. A bulk
-// create or delete sends one notice per channel: the first reloads at once and the rest of the
-// burst reloads once, a second after the last of them.
+// module scope outlives sign-out and this is per-user team data
+registerExternalResetter('loaded-team-channels', () => {
+  teamChannelsChangedDebouncers.forEach(debounced => debounced.cancel())
+  teamChannelsChangedDebouncers.clear()
+  loadedTeams.clear()
+})
+
+// Reload a team's channel list wherever it is shown, and mark it stale where it is not. Notices
+// come in bursts: teamChangedByID fires for every incoming message in a team, and a bulk create or
+// delete sends one per channel. Leading so a lone change lands at once, trailing so the rest of a
+// burst costs one more load, maxWait so a team that is never quiet still reloads. A team whose
+// channels were never loaded has nothing to reload, so it gets no debouncer.
 export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
-  if (key) {
-    reviveLoad(loadedTeamChannelsLoad, key, teamChannelsNoticeDebounceMs)
+  if (!key || !loadedTeams.has(key)) {
+    return
   }
+  let debounced = teamChannelsChangedDebouncers.get(key)
+  if (!debounced) {
+    debounced = debounce(() => reviveLoad(loadedTeamChannelsLoad, key), 1000, {
+      leading: true,
+      maxWait: 5000,
+      trailing: true,
+    })
+    teamChannelsChangedDebouncers.set(key, debounced)
+  }
+  debounced()
 }
 
 // Module scope, not per hook: a change that lands while no list is mounted must
@@ -113,6 +137,7 @@ const useLoadedTeamChannelsRaw = (
     loadedTeamChannelsLoad,
     teamIDToLoad,
     async (signal): Promise<LoadedTeamChannelsData> => {
+      loadedTeams.add(teamIDToLoad)
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         teamChannelsRPCParams(teamnameToLoad),
         C.waitingKeyTeamsGetChannels(teamIDToLoad),

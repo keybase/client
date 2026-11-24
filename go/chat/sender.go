@@ -1318,8 +1318,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
 		*boxed, nil); err != nil {
 		s.Debug(ctx, "Send: failed to update inbox: %s", err)
-	}
-	if typ := boxed.GetMessageType(); typ == chat1.MessageType_METADATA || typ == chat1.MessageType_HEADLINE {
+	} else if typ := boxed.GetMessageType(); typ == chat1.MessageType_METADATA || typ == chat1.MessageType_HEADLINE {
+		// channel lists read the local inbox this just updated
 		notifyTeamChannelsChanged(ctx, s.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
 	}
 	// Send up to frontend

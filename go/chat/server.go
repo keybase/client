@@ -518,6 +518,11 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		}
 	}
 
+	// the channel exists from here, whether or not the unhide below works
+	if created {
+		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
+	}
+
 	// If we have this conv hidden, then let's bring it back before returning
 	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
 		h.Debug(ctx, "NewConversationLocal: new conversation not shown, unhiding: %s", conv.GetConvID())
@@ -527,10 +532,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			return res, err
 		}
 	}
-	if created {
-		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
-	}
-
 	return res, nil
 }
 
