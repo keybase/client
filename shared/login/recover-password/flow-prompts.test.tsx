@@ -4,11 +4,6 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
-import {useWaitingState} from '@/stores/waiting'
-import {waitingKeyRecoverPassword} from '@/constants/strings'
-import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {settle} from '@/test/flush'
-
 import {
   cancelRecoverPassword,
   startRecoverPassword,
@@ -202,8 +197,8 @@ describe('paper key prompt', () => {
   })
 })
 
-// Go asks about pgp keys and for a new password after it accepts the paper key and before it logs
-// the user in, so both stay in the logged-out stack, each in place of the screen before it.
+// Go asks about pgp keys and for a new password once the paper key has logged it in, holding back
+// its login notification, so both stay in the logged-out stack, each in place of the screen before it.
 describe('after the paper key', () => {
   const pastPaperKey = async () => {
     const started = await startAttempt()
@@ -274,17 +269,6 @@ describe('after the paper key', () => {
     expect(nav.visibleScreen()?.params).toEqual({error: 'too short'})
   })
 
-  test('cancelling the new password rejects the rpc without restarting', async () => {
-    const {attempts, first} = await pastPaperKey()
-    const response = askNewPassword(first)
-
-    cancelRecoverPassword()
-    await flush()
-
-    expect(response.error).toHaveBeenCalledWith(inputCanceled)
-    expect(attempts.length).toBe(1)
-  })
-
   test('a pgp prompt that reaches the flow after its run ended shows nothing', async () => {
     const {first} = await pastPaperKey()
     first.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
@@ -336,14 +320,6 @@ test('a reset prompt that is not a password reset hands off to the account reset
 })
 
 describe('completion', () => {
-  // Go set the new password and logs the user in; the set-password screen is up.
-  const atNewPassword = async () => {
-    const started = await startAttempt()
-    askNewPassword(started.first)
-    submitRecoverPasswordPassword('hunter2hunter2')
-    return started
-  }
-
   test('a cancelled recovery shows no error screen', async () => {
     const {first} = await startAttempt()
 
@@ -351,18 +327,6 @@ describe('completion', () => {
     await flush()
 
     expect(loggedOutStack()).toEqual(['login', openScreen])
-  })
-
-  test('a failure after the paper key shows the error in place of the prompt, still logged out', async () => {
-    const {first} = await atNewPassword()
-
-    const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
-    first.reject(error)
-    await flush()
-
-    expect(rootRouteNames()).toEqual(['loggedOut'])
-    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordError'])
-    expect(nav.visibleScreen()?.params).toEqual({error: error.message})
   })
 
   // Its prompts are only in the logged-out screens, and Go would refuse it anyway.
@@ -393,64 +357,5 @@ describe('completion', () => {
 
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).not.toHaveBeenCalled()
-  })
-})
-
-// Runs the flow through the real engine listener, so its waiting-key bookkeeping is what the app sees.
-describe('through the engine listener', () => {
-  const recover = 'keybase.1.login.recoverPassphrase'
-  let fake: FakeEngine
-
-  beforeEach(() => {
-    fake = installFakeEngine()
-  })
-
-  // The engine throttles turning waiting on; flush it before reading the store
-  const waitingCount = () => {
-    fake.engine._throttledDispatchWaitingAction.flush()
-    return useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
-  }
-
-  const startRun = async () => {
-    const held = fake.hold(recover)
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const sessionID = fake.calls.find(c => c.method === recover)!.params.sessionID as number
-    const push = async (method: string, params: object) => fake.push(method, params, {sessionID})
-    return {held, push}
-  }
-
-  test('a pgp prompt arriving after the run ended registers nothing', async () => {
-    const {held, push} = await startRun()
-    const answered = jest.fn()
-    void push('keybase.1.loginUi.promptPassphraseRecovery', {
-      kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys,
-    }).then(answered)
-    held[0]!.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'Canceling RPC'))
-    await settle(2)
-
-    expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toEqual([])
-    expect(answered).not.toHaveBeenCalled()
-  })
-
-  test('the run waits on the service except while a prompt is up', async () => {
-    const {held, push} = await startRun()
-    expect(waitingCount()).toBe(1)
-
-    const answer = push('keybase.1.loginUi.promptPassphraseRecovery', {
-      kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys,
-    })
-    await settle(2)
-    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordPgpWarning'])
-    expect(waitingCount()).toBe(0)
-
-    submitRecoverPasswordPgpWarning()
-    await expect(answer).resolves.toEqual({result: true})
-    expect(waitingCount()).toBe(1)
-
-    fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
-    held[0]!.reply(null)
-    await settle(2)
-    expect(waitingCount()).toBe(0)
   })
 })

@@ -1,25 +1,35 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 // A paper-key recovery end to end: the real flow, engine listener and screens, against the fake
-// service. Go asks about pgp keys and for a new password before it logs the user in, so the app
-// stays logged out through every prompt and logs in once, when the service says so.
+// service. Go asks about pgp keys and for a new password once the paper key has logged it in, but
+// holds back its login notification until the new password is set, so the app stays logged out
+// through every prompt and logs in once, when the service says so.
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, screen} from '@testing-library/react'
 import {CommonActions, StackActions} from '@react-navigation/core'
 import {navigationRef} from '@/constants/navigator'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {useWaitingState} from '@/stores/waiting'
+import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {settle} from '@/test/flush'
 import {installNavigation, makeRootState, stackKeyOf, type MountedNavigation} from '@/test/navigation'
+import {
+  answerLoggedOut,
+  answerPaperKey,
+  askNewPassword,
+  askPgp,
+  flush,
+  pgpWarning,
+  recover,
+  setPassword,
+  startRun as startRunOn,
+  type Push,
+} from '@/test/recover-password'
 import ProvisionPassword from '@/provision/password'
-import {startRecoverPassword, submitRecoverPasswordDeviceSelect, submitRecoverPasswordPaperKey} from './flow'
+import {submitRecoverPasswordDeviceSelect, submitRecoverPasswordPgpWarning} from './flow'
 import PgpWarning from './pgp-warning'
 import SetPassword from './password'
-
-const recover = 'keybase.1.login.recoverPassphrase'
-const pgpWarning = 'recoverPasswordPgpWarning'
-const setPassword = 'recoverPasswordSetPassword'
 
 let nav: MountedNavigation
 let fake: FakeEngine
@@ -40,17 +50,7 @@ const install = (above: ReadonlyArray<{name: string; params?: object}>) => {
 
 beforeEach(() => {
   fake = installFakeEngine()
-  // a failed run reads the session after; Go logged out, as it does after a failure
-  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
-    deviceID: '',
-    deviceName: '',
-    fullname: '',
-    loggedIn: false,
-    registered: true,
-    uid: '',
-    userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
-    username: '',
-  }))
+  answerLoggedOut(fake)
 })
 
 afterEach(() => {
@@ -58,29 +58,12 @@ afterEach(() => {
   resetAllStores()
 })
 
-// The service's messages cross IPC and the listener hands them to the flow on a timer; each turn runs
-// inside act so React commits what the flow navigated to.
-const flush = async (turns = 3) => {
-  for (let i = 0; i < turns; i++) {
-    await act(async () => settle())
-  }
-}
-
 const loggedOutStack = () => nav.getRootState()?.routes?.[0]?.state?.routes.map(r => r.name)
 const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
-const startRun = async (start: () => void = () => startRecoverPassword({username: 'testuser'})) => {
-  const held = fake.hold(recover)
-  act(start)
-  await flush()
-  const sessionID = fake.calls.find(c => c.method === recover)!.params.sessionID as number
-  const push = async (method: string, params: object) => fake.push(method, params, {sessionID})
-  return {push, reply: held[0]!.reply}
-}
+const startRun = async (start?: () => void) => startRunOn(fake, start)
 
-// From the device chooser to the paper key being accepted: the service has not logged the user in.
-type Push = Awaited<ReturnType<typeof startRun>>['push']
-
+// From the device chooser to the paper key being accepted.
 const throughPaperKey = async (push: Push) => {
   const chosen = push('keybase.1.loginUi.chooseDeviceToRecoverWith', {
     devices: [{deviceID: 'paper-1', deviceNumberOfType: 1, name: 'paper one', type: 'backup'}],
@@ -90,29 +73,10 @@ const throughPaperKey = async (push: Push) => {
   await flush()
   await expect(chosen).resolves.toEqual({result: 'paper-1'})
 
-  const paperKey = push('keybase.1.secretUi.getPassphrase', {
-    pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.paperKey},
+  await expect(answerPaperKey(push)).resolves.toEqual({
+    result: {passphrase: 'one two three', storeSecret: false},
   })
-  await flush()
-  act(() => submitRecoverPasswordPaperKey('one two three'))
-  await flush()
-  await expect(paperKey).resolves.toEqual({result: {passphrase: 'one two three', storeSecret: false}})
 }
-
-// Go asks; the answer settles once the GUI answers, so it is handed back in a box, not awaited here.
-const ask = async (push: Push, method: string, params: object) => {
-  const answer = push(method, params)
-  await flush()
-  return {answer}
-}
-const askPgp = async (push: Push) =>
-  ask(push, 'keybase.1.loginUi.promptPassphraseRecovery', {
-    kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys,
-  })
-const askNewPassword = async (push: Push) =>
-  ask(push, 'keybase.1.secretUi.getPassphrase', {
-    pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase},
-  })
 
 const typeAndSave = (password: string) => {
   fireEvent.change(screen.getByPlaceholderText('New password'), {target: {value: password}})
@@ -200,6 +164,8 @@ test.each(removalTypes)('the user taking the new password away (%s) cancels it',
   await flush()
   expect(loggedOutStack()).toEqual(['login'])
   expect(useConfigState.getState().loggedIn).toBe(false)
+  // the cancel ends the run; nothing restarts it
+  expect(fake.calls.filter(c => c.method === recover)).toHaveLength(1)
 })
 
 // An answered screen stays up until Go asks its next question; the user can still take it away.
@@ -282,7 +248,48 @@ test('the service failing after the paper key shows the error in place, still lo
 
   expect(rootNames()).toEqual(['loggedOut'])
   expect(loggedOutStack()).toEqual(['login', 'recoverPasswordError'])
+  expect(nav.visibleScreen()?.params).toEqual({error: expect.stringContaining('the password change failed')})
   expect(useConfigState.getState().loggedIn).toBe(false)
+})
+
+test('a pgp prompt arriving after the run ended shows nothing and takes no answer', async () => {
+  install([])
+  const {push, reply} = await startRun()
+  const answered = jest.fn()
+  void push('keybase.1.loginUi.promptPassphraseRecovery', {
+    kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys,
+  }).then(answered)
+  reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'Canceling RPC'))
+  await flush()
+  act(() => submitRecoverPasswordPgpWarning())
+  await flush()
+
+  expect(loggedOutStack()).toEqual(['login'])
+  expect(answered).not.toHaveBeenCalled()
+})
+
+test('the run waits on the service except while a prompt is up', async () => {
+  install([])
+  // The engine throttles turning waiting on; flush it before reading the store
+  const waitingCount = () => {
+    fake.engine._throttledDispatchWaitingAction.flush()
+    return useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
+  }
+  const {push, reply} = await startRun()
+  expect(waitingCount()).toBe(1)
+
+  const {answer: pgp} = await askPgp(push)
+  expect(nav.visibleScreen()?.name).toBe(pgpWarning)
+  expect(waitingCount()).toBe(0)
+
+  act(() => submitRecoverPasswordPgpWarning())
+  await expect(pgp).resolves.toEqual({result: true})
+  expect(waitingCount()).toBe(1)
+
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
+  reply(null)
+  await flush()
+  expect(waitingCount()).toBe(0)
 })
 
 describe('started from the provisioning password screen', () => {

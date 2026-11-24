@@ -44,7 +44,8 @@ export const releaseLoggedOutLink = () => {
   emitDeepLink(incomingShareURL)
 }
 
-// Whether links go to the logged-in routes. A held share is released when they start to.
+// Whether links go to the logged-in routes. A held share is released when they start to. A hook
+// rather than inline in NativeRouter so logged-out-hold.test.tsx mounts the same release.
 export const useLinksLoggedIn = () => {
   const loggedIn = useConfigState(loggedInPastRecovery)
   React.useEffect(() => {

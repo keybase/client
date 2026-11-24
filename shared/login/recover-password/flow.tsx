@@ -70,7 +70,8 @@ export const startRecoverPassword = ({
     configDispatch.holdForRecoverPassword(run, true)
     let active = true
     let hadError = false
-    // Go asks these only once the paper key has logged it in
+    // Go asks these only once the paper key has logged it in. The prompt callbacks set it, which
+    // TS cannot see, so the cast keeps it from narrowing to false below.
     let askedAfterPaperKey = false as boolean
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
@@ -285,19 +286,19 @@ export const startRecoverPassword = ({
       active = false
     }
     // Go's login notification and its reply to the run take separate paths, so the reply can come
-    // first. The prompt screen stays until the session is read: logged in, the logged-in screens
-    // replace it; otherwise the recovery screens go, rather than leave a prompt nothing answers.
-    // Other successes (a device to recover with, a reset email) end on a screen meant to stay.
-    if (!hadError && askedAfterPaperKey) {
-      await useDaemonState.getState().dispatch.readSessionFromDaemon('password recovered')
+    // first; and a failed run is still logged in with the paper key if Go's log out fails. Read the
+    // session so the screens match it. On success the prompt screen stays until then: logged in,
+    // the logged-in screens replace it; otherwise the recovery screens go, rather than leave a
+    // prompt nothing answers. Other successes (a device to recover with, a reset email) end on a
+    // screen meant to stay.
+    if (askedAfterPaperKey) {
+      await useDaemonState
+        .getState()
+        .dispatch.readSessionFromDaemon(hadError ? 'password recovery failed' : 'password recovered')
       const config = useConfigState.getState()
-      if (config.recoverPasswordHold === run && !config.loggedIn) {
+      if (!hadError && config.recoverPasswordHold === run && !config.loggedIn) {
         navUpToScreen('login')
       }
-    } else if (hadError && askedAfterPaperKey) {
-      // Go logs out after a failed run, but if that fails it is still logged in with the paper key;
-      // read which so the screens match it
-      await useDaemonState.getState().dispatch.readSessionFromDaemon('password recovery failed')
     }
     configDispatch.holdForRecoverPassword(run, false)
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)

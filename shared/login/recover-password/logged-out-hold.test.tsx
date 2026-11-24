@@ -14,14 +14,19 @@ import {holdLoggedOutLink, releaseLoggedOutLink, useLinksLoggedIn} from '@/route
 import {_onEngineIncoming, initSharedSubscriptions} from '@/constants/init/shared'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {settle} from '@/test/flush'
 import {NavigationTree, makeRootState} from '@/test/navigation'
 import {modalRouteNames} from '@/test/route-names'
-import {startRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
+import {
+  answerLoggedOut,
+  answerPaperKey,
+  askNewPassword,
+  askPgp,
+  flush,
+  pgpWarning,
+  setPassword,
+  startRun as startRunOn,
+} from '@/test/recover-password'
 import PgpWarning from './pgp-warning'
-
-const recover = 'keybase.1.login.recoverPassphrase'
-const pgpWarning = 'recoverPasswordPgpWarning'
 
 let fake: FakeEngine
 // The root group each committed navigation state showed, collapsing repeats: one entry per switch.
@@ -45,17 +50,7 @@ beforeEach(() => {
   NavTree.setModalRouteNames(modalRouteNames)
   fake = installFakeEngine()
   roots = []
-  // a failed run reads the session after; Go logged out, as it does after a failure
-  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
-    deviceID: '',
-    deviceName: '',
-    fullname: '',
-    loggedIn: false,
-    registered: true,
-    uid: '',
-    userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
-    username: '',
-  }))
+  answerLoggedOut(fake)
 })
 
 afterEach(() => {
@@ -65,12 +60,6 @@ afterEach(() => {
 })
 
 const pendingURL = () => useNavigationIntentsState.getState().intent?.url
-
-const flush = async (turns = 3) => {
-  for (let i = 0; i < turns; i++) {
-    await act(async () => settle())
-  }
-}
 
 const mount = async () => {
   render(<App />)
@@ -84,29 +73,13 @@ const mount = async () => {
 
 const visibleName = () => NavTree.visibleScreen(navigationRef.getRootState() as NavTree.NavState)?.name
 
-const startRun = async () => {
-  const held = fake.hold(recover)
-  act(() => startRecoverPassword({username: 'testuser'}))
-  await flush()
-  const sessionID = fake.calls.find(c => c.method === recover)!.params.sessionID as number
-  const push = async (method: string, params: object) => fake.push(method, params, {sessionID})
-  return {push, reply: held.at(-1)!.reply}
-}
+const startRun = async () => startRunOn(fake)
 
 // Through the paper key to the pgp warning: Go is logged in now, and asks.
 const toPgpWarning = async () => {
   const run = await startRun()
-  const paperKey = run.push('keybase.1.secretUi.getPassphrase', {
-    pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.paperKey},
-  })
-  await flush()
-  act(() => submitRecoverPasswordPaperKey('one two three'))
-  await flush()
-  await paperKey
-  const pgp = run.push('keybase.1.loginUi.promptPassphraseRecovery', {
-    kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys,
-  })
-  await flush()
+  await answerPaperKey(run.push)
+  const {answer: pgp} = await askPgp(run.push)
   expect(visibleName()).toBe(pgpWarning)
   return {...run, pgp}
 }
@@ -128,13 +101,9 @@ test('a session read mid-prompt keeps the prompt, and success switches to the ap
   fireEvent.click(screen.getByText('Continue'))
   await flush()
   await expect(pgp).resolves.toEqual({result: true})
-  const password = push('keybase.1.secretUi.getPassphrase', {
-    pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase},
-  })
-  await flush()
-  expect(visibleName()).toBe('recoverPasswordSetPassword')
+  await askNewPassword(push)
+  expect(visibleName()).toBe(setPassword)
   expect(roots).toEqual(['loggedOut'])
-  void password
 
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
   reply(null)
@@ -154,10 +123,7 @@ test('a share held while logged out stays held through the run, and opens once t
   fireEvent.click(screen.getByText('Continue'))
   await flush()
   await pgp
-  void push('keybase.1.secretUi.getPassphrase', {
-    pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase},
-  })
-  await flush()
+  await askNewPassword(push)
   expect(pendingURL()).toBeUndefined()
 
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
@@ -272,11 +238,8 @@ describe('the run ends on what the daemon says', () => {
     fireEvent.click(screen.getByText('Continue'))
     await flush()
     await run.pgp
-    void run.push('keybase.1.secretUi.getPassphrase', {
-      pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase},
-    })
-    await flush()
-    expect(visibleName()).toBe('recoverPasswordSetPassword')
+    await askNewPassword(run.push)
+    expect(visibleName()).toBe(setPassword)
     daemonLoggedIn = true
     return run
   }

@@ -157,8 +157,8 @@ export const newRoutes = defineRouteMap({
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
-  // Go asks these after the paper key is accepted and before it logs the user in. Taking either
-  // screen away is the decline (use-cancel-on-leave).
+  // Go asks these once the paper key has logged it in, holding back only the login notification
+  // until the new password is set. Taking either screen away is the decline (use-cancel-on-leave).
   recoverPasswordPgpWarning: {
     getOptions: {...recoverPasswordGetOptions, gestureEnabled: false},
     screen: React.lazy(async () => import('./recover-password/pgp-warning')),
