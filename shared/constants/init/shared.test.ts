@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {settle} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -551,6 +551,86 @@ describe('a new connection', () => {
 
     expect(useDaemonState.getState().handshakeState).toBe('done')
     expect(useConfigState.getState().loggedIn).toBe(true)
+  })
+
+  const subscribeCalls = () => fake.calls.filter(c => c.method === 'keybase.1.notifyCtl.setNotifications').length
+
+  // A connection left unsubscribed would run with no notifications at all
+  test('a failed subscription fails the attempt and the retry subscribes again', async () => {
+    let attempts = 0
+    let readBeforeSubscribed = false
+    fake.answer('keybase.1.notifyCtl.setNotifications', () => {
+      attempts++
+      if (attempts === 1) {
+        return fakeError(1, 'subscribe failed')
+      }
+      subscribed = true
+      return null
+    })
+    fake.answer('keybase.1.config.getBootstrapStatus', () => {
+      readBeforeSubscribed ||= !subscribed
+      return session
+    })
+    connections++
+    onEngineConnected()
+    // past the delay before a retry
+    for (let i = 0; i < 300 && useDaemonState.getState().handshakeState !== 'done'; i++) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+    await connected()
+
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(attempts).toBe(2)
+    expect(readBeforeSubscribed).toBe(false)
+  })
+
+  describe('on fake timers', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+    // The engine's replies travel on node's setImmediate, which fake timers leave alone
+    const advance = async (ms: number) => {
+      jest.advanceTimersByTime(ms)
+      for (let i = 0; i < 10; i++) {
+        await tick()
+      }
+    }
+
+    test('a subscription that never settles fails the attempt so the retry subscribes again', async () => {
+      fake.hold('keybase.1.notifyCtl.setNotifications')
+      onEngineConnected()
+      await advance(0)
+      expect(subscribeCalls()).toBe(1)
+
+      fake.answer('keybase.1.notifyCtl.setNotifications', () => {
+        subscribed = true
+        return null
+      })
+      for (let i = 0; i < 120 && useDaemonState.getState().handshakeState !== 'done'; i++) {
+        await advance(1000)
+      }
+
+      expect(useDaemonState.getState().handshakeState).toBe('done')
+      expect(subscribeCalls()).toBe(2)
+    })
+
+    // Both connections' subscriptions land on the live link; only the newer one's UIs register
+    test('a connection superseded before its subscription lands registers no UIs', async () => {
+      const held = fake.hold('keybase.1.notifyCtl.setNotifications')
+      onEngineConnected()
+      await advance(0)
+      onEngineConnected()
+      await advance(0)
+      expect(held.length).toBe(2)
+      held.forEach(c => c.reply(null))
+      await advance(0)
+      await advance(0)
+
+      expect(fake.calls.filter(c => c.method === 'keybase.1.delegateUiCtl.registerChatUI').length).toBe(1)
+    })
   })
 
   test('the badge state the service resends on connect reaches the app', async () => {

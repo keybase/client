@@ -117,29 +117,66 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig);
 };
 
+// The subscription gates the handshake, so one that never settles would hold the splash forever
+const subscribeTimeoutMs = 10000;
+
 // The service sends a notification only to a connection subscribed to its channel, so nothing is
 // read on a connection before it subscribes.
 const subscribeNotifications = async () => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("Subscribing to notifications timed out")),
+      subscribeTimeoutMs,
+    );
+  });
   try {
-    // prettier-ignore
-    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-      channels: {
-        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-        paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
-        team: true, teamChanged: true, teambot: false, tracking: true, users: true, wallet: false,
-      },
-    })
-  } catch (error) {
-    logger.warn("error in toggling notifications: ", error);
+    await Promise.race([
+      // prettier-ignore
+      T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+        channels: {
+          allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+          chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+          deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+          devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+          paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
+          team: true, teamChanged: true, teambot: false, tracking: true, users: true, wallet: false,
+        },
+      }),
+      timedOut,
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
 };
 
-// The current connection's subscription, which the handshake and the UI registration wait on
-let notificationsSubscribed: Promise<void> = Promise.resolve();
-const subscribeNotificationsStep = async () => notificationsSubscribed;
+// One per connection. The handshake's step subscribes it; a failed attempt throws so the handshake
+// retries, and the retry calls the service again. `subscribed` settles once an attempt succeeds.
+type ConnectionSubscription = {
+  attempt?: Promise<void>;
+  onSubscribed: () => void;
+  subscribed: Promise<void>;
+};
+const newConnectionSubscription = (): ConnectionSubscription => {
+  let onSubscribed = () => {};
+  const subscribed = new Promise<void>((resolve) => {
+    onSubscribed = resolve;
+  });
+  return { onSubscribed, subscribed };
+};
+let connectionSubscription = newConnectionSubscription();
+
+const subscribeNotificationsStep = async () => {
+  const sub = connectionSubscription;
+  sub.attempt ??= subscribeNotifications().then(
+    sub.onSubscribed,
+    (error: unknown) => {
+      sub.attempt = undefined;
+      throw error;
+    },
+  );
+  await sub.attempt;
+};
 
 export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts;
@@ -515,13 +552,18 @@ const onNavStateChanged = (
 };
 
 export const onEngineConnected = () => {
-  notificationsSubscribed = subscribeNotifications();
+  const sub = newConnectionSubscription();
+  connectionSubscription = sub;
   {
     const registerUIs = async () => {
       try {
         // Registering the identify UI is when the service resends the badge state, so it must
         // come after the subscription or the badges it sends are dropped
-        await notificationsSubscribed;
+        await sub.subscribed;
+        // A newer connection registers its own UIs
+        if (sub !== connectionSubscription) {
+          return;
+        }
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise();
         await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise();
         logger.info("Registered Chat UI");
