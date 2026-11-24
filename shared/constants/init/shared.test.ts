@@ -149,8 +149,11 @@ describe('the session comes from the service', () => {
 
   let fake: FakeEngine
   let seq = 0
+  // The session the service has, which a read returns with the seq of the latest one it sent
+  let current = loggedOut
   // The service sends the session it changed to, numbered in the order it sent them
   const send = async (bs: T.RPCGen.BootstrapStatus, sessionSeq = ++seq) => {
+    current = bs
     await fake.push('keybase.1.NotifySession.sessionChanged', {status: {...bs, sessionSeq}}, {oneway: true})
     await settle()
   }
@@ -173,8 +176,9 @@ describe('the session comes from the service', () => {
   // A new connection's handshake: the service has sent nothing on it yet
   beforeEach(async () => {
     seq = 0
+    current = loggedOut
     fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
-    fake.answer('keybase.1.config.getBootstrapStatus', () => loggedOut)
+    fake.answer('keybase.1.config.getBootstrapStatus', () => ({...current, sessionSeq: seq}))
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
     useConfigState.getState().dispatch.setUserSwitching(false)
     initSharedSubscriptions()
@@ -317,7 +321,29 @@ describe('the session comes from the service', () => {
     expect(useConfigState.getState().userSwitching).toBe(false)
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useCurrentUserState.getState().uid).toBe('')
-    expect(sessionReads()).toBe(1)
+  })
+
+  // The service logged A out, but the session it sent for that has not reached us when the login
+  // fails: ending the switch must not put A back.
+  test('a switch whose login fails before its logout reaches us ends logged out, never back on the old account', async () => {
+    await send(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    const logins = fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser2', '')
+    await settle()
+    current = loggedOut
+    seq++
+    const {changes, unsub} = loginChanges()
+
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'))
+    await settle(2)
+    await send(loggedOut, seq)
+    unsub()
+
+    expect(changes).toEqual([])
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
   })
 
   // The switch-start reset logged A out of our stores, and the service sends nothing: nothing
@@ -422,7 +448,6 @@ describe('a new connection subscribes before it reads', () => {
   test('a login between the read and the subscription still reaches the app', async () => {
     const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
     let session = loggedOut
-    let subscribed = false
     const subscribes = fake.hold('keybase.1.notifyCtl.setNotifications')
     fake.answer('keybase.1.config.getBootstrapStatus', () => session)
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
@@ -444,12 +469,8 @@ describe('a new connection subscribes before it reads', () => {
     onEngineConnected()
     await settle()
 
-    // The user logs in on the service; a subscribed connection is told
+    // The user logs in on the service before the subscription lands, so nothing is sent to us
     session = userA
-    if (subscribed) {
-      await fake.push('keybase.1.NotifySession.sessionChanged', {status: {...userA, sessionSeq: 1}}, {oneway: true})
-    }
-    subscribed = true
     subscribes.forEach(c => c.reply(null))
     await settle()
 

@@ -59,11 +59,26 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   // latest push it is at least as new as, so it may replace that push; a push replaces only older
   // ones. Counted per connection: a new handshake may be talking to a restarted service.
   let sessionSeq = -1
+  // Reads are numbered as they are issued. Two reads can carry the same seq and reply in either
+  // order, so at an equal seq only a read issued after the one that applied may replace it.
+  let readsIssued = 0
+  let readAppliedAtSeq = 0
+  // Until this connection's first read replies, a push may still be one the previous connection
+  // sent (a restarted service numbers from zero again), so it is held back. The highest seq held
+  // back is read again if the first read is older than it.
+  let firstReadDone = false
+  let heldPushSeq = -1
 
-  const applySession = (bs: T.RPCGen.BootstrapStatus, read: boolean) => {
-    if (read ? bs.sessionSeq < sessionSeq : bs.sessionSeq <= sessionSeq) {
+  // read is the read's issue number, undefined for a push
+  const applySession = (bs: T.RPCGen.BootstrapStatus, read?: number) => {
+    const stale =
+      read === undefined
+        ? bs.sessionSeq <= sessionSeq
+        : bs.sessionSeq < sessionSeq || (bs.sessionSeq === sessionSeq && read < readAppliedAtSeq)
+    if (stale) {
       return
     }
+    readAppliedAtSeq = read ?? 0
     sessionSeq = bs.sessionSeq
     if (isEqual(bs, get().bootstrapStatus)) {
       return
@@ -75,6 +90,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
 
   const readBootstrapStatus = async () => {
     const gen = generation
+    const read = ++readsIssued
     const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
     logger.info(
       `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} seq: ${bs.sessionSeq} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
@@ -83,7 +99,13 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     if (gen !== generation) {
       return
     }
-    applySession(bs, true)
+    applySession(bs, read)
+    if (!firstReadDone) {
+      firstReadDone = true
+      if (heldPushSeq > bs.sessionSeq) {
+        get().dispatch.refreshSessionFromDaemon('a session sent before the first read replied')
+      }
+    }
   }
 
   const dispatch: State['dispatch'] = {
@@ -94,7 +116,11 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     loadDaemonBootstrapStatus: readBootstrapStatus,
     onSessionChanged: status => {
       logger.info(`[Bootstrap] session changed: loggedIn: ${status.loggedIn ? 1 : 0} seq: ${status.sessionSeq}`)
-      applySession(status, false)
+      if (!firstReadDone) {
+        heldPushSeq = Math.max(heldPushSeq, status.sessionSeq)
+        return
+      }
+      applySession(status)
     },
     readSessionFromDaemon: async reason => {
       logger.info(`[Bootstrap] reading the session: ${reason}`)
@@ -133,6 +159,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     startHandshake: () => {
       const gen = ++generation
       sessionSeq = -1
+      readAppliedAtSeq = 0
+      firstReadDone = false
+      heldPushSeq = -1
       set(s => {
         s.error = undefined
         s.handshakeFailedReason = ''

@@ -161,10 +161,11 @@ describe('login', () => {
 
   const flush = settle
 
-  // The service, with every login held for the test to end. It answers nothing else: the session
-  // comes with the service's sessionChanged, so a login that ends reads nothing.
+  // The service, with every login held for the test to end. The session comes with the service's
+  // sessionChanged; only a failed switch reads it, and finds no one logged in.
   const serve = (): {fake: FakeEngine; logins: ReturnType<FakeEngine['hold']>} => {
     const fake = installFakeEngine()
+    fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: false, sessionSeq: 0}))
     return {fake, logins: fake.hold(loginRpc)}
   }
 

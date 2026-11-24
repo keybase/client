@@ -26,6 +26,7 @@ import {
 import { disposeDialogsForLogout } from "@/engine/dialog";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
+import { useDaemonState } from "@/stores/daemon";
 import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
@@ -338,7 +339,16 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             return;
           }
           // Every failure that was not superseded ends the switch here; nothing else would. Ending it
-          // applies the service's latest session, a logged-out one included.
+          // applies the latest session we hold, which can still be the account being left when the
+          // service logged it out but has not sent that yet, so read the service's session first.
+          if (get().userSwitching) {
+            await useDaemonState
+              .getState()
+              .dispatch.readSessionFromDaemon("account switch failed");
+            if (superseded()) {
+              return;
+            }
+          }
           get().dispatch.setUserSwitching(false);
           if (!(error instanceof RPCError)) {
             return;

@@ -182,11 +182,63 @@ describe('the session the service sends and the session read from it', () => {
   })
 
   test('a read older than a session already sent is dropped', async () => {
+    await reply(status('testuser', 0))
     await send(status('testuser2', 2))
+    useDaemonState.getState().dispatch.refreshSessionFromDaemon('test')
+    await settle()
     await reply(status('testuser', 1))
 
     expect(username()).toBe('testuser2')
+  })
+
+  // It may be the previous connection's, so it is not applied, but it may also be newer than the read
+  test('a session sent before the first read replies, newer than that read, is read again', async () => {
+    await send(status('testuser2', 2))
+    await reply(status('testuser', 1))
     expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(reads).toHaveLength(2)
+
+    await reply(status('testuser2', 2))
+    expect(username()).toBe('testuser2')
+  })
+
+  test('a session sent before the first read replies, no newer than that read, is not read again', async () => {
+    await send(status('testuser2', 1))
+    await reply(status('testuser', 1))
+
+    expect(reads).toHaveLength(1)
+    expect(username()).toBe('testuser')
+  })
+
+  // A restarted service numbers from zero again
+  test("a session the previous connection sent, handled after a new handshake began, does not block the new connection's", async () => {
+    await reply(status('testuser', 0))
+    useDaemonState.getState().dispatch.startHandshake()
+    await settle()
+    await send(status('testuser', 6))
+
+    await reply(status('testuser2', 0))
+    expect(username()).toBe('testuser2')
+    // the held session is newer than the read, so it is read again
+    await reply(status('testuser2', 0))
+    await send(status('', 1))
+    expect(username()).toBe('')
+  })
+
+  test('of two reads at the same seq, the one issued later wins whichever replies last', async () => {
+    await reply(status('testuser', 0))
+    const {dispatch} = useDaemonState.getState()
+    dispatch.refreshSessionFromDaemon('first')
+    dispatch.refreshSessionFromDaemon('second')
+    await settle()
+    expect(reads).toHaveLength(3)
+
+    reads[2]!.reply({...status('testuser', 0), fullname: 'newer'})
+    await settle()
+    reads[1]!.reply({...status('testuser', 0), fullname: 'older'})
+    await settle()
+
+    expect(useDaemonState.getState().bootstrapStatus?.fullname).toBe('newer')
   })
 
   // The session can change without a login or logout (a device bootstrapped by an engine)
