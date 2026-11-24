@@ -170,8 +170,6 @@
   "keybase.1.NotifyService.handleKeybaseLink": {"incoming":true},
   "keybase.1.NotifyService.shutdown": {"custom":true},
   "keybase.1.NotifySession.clientOutOfDate": {"custom":true},
-  "keybase.1.NotifySession.loggedIn": {"custom":true},
-  "keybase.1.NotifySession.loggedOut": {"incoming":true},
   "keybase.1.NotifySession.sessionChanged": {"incoming":true},
   "keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged": {"incoming":true},
   "keybase.1.NotifyTeam.avatarUpdated": {"incoming":true},

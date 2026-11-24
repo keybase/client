@@ -81,8 +81,6 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyService.handleKeybaseLink' |
   'keybase.1.NotifyService.shutdown' |
   'keybase.1.NotifySession.clientOutOfDate' |
-  'keybase.1.NotifySession.loggedIn' |
-  'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifySession.sessionChanged' |
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
   'keybase.1.NotifyTeam.avatarUpdated' |

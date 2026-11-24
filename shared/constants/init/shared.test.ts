@@ -182,7 +182,7 @@ describe('the session comes from the service', () => {
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
     useConfigState.getState().dispatch.setUserSwitching(false)
     initSharedSubscriptions()
-    useDaemonState.getState().dispatch.initBootstrapSteps([])
+    useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
     useDaemonState.getState().dispatch.startHandshake()
     await settle()
   })

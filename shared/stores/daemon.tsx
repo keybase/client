@@ -33,8 +33,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    initBootstrapSteps: (steps: Array<BootstrapStep>, subscribe?: BootstrapStep) => void
-    loadDaemonBootstrapStatus: () => Promise<void>
+    initBootstrapSteps: (steps: Array<BootstrapStep>, subscribe: BootstrapStep) => void
     onSessionChanged: (status: T.RPCGen.BootstrapStatus) => void
     refreshSessionFromDaemon: (reason: string) => void
     // refreshSessionFromDaemon for a caller that waits: settles once the read has applied, or failed
@@ -113,7 +112,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       bootstrapSteps = steps
       subscribeStep = subscribe
     },
-    loadDaemonBootstrapStatus: readBootstrapStatus,
     onSessionChanged: status => {
       logger.info(`[Bootstrap] session changed: loggedIn: ${status.loggedIn ? 1 : 0} seq: ${status.sessionSeq}`)
       if (!firstReadDone) {
@@ -173,7 +171,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         while (gen === generation) {
           try {
             await subscribeStep?.()
-            await get().dispatch.loadDaemonBootstrapStatus()
+            await readBootstrapStatus()
             await Promise.all(bootstrapSteps.map(async step => step()))
             if (gen !== generation) {
               return

@@ -9,6 +9,8 @@ import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fa
 import {settle} from '@/test/flush'
 import {FatalHandshakeError, useDaemonState} from '../daemon'
 
+const noSubscribe = async () => {}
+
 const bootstrapStatus = {
   deviceID: 'd1',
   deviceName: 'testuser-mac',
@@ -33,7 +35,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {})
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -47,7 +49,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValueOnce(new Error('flaky'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -66,7 +68,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValue(new Error('down'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -84,7 +86,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValue(new FatalHandshakeError('pipe owner fail'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -102,9 +104,9 @@ describe('daemon store', () => {
       .mockImplementationOnce(async () => new Promise<never>(() => {}))
       .mockResolvedValue(bootstrapStatus)
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([])
+    store.getState().dispatch.initBootstrapSteps([], noSubscribe)
 
-    ignorePromise(store.getState().dispatch.loadDaemonBootstrapStatus())
+    ignorePromise(store.getState().dispatch.readSessionFromDaemon('test'))
     await jest.advanceTimersByTimeAsync(0)
 
     store.getState().dispatch.startHandshake()
@@ -139,7 +141,7 @@ describe('daemon store', () => {
   test('resetState keeps the handshake generation: it counts connections, not accounts', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const {dispatch} = useDaemonState.getState()
-    dispatch.initBootstrapSteps([])
+    dispatch.initBootstrapSteps([], noSubscribe)
     dispatch.startHandshake()
     dispatch.startHandshake()
     const gen = useDaemonState.getState().handshakeGeneration
@@ -172,7 +174,7 @@ describe('the session the service sends and the session read from it', () => {
   beforeEach(async () => {
     fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
     reads = fake.hold(bootstrapRpc)
-    useDaemonState.getState().dispatch.initBootstrapSteps([])
+    useDaemonState.getState().dispatch.initBootstrapSteps([], noSubscribe)
     useDaemonState.getState().dispatch.startHandshake()
     await settle()
   })
@@ -325,9 +327,9 @@ describe('a superseded read', () => {
       )
       .mockResolvedValue(bootstrapStatus)
     const {dispatch} = useDaemonState.getState()
-    dispatch.initBootstrapSteps([])
+    dispatch.initBootstrapSteps([], noSubscribe)
 
-    const losing = dispatch.loadDaemonBootstrapStatus()
+    const losing = dispatch.readSessionFromDaemon('test')
     dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
     resolveLosing({...bootstrapStatus, username: 'stale'})

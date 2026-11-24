@@ -139,20 +139,6 @@ test('logging out keeps the http server address: it belongs to the process, not 
   expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:2', token: 'token'})
 })
 
-test('loggedIn and loggedOut notifications do not set the session themselves', () => {
-  const {dispatch} = useConfigState.getState()
-  dispatch.onEngineIncoming({
-    payload: {params: {signedUp: false, username: 'testuser'}},
-    type: 'keybase.1.NotifySession.loggedIn',
-  } as never)
-  expect(useConfigState.getState().loggedIn).toBe(false)
-
-  dispatch.setLoggedIn(true)
-  dispatch.onEngineIncoming({payload: {params: undefined}, type: 'keybase.1.NotifySession.loggedOut'} as never)
-  expect(useConfigState.getState().loggedIn).toBe(true)
-  dispatch.setLoggedIn(false)
-})
-
 describe('login', () => {
   const loginRpc = 'keybase.1.login.login'
   afterEach(() => {
