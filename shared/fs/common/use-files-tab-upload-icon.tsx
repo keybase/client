@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {clientID as fsClientID, makeUUID} from './client'
-import {useKbfsDaemonStatus} from './daemon'
+import {useFsConnectionGeneration, useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
 
 export const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
@@ -43,6 +43,7 @@ const fetchUploadIcon = async (
 
 export const useFilesTabUploadIcon = () => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  const connectionGeneration = useFsConnectionGeneration()
   const connectedRef = React.useRef(connected)
   const generationRef = React.useRef(0)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -67,16 +68,15 @@ export const useFilesTabUploadIcon = () => {
   React.useEffect(() => {
     if (!connected) {
       generationRef.current++
-      return
     }
-    loadUploadIcon()
   }, [connected])
   C.Router2.useSafeFocusEffect(stableLoadUploadIcon)
 
   React.useEffect(() => {
-    if (!connected) {
+    if (!connected || connectionGeneration === undefined) {
       return
     }
+    let current = true
     const subscriptionID = makeUUID()
     const f = async () => {
       try {
@@ -90,9 +90,14 @@ export const useFilesTabUploadIcon = () => {
       } catch (error) {
         onError(error)
       }
+      // Read once the service holds the subscription: a change before then sent no notification
+      if (current) {
+        loadUploadIcon()
+      }
     }
     C.ignorePromise(f())
     return () => {
+      current = false
       C.ignorePromise(
         T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
           clientID: fsClientID,
@@ -101,7 +106,7 @@ export const useFilesTabUploadIcon = () => {
         }).catch(() => {})
       )
     }
-  }, [connected])
+  }, [connected, connectionGeneration])
 
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',

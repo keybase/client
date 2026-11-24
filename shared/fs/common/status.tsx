@@ -7,7 +7,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useNotifState} from '@/stores/notifications'
 import isEqual from 'lodash/isEqual'
 import {clientID as fsClientID, makeUUID} from './client'
-import {FsDaemonProvider, useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
+import {FsDaemonProvider, useFsConnectionGeneration, useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
 import {rpcPathToPath} from './rpc-state'
 
@@ -50,25 +50,22 @@ const unsubscribe = (subscriptionID: string) => {
   )
 }
 
-const subscribeNonPath = (
+const subscribeNonPath = async (
   subscriptionID: string,
   topic: T.RPCGen.SubscriptionTopic,
   errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
 ) => {
-  const f = async () => {
-    try {
-      await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-        clientID: fsClientID,
-        deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-        subscriptionID,
-        topic,
-      })
-    } catch (error) {
-      errorToActionOrThrow(error)
-    }
+  try {
+    await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+      clientID: fsClientID,
+      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+      subscriptionID,
+      topic,
+    })
+  } catch (error) {
+    errorToActionOrThrow(error)
   }
-  C.ignorePromise(f())
 }
 
 const loadUploadStatusImpl = async (
@@ -172,6 +169,7 @@ const runJournalStatusRequest = async (
 
 const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  const connectionGeneration = useFsConnectionGeneration()
   const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const subscriptionErrorToActionOrThrow = React.useEffectEvent((error: unknown) => {
@@ -349,38 +347,44 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   })
 
   React.useEffect(() => {
-    if (!connected) {
+    if (!connected || connectionGeneration === undefined) {
       return
     }
-    loadSettings()
-    loadUploadStatus()
-    loadJournalStatus()
-  }, [connected])
-
-  React.useEffect(() => {
-    if (!connected) {
-      return
-    }
+    let current = true
     const settingsSubID = makeUUID()
     const uploadStatusSubID = makeUUID()
     const journalStatusSubID = makeUUID()
-    subscribeNonPath(settingsSubID, T.RPCGen.SubscriptionTopic.settings, subscriptionErrorToActionOrThrow)
-    subscribeNonPath(
-      uploadStatusSubID,
-      T.RPCGen.SubscriptionTopic.uploadStatus,
-      subscriptionErrorToActionOrThrow
-    )
-    subscribeNonPath(
-      journalStatusSubID,
-      T.RPCGen.SubscriptionTopic.journalStatus,
-      subscriptionErrorToActionOrThrow
+    const subscribed = Promise.all([
+      subscribeNonPath(settingsSubID, T.RPCGen.SubscriptionTopic.settings, subscriptionErrorToActionOrThrow),
+      subscribeNonPath(
+        uploadStatusSubID,
+        T.RPCGen.SubscriptionTopic.uploadStatus,
+        subscriptionErrorToActionOrThrow
+      ),
+      subscribeNonPath(
+        journalStatusSubID,
+        T.RPCGen.SubscriptionTopic.journalStatus,
+        subscriptionErrorToActionOrThrow
+      ),
+    ])
+    // Read once the service holds the subscriptions: a change before then sent no notification
+    C.ignorePromise(
+      subscribed.then(() => {
+        if (!current) {
+          return
+        }
+        loadSettings()
+        loadUploadStatus()
+        loadJournalStatus()
+      })
     )
     return () => {
+      current = false
       unsubscribe(settingsSubID)
       unsubscribe(uploadStatusSubID)
       unsubscribe(journalStatusSubID)
     }
-  }, [connected])
+  }, [connected, connectionGeneration])
 
   useEngineActionListener(
     'keybase.1.NotifyFS.FSOverallSyncStatusChanged',

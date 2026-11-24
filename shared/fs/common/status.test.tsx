@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {act, cleanup, render, screen} from '@testing-library/react'
 import {useConfigState} from '@/stores/config'
+import {useDaemonState} from '@/stores/daemon'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {_onEngineIncoming} from '@/constants/init/shared'
@@ -38,6 +39,7 @@ beforeEach(() => {
   journal = {endEstimate: null, syncingPaths: null, totalSyncingBytes: 0}
   fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
   useConfigState.setState({loggedIn: true})
+  useDaemonState.setState({handshakeState: 'done'})
   fake.answer('keybase.1.config.waitForClient', () => true)
   fake.answer('keybase.1.SimpleFS.simpleFSSubscribeNonPath', () => null)
   fake.answer('keybase.1.SimpleFS.simpleFSUnsubscribe', () => null)
@@ -159,4 +161,39 @@ test('an empty file list counts no files even while folders sync', async () => {
   await renderUploadFooter()
 
   screen.getByText('Encrypting and updating items...')
+})
+
+// Whether the service restarted or only the link dropped, a change made while the app was away sent
+// it no notification, and KBFS stays connected throughout. The new connection subscribes again and
+// rereads what changed.
+test('a reconnect subscribes again and rereads the journal', async () => {
+  const journalSubscriptions = () =>
+    fake.calls.filter(
+      c =>
+        c.method === 'keybase.1.SimpleFS.simpleFSSubscribeNonPath' &&
+        c.params.topic === T.RPCGen.SubscriptionTopic.journalStatus
+    )
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
+    loggedIn: true,
+    sessionSeq: 0,
+    uid: 'uid',
+    username: 'testuser',
+  }))
+  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush()
+  await renderStatus()
+  screen.getByText('0 paths, 0 bytes')
+  expect(journalSubscriptions()).toHaveLength(1)
+
+  act(() => fake.drop())
+  await flush()
+  journal = {endEstimate: null, syncingPaths: ['/keybase/private/testuser/a.pdf'], totalSyncingBytes: 585}
+  act(() => fake.restart())
+  await flush()
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush(8)
+
+  expect(journalSubscriptions()).toHaveLength(2)
+  screen.getByText('1 paths, 585 bytes')
 })
