@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
@@ -159,15 +161,102 @@ func TestInboxUnboxerRetriesTransientFailures(t *testing.T) {
 	rec.waitCalled(t)
 	waitBackoff(t, clock)
 	clock.Advance(inboxUnboxRetryBackoff)
-	rec.waitCalled(t)
-	waitBackoff(t, clock)
-	clock.Advance(2 * inboxUnboxRetryBackoff)
 	waitDone(t, done)
+	// one retry: the second attempt is final and answers whatever it gets
 	require.Equal(t, []unboxPassCall{
 		{convIDs: []chat1.ConversationID{unboxConvA, unboxConvB}, final: false},
-		{convIDs: []chat1.ConversationID{unboxConvA}, final: false},
 		{convIDs: []chat1.ConversationID{unboxConvA}, final: true},
 	}, rec.getCalls())
+}
+
+func localizedResult(convID chat1.ConversationID) types.AsyncInboxResult {
+	return types.AsyncInboxResult{
+		Conv: types.RemoteConversation{Conv: chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{ConversationID: convID},
+		}},
+		ConvLocal: chat1.ConversationLocal{Info: chat1.ConversationInfoLocal{Id: convID}},
+	}
+}
+
+type collectResult struct {
+	localized   []chat1.ConversationID
+	undelivered []chat1.ConversationID
+	err         error
+}
+
+func startCollect(ctx context.Context, clock clockwork.Clock, localizeCb chan types.AsyncInboxResult,
+	want ...chat1.ConversationID,
+) chan collectResult {
+	ch := make(chan collectResult, 1)
+	go func() {
+		var res collectResult
+		res.undelivered, res.err = collectLocalized(ctx, clock, inboxUnboxLocalizeTimeout, localizeCb, want,
+			func(conv chat1.ConversationLocal) { res.localized = append(res.localized, conv.GetConvID()) })
+		ch <- res
+	}()
+	return ch
+}
+
+func waitCollect(t *testing.T, ch chan collectResult) collectResult {
+	select {
+	case res := <-ch:
+		return res
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "collectLocalized did not return")
+		return collectResult{}
+	}
+}
+
+func TestCollectLocalizedReturnsOnceEveryConvIsLocalized(t *testing.T) {
+	localizeCb := make(chan types.AsyncInboxResult, 4)
+	localizeCb <- types.AsyncInboxResult{InboxRes: &types.Inbox{}}
+	localizeCb <- localizedResult(chat1.ConversationID("cccc"))
+	localizeCb <- localizedResult(unboxConvA)
+	localizeCb <- localizedResult(unboxConvB)
+	// left open: the job may still be localizing convs nobody asked for
+	res := waitCollect(t, startCollect(context.Background(), clockwork.NewFakeClock(), localizeCb, unboxConvA, unboxConvB))
+	require.NoError(t, res.err)
+	require.Equal(t, []chat1.ConversationID{unboxConvA, unboxConvB}, res.localized)
+	require.Empty(t, res.undelivered)
+}
+
+func TestCollectLocalizedGivesUpOnASuspendedLocalizer(t *testing.T) {
+	clock := clockwork.NewFakeClock()
+	localizeCb := make(chan types.AsyncInboxResult, 2)
+	localizeCb <- localizedResult(unboxConvA)
+	ch := startCollect(context.Background(), clock, localizeCb, unboxConvA, unboxConvB)
+	clock.BlockUntil(1)
+	clock.Advance(inboxUnboxLocalizeTimeout)
+	res := waitCollect(t, ch)
+	require.NoError(t, res.err)
+	require.Equal(t, []chat1.ConversationID{unboxConvA}, res.localized)
+	require.Equal(t, []chat1.ConversationID{unboxConvB}, res.undelivered)
+}
+
+func TestCollectLocalizedReturnsTheConvsAClosedChannelNeverDelivered(t *testing.T) {
+	// what a localizer that isn't running leaves: the channel closed with nothing on it
+	localizeCb := make(chan types.AsyncInboxResult)
+	close(localizeCb)
+	res := waitCollect(t, startCollect(context.Background(), clockwork.NewFakeClock(), localizeCb, unboxConvA))
+	require.NoError(t, res.err)
+	require.Empty(t, res.localized)
+	require.Equal(t, []chat1.ConversationID{unboxConvA}, res.undelivered)
+}
+
+func TestCollectLocalizedStopsWhenSessionEnds(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := startCollect(ctx, clockwork.NewFakeClock(), make(chan types.AsyncInboxResult), unboxConvA)
+	cancel()
+	require.ErrorIs(t, waitCollect(t, ch).err, context.Canceled)
+}
+
+func TestRetryableReadError(t *testing.T) {
+	require.True(t, retryableReadError(errors.New("flaky inbox remote")))
+	require.False(t, retryableReadError(OfflineError{}))
+	require.False(t, retryableReadError(context.DeadlineExceeded))
+	require.False(t, retryableReadError(libkb.ChatRateLimitError{Msg: "slow down"}))
+	require.False(t, retryableReadError(libkb.AppStatusError{Code: libkb.SCRateLimit}))
+	require.False(t, retryableReadError(fmt.Errorf("read: %w", libkb.AppStatusError{Code: libkb.SCChatRateLimit})))
 }
 
 func TestInboxUnboxerOfflineAnswersOnFirstPass(t *testing.T) {

@@ -148,11 +148,11 @@ export type MessageTypes = {
     outParam: void,
   },
   'chat.1.chatUi.chatInboxConversation': {
-    inParam: {readonly convs: string},
+    inParam: {readonly convs: string,readonly uid: Keybase1.UID},
     outParam: void,
   },
   'chat.1.chatUi.chatInboxFailed': {
-    inParam: {readonly convID: ConversationID,readonly error: InboxUIItemError},
+    inParam: {readonly convID: ConversationID,readonly error: InboxUIItemError,readonly uid: Keybase1.UID},
     outParam: void,
   },
   'chat.1.chatUi.chatInboxLayout': {

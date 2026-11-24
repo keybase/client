@@ -413,9 +413,9 @@ beforeEach(() => {
   })
   useShellState.setState({active: false, appFocused: false})
   const unboxRows = InboxMetadata.unboxRows
-  jest.spyOn(InboxMetadata, 'unboxRows').mockImplementation(ids => {
+  jest.spyOn(InboxMetadata, 'unboxRows').mockImplementation((ids, opts) => {
     record(`unboxRows:${ids.map(label).join(',')}`)
-    unboxRows(ids)
+    unboxRows(ids, opts)
   })
   const forceUnboxRowsForService = InboxMetadata.forceUnboxRowsForService
   jest.spyOn(InboxMetadata, 'forceUnboxRowsForService').mockImplementation(ids => {
@@ -746,8 +746,8 @@ const cases: Array<Case> = [
         },
       }),
     expected: {
-      A: ['unboxRows:A'],
-      'A+B': ['unboxRows:A'],
+      A: none,
+      'A+B': none,
       none: none,
     },
     name: 'chatInboxFailed',

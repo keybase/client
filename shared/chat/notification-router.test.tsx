@@ -364,7 +364,6 @@ describe('decodeChatNotification', () => {
 
   test.each([
     ['chat.1.NotifyChat.ChatConvUpdate', {conv: inboxItem(convA), convID: rpcConvID(convB)}],
-    ['chat.1.chatUi.chatInboxFailed', {convID: rpcConvID(convA)}],
     ['chat.1.NotifyChat.ChatSetConvSettings', {convID: rpcConvID(convA)}],
     ['chat.1.NotifyChat.ChatSetConvRetention', {convID: rpcConvID(convA)}],
   ] as const)('%s reloads one meta', (type, params) => {
@@ -421,6 +420,10 @@ describe('decodeChatNotification', () => {
     'chat.1.chatUi.chatInboxUnverified',
   ] as const)('%s is inbox-only', type => {
     expect(decoded(chat(type, {}))).toEqual({reloads: [], thread: []})
+  })
+
+  test('a failed unbox is inbox-only: a reader asking again would get the same failure', () => {
+    expect(decoded(chat('chat.1.chatUi.chatInboxFailed', {convID: rpcConvID(convA)}))).toEqual({reloads: [], thread: []})
   })
 })
 

@@ -259,6 +259,7 @@ func (h *UIInboxLoader) flushConvBatch(ctx context.Context) (err error) {
 	start = time.Now()
 	err = ui.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 		Convs: string(dat),
+		Uid:   keybase1.UID(uid.String()),
 	})
 	h.Debug(ctx, "flushConvBatch: transmit time: %v", time.Since(start))
 	return err
@@ -317,6 +318,7 @@ func (h *UIInboxLoader) flushFailed(ctx context.Context, r failedResponse) {
 		if err := ui.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 			ConvID: r.Conv.GetConvID(),
 			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), uid, *r.Conv.Error),
+			Uid:    keybase1.UID(uid.String()),
 		}); err != nil {
 			h.Debug(ctx, "flushFailed: failed to send failed conv: %s", err)
 		}

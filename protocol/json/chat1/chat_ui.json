@@ -2073,6 +2073,10 @@
         {
           "name": "convs",
           "type": "string"
+        },
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
         }
       ],
       "response": null
@@ -2090,6 +2094,10 @@
         {
           "name": "error",
           "type": "InboxUIItemError"
+        },
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
         }
       ],
       "response": null

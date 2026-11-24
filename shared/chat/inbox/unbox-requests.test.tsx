@@ -4,8 +4,10 @@ import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
-import {routeChatNotification} from '@/chat/notification-router'
-import {useRequestIncompleteConversationMeta} from '@/chat/conversation/data-hooks'
+import {setImmediate} from 'node:timers'
+import {useConversationMetadataReload, useRequestIncompleteConversationMeta} from '@/chat/conversation/data-hooks'
+import {_onEngineIncoming} from '@/constants/init/shared'
+import {startNewAccountGeneration} from '@/engine/account-generation'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -82,10 +84,10 @@ const failure = (typ: T.RPCChat.ConversationErrorType, message: string) => ({
 })
 
 beforeEach(() => {
-  fake = installFakeEngine({onEngineIncoming: action => routeChatNotification(action as never)})
+  fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
   fake.answer(requestInboxUnbox, () => {})
   useConfigState.setState({loggedIn: true, userSwitching: false})
-  useCurrentUserState.setState({username: 'testuser'})
+  useCurrentUserState.setState({uid: 'uid', username: 'testuser'})
   useDaemonState.setState({handshakeState: 'done'})
 })
 
@@ -182,14 +184,113 @@ test('the conversation answering a request lets the next one go', async () => {
   expect(unboxRequests()).toHaveLength(2)
 })
 
-test('a failure answering a request lets the next one go', async () => {
+test('a failure answering a request holds the next ordinary one until something about the conv changes', async () => {
   unboxRows([convID])
   await tick()
   await serviceAnswers('chat.1.chatUi.chatInboxFailed', failure(T.RPCChat.ConversationErrorType.transient, 'x'))
 
+  // asking again would get the same answer
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(1)
+
+  unboxRows([convID], {changed: true})
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('a failure answering a request lets a forced one go', async () => {
+  unboxRows([convID])
+  await tick()
+  await serviceAnswers('chat.1.chatUi.chatInboxFailed', failure(T.RPCChat.ConversationErrorType.transient, 'x'))
+
+  forceUnboxRowsForService([convID])
+  await tick()
+  expect(unboxRequests()).toEqual([
+    {convIDs: [convID], force: false},
+    {convIDs: [convID], force: true},
+  ])
+})
+
+test('a failure answering a request holds the next one only until a reconnect', async () => {
+  unboxRows([convID])
+  await tick()
+  await serviceAnswers('chat.1.chatUi.chatInboxFailed', failure(T.RPCChat.ConversationErrorType.transient, 'x'))
+  reconnect()
+
   unboxRows([convID])
   await tick()
   expect(unboxRequests()).toHaveLength(2)
+})
+
+// The service answering every request at once, as it does for a conv it can't find: removed, left,
+// deleted, or one it fails to unbox the same way each time.
+const serviceFailsEveryRequest = (typ: T.RPCChat.ConversationErrorType) =>
+  fake.answer(requestInboxUnbox, () => {
+    setImmediate(() => {
+      void fake.push('chat.1.chatUi.chatInboxFailed', failure(typ, 'conversation not found'))
+    })
+  })
+
+test.each([
+  ['transient', T.RPCChat.ConversationErrorType.transient],
+  ['permanent', T.RPCChat.ConversationErrorType.permanent],
+])('an open conversation the service answers with a %s failure is asked for once', async (_, typ) => {
+  serviceFailsEveryRequest(typ)
+  renderHook(() => useConversationMetadataReload(convID))
+  await flush(40)
+
+  expect(unboxRequests()).toEqual([{convIDs: [convID], force: false}])
+})
+
+test('an open conversation that failed is asked for again when a notification says it changed', async () => {
+  serviceFailsEveryRequest(T.RPCChat.ConversationErrorType.transient)
+  renderHook(() => useConversationMetadataReload(convID))
+  await flush(10)
+
+  await fake.push('chat.1.NotifyChat.ChatSetConvSettings', {convID: T.Chat.keyToConversationID(convID), uid: ''})
+  await flush(10)
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test('the header and the conversation asking for a trusted adhoc conv missing participants send one call', async () => {
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, trustedState: 'trusted'}])
+  renderHook(() => {
+    useRequestIncompleteConversationMeta(convID)
+    useConversationMetadataReload(convID)
+  })
+  await flush()
+
+  expect(unboxRequests()).toEqual([{convIDs: [convID], force: true}])
+})
+
+test('a logout lets the next request go', async () => {
+  unboxRows([convID])
+  await tick()
+  startNewAccountGeneration()
+
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(2)
+})
+
+test("another account's answer neither fills the store nor ends the signed-in account's request", async () => {
+  untrusted()
+  unboxRows([convID])
+  await tick()
+
+  await serviceAnswers('chat.1.chatUi.chatInboxConversation', {convs: JSON.stringify([unboxed()]), uid: 'uid-2'})
+  await serviceAnswers('chat.1.chatUi.chatInboxFailed', {
+    ...failure(T.RPCChat.ConversationErrorType.permanent, 'x'),
+    uid: 'uid-2',
+  })
+  expect(getInboxConversationMeta(convID)?.trustedState).toBe('untrusted')
+  unboxRows([convID])
+  await tick()
+  expect(unboxRequests()).toHaveLength(1)
+
+  await serviceAnswers('chat.1.chatUi.chatInboxConversation', {convs: JSON.stringify([unboxed()]), uid: 'uid'})
+  expect(getInboxConversationMeta(convID)?.trustedState).toBe('trusted')
 })
 
 test('a request the service refuses lets the next one go', async () => {

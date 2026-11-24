@@ -16,6 +16,7 @@ import {conversationGone, maybeChangeSelectedConversation} from './selection'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
+import {getAccountGeneration} from '@/engine/account-generation'
 
 export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useInboxMetadataState.getState().metas.get(conversationIDKey)
@@ -53,6 +54,7 @@ export const metaReceivedError = (
   error: T.RPCChat.InboxUIItemError
 ) => {
   pendingUnboxRows.delete(conversationIDKey)
+  failedUnboxRows.set(conversationIDKey, unboxGeneration())
   if (error.typ === T.RPCChat.ConversationErrorType.transient) {
     logger.info(
       `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
@@ -203,15 +205,25 @@ export const clearConversationsForInboxSync = () => {
   })
 }
 
-// Convs asked of the service with no answer yet, each with the handshake it was asked on. The service
-// answers every conv while the session and the link last, so an entry ends with its answer, a store
-// reset, or a new handshake (a lost link loses the answers in flight on it); none needs a timeout.
-const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, number>()
+// The link and the account an unbox is asked on. A new handshake loses the answers in flight on the
+// old link, and the next account answers none of the previous one's requests.
+const unboxGeneration = () => `${useDaemonState.getState().handshakeGeneration}:${getAccountGeneration()}`
+
+// Convs asked of the service with no answer yet. The service answers every conv while the session and
+// the link last, so an entry ends with its answer, a store reset, or a new generation; none needs a
+// timeout.
+const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, {generation: string}>()
 const isUnboxPending = (id: T.Chat.ConversationIDKey) =>
-  pendingUnboxRows.get(id) === useDaemonState.getState().handshakeGeneration
+  pendingUnboxRows.get(id)?.generation === unboxGeneration()
+
+// Convs the service answered with a failure, each with the generation it failed in. Asking again
+// would get the same answer, so only something that can change it asks again in that generation: a
+// notification about the conv, a forced request, or the user opening it.
+const failedUnboxRows = new Map<T.Chat.ConversationIDKey, string>()
+const unboxFailed = (id: T.Chat.ConversationIDKey) => failedUnboxRows.get(id) === unboxGeneration()
 
 const needsUnbox = (id: T.Chat.ConversationIDKey) =>
-  getInboxConversationMeta(id)?.trustedState !== 'trusted' && !isUnboxPending(id)
+  getInboxConversationMeta(id)?.trustedState !== 'trusted' && !isUnboxPending(id) && !unboxFailed(id)
 
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => ids.filter(needsUnbox)
 
@@ -258,6 +270,7 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
     },
     resetState: () => {
       pendingUnboxRows.clear()
+      failedUnboxRows.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -335,8 +348,8 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
     if (!conversationIDKeys.length) {
       return
     }
-    const handshake = useDaemonState.getState().handshakeGeneration
-    conversationIDKeys.forEach(id => pendingUnboxRows.set(id, handshake))
+    const entry = {generation: unboxGeneration()}
+    conversationIDKeys.forEach(id => pendingUnboxRows.set(id, entry))
     let asked: boolean | undefined
     logger.info(
       `unboxRows: unboxing len: ${conversationIDKeys.length} force: ${force} convs: ${conversationIDKeys.join(',')}`
@@ -355,9 +368,9 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       }
     }
     if (!asked) {
-      // no answer is coming for these
+      // no answer is coming for these; a later request's entry is left alone
       conversationIDKeys.forEach(id => {
-        if (pendingUnboxRows.get(id) === handshake) {
+        if (pendingUnboxRows.get(id) === entry) {
           pendingUnboxRows.delete(id)
         }
       })
@@ -366,7 +379,11 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
   ignorePromise(f())
 }
 
-export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+// changed: a notification says the convs changed, which can change a failed answer too
+export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, opts?: {changed?: boolean}) => {
+  if (opts?.changed) {
+    ids.forEach(id => failedUnboxRows.delete(id))
+  }
   requestInboxUnboxRows(ids, false)
 }
 
@@ -431,10 +448,12 @@ export const loadConversationMeta = async (id: T.Chat.ConversationIDKey) => {
 }
 
 // For screens that render straight from this store (the thread header), which can open a conv
-// before the inbox has unboxed it. A trusted adhoc conv whose participants never came is forced:
-// an ordinary request skips trusted convs.
+// before the inbox has unboxed it. The user opening the conv asks again even if it failed before. A
+// trusted adhoc conv whose participants never came is forced, since an ordinary request skips trusted
+// convs; it still waits on a request already pending, which fills the same gap.
 export const requestIncompleteConversationMeta = (id: T.Chat.ConversationIDKey) => {
-  if (T.Chat.isValidConversationIDKey(id) && conversationMetaIncomplete(id)) {
+  if (T.Chat.isValidConversationIDKey(id) && conversationMetaIncomplete(id) && !isUnboxPending(id)) {
+    failedUnboxRows.delete(id)
     requestInboxUnboxRows([id], getInboxConversationMeta(id)?.trustedState === 'trusted')
   }
 }
@@ -497,7 +516,11 @@ export const onGetInboxConvsUnboxed = (
 ) => {
   const {convs} = action.payload.params
   const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
-  inboxUIItems.forEach(item => pendingUnboxRows.delete(T.Chat.stringToConversationIDKey(item.convID)))
+  inboxUIItems.forEach(item => {
+    const id = T.Chat.stringToConversationIDKey(item.convID)
+    pendingUnboxRows.delete(id)
+    failedUnboxRows.delete(id)
+  })
   updateInboxUserInfo(inboxUIItems)
   hydrateInboxConversations(inboxUIItems)
 }
