@@ -343,10 +343,6 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID},
     outParam: GetDefaultTeamChannelsLocalRes,
   },
-  'chat.1.local.getGlobalAppNotificationSettingsLocal': {
-    inParam: undefined,
-    outParam: GlobalAppNotificationSettings,
-  },
   'chat.1.local.getInboxAndUnboxUILocal': {
     inParam: {readonly query?: GetInboxLocalQuery | null,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
     outParam: GetInboxAndUnboxUILocalRes,
@@ -575,10 +571,6 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID,readonly convs?: ReadonlyArray<ConvIDStr> | null},
     outParam: SetDefaultTeamChannelsLocalRes,
   },
-  'chat.1.local.setGlobalAppNotificationSettingsLocal': {
-    inParam: {readonly settings?: {[key: string]: boolean} | null},
-    outParam: void,
-  },
   'chat.1.local.setNotificationSettingsLocal': {
     inParam: {readonly subscriptions?: ReadonlyArray<NotificationSubscriptionGroup> | null,readonly chatGlobal?: {[key: string]: boolean} | null},
     outParam: void,
@@ -640,7 +632,7 @@ export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
 export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
 export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
-type PromiseMethod = 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.CancelPost' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getGlobalAppNotificationSettingsLocal' | 'chat.1.local.getInboxAndUnboxUILocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getNotificationSettingsLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.normalizeUnfurlDomain' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.RetryPost' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setGlobalAppNotificationSettingsLocal' | 'chat.1.local.setNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unfurlMessage' | 'chat.1.local.unfurlPreviewLocal' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
+type PromiseMethod = 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.CancelPost' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getInboxAndUnboxUILocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getNotificationSettingsLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.normalizeUnfurlDomain' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.RetryPost' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unfurlMessage' | 'chat.1.local.unfurlPreviewLocal' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
 // method names the call for cache keys. An aborted signal cancels the call client-side.
 export type RpcFn<M extends PromiseMethod> = {readonly method: M} & ([RpcIn<M>] extends [undefined]
   ? (params?: undefined, waitingKey?: WaitingKeys, signal?: AbortSignal) => Promise<RpcOut<M>>
@@ -1663,7 +1655,6 @@ export const localForwardMessageConvSearchRpcPromise = createRpc('chat.1.local.f
 export const localForwardMessageNonblockRpcPromise = createRpc('chat.1.local.forwardMessageNonblock')
 export const localGetBotMemberSettingsRpcPromise = createRpc('chat.1.local.getBotMemberSettings')
 export const localGetDefaultTeamChannelsLocalRpcPromise = createRpc('chat.1.local.getDefaultTeamChannelsLocal')
-export const localGetGlobalAppNotificationSettingsLocalRpcPromise = createRpc('chat.1.local.getGlobalAppNotificationSettingsLocal')
 export const localGetInboxAndUnboxUILocalRpcPromise = createRpc('chat.1.local.getInboxAndUnboxUILocal')
 export const localGetLastActiveAtMultiLocalRpcPromise = createRpc('chat.1.local.getLastActiveAtMultiLocal')
 export const localGetLastActiveForTeamsRpcPromise = createRpc('chat.1.local.getLastActiveForTeams')
@@ -1723,7 +1714,6 @@ export const localSetConvMinWriterRoleLocalRpcPromise = createRpc('chat.1.local.
 export const localSetConvRetentionLocalRpcPromise = createRpc('chat.1.local.setConvRetentionLocal')
 export const localSetConversationStatusLocalRpcPromise = createRpc('chat.1.local.SetConversationStatusLocal')
 export const localSetDefaultTeamChannelsLocalRpcPromise = createRpc('chat.1.local.setDefaultTeamChannelsLocal')
-export const localSetGlobalAppNotificationSettingsLocalRpcPromise = createRpc('chat.1.local.setGlobalAppNotificationSettingsLocal')
 export const localSetNotificationSettingsLocalRpcPromise = createRpc('chat.1.local.setNotificationSettingsLocal')
 export const localSetTeamRetentionLocalRpcPromise = createRpc('chat.1.local.setTeamRetentionLocal')
 export const localSetWelcomeMessageRpcPromise = createRpc('chat.1.local.setWelcomeMessage')
@@ -1760,6 +1750,8 @@ export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // 'chat.1.local.makePreview'
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getChannelMembershipsLocal'
+// 'chat.1.local.setGlobalAppNotificationSettingsLocal'
+// 'chat.1.local.getGlobalAppNotificationSettingsLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.searchRegexp'

@@ -11,9 +11,9 @@ import (
 )
 
 // importContactsPath is the GUI config key for username's contact import
-// setting. It fails unless username is the logged-in user, so a request made
-// for one account is never applied to the account that replaced it. The key
-// predates these helpers; libkb's config migration writes the same shape.
+// setting; its shape must match the key libkb's config migration writes. It
+// fails unless username is the logged-in user, so a request made for one
+// account is never applied to the account that replaced it.
 func importContactsPath(mctx libkb.MetaContext, username string) (*libkb.JSONFile, string, error) {
 	active := mctx.ActiveDevice().Username(mctx)
 	if active.IsNil() {

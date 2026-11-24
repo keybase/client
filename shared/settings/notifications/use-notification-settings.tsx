@@ -25,9 +25,6 @@ type NotificationsGroupState = {
 
 const emptyGroups = new Map<string, NotificationsGroupState>()
 
-const isChatGlobalGroup = (groupName: string) =>
-  groupName === securityGroup || groupName === soundGroup || groupName === miscGroup
-
 export type UseNotificationSettingsResult = {
   allowEdit: boolean
   groups: Map<string, NotificationsGroupState>
@@ -121,7 +118,7 @@ export const buildNotificationSavePayload = (
   const subscriptions: Array<T.RPCChat.NotificationSubscriptionGroup> = []
   const chatGlobal: {[key: string]: boolean} = {}
   groups.forEach((group, groupName) => {
-    if (isChatGlobalGroup(groupName)) {
+    if (groupName === securityGroup || groupName === soundGroup || groupName === miscGroup) {
       group.settings.forEach(setting => {
         chatGlobal[`${T.RPCChat.GlobalAppNotificationSetting[setting.name as ChatGlobalSettingName]}`] =
           setting.name === 'disabletyping' ? !setting.subscribed : setting.subscribed
@@ -197,13 +194,11 @@ const useNotificationSettings = (): UseNotificationSettingsResult => {
         const saved = await saveNotificationSettings(nextGroups)
         savingRef.current = false
         saveEpochRef.current++
-        if (!saved) {
-          setGroups(prevGroups)
-        }
         setAllowEdit(true)
         // part of a failed save may have landed (nothing is rolled back), so
-        // the old values shown meanwhile are replaced by what the server has
+        // show the old values until the refresh brings what the server has
         if (!saved) {
+          setGroups(prevGroups)
           refresh()
         }
       }
