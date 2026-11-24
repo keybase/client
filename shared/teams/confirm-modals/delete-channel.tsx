@@ -21,6 +21,7 @@ const Header = () => (
   </>
 )
 
+// outside the component: the react compiler bails out on try/finally
 const deleteChannels = async (
   teamID: T.Teams.TeamID,
   channelIDs: ReadonlyArray<T.Chat.ConversationIDKey>,

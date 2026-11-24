@@ -1721,13 +1721,12 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	// server round trip to every delete. The frontend drops the team's channel
 	// list after its own deletes, so a miss only costs other listeners the notice.
 	conv, convErr := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceLocalOnly)
-	if convErr != nil {
-		h.Debug(ctx, "DeleteConversationLocal: unable to read conv, not notifying team: %v", convErr)
-	}
 	if err := h.G().InboxSource.RemoteDeleteConversation(ctx, uid, arg.ConvID); err != nil {
 		return res, err
 	}
-	if convErr == nil {
+	if convErr != nil {
+		h.Debug(ctx, "DeleteConversationLocal: unable to read conv, not notifying team: %v", convErr)
+	} else {
 		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Conv.Metadata.IdTriple.Tlfid)
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
