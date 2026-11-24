@@ -1,11 +1,12 @@
 import * as T from '@/constants/types'
-import {navigateAppend, navigateUp} from '@/constants/router'
+import {navigateAppend, navigateUp, navUpToScreen} from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
-import {showLoggedInScreens} from '@/router-v2/account-switch'
+import {useDaemonState} from '@/stores/daemon'
+import {loggedInPastRecovery, showLoggedInScreens} from '@/router-v2/account-switch'
 import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
@@ -45,6 +46,7 @@ export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse)
   callNamed(owner, slots.submitResetPassword, action)
 
 let lastRun = 0
+const loggedInError = 'You are already logged in as a different user; try logout first'
 
 export const startRecoverPassword = ({
   abortProvisioning,
@@ -52,19 +54,24 @@ export const startRecoverPassword = ({
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
+  // Its prompts are only in the logged-out screens, and Go refuses a logged-in run anyway. A held
+  // run's login (a session read after its paper key) is not a logged-in start.
+  if (loggedInPastRecovery(useConfigState.getState())) {
+    navigateAppend({name: 'recoverPasswordErrorModal', params: {error: loggedInError}})
+    return
+  }
   clearOwner(owner)
   const run = ++lastRun
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
     }
-    const {dispatch: configDispatch, loggedIn} = useConfigState.getState()
-    const holdLoggedOut = !loggedIn
-    if (holdLoggedOut) {
-      configDispatch.holdForRecoverPassword(run, true)
-    }
+    const configDispatch = useConfigState.getState().dispatch
+    configDispatch.holdForRecoverPassword(run, true)
     let active = true
     let hadError = false
+    // Go asks these only once the paper key has logged it in
+    let askedAfterPaperKey = false as boolean
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -88,6 +95,14 @@ export const startRecoverPassword = ({
       })
       handles.set(slot, scoped)
     }
+    // An answered screen stays up until Go's next prompt replaces it, and a back press meanwhile
+    // finds no prompt to cancel. It declines that next prompt instead, which ends the run.
+    let declineNextPrompt = false
+    const cancelNextPrompt = () =>
+      setHandle(slots.cancel, () => {
+        clearSlots(slots.cancel)
+        declineNextPrompt = true
+      })
     try {
       await T.RPCGen.loginRecoverPassphraseRpcListener({
         customResponseIncomingCallMap: {
@@ -123,6 +138,7 @@ export const startRecoverPassword = ({
           'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
             // The listener runs handlers a tick late, so the run may have ended since Go asked.
             if (!isActive()) return
+            askedAfterPaperKey = true
             // true continues to set-password; false makes Go cancel and log back out.
             const clear = () => clearSlots(slots.cancel, slots.submitPgpWarning)
             setHandle(
@@ -137,6 +153,7 @@ export const startRecoverPassword = ({
               wrapErrors(() => {
                 clear()
                 response.result(true)
+                cancelNextPrompt()
               })
             )
             navigateAppend({name: 'recoverPasswordPgpWarning', params: {}}, true)
@@ -193,6 +210,12 @@ export const startRecoverPassword = ({
                 true
               )
             } else {
+              askedAfterPaperKey = true
+              if (declineNextPrompt) {
+                declineNextPrompt = false
+                response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                return
+              }
               const clear = () => clearSlots(slots.cancel, slots.submitPassword)
               setHandle(
                 slots.cancel,
@@ -206,6 +229,7 @@ export const startRecoverPassword = ({
                 wrapErrors((passphrase: string) => {
                   clear()
                   response.result({passphrase, storeSecret: true})
+                  cancelNextPrompt()
                 })
               )
               navigateAppend(
@@ -233,20 +257,20 @@ export const startRecoverPassword = ({
       })
       console.log('Recovered account')
     } catch (error) {
+      hadError = true
       if (!(error instanceof RPCError)) {
         logger.warn('recover password failed unexpectedly', error)
-        return
-      }
-      hadError = true
-      logger.warn('RPC returned error: ' + error.message)
-      if (!isQuietCancel(error)) {
-        navigateAppend(
-          {
-            name: showLoggedInScreens(useConfigState.getState()) ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
-            params: {error: error.message},
-          },
-          true
-        )
+      } else {
+        logger.warn('RPC returned error: ' + error.message)
+        if (!isQuietCancel(error)) {
+          navigateAppend(
+            {
+              name: showLoggedInScreens(useConfigState.getState()) ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+              params: {error: error.message},
+            },
+            true
+          )
+        }
       }
     } finally {
       clearSlots(
@@ -259,10 +283,19 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
-      if (holdLoggedOut) {
-        configDispatch.holdForRecoverPassword(run, false)
+    }
+    // Go's login notification and its reply to the run take separate paths, so the reply can come
+    // first. The prompt screen stays until the session is read: logged in, the logged-in screens
+    // replace it; otherwise the recovery screens go, rather than leave a prompt nothing answers.
+    // Other successes (a device to recover with, a reset email) end on a screen meant to stay.
+    if (!hadError && askedAfterPaperKey) {
+      await useDaemonState.getState().dispatch.readSessionFromDaemon('password recovered')
+      const config = useConfigState.getState()
+      if (config.recoverPasswordHold === run && !config.loggedIn) {
+        navUpToScreen('login')
       }
     }
+    configDispatch.holdForRecoverPassword(run, false)
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
   }
   ignorePromise(f())

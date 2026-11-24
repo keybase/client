@@ -1,5 +1,7 @@
+import * as React from 'react'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
+import {loggedInPastRecovery} from './account-switch'
 import {emitDeepLink, normalizeUrl} from './deep-link-emitter'
 
 const incomingShareURL = 'keybase://incoming-share'
@@ -24,7 +26,7 @@ let shareHeld = false
 export const holdLoggedOutLink = (url: string | undefined) => {
   if (!url) return
   const share = loggedOutShareToHold(url)
-  if (useConfigState.getState().loggedIn) {
+  if (loggedInPastRecovery(useConfigState.getState())) {
     emitDeepLink(share ?? url)
     return
   }
@@ -40,4 +42,15 @@ export const releaseLoggedOutLink = () => {
   if (!shareHeld) return
   shareHeld = false
   emitDeepLink(incomingShareURL)
+}
+
+// Whether links go to the logged-in routes. A held share is released when they start to.
+export const useLinksLoggedIn = () => {
+  const loggedIn = useConfigState(loggedInPastRecovery)
+  React.useEffect(() => {
+    if (loggedIn) {
+      releaseLoggedOutLink()
+    }
+  }, [loggedIn])
+  return loggedIn
 }

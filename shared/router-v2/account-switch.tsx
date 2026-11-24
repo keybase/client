@@ -46,14 +46,18 @@ export const consumePendingAccountSwitchTab = (currentUsername: string) => {
 // that churn leaves RNS screens from the unmounted navigator on screen, swallowing every touch. So
 // hold the logged-in screens through such a switch. A switch that starts logged out (e.g. a
 // notification tap on the login screen) keeps the logged-out screens until it lands.
-// A password recovery started logged out keeps the logged-out screens until it ends: Go logs in with
-// the paper key before its last prompts, so a session read meanwhile says logged in.
 export const showLoggedInScreens = (s: {
   loggedIn: boolean
   recoverPasswordHold: number
   userSwitching: boolean
   userSwitchingFromLoggedIn: boolean
-}) => (s.loggedIn && !s.recoverPasswordHold) || (s.userSwitching && s.userSwitchingFromLoggedIn)
+}) => loggedInPastRecovery(s) || (s.userSwitching && s.userSwitchingFromLoggedIn)
+
+// A password recovery keeps the logged-out screens until it ends: Go logs in with the paper key
+// before its last prompts, so a session read meanwhile says logged in. Links and shares follow the
+// screens: one let through to the logged-in routes before they exist is lost.
+export const loggedInPastRecovery = (s: {loggedIn: boolean; recoverPasswordHold: number}) =>
+  s.loggedIn && !s.recoverPasswordHold
 
 export const clearPendingAccountSwitch = (currentUsername: string) => {
   if (pendingAccountSwitch?.targetUsername !== currentUsername) {

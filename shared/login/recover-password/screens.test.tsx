@@ -138,14 +138,17 @@ test('success: every prompt shows while logged out, and the app logs in once, fr
   await flush()
   await expect(password).resolves.toEqual({result: {passphrase: 'hunter2hunter2', storeSecret: true}})
 
+  // The service's login notification makes the session read say logged in, here before the run's
+  // reply (the other order is in logged-out-hold.test.tsx). The run's own read finds the same.
+  act(() => useConfigState.getState().dispatch.setLoggedIn(true))
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
   nav.clearActions()
   reply(null)
   await flush()
   // The flow neither logs in nor moves on its own.
   expect(nav.actions).toEqual([])
-  expect(useConfigState.getState().loggedIn).toBe(false)
 
-  // The service's login notification makes the session read say logged in; the router flips the root.
+  // The router flips the root once the run lets go of the logged-out screens.
   act(() => nav.setLoggedIn(true))
   await flush()
   expect(rootNames()).toEqual(['loggedIn'])
@@ -186,6 +189,50 @@ test.each(removalTypes)('the user taking the new password away (%s) cancels it',
   await flush()
   expect(loggedOutStack()).toEqual(['login'])
   expect(useConfigState.getState().loggedIn).toBe(false)
+})
+
+// An answered screen stays up until Go asks its next question; the user can still take it away.
+test.each(removalTypes)('taking the pgp warning away (%s) after Continue declines the next prompt', async type => {
+  install([])
+  const {push, reply} = await startRun()
+  await throughPaperKey(push)
+  const {answer: pgp} = await askPgp(push)
+  fireEvent.click(screen.getByText('Continue'))
+  await flush()
+  await expect(pgp).resolves.toEqual({result: true})
+
+  act(() => navigationRef.dispatch(userRemovals[type](pgpWarning)))
+  await flush()
+  expect(loggedOutStack()).toEqual(['login'])
+
+  const {answer: password} = await askNewPassword(push)
+  expect(await password).toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
+  expect(loggedOutStack()).toEqual(['login'])
+
+  reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
+  await flush()
+  expect(loggedOutStack()).toEqual(['login'])
+})
+
+test('taking the new password away after Save declines a retry, which replaces nothing', async () => {
+  install([{name: 'username', params: {username: 'testuser'}}])
+  const {push} = await startRun()
+  await throughPaperKey(push)
+  const {answer: password} = await askNewPassword(push)
+  typeAndSave('hunter2hunter2')
+  await flush()
+  await password
+
+  act(() => navigationRef.dispatch(CommonActions.goBack()))
+  await flush()
+  expect(loggedOutStack()).toEqual(['login', 'username'])
+
+  const retry = push('keybase.1.secretUi.getPassphrase', {
+    pinentry: {retryLabel: 'too weak', type: T.RPCGen.PassphraseType.passPhrase},
+  })
+  await flush()
+  expect(await retry).toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
+  expect(loggedOutStack()).toEqual(['login', 'username'])
 })
 
 test('an app reset that removes the pgp warning is not an answer', async () => {
@@ -261,9 +308,11 @@ describe('started from the provisioning password screen', () => {
   await flush()
     await password
 
+    act(() => useConfigState.getState().dispatch.setLoggedIn(true))
+    fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
     reply(null)
     await flush()
-    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(loggedOutStack()).toEqual(['login', 'username', 'password', setPassword])
     act(() => nav.setLoggedIn(true))
     await flush()
     expect(rootNames()).toEqual(['loggedIn'])

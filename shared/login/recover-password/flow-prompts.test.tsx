@@ -312,6 +312,13 @@ test('a device-recovery explanation replaces the current screen', async () => {
     deviceType: T.RPCGen.DeviceType.mobile,
     username: 'testuser',
   })
+
+  // Go ends the run here: the explanation is what the user acts on, so it stays.
+  first.resolve()
+  await flush()
+  await renders(2)
+  expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
+  expect(useConfigState.getState().recoverPasswordHold).toBe(0)
 })
 
 test('a reset prompt that is not a password reset hands off to the account reset flow', async () => {
@@ -337,24 +344,6 @@ describe('completion', () => {
     return started
   }
 
-  test('a successful recovery leaves the screens to the login the service sends', async () => {
-    const {first} = await atNewPassword()
-    nav.clearActions()
-
-    first.resolve()
-    await flush()
-
-    // The flow neither logs in nor navigates: the service's login notification does.
-    expect(nav.actions).toEqual([])
-    expect(useConfigState.getState().loggedIn).toBe(false)
-    expect(loggedOutStack()).toEqual(['login', 'recoverPasswordSetPassword'])
-
-    // The session says logged in, and the router flips the root.
-    nav.setLoggedIn(true)
-    await renders(5)
-    expect(rootRouteNames()).toEqual(['loggedIn'])
-  })
-
   test('a cancelled recovery shows no error screen', async () => {
     const {first} = await startAttempt()
 
@@ -376,18 +365,20 @@ describe('completion', () => {
     expect(nav.visibleScreen()?.params).toEqual({error: error.message})
   })
 
-  // Go refuses to recover while an account is logged in, before it asks anything.
-  test('a failure while logged in shows the error as a modal', async () => {
+  // Its prompts are only in the logged-out screens, and Go would refuse it anyway.
+  test('a start while logged in shows the error as a modal and runs nothing', async () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     nav = installNavigation({rootState: makeRootState()})
-    const {first} = await startAttempt()
-
-    const error = new RPCError('already logged in', T.RPCGen.StatusCode.scalreadyloggedin)
-    first.reject(error)
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({abortProvisioning: true, username: 'testuser'})
     await flush()
 
+    expect(attempts).toEqual([])
+    expect(useConfigState.getState().recoverPasswordHold).toBe(0)
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
-    expect(nav.visibleScreen()?.params).toEqual({error: error.message})
+    expect(nav.visibleScreen()?.params).toEqual({
+      error: 'You are already logged in as a different user; try logout first',
+    })
   })
 
   test('handlers stop responding once the run is over', async () => {
@@ -457,6 +448,7 @@ describe('through the engine listener', () => {
     await expect(answer).resolves.toEqual({result: true})
     expect(waitingCount()).toBe(1)
 
+    fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: true}))
     held[0]!.reply(null)
     await settle(2)
     expect(waitingCount()).toBe(0)

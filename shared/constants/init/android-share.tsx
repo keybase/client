@@ -4,6 +4,7 @@ import logger from '@/logger'
 import {getNavigator, navigationRef} from '@/constants/navigator'
 import {ackIncomingShare, heldIncomingShareID, peekIncomingShare} from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
+import {loggedInPastRecovery} from '@/router-v2/account-switch'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState} from '@/stores/router'
@@ -47,14 +48,14 @@ const finishAndroidShare = (id: number) => {
 const openHeldShare = () => {
   const id = heldShareID
   if (id === undefined || navigatorShareIDs.has(id) || openingShareID === id) return
-  const {loggedIn, userSwitching} = useConfigState.getState()
+  const config = useConfigState.getState()
   const {intent, navigationReady} = useNavigationIntentsState.getState()
   // A link or tap about to navigate this account goes first, and the share opens once it has: its
   // consumption changes the store, which runs this again. One waiting on a switch to another
   // account doesn't hold the share up.
   const uid = useCurrentUserState.getState().uid
   const waiting = !!intent && (!intent.targetUid || intent.targetUid === uid)
-  if (!loggedIn || userSwitching || !navigationReady || waiting) return
+  if (!loggedInPastRecovery(config) || config.userSwitching || !navigationReady || waiting) return
   const navigator = getNavigator()
   const routes = navigator.getRootState()?.routes ?? []
   // The share screen is one of the logged-in screens: until they are in the state (just after
@@ -74,7 +75,7 @@ const onNavState = (state: StateLike) => {
   const next = shareIDsIn(state)
   const current = navigationRef.current
   // Logging out, and starting an account switch, reset loggedIn before the navigator empties.
-  if (current === navigator && useConfigState.getState().loggedIn) {
+  if (current === navigator && loggedInPastRecovery(useConfigState.getState())) {
     for (const id of navigatorShareIDs) {
       if (!next.has(id)) finishAndroidShare(id)
     }
@@ -85,8 +86,8 @@ const onNavState = (state: StateLike) => {
   openHeldShare()
 }
 
-type SignInState = {loggedIn: boolean; userSwitching: boolean}
-const loggedOutForGood = (s: SignInState) => !s.loggedIn && !s.userSwitching
+type SignInState = {loggedIn: boolean; recoverPasswordHold: number; userSwitching: boolean}
+const loggedOutForGood = (s: SignInState) => !loggedInPastRecovery(s) && !s.userSwitching
 
 const onConfig = (s: SignInState, old: SignInState) => {
   // An account switch sets userSwitching before it logs the old account out, so landing logged out

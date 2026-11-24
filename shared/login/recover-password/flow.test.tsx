@@ -3,7 +3,6 @@
 import {setImmediate} from 'node:timers'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {
@@ -186,13 +185,6 @@ describe('through the engine listener', () => {
     })
   }
 
-  // Go refuses to recover while an account is logged in: the error opens as a modal over the app.
-  const startLoggedIn = () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installNavigation({rootState: makeRootState()})
-  }
-  const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
-
   test('a service error replaces the screen with the recovery error', async () => {
     startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
@@ -201,25 +193,10 @@ describe('through the engine listener', () => {
     expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
   })
 
-  test('logged in, a service error opens the error modal', async () => {
-    startLoggedIn()
-    await failRecovery(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
-
-    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
-    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('already logged in')
-  })
-
   test('a cancelled recovery shows no error and leaves the screens where they were', async () => {
     startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
 
     expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
-  })
-
-  test('logged in, a cancelled recovery opens nothing', async () => {
-    startLoggedIn()
-    await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
-
-    expect(rootNames()).toEqual(['loggedIn'])
   })
 })
