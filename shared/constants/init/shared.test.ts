@@ -192,6 +192,18 @@ describe('the session comes from the service', () => {
     resetAllStores()
   })
 
+  // The service leaves its HTTP server token out of the push; the read that asked for it keeps it
+  test('a session sent without the HTTP server keeps the one a read got', async () => {
+    current = {...userA, httpSrvInfo: {address: '127.0.0.1:1234', token: 'tok'}}
+    await useDaemonState.getState().dispatch.readSessionFromDaemon('test')
+    await settle()
+    expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:1234', token: 'tok'})
+
+    await send(userB)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:1234', token: 'tok'})
+  })
+
   test('a session sent applies without reading the service', async () => {
     await send(userA)
 

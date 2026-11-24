@@ -341,14 +341,14 @@ func (d *Service) Run() (err error) {
 }
 
 // sessionStatus reads the session for NotifySession.sessionChanged and config.getBootstrapStatus.
+// It leaves out the HTTP server token, which the push would hand to every session subscriber;
+// getBootstrapStatus adds it for the caller that asked.
 func (d *Service) sessionStatus(m libkb.MetaContext) (keybase1.BootstrapStatus, error) {
 	eng := engine.NewBootstrap(d.G())
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-	status := eng.Status()
-	status.HttpSrvInfo = d.httpSrvInfo()
-	return status, nil
+	return eng.Status(), nil
 }
 
 func (d *Service) httpSrvInfo() *keybase1.HttpSrvInfo {

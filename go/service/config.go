@@ -358,6 +358,7 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	if res, err = h.G().NotifyRouter.SessionStatus(m); err != nil {
 		return res, err
 	}
+	res.HttpSrvInfo = h.svc.httpSrvInfo()
 	for i := 0; res.HttpSrvInfo == nil && i < 40; i++ { // wait at most 2 seconds
 		m.Debug("GetBootstrapStatus: waiting for the HTTP server address")
 		time.Sleep(50 * time.Millisecond)
