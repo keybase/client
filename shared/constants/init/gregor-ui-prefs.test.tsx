@@ -57,7 +57,7 @@ test('a prefs push from the service reaches every store that reads gregor', asyn
     teamAccessRequests: {t1: ['testuser']},
   })
 
-  expect(useConfigState.getState().allowAnimatedEmojis).toBe(false)
+  expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(false)
   expect(getExplodingModeFromConfig(convID)).toBe(300)
   expect(useBlockButtonsState.getState().blockButtonsMap.get('t1')).toEqual({adder: 'testuser-mac'})
   expect(useNotifState.getState().newTeamRequests.get('t1')).toEqual(new Set(['testuser']))
@@ -65,7 +65,7 @@ test('a prefs push from the service reaches every store that reads gregor', asyn
 
   // a dismissed category drops out of the next push
   await pushPrefs({allowAnimatedEmojis: true})
-  expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
+  expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
   expect(getExplodingModeFromConfig(convID)).toBe(0)
   expect(useBlockButtonsState.getState().blockButtonsMap.size).toBe(0)
   expect(useNotifState.getState().newTeamRequests.size).toBe(0)

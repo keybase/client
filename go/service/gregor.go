@@ -552,15 +552,11 @@ func (r gregorStateRead) sessionEnded() bool {
 	return r.seq <= r.gh.resetSeq
 }
 
-// orderedFirehoseHandler is a firehose handler that drops pushes of state older than one it
-// already sent. Pushes run on several goroutines, so they can reach it out of read order.
-type orderedFirehoseHandler interface {
-	pushStateRead(s gregor1.State, r keybase1.PushReason, read gregorStateRead)
-}
-
+// The UI prefs handler drops pushes of state older than one it already sent. Pushes run on several
+// goroutines, so they can reach it out of read order.
 func pushToFirehoseHandler(h libkb.GregorFirehoseHandler, s gregor1.State, r keybase1.PushReason, read gregorStateRead) {
-	if oh, ok := h.(orderedFirehoseHandler); ok {
-		oh.pushStateRead(s, r, read)
+	if ph, ok := h.(*gregorUIPrefsHandler); ok {
+		ph.pushStateRead(s, r, read)
 		return
 	}
 	h.PushState(s, r)

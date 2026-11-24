@@ -1252,12 +1252,12 @@ describe('gregor prefs pushes', () => {
     await mountScreens([convA])
     await notify(prefsPush({allowAnimatedEmojis: false, explodingModes: {[convA]: 300}}, 'uid-2'))
     expect(modeOfA()).toBe(0)
-    expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
 
     // read before the logout and landing after it: the app reads the prefs once it knows the account
     await startSwitch('testuser-mac')
     await notify(prefsPush({allowAnimatedEmojis: false}, 'uid-2'))
-    expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
   })
 })
 

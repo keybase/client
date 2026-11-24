@@ -134,10 +134,7 @@ type gregorUIPrefsHandler struct {
 	last    *keybase1.GregorUIPrefs
 }
 
-var (
-	_ libkb.GregorFirehoseHandler = (*gregorUIPrefsHandler)(nil)
-	_ orderedFirehoseHandler      = (*gregorUIPrefsHandler)(nil)
-)
+var _ libkb.GregorFirehoseHandler = (*gregorUIPrefsHandler)(nil)
 
 func newGregorUIPrefsHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter) *gregorUIPrefsHandler {
 	return &gregorUIPrefsHandler{

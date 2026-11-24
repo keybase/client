@@ -3,7 +3,8 @@ import * as Z from '@/util/zustand'
 
 type Store = T.Immutable<{
   blockButtonsMap: ReadonlyMap<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>
-  // set once the service's prefs have arrived, so an absent entry means no buttons
+  // Not read by the app. E2e waits on it, so an absent entry in blockButtonsMap means no buttons
+  // rather than prefs that have yet to arrive.
   loaded: boolean
 }>
 

@@ -216,11 +216,11 @@ describe('the session comes from the service', () => {
       teamAccessRequests: {},
       unreadableExplodingModes: [],
     }))
-    expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
     await send(userA)
     await settle()
     expect(fake.calls.filter(c => c.method === 'keybase.1.gregor.getUIPrefs')).toHaveLength(1)
-    expect(useConfigState.getState().allowAnimatedEmojis).toBe(false)
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(false)
   })
 
   test('a session sent applies without reading the service', async () => {

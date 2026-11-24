@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useInboxLayoutState} from './layout-state'
 
-export const pinnedConvsGregorKey = 'chatPinnedConvs'
+const pinnedConvsGregorKey = 'chatPinnedConvs'
 // The whole list is stored in one gregor item, so keep it bounded.
 export const maxPinnedConvs = 25
 

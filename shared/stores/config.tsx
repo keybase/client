@@ -30,7 +30,6 @@ import { useDaemonState } from "@/stores/daemon";
 import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
-  allowAnimatedEmojis: boolean;
   badgeState?: T.RPCGen.BadgeState;
   chatBuiltinCommands?: T.Chat.StaticConfig["builtinCommands"];
   chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>;
@@ -69,7 +68,6 @@ type Store = T.Immutable<{
 }>;
 
 const initialStore: Store = {
-  allowAnimatedEmojis: true,
   badgeState: undefined,
   chatBuiltinCommands: undefined,
   chatDeletableByDeleteHistory: undefined,
@@ -418,7 +416,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           const { prefs } = action.payload.params;
           set((s) => {
             s.gregorUIPrefs = T.castDraft(prefs);
-            s.allowAnimatedEmojis = prefs.allowAnimatedEmojis;
           });
           break;
         }
