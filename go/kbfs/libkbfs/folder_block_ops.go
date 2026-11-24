@@ -1136,7 +1136,13 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 		if wasDirty {
 			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
-			_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
+			// A directory not yet synced (temporary ID) has no clean
+			// copy: its dirty block is the directory itself, so keep
+			// it. createEntryLocked's cleanup deletes it if the create
+			// is undone.
+			if !ptr.ID.IsTemporary() {
+				_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
+			}
 			delete(fbo.dirtyDirs, ptr)
 		}
 		for _, unref := range unrefs {
@@ -1252,7 +1258,7 @@ func (fbo *folderBlockOps) AddDirEntryInCache(
 func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	kmd KeyMetadataWithRootDirEntry, dir data.Path, oldName data.PathPartString,
-	oldDe data.DirEntry,
+	oldDe, restoreDe data.DirEntry,
 ) (func(), error) {
 	fbo.blockLock.AssertLocked(lState)
 
@@ -1284,13 +1290,13 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 		if unlinkUndoFn != nil {
 			unlinkUndoFn()
 		}
-		_, _ = dd.AddEntry(ctx, oldName, oldDe)
+		_, _ = dd.AddEntry(ctx, oldName, restoreDe)
 		return nil, err
 	}
 
 	undoDirtyFn := fbo.makeDirDirtyLocked(lState, dir.TailPointer(), unrefs)
 	return func() {
-		_, _ = dd.AddEntry(ctx, oldName, oldDe)
+		_, _ = dd.AddEntry(ctx, oldName, restoreDe)
 		if undoDirtyFn != nil {
 			undoDirtyFn()
 		}
@@ -1314,7 +1320,7 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	fn, err := fbo.removeDirEntryInCacheLocked(
-		ctx, lState, kmd, dir, oldName, oldDe)
+		ctx, lState, kmd, dir, oldName, oldDe, oldDe)
 	if err != nil {
 		return nil, err
 	}
@@ -1334,7 +1340,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 	ctx context.Context, lState *kbfssync.LockState,
 	kmd KeyMetadataWithRootDirEntry, oldParent data.Path,
 	oldName data.PathPartString, newParent data.Path,
-	newName data.PathPartString, newDe data.DirEntry,
+	newName data.PathPartString, oldDe, newDe data.DirEntry,
 	replacedDe data.DirEntry,
 ) (undo dirCacheUndoFn, err error) {
 	fbo.blockLock.Lock(lState)
@@ -1348,7 +1354,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 	var undoReplace func()
 	if replacedDe.IsInitialized() {
 		undoReplace, err = fbo.removeDirEntryInCacheLocked(
-			ctx, lState, kmd, newParent, newName, replacedDe)
+			ctx, lState, kmd, newParent, newName, replacedDe, replacedDe)
 		if err != nil {
 			return nil, err
 		}
@@ -1370,8 +1376,10 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 		}
 	}()
 
+	// The moved node must not be unlinked, so pass no entry for that,
+	// but restore the real one on undo.
 	undoRm, err := fbo.removeDirEntryInCacheLocked(
-		ctx, lState, kmd, oldParent, oldName, data.DirEntry{})
+		ctx, lState, kmd, oldParent, oldName, data.DirEntry{}, oldDe)
 	if err != nil {
 		return nil, err
 	}
