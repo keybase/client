@@ -1258,7 +1258,7 @@ func (fbo *folderBlockOps) AddDirEntryInCache(
 func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	kmd KeyMetadataWithRootDirEntry, dir data.Path, oldName data.PathPartString,
-	oldDe data.DirEntry,
+	oldDe, restoreDe data.DirEntry,
 ) (func(), error) {
 	fbo.blockLock.AssertLocked(lState)
 
@@ -1267,15 +1267,6 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 		return nil, err
 	}
 	dd := fbo.newDirDataLocked(lState, dir, chargedTo, kmd)
-	// A rename passes no entry, so the moved node isn't unlinked, but an
-	// undo must still restore the real entry.
-	restoreDe := oldDe
-	if !oldDe.IsInitialized() {
-		restoreDe, err = dd.Lookup(ctx, oldName)
-		if err != nil {
-			return nil, err
-		}
-	}
 	unrefs, err := dd.RemoveEntry(ctx, oldName)
 	if err != nil {
 		return nil, err
@@ -1329,7 +1320,7 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	fn, err := fbo.removeDirEntryInCacheLocked(
-		ctx, lState, kmd, dir, oldName, oldDe)
+		ctx, lState, kmd, dir, oldName, oldDe, oldDe)
 	if err != nil {
 		return nil, err
 	}
@@ -1349,7 +1340,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 	ctx context.Context, lState *kbfssync.LockState,
 	kmd KeyMetadataWithRootDirEntry, oldParent data.Path,
 	oldName data.PathPartString, newParent data.Path,
-	newName data.PathPartString, newDe data.DirEntry,
+	newName data.PathPartString, oldDe, newDe data.DirEntry,
 	replacedDe data.DirEntry,
 ) (undo dirCacheUndoFn, err error) {
 	fbo.blockLock.Lock(lState)
@@ -1363,7 +1354,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 	var undoReplace func()
 	if replacedDe.IsInitialized() {
 		undoReplace, err = fbo.removeDirEntryInCacheLocked(
-			ctx, lState, kmd, newParent, newName, replacedDe)
+			ctx, lState, kmd, newParent, newName, replacedDe, replacedDe)
 		if err != nil {
 			return nil, err
 		}
@@ -1385,8 +1376,10 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 		}
 	}()
 
+	// The moved node must not be unlinked, so pass no entry for that,
+	// but restore the real one on undo.
 	undoRm, err := fbo.removeDirEntryInCacheLocked(
-		ctx, lState, kmd, oldParent, oldName, data.DirEntry{})
+		ctx, lState, kmd, oldParent, oldName, data.DirEntry{}, oldDe)
 	if err != nil {
 		return nil, err
 	}

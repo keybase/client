@@ -5697,11 +5697,12 @@ func (fbo *folderBranchOps) renameLocked(
 	}
 
 	// Only the ctime changes on the directory entry itself.
+	oldDe := newDe
 	newDe.Ctime = fbo.nowUnixNano()
 
 	dirCacheUndoFn, err := fbo.blocks.RenameDirEntryInCache(
 		ctx, lState, md.ReadOnly(), oldParentPath, oldName, newParentPath,
-		newName, newDe, replacedDe,
+		newName, oldDe, newDe, replacedDe,
 	)
 	if err != nil {
 		return err
