@@ -2565,18 +2565,21 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 		return keybase1.FSSyncStatus{}, nil
 	}
 
-	dirPaths := make(map[string]bool, len(status.UnflushedDirPaths))
-	for _, p := range status.UnflushedDirPaths {
-		dirPaths[p] = true
+	keep := func(p string) bool {
+		return filter == keybase1.ListFilter_NO_FILTER ||
+			!isFiltered(filter, stdpath.Base(p))
 	}
-	var syncingPaths, syncingFilePaths []string
+	var syncingPaths []string
+	// Never nil: the GUI reads a missing list as an older service that
+	// doesn't send one.
+	syncingFilePaths := []string{}
 	for _, p := range status.UnflushedPaths {
-		if filter != keybase1.ListFilter_NO_FILTER &&
-			isFiltered(filter, stdpath.Base(p)) {
-			continue
+		if keep(p) {
+			syncingPaths = append(syncingPaths, p)
 		}
-		syncingPaths = append(syncingPaths, p)
-		if !dirPaths[p] {
+	}
+	for _, p := range status.UnflushedFilePaths {
+		if keep(p) {
 			syncingFilePaths = append(syncingFilePaths, p)
 		}
 	}

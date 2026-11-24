@@ -311,7 +311,7 @@ export type Uploads = Readonly<{
   totalSyncingBytes: number
   endEstimate?: number
   syncingPaths: ReadonlySet<Path>
-  // syncingPaths minus the ones the service knows are folders
+  // the syncingPaths the service knows are files; all of them from a service too old to say
   syncingFilePaths: ReadonlyArray<Path>
 }>
 

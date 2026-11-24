@@ -96,14 +96,14 @@ type JournalManagerStatus struct {
 	StoredFiles    int64
 	UnflushedBytes int64
 	UnflushedPaths []string
-	// UnflushedDirPaths are the UnflushedPaths known to be
-	// directories. Left out of the JSON so `.kbfs_status` keeps its
-	// plain path list.
-	UnflushedDirPaths []string `json:"-"`
-	EndEstimate       *time.Time
-	DiskLimiterStatus any
-	Conflicts         []ConflictJournalRecord `json:",omitempty"`
-	ClearedConflicts  []ConflictJournalRecord `json:",omitempty"`
+	// UnflushedFilePaths are the UnflushedPaths known to be
+	// files. Left out of the JSON so `.kbfs_status` keeps its plain
+	// path list.
+	UnflushedFilePaths []string `json:"-"`
+	EndEstimate        *time.Time
+	DiskLimiterStatus  any
+	Conflicts          []ConflictJournalRecord `json:",omitempty"`
+	ClearedConflicts   []ConflictJournalRecord `json:",omitempty"`
 }
 
 // branchChangeListener describes a caller that will get updates via

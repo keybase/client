@@ -1819,17 +1819,15 @@ func TestBadgeState(t *testing.T) {
 	jManager.ResumeBackgroundWork(ctx, tlfID)
 }
 
-// The sync status lists every unflushed path, folders included; its file
-// list leaves out the paths whose ops show they are folders, and keeps the
-// ones whose type the ops can't tell (an mtime change alone).
-func TestSyncStatusFilePaths(t *testing.T) {
-	ctx := context.Background()
+func newSyncStatusTestFS(ctx context.Context, t *testing.T) (
+	*SimpleFS, *libkbfs.ConfigLocal, *libkbfs.JournalManager, *libfs.FS,
+) {
 	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_sync_status")
-	defer func() { _ = os.RemoveAll(tempdir) }()
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(tempdir) })
 	sfs := newSimpleFS(
 		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
-	defer closeSimpleFS(ctx, t, sfs)
+	t.Cleanup(func() { closeSimpleFS(ctx, t, sfs) })
 	config := sfs.config.(*libkbfs.ConfigLocal)
 
 	err = config.EnableDiskLimiter(tempdir)
@@ -1842,14 +1840,22 @@ func TestSyncStatusFilePaths(t *testing.T) {
 	err = jManager.EnableAuto(ctx)
 	require.NoError(t, err)
 
-	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
 	opCtx, err := sfs.startOpWrapContext(ctx)
 	require.NoError(t, err)
-	remoteFS, _, err := sfs.getFS(opCtx, pathPriv)
+	remoteFS, _, err := sfs.getFS(
+		opCtx, keybase1.NewPathWithKbfsPath(`/private/jdoe`))
 	require.NoError(t, err)
-	fs := remoteFS.(*libfs.FS)
+	return sfs, config, jManager, remoteFS.(*libfs.FS)
+}
 
-	err = fs.MkdirAll("a", 0o755)
+// The sync status lists every unflushed path, folders included, in sorted
+// order; its file list keeps only the paths known to be files.
+func TestSyncStatusFilePaths(t *testing.T) {
+	ctx := context.Background()
+	sfs, config, jManager, fs := newSyncStatusTestFS(ctx, t)
+	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+
+	err := fs.MkdirAll("a", 0o755)
 	require.NoError(t, err)
 	writeRemoteFile(
 		ctx, t, sfs, pathAppend(pathPriv, `a/old.txt`), []byte(`foo`))
@@ -1864,15 +1870,15 @@ func TestSyncStatusFilePaths(t *testing.T) {
 		t.Helper()
 		status, err := sfs.SimpleFSSyncStatus(ctx, keybase1.ListFilter_NO_FILTER)
 		require.NoError(t, err)
-		require.ElementsMatch(t, paths, status.SyncingPaths)
-		require.ElementsMatch(t, filePaths, status.SyncingFilePaths)
+		require.Equal(t, paths, status.SyncingPaths)
+		require.Equal(t, filePaths, status.SyncingFilePaths)
 	}
 	flush := func() {
 		t.Helper()
 		jManager.ResumeBackgroundWork(ctx, tlfID)
 		err := jManager.Wait(ctx, tlfID)
 		require.NoError(t, err)
-		checkStatus(nil, nil)
+		checkStatus(nil, []string{})
 	}
 
 	t.Log("A new file lists its parent folder, which the file list drops")
@@ -1907,10 +1913,11 @@ func TestSyncStatusFilePaths(t *testing.T) {
 	err = fs.Remove("a/new.txt")
 	require.NoError(t, err)
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	checkStatus([]string{"/keybase/private/jdoe/a"}, nil)
+	checkStatus([]string{"/keybase/private/jdoe/a"}, []string{})
 	flush()
 
-	t.Log("An mtime change alone can't tell a file from a folder, so both stay")
+	t.Log("An mtime change alone takes the type from the cached node, " +
+		"so a touched folder (rsync -a, cp -p) is not a file")
 	jManager.PauseBackgroundWork(ctx, tlfID)
 	mtime := time.Now().Add(-time.Hour)
 	err = fs.Chtimes("a/renamed.txt", mtime, mtime)
@@ -1918,10 +1925,23 @@ func TestSyncStatusFilePaths(t *testing.T) {
 	err = fs.Chtimes("a", mtime, mtime)
 	require.NoError(t, err)
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	unknown := []string{
-		"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/renamed.txt",
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/renamed.txt"},
+		[]string{"/keybase/private/jdoe/a/renamed.txt"})
+	flush()
+
+	t.Log("Paths come back sorted")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	for _, name := range []string{"z.txt", "m.txt", "b.txt", "y.txt", "c.txt"} {
+		writeRemoteFile(ctx, t, sfs, pathAppend(pathPriv, name), []byte(name))
+		syncFS(ctx, t, sfs, "/private/jdoe")
 	}
-	checkStatus(unknown, unknown)
+	sorted := []string{
+		"/keybase/private/jdoe", "/keybase/private/jdoe/b.txt",
+		"/keybase/private/jdoe/c.txt", "/keybase/private/jdoe/m.txt",
+		"/keybase/private/jdoe/y.txt", "/keybase/private/jdoe/z.txt",
+	}
+	checkStatus(sorted, sorted[1:])
 	flush()
 
 	t.Log("A folder stays known once one revision shows it, even if a " +

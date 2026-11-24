@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -28,8 +29,8 @@ const (
 )
 
 type (
-	// unflushedPathsPerRevMap maps each path to whether the revision's
-	// ops show it is a directory.
+	// unflushedPathsPerRevMap maps each path to whether it is known to
+	// be a file as of the revision.
 	unflushedPathsPerRevMap map[string]bool
 	unflushedPathsMap       map[kbfsmd.Revision]unflushedPathsPerRevMap
 )
@@ -228,40 +229,42 @@ func addUnflushedPaths(ctx context.Context,
 			// paths.
 			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().
 				CanonicalPathPlaintext()
-			isDir := unflushedChainIsDir(chain)
+			isFile := unflushedChainIsFile(chain, cpp)
 			for _, op := range chain.ops {
 				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
 				if !ok {
 					panic(fmt.Sprintf("No rev map for revision %d",
 						op.getWriterInfo().revision))
 				}
-				revPaths[finalPath] = revPaths[finalPath] || isDir
+				revPaths[finalPath] = revPaths[finalPath] || isFile
 			}
 		}
 	}
 	return nil
 }
 
-// unflushedChainIsDir reports whether the chain's ops show it is a
-// directory, without fetching any blocks: create and rm ops (renames
-// are split into both) live in the parent directory's chain, while
-// sync ops and non-mtime setAttr ops live in a file's chain. A chain
-// with only mtime setAttr ops could be either, and is not reported as
-// a directory.
-func unflushedChainIsDir(chain *crChain) bool {
+// unflushedChainIsFile reports whether the chain is known to be a
+// file, without fetching any blocks: sync ops and non-mtime setAttr
+// ops live in a file's chain, while create and rm ops live in the
+// parent directory's chain. An mtime setAttr can apply to either
+// type and leaves the node's pointer unchanged, so a chain with only
+// those is looked up in the node cache; if the node isn't cached, the
+// chain is not reported as a file.
+func unflushedChainIsFile(chain *crChain, cpp chainsPathPopulator) bool {
 	for _, op := range chain.ops {
 		switch realOp := op.(type) {
-		case *createOp, *rmOp, *renameOp:
-			return true
 		case *syncOp:
-			return false
+			return true
 		case *setAttrOp:
 			if realOp.Attr != mtimeAttr {
-				return false
+				return true
 			}
+		default:
+			return false
 		}
 	}
-	return false
+	et, ok := cpp.cachedEntryType(chain.mostRecent)
+	return ok && et != data.Dir
 }
 
 // prepUnflushedPaths returns a set of paths that were updated in the

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -63,7 +64,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 	eg, groupCtx := errgroup.WithContext(ctx)
 	statusesToFetch := make(chan tlf.ID, len(tlfIDs))
 	unflushedPaths := make(chan []string, len(tlfIDs))
-	unflushedDirPaths := make(chan []string, len(tlfIDs))
+	unflushedFilePaths := make(chan []string, len(tlfIDs))
 	storedBytes := make(chan int64, len(tlfIDs))
 	unflushedBytes := make(chan int64, len(tlfIDs))
 	endEstimates := make(chan *time.Time, len(tlfIDs))
@@ -86,7 +87,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 			}
 			up := status.Journal.UnflushedPaths
 			unflushedPaths <- up
-			unflushedDirPaths <- status.Journal.UnflushedDirPaths
+			unflushedFilePaths <- status.Journal.UnflushedFilePaths
 			if len(up) > 0 && up[len(up)-1] == incompleteUnflushedPathsMarker {
 				// There were too many paths to process.  Return an
 				// error to stop the other statuses since we have
@@ -113,7 +114,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		return err
 	}
 	close(unflushedPaths)
-	close(unflushedDirPaths)
+	close(unflushedFilePaths)
 	close(storedBytes)
 	close(unflushedBytes)
 	close(endEstimates)
@@ -130,9 +131,13 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 			jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, p)
 		}
 	}
-	for dps := range unflushedDirPaths {
-		jStatus.UnflushedDirPaths = append(jStatus.UnflushedDirPaths, dps...)
+	for fps := range unflushedFilePaths {
+		jStatus.UnflushedFilePaths = append(jStatus.UnflushedFilePaths, fps...)
 	}
+	// The statuses arrive in no particular order, so sort to keep
+	// the lists stable between calls.
+	slices.Sort(jStatus.UnflushedPaths)
+	slices.Sort(jStatus.UnflushedFilePaths)
 	if incomplete {
 		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
 			incompleteUnflushedPathsMarker)

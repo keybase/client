@@ -136,7 +136,8 @@ const loadJournalStatusImpl = async (
     }
     journalUpdate(
       (syncingPaths || []).map(T.FS.stringToPath),
-      (syncingFilePaths || []).map(T.FS.stringToPath),
+      // A service that predates syncingFilePaths leaves it out; it always sends a list otherwise
+      (syncingFilePaths ?? syncingPaths ?? []).map(T.FS.stringToPath),
       totalSyncingBytes,
       endEstimate ?? undefined
     )
