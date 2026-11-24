@@ -225,8 +225,10 @@ func patchParticipants(uids, joined, removed []gregor1.UID) (res []gregor1.UID, 
 // ApplyMembershipChange patches a conversation's cached participant list with a
 // membership push and notifies the new list. A conversation with no cached list is
 // left alone: whoever shows it loads the list then. The patched entry drops its hash
-// so the next remote load always replaces it. Names come from the local cache, or from
-// the server when a member has never been seen.
+// so the next remote load always replaces it. Names come from the local cache, and
+// from the server only for members with no cached name. The list is notified only if
+// it is still the stored one: a load that replaced it while names were looked up
+// notified its own.
 func (s *CachingParticipantSource) ApplyMembershipChange(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, joined, removed []gregor1.UID,
 ) {
@@ -238,6 +240,22 @@ func (s *CachingParticipantSource) ApplyMembershipChange(ctx context.Context, ui
 	participants, err := s.participantsPreferOffline(ctx, uids)
 	if err != nil {
 		s.Debug(ctx, "ApplyMembershipChange: failed to map uids: %s", err)
+		return
+	}
+	lock, err := s.locktab.AcquireOnNameWithContext(ctx, s.G(), convID.String())
+	if err != nil {
+		s.Debug(ctx, "ApplyMembershipChange: gave up waiting for the conversation: %s", err)
+		return
+	}
+	defer lock.Release(ctx)
+	var local partDiskStorage
+	found, err := s.encryptedDB.GetOrDropUnusable(ctx, s.dbKey(uid, convID), &local)
+	if err != nil || !found || !slices.EqualFunc(local.Uids, uids, gregor1.UID.Eq) {
+		s.Debug(ctx, "ApplyMembershipChange: the stored list changed while naming members")
+		return
+	}
+	if !s.G().Env.GetUID().Equal(keybase1.UID(uid.String())) {
+		s.Debug(ctx, "ApplyMembershipChange: the push was for a user no longer logged in")
 		return
 	}
 	s.notify(participantNotify{
@@ -261,6 +279,10 @@ func (s *CachingParticipantSource) patchStoredParticipants(ctx context.Context, 
 	}
 	defer lock.Release(ctx)
 
+	if !s.G().Env.GetUID().Equal(keybase1.UID(uid.String())) {
+		s.Debug(ctx, "ApplyMembershipChange: the push was for a user no longer logged in")
+		return nil, false
+	}
 	var local partDiskStorage
 	found, err := s.encryptedDB.GetOrDropUnusable(ctx, s.dbKey(uid, convID), &local)
 	if err != nil || !found {
@@ -270,10 +292,6 @@ func (s *CachingParticipantSource) patchStoredParticipants(ctx context.Context, 
 	if !changed {
 		return nil, false
 	}
-	if !s.G().Env.GetUID().Equal(keybase1.UID(uid.String())) {
-		s.Debug(ctx, "ApplyMembershipChange: the push was for a user no longer logged in")
-		return nil, false
-	}
 	if err := s.encryptedDB.Put(ctx, s.dbKey(uid, convID), partDiskStorage{Uids: uids}); err != nil {
 		s.Debug(ctx, "ApplyMembershipChange: failed to store participants: %s", err)
 		return nil, false
@@ -281,23 +299,48 @@ func (s *CachingParticipantSource) patchStoredParticipants(ctx context.Context, 
 	return uids, true
 }
 
-// participantsPreferOffline names uids from the local cache, and asks the server when
-// any of them has no cached name, since an unknown name shows as a blank member.
-func (s *CachingParticipantSource) participantsPreferOffline(ctx context.Context, uids []gregor1.UID,
-) ([]chat1.ConversationLocalParticipant, error) {
+func toKeybaseUIDs(uids []gregor1.UID) []keybase1.UID {
 	kuids := make([]keybase1.UID, 0, len(uids))
 	for _, u := range uids {
 		kuids = append(kuids, keybase1.UID(u.String()))
 	}
+	return kuids
+}
+
+// participantsPreferOffline names uids from the local cache, and asks the server only
+// for those with no cached name (an unknown name shows as a blank member), without
+// forcing anyone's full name from the network.
+func (s *CachingParticipantSource) participantsPreferOffline(ctx context.Context, uids []gregor1.UID,
+) ([]chat1.ConversationLocalParticipant, error) {
+	kuids := toKeybaseUIDs(uids)
 	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, s.G(), kuids, time.Hour*24)
 	if err != nil {
 		return nil, err
 	}
+	var missing []keybase1.UID
+	for i, row := range rows {
+		if row.NormalizedUsername.IsNil() {
+			missing = append(missing, kuids[i])
+		}
+	}
+	if len(missing) > 0 {
+		named, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), missing, time.Hour*24,
+			time.Minute, false)
+		if err != nil {
+			return nil, err
+		}
+		byUID := make(map[keybase1.UID]libkb.UsernamePackage, len(named))
+		for i, row := range named {
+			byUID[missing[i]] = row
+		}
+		for i := range rows {
+			if row, ok := byUID[kuids[i]]; ok {
+				rows[i] = row
+			}
+		}
+	}
 	participants := make([]chat1.ConversationLocalParticipant, 0, len(rows))
 	for _, row := range rows {
-		if row.NormalizedUsername.IsNil() {
-			return s.GetParticipantsFromUids(ctx, uids)
-		}
 		participants = append(participants, utils.UsernamePackageToParticipant(row))
 	}
 	return participants, nil
@@ -307,11 +350,7 @@ func (s *CachingParticipantSource) GetParticipantsFromUids(
 	ctx context.Context,
 	uids []gregor1.UID,
 ) (participants []chat1.ConversationLocalParticipant, err error) {
-	kuids := make([]keybase1.UID, 0, len(uids))
-	for _, uid := range uids {
-		kuids = append(kuids, keybase1.UID(uid.String()))
-	}
-	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+	rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), toKeybaseUIDs(uids), time.Hour*24,
 		time.Minute, true)
 	if err != nil {
 		return nil, err

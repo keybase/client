@@ -91,7 +91,13 @@ export const useCommon = (ownProps: CommonProps) => {
     summary: h.bodySummary.stringValue(),
     timestamp: h.timestamp,
   }))
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
+  // the selected hit by message id: a flush re-sorts the hits, and the selection
+  // stays on the same message
+  const [selectedID, setSelectedID] = React.useState<T.Chat.MessageID | undefined>(undefined)
+  const selectedIndex = Math.max(
+    0,
+    messageHits.findIndex(h => h.id === selectedID)
+  )
   const [text, setText] = React.useState(initialQuery)
   const [lastSearch, setLastSearch] = React.useState(initialQuery)
 
@@ -193,7 +199,7 @@ export const useCommon = (ownProps: CommonProps) => {
 
   const submitSearch = () => {
     setLastSearch(text)
-    setSelectedIndex(0)
+    setSelectedID(undefined)
     runThreadSearch(text)
   }
 
@@ -205,7 +211,7 @@ export const useCommon = (ownProps: CommonProps) => {
       return false
     }
     centerOnMessage(message.id, 'always')
-    setSelectedIndex(index)
+    setSelectedID(message.id)
     return true
   })
 
@@ -493,11 +499,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
-            {inProgress && (
-              <Kb.Box2 direction="horizontal" testID={TestIDs.CHAT_THREAD_SEARCH_PROGRESS}>
-                <Kb.ProgressIndicator style={styles.progress} />
-              </Kb.Box2>
-            )}
+            {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
               <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>

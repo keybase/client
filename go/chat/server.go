@@ -2325,12 +2325,13 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			}()
 		}
 		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
+		if convScoped {
+			// Search closes uiCh on every return, so this waits out every hit it sent
+			<-ch
+		}
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
-		}
-		if convScoped {
-			<-ch
 		}
 		if len(hits) == 0 {
 			continue
