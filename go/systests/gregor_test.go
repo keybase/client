@@ -34,7 +34,7 @@ func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (
 	return nil
 }
 
-func (e *electronMock) PushUIPrefs(context.Context, keybase1.GregorUIPrefs) error {
+func (e *electronMock) PushUIPrefs(context.Context, keybase1.PushUIPrefsArg) error {
 	return nil
 }
 

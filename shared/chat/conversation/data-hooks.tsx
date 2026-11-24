@@ -86,7 +86,7 @@ export const useConversationParticipantsSelector = <TValue,>(
   useInboxMetadataState(s => selector(s.participants.get(conversationIDKey) ?? emptyParticipantInfo))
 
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  useConfigState(state => getExplodingModeFromPrefs(conversationIDKey, state.gregorUIPrefs))
+  useConfigState(state => getExplodingModeFromPrefs(conversationIDKey, state.gregorUIPrefs) ?? 0)
 
 const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread: string) => {
   if (!thread) {

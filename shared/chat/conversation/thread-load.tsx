@@ -45,13 +45,18 @@ export const getCurrentUser = () => {
   return {devicename: s.deviceName, username: s.username}
 }
 
+// undefined when the service couldn't read this conversation's stored mode, so an open thread
+// keeps the mode it has
 export const getExplodingModeFromPrefs = (
   conversationIDKey: T.Chat.ConversationIDKey,
   prefs: T.RPCGen.GregorUIPrefs
-) => prefs.explodingModes?.[conversationIDKey] ?? 0
+) =>
+  prefs.unreadableExplodingModes?.includes(conversationIDKey)
+    ? undefined
+    : (prefs.explodingModes?.[conversationIDKey] ?? 0)
 
 export const getExplodingModeFromConfig = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getExplodingModeFromPrefs(conversationIDKey, useConfigState.getState().gregorUIPrefs)
+  getExplodingModeFromPrefs(conversationIDKey, useConfigState.getState().gregorUIPrefs) ?? 0
 
 export const persistExplodingMode = (
   conversationIDKey: T.Chat.ConversationIDKey,

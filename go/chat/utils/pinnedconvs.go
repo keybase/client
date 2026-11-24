@@ -13,15 +13,18 @@ import (
 // array of ConvIDStr, top of the inbox first. Written by the GUI.
 const PinnedConvsGregorKey = "chatPinnedConvs"
 
+// ParsePinnedConvs skips entries that aren't conversation IDs instead of rejecting the list, so
+// one bad entry can't unpin everything when the GUI next writes the list back.
 func ParsePinnedConvs(body []byte) []chat1.ConvIDStr {
-	var raw []string
+	var raw []any
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil
 	}
 	seen := make(map[string]bool, len(raw))
 	res := make([]chat1.ConvIDStr, 0, len(raw))
-	for _, id := range raw {
-		if id == "" || seen[id] {
+	for _, v := range raw {
+		id, ok := v.(string)
+		if !ok || id == "" || seen[id] {
 			continue
 		}
 		seen[id] = true

@@ -42,12 +42,13 @@ func (o PushReason) String() string {
 }
 
 type GregorUIPrefs struct {
-	PinnedConvs             []string            `codec:"pinnedConvs" json:"pinnedConvs"`
-	ExplodingModes          map[string]int      `codec:"explodingModes" json:"explodingModes"`
-	ChosenChannelsTeamnames []string            `codec:"chosenChannelsTeamnames" json:"chosenChannelsTeamnames"`
-	BlockButtonsAdders      map[string]string   `codec:"blockButtonsAdders" json:"blockButtonsAdders"`
-	TeamAccessRequests      map[string][]string `codec:"teamAccessRequests" json:"teamAccessRequests"`
-	AllowAnimatedEmojis     bool                `codec:"allowAnimatedEmojis" json:"allowAnimatedEmojis"`
+	PinnedConvs              []string            `codec:"pinnedConvs" json:"pinnedConvs"`
+	ExplodingModes           map[string]int      `codec:"explodingModes" json:"explodingModes"`
+	UnreadableExplodingModes []string            `codec:"unreadableExplodingModes" json:"unreadableExplodingModes"`
+	ChosenChannelsTeamnames  []string            `codec:"chosenChannelsTeamnames" json:"chosenChannelsTeamnames"`
+	BlockButtonsAdders       map[string]string   `codec:"blockButtonsAdders" json:"blockButtonsAdders"`
+	TeamAccessRequests       map[string][]string `codec:"teamAccessRequests" json:"teamAccessRequests"`
+	AllowAnimatedEmojis      bool                `codec:"allowAnimatedEmojis" json:"allowAnimatedEmojis"`
 }
 
 func (o GregorUIPrefs) DeepCopy() GregorUIPrefs {
@@ -75,6 +76,17 @@ func (o GregorUIPrefs) DeepCopy() GregorUIPrefs {
 			}
 			return ret
 		})(o.ExplodingModes),
+		UnreadableExplodingModes: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UnreadableExplodingModes),
 		ChosenChannelsTeamnames: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -131,6 +143,7 @@ type PushStateArg struct {
 
 type PushUIPrefsArg struct {
 	Prefs GregorUIPrefs `codec:"prefs" json:"prefs"`
+	Uid   UID           `codec:"uid" json:"uid"`
 }
 
 type PushOutOfBandMessagesArg struct {
@@ -139,7 +152,7 @@ type PushOutOfBandMessagesArg struct {
 
 type GregorUIInterface interface {
 	PushState(context.Context, PushStateArg) error
-	PushUIPrefs(context.Context, GregorUIPrefs) error
+	PushUIPrefs(context.Context, PushUIPrefsArg) error
 	PushOutOfBandMessages(context.Context, []gregor1.OutOfBandMessage) error
 }
 
@@ -173,7 +186,7 @@ func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]PushUIPrefsArg)(nil), args)
 						return
 					}
-					err = i.PushUIPrefs(ctx, typedArgs[0].Prefs)
+					err = i.PushUIPrefs(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -205,8 +218,7 @@ func (c GregorUIClient) PushState(ctx context.Context, __arg PushStateArg) (err 
 	return
 }
 
-func (c GregorUIClient) PushUIPrefs(ctx context.Context, prefs GregorUIPrefs) (err error) {
-	__arg := PushUIPrefsArg{Prefs: prefs}
+func (c GregorUIClient) PushUIPrefs(ctx context.Context, __arg PushUIPrefsArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushUIPrefs", []any{__arg}, 0*time.Millisecond)
 	return
 }

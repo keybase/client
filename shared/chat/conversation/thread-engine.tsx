@@ -294,6 +294,9 @@ export const useThreadEngineListeners = (
   // gregor is not a chat notification; it reaches every listener on the engine bus, and a thread
   // whose account has left ignores it like everything else
   useEngineActionListener('keybase.1.gregorUI.pushUIPrefs', action => {
-    threadActions.setExplodingMode(getExplodingModeFromPrefs(id, action.payload.params.prefs), true)
+    const seconds = getExplodingModeFromPrefs(id, action.payload.params.prefs)
+    if (seconds !== undefined) {
+      threadActions.setExplodingMode(seconds, true)
+    }
   })
 }

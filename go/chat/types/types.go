@@ -746,6 +746,12 @@ func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1
 	reason string) {
 }
 
+func (d DummyUIInboxLoader) UpdateShownLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
+	reason string,
+) bool {
+	return false
+}
+
 func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
 	return nil
 }

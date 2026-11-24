@@ -8,9 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -34,14 +36,35 @@ func pinnedConvsFromState(s gregor1.State) []chat1.ConvIDStr {
 	return nil
 }
 
-func buildGregorUIPrefs(s gregor1.State) keybase1.GregorUIPrefs {
+// parseLeadingInt reads an integer the way JS parseInt(s, 10) does: optional leading whitespace
+// and sign, then digits, ignoring anything after them. The GUI wrote these values and read them
+// back with parseInt, so it accepted those forms.
+func parseLeadingInt(s string) (int, bool) {
+	s = strings.TrimLeftFunc(s, unicode.IsSpace)
+	end := 0
+	if end < len(s) && (s[end] == '+' || s[end] == '-') {
+		end++
+	}
+	digits := end
+	for end < len(s) && s[end] >= '0' && s[end] <= '9' {
+		end++
+	}
+	if end == digits {
+		return 0, false
+	}
+	n, err := strconv.Atoi(s[:end])
+	return n, err == nil
+}
+
+func buildGregorUIPrefs(ctx context.Context, log logger.Logger, s gregor1.State) keybase1.GregorUIPrefs {
 	res := keybase1.GregorUIPrefs{
-		PinnedConvs:             []string{},
-		ExplodingModes:          map[string]int{},
-		ChosenChannelsTeamnames: []string{},
-		BlockButtonsAdders:      map[string]string{},
-		TeamAccessRequests:      map[string][]string{},
-		AllowAnimatedEmojis:     true,
+		PinnedConvs:              []string{},
+		ExplodingModes:           map[string]int{},
+		UnreadableExplodingModes: []string{},
+		ChosenChannelsTeamnames:  []string{},
+		BlockButtonsAdders:       map[string]string{},
+		TeamAccessRequests:       map[string][]string{},
+		AllowAnimatedEmojis:      true,
 	}
 	for _, id := range pinnedConvsFromState(s) {
 		res.PinnedConvs = append(res.PinnedConvs, id.String())
@@ -65,8 +88,12 @@ func buildGregorUIPrefs(s gregor1.State) keybase1.GregorUIPrefs {
 				}
 			}
 		case strings.HasPrefix(category, explodingModeGregorPrefix):
-			if secs, err := strconv.Atoi(strings.TrimSpace(string(body))); err == nil {
-				res.ExplodingModes[strings.TrimPrefix(category, explodingModeGregorPrefix)] = secs
+			convID := strings.TrimPrefix(category, explodingModeGregorPrefix)
+			if secs, ok := parseLeadingInt(string(body)); ok {
+				res.ExplodingModes[convID] = secs
+			} else {
+				log.CWarningf(ctx, "buildGregorUIPrefs: unreadable exploding mode %q for %s", body, convID)
+				res.UnreadableExplodingModes = append(res.UnreadableExplodingModes, convID)
 			}
 		case strings.HasPrefix(category, blockButtonsGregorPrefix):
 			var b struct {
@@ -100,13 +127,17 @@ type gregorUIPrefsHandler struct {
 	connID libkb.ConnectionID
 	cli    keybase1.GregorUIClient
 
-	// held across the send so pushes from concurrent pushStateOnce calls go out in the order
-	// last records
-	mu   sync.Mutex
-	last *keybase1.GregorUIPrefs
+	// held across the send, so each push either goes out after the pushes of every older read or
+	// is dropped
+	mu      sync.Mutex
+	lastSeq uint64
+	last    *keybase1.GregorUIPrefs
 }
 
-var _ libkb.GregorFirehoseHandler = (*gregorUIPrefsHandler)(nil)
+var (
+	_ libkb.GregorFirehoseHandler = (*gregorUIPrefsHandler)(nil)
+	_ orderedFirehoseHandler      = (*gregorUIPrefsHandler)(nil)
+)
 
 func newGregorUIPrefsHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter) *gregorUIPrefsHandler {
 	return &gregorUIPrefsHandler{
@@ -120,15 +151,23 @@ func (h *gregorUIPrefsHandler) IsAlive() bool {
 	return h.G().ConnectionManager.LookupConnection(h.connID) != nil
 }
 
-func (h *gregorUIPrefsHandler) PushState(s gregor1.State, r keybase1.PushReason) {
-	prefs := buildGregorUIPrefs(s)
+// PushState is unused: the gregor handler pushes through pushStateRead, which knows the read order.
+func (h *gregorUIPrefsHandler) PushState(gregor1.State, keybase1.PushReason) {}
+
+func (h *gregorUIPrefsHandler) pushStateRead(s gregor1.State, r keybase1.PushReason, read gregorStateRead) {
+	ctx := context.Background()
+	prefs := buildGregorUIPrefs(ctx, h.G().Log, s)
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if read.seq <= h.lastSeq || read.sessionEnded() {
+		return
+	}
+	h.lastSeq = read.seq
 	if r != keybase1.PushReason_RECONNECTED && h.last != nil && reflect.DeepEqual(*h.last, prefs) {
 		return
 	}
 	h.last = &prefs
-	if err := h.cli.PushUIPrefs(context.Background(), prefs); err != nil {
+	if err := h.cli.PushUIPrefs(ctx, keybase1.PushUIPrefsArg{Prefs: prefs, Uid: read.uid}); err != nil {
 		h.G().Log.Errorf("Error in gregor UI prefs push: %s", err)
 	}
 }

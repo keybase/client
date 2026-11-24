@@ -2,6 +2,7 @@
 @namespace("keybase.1")
 protocol gregorUI {
   import idl "../gregor1" as gregor1;
+  import idl "common.avdl";
 
   enum PushReason {
     NONE_0,
@@ -15,6 +16,8 @@ protocol gregorUI {
     array<string> pinnedConvs;
     // ConvIDStr -> seconds
     map<string, int> explodingModes;
+    // ConvIDStrs whose exploding mode item could not be read; the GUI keeps its current mode
+    array<string> unreadableExplodingModes;
     array<string> chosenChannelsTeamnames;
     // team ID -> username of whoever added us
     map<string, string> blockButtonsAdders;
@@ -24,6 +27,7 @@ protocol gregorUI {
   }
 
   void pushState(gregor1.State state, PushReason reason) oneway;
-  void pushUIPrefs(GregorUIPrefs prefs) oneway;
+  // uid is the account whose state the prefs were built from
+  void pushUIPrefs(GregorUIPrefs prefs, UID uid) oneway;
   void pushOutOfBandMessages(array<gregor1.OutOfBandMessage> oobm) oneway;
 }

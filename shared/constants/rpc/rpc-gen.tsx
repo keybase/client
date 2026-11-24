@@ -616,7 +616,7 @@ export type MessageTypes = {
     outParam: Gregor1.MsgID,
   },
   'keybase.1.gregorUI.pushUIPrefs': {
-    inParam: {readonly prefs: GregorUIPrefs},
+    inParam: {readonly prefs: GregorUIPrefs,readonly uid: UID},
     outParam: void,
   },
   'keybase.1.home.homeDismissAnnouncement': {
@@ -2647,7 +2647,7 @@ export type GitRepoResult ={ state: GitRepoResultState.err, err: string } | { st
 export type GitServerMetadata = {readonly ctime: Time,readonly mtime: Time,readonly lastModifyingUsername: string,readonly lastModifyingDeviceID: DeviceID,readonly lastModifyingDeviceName: string,}
 export type GitStatus = {readonly log: string,readonly perfLog: string,}
 export type GitTeamRepoSettings = {readonly channelName?: string | null,readonly chatDisabled: boolean,}
-export type GregorUIPrefs = {readonly pinnedConvs?: ReadonlyArray<string> | null,readonly explodingModes?: {[key: string]: number} | null,readonly chosenChannelsTeamnames?: ReadonlyArray<string> | null,readonly blockButtonsAdders?: {[key: string]: string} | null,readonly teamAccessRequests?: {[key: string]: ReadonlyArray<string> | null} | null,readonly allowAnimatedEmojis: boolean,}
+export type GregorUIPrefs = {readonly pinnedConvs?: ReadonlyArray<string> | null,readonly explodingModes?: {[key: string]: number} | null,readonly unreadableExplodingModes?: ReadonlyArray<string> | null,readonly chosenChannelsTeamnames?: ReadonlyArray<string> | null,readonly blockButtonsAdders?: {[key: string]: string} | null,readonly teamAccessRequests?: {[key: string]: ReadonlyArray<string> | null} | null,readonly allowAnimatedEmojis: boolean,}
 export type HasServerKeysRes = {readonly hasServerKeys: boolean,}
 export type HashMeta = Uint8Array
 export type Hello2Res = {readonly encryptionKey: KID,readonly sigPayload: HelloRes,readonly deviceEkKID: KID,}

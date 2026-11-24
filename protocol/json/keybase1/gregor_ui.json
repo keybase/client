@@ -5,6 +5,10 @@
       "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -35,6 +39,13 @@
             "keys": "string"
           },
           "name": "explodingModes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unreadableExplodingModes"
         },
         {
           "type": {
@@ -89,6 +100,10 @@
         {
           "name": "prefs",
           "type": "GregorUIPrefs"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
         }
       ],
       "response": null,

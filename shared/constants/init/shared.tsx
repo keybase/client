@@ -583,10 +583,23 @@ export const initSharedSubscriptions = (
   );
 };
 
+// Prefs read just before an account switch can arrive after it. Without a current uid they're
+// kept: the login push can arrive before the GUI learns the new account's uid.
+const isUIPrefsForAnotherAccount = (
+  action: EngineGen.Actions,
+  currentUID: string,
+) =>
+  action.type === "keybase.1.gregorUI.pushUIPrefs" &&
+  !!currentUID &&
+  !!action.payload.params.uid &&
+  action.payload.params.uid !== currentUID;
+
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
+  const currentUID = useCurrentUserState.getState().uid;
   if (
-    isChatNotificationNotForSignedInAccount(action, useCurrentUserState.getState().uid)
+    isChatNotificationNotForSignedInAccount(action, currentUID) ||
+    isUIPrefsForAnotherAccount(action, currentUID)
   ) {
     return;
   }
