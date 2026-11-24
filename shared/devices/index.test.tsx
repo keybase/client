@@ -219,7 +219,7 @@ test('a device revoked elsewhere leaves the active section on the device history
   expect(renderedDevices()).toEqual(['testuser-mac', 'testuser-old'])
   expect(historyCalls(fake)).toBe(1)
 
-  // userChanged fires for many reasons; the service follows a key change with deviceHistoryChanged
+  // the list reloads on deviceHistoryChanged, which the service sends for our own user's changes, not on userChanged
   results = [makeDetail('testuser-mac', {currentDevice: true}), makeDetail('testuser-old', {revokedAt: 1000})]
   await fake.push('keybase.1.NotifyUsers.userChanged', {uid: 'testuser-uid'}, {oneway: true})
   await flush()

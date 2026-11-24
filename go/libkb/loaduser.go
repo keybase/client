@@ -332,8 +332,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			ret.SetGlobalContext(m.G())
 			if refresh {
 				m.G().NotifyRouter.HandleUserChanged(m, ret.GetUID(), fmt.Sprintf("libkb.LoadUser refresh '%v'", refreshReason))
-				// new links can add or revoke a device without a key-change push reaching us
-				m.G().notifyDeviceHistoryIfSelf(ret.GetUID())
+				if arg.self {
+					m.G().notifyDeviceHistoryAfterSelfLoad(m.Ctx(), ret)
+				}
 			}
 		}
 	}()

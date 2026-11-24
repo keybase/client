@@ -6,6 +6,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"testing"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -532,10 +533,10 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 
 type deviceHistoryListener struct {
 	libkb.NoopNotifyListener
-	count int
+	count atomic.Int32
 }
 
-func (d *deviceHistoryListener) DeviceHistoryChanged() { d.count++ }
+func (d *deviceHistoryListener) DeviceHistoryChanged() { d.count.Add(1) }
 
 // A device list open on this device hears about a revoke made here without
 // waiting for the server's key-change push.
@@ -545,16 +546,8 @@ func TestRevokeDeviceTellsDeviceLists(t *testing.T) {
 	tc.G.SetService()
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
-	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var paper libkb.DeviceWithDeviceNumber
-	for _, device := range devices {
-		if device.Type == keybase1.DeviceTypeV2_PAPER {
-			paper = device
-		}
-	}
-
 	listener := &deviceHistoryListener{}
 	tc.G.NotifyRouter.AddListener(listener)
-	require.NoError(t, doRevokeDevice(tc, u, paper.ID, false, false))
-	require.Positive(t, listener.count)
+	revokeAnyPaperKey(tc, u)
+	require.Positive(t, listener.count.Load())
 }
