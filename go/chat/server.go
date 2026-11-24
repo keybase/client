@@ -1942,10 +1942,11 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 func (h *Server) GetNotificationSettingsLocal(ctx context.Context) (res chat1.NotificationSettingsLocal, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, &err, "GetNotificationSettingsLocal")()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	return getNotificationSettings(ctx, h.G(), h.remoteClient)
+	return getNotificationSettings(ctx, h.G(), h.remoteClient, uid)
 }
 
 func (h *Server) SetNotificationSettingsLocal(ctx context.Context, arg chat1.SetNotificationSettingsLocalArg) (err error) {

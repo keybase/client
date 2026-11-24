@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -64,9 +65,12 @@ func subscribePayload(groups []chat1.NotificationSubscriptionGroup) libkb.JSONPa
 	return payload
 }
 
-func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface) (
-	res chat1.NotificationSettingsLocal, err error,
-) {
+// getNotificationSettings reads uid's subscriptions and chat settings, and
+// returns neither if the account changed while it read them: one account's
+// subscriptions with another's chat settings would be saved back as a whole.
+func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
+	uid gregor1.UID,
+) (res chat1.NotificationSettingsLocal, err error) {
 	mctx := libkb.NewMetaContext(ctx, g.ExternalG())
 	var subs subscriptionsResponse
 	if err := mctx.G().API.GetDecode(mctx, libkb.APIArg{
@@ -79,6 +83,9 @@ func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 	if err != nil {
 		return res, err
 	}
+	if err := assertStillLoggedInAs(ctx, g, uid); err != nil {
+		return res, err
+	}
 	return chat1.NotificationSettingsLocal{
 		Subscriptions: subs.subscriptionGroups(),
 		ChatGlobal:    chatGlobal,
@@ -86,13 +93,17 @@ func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 }
 
 // setNotificationSettings saves uid's subscriptions, then its chat settings.
-// If the account switched during the first save it stops there, so uid's chat
-// settings are never written onto the next account.
+// Each write goes to whichever account is logged in when it runs, so the
+// account is checked before each one: a switch before the subscriptions post
+// writes nothing, and one during it stops before the chat settings. A switch
+// in the moment between a check and its write is not caught.
 func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
 	uid gregor1.UID, arg chat1.SetNotificationSettingsLocalArg,
 ) error {
-	// each write goes to whichever account is logged in when it runs, so check
-	// the account the caller meant before each one
+	if len(arg.Subscriptions) == 0 {
+		// a save is the whole set; an empty one means the settings never loaded
+		return errors.New("no notification settings to save")
+	}
 	if err := assertStillLoggedInAs(ctx, g, uid); err != nil {
 		return err
 	}

@@ -10,16 +10,11 @@ const securityGroup = 'security'
 const soundGroup = 'sound'
 const miscGroup = 'misc'
 
-type NotificationSetting = {
-  name: string
-  subscribed: boolean
-  description: string
-}
-
-type ChatGlobalSettingName = 'plaintextmobile' | 'plaintextdesktop' | 'defaultsoundmobile' | 'disabletyping' | 'convertheic'
+// newmessages is not a chat setting the screen shows
+type ChatGlobalSettingName = Exclude<keyof typeof T.RPCChat.GlobalAppNotificationSetting, 'newmessages'>
 
 type NotificationsGroupState = {
-  settings: Array<NotificationSetting>
+  settings: ReadonlyArray<T.RPCChat.NotificationSubscription>
   unsub: boolean
 }
 
@@ -38,7 +33,7 @@ export const buildNotificationGroups = (
   const groups = new Map<string, NotificationsGroupState>()
   for (const group of loaded.subscriptions ?? []) {
     groups.set(group.name, {
-      settings: (group.settings ?? []).map(s => ({...s})),
+      settings: group.settings ?? [],
       unsub: group.unsub,
     })
   }

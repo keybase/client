@@ -134,13 +134,12 @@ func (r *emailsGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1
 	}
 	m.Debug("email.verified unmarshaled: %+v", msg)
 
-	// The verified notice lets the UI mark the address at once, so the list
-	// fetch (a server call) runs off this handler, where it would hold up the
-	// dismissal and the gregor items behind it.
+	// The verified notice lets the UI mark the address at once. The list is
+	// fetched here, in gregor's order, as the other email items fetch it, so a
+	// list fetched for an earlier item never lands after a later item's.
 	r.G().NotifyRouter.HandleEmailAddressVerified(ctx, msg.Email)
-	uid := r.G().ActiveDevice.UID()
 	err := r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
-	go r.notifyEmailList(libkb.NewMetaContextBackground(r.G()).WithLogTag("EMV"), uid, "email.verified", msg.Email)
+	r.notifyEmailList(m, r.G().ActiveDevice.UID(), "email.verified", msg.Email)
 	return err
 }
 

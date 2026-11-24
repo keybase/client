@@ -62,9 +62,19 @@ func TestSetNotificationSettingsStopsOnAccountSwitch(t *testing.T) {
 	remote := &globalSettingsRemote{}
 	ri := func() chat1.RemoteInterface { return remote }
 	arg := chat1.SetNotificationSettingsLocalArg{
+		Subscriptions: []chat1.NotificationSubscriptionGroup{{
+			Name:     "email",
+			Settings: []chat1.NotificationSubscription{{Name: "announcements", Subscribed: true}},
+		}},
 		ChatGlobal: map[string]bool{strconv.Itoa(int(chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE)): true},
 	}
 	uid := setActiveUserForTest(t, tc, "testuser")
+
+	// a save with no groups is settings that never loaded: nothing is posted
+	tc.G.API = &subscribeAPI{onPost: func() { t.Fatal("posted an empty subscription set") }}
+	require.Error(t, setNotificationSettings(context.TODO(), g, ri, uid,
+		chat1.SetNotificationSettingsLocalArg{ChatGlobal: arg.ChatGlobal}))
+	require.Empty(t, remote.saved)
 
 	tc.G.API = &subscribeAPI{onPost: func() {}}
 	require.NoError(t, setNotificationSettings(context.TODO(), g, ri, uid, arg))
