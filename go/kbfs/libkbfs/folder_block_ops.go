@@ -1136,7 +1136,11 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 		if wasDirty {
 			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
-			_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
+			// A directory created since the last sync has no clean
+			// copy: its dirty block is the directory, so keep it.
+			if !ptr.ID.IsTemporary() {
+				_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
+			}
 			delete(fbo.dirtyDirs, ptr)
 		}
 		for _, unref := range unrefs {

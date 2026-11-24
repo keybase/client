@@ -65,6 +65,12 @@ func (id ID) IsValid() bool {
 	return id.h.IsValid()
 }
 
+// IsTemporary returns whether the block ID was made by
+// MakeTemporaryID, i.e. the block hasn't been put to the server.
+func (id ID) IsTemporary() bool {
+	return id.h.GetHashType() == kbfshash.TemporaryHashType
+}
+
 // Bytes returns the bytes of the block ID.
 func (id ID) Bytes() []byte {
 	return id.h.Bytes()
