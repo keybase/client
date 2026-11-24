@@ -179,7 +179,7 @@ test('a reconnect subscribes again and rereads the journal', async () => {
     uid: 'uid',
     username: 'testuser',
   }))
-  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
   act(() => useDaemonState.getState().dispatch.startHandshake())
   await flush()
   await renderStatus()

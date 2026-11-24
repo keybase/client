@@ -177,7 +177,7 @@ test('a reconnect subscribes the folder again and lists a file added while away'
     uid: 'uid',
     username: 'testuser',
   }))
-  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
   act(() => useDaemonState.getState().dispatch.startHandshake())
   await flush()
   render(
@@ -234,7 +234,7 @@ test('a reconnect reads the favorites again once their new subscription lands', 
   const favoritesReads = () => fake.calls.filter(c => c.method === 'keybase.1.SimpleFS.simpleFSListFavorites').length
   fake.answer(subscribePath, () => null)
   answerBootstrap()
-  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
   act(() => useDaemonState.getState().dispatch.startHandshake())
   await flush()
   renderFolder()
@@ -271,7 +271,7 @@ test('a new connection drops the entries an older one never finished subscribing
   answerBootstrap()
   fake.hold(subscribePath)
   fake.hold('keybase.1.SimpleFS.simpleFSSubscribeNonPath')
-  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
   act(() => useDaemonState.getState().dispatch.startHandshake())
   await flush()
   renderFolder(<Manager />)

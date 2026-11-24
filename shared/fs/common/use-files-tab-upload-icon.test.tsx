@@ -96,7 +96,7 @@ describe('the upload icon', () => {
   // sent it no notification, and KBFS stays connected throughout. The new connection subscribes
   // again and rereads the badge.
   test('a reconnect subscribes again and rereads the badge', async () => {
-    useDaemonState.getState().dispatch.initBootstrapSteps([])
+    useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
     act(() => useDaemonState.getState().dispatch.startHandshake())
     await flush()
     render(
