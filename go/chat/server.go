@@ -2307,8 +2307,9 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	var numHits, numConvs int
 	for index, conv := range convs {
 		var uiCh chan chat1.ChatSearchHit
-		ch := make(chan struct{})
+		var ch chan struct{}
 		if convScoped {
+			ch = make(chan struct{})
 			uiCh = make(chan chat1.ChatSearchHit, 10)
 			go func() {
 				defer close(ch)
@@ -2322,15 +2323,15 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 					}
 				}
 			}()
-		} else {
-			close(ch)
 		}
 		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
 		}
-		<-ch
+		if convScoped {
+			<-ch
+		}
 		if len(hits) == 0 {
 			continue
 		}
@@ -2344,15 +2345,13 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			Time:     hits[0].HitMessage.Valid().Ctime,
 			Hits:     hits,
 		}
-		select {
-		case <-ctx.Done():
-			return res, ctx.Err()
-		default:
-			if !convScoped {
-				_ = ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-					SearchHit: inboxHit,
-				})
-			}
+		if err := ctx.Err(); err != nil {
+			return res, err
+		}
+		if !convScoped {
+			_ = ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+				SearchHit: inboxHit,
+			})
 		}
 		res.Hits = append(res.Hits, inboxHit)
 		if opts.MaxConvsHit > 0 && len(res.Hits) > opts.MaxConvsHit {
