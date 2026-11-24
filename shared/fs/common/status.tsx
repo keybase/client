@@ -113,13 +113,15 @@ const loadUploadStatusImpl = async (
   }
 }
 
+type JournalUpdate = (
+  syncingPaths: ReadonlyArray<T.FS.Path>,
+  totalSyncingBytes: number,
+  endEstimate?: number
+) => void
+
 const loadJournalStatusImpl = async (
   isCurrentGeneration: () => boolean,
-  journalUpdate: (
-    syncingPaths: ReadonlyArray<T.FS.Path>,
-    totalSyncingBytes: number,
-    endEstimate?: number
-  ) => void,
+  journalUpdate: JournalUpdate,
   onError: () => void
 ) => {
   try {
@@ -145,13 +147,14 @@ type JournalStatusRequest = {dirty: boolean; generation: number}
 const runJournalStatusRequest = async (
   request: JournalStatusRequest,
   isCurrentGeneration: () => boolean,
-  load: () => Promise<void>,
+  journalUpdate: JournalUpdate,
+  onError: () => void,
   onDone: () => void
 ) => {
   try {
     while (request.dirty && isCurrentGeneration()) {
       request.dirty = false
-      await load()
+      await loadJournalStatusImpl(isCurrentGeneration, journalUpdate, onError)
     }
   } finally {
     onDone()
@@ -267,7 +270,8 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
       runJournalStatusRequest(
         request,
         isCurrent,
-        async () => loadJournalStatusImpl(isCurrent, journalUpdate, checkKbfsDaemonRpcStatus),
+        journalUpdate,
+        checkKbfsDaemonRpcStatus,
         () => {
           if (journalStatusRequestRef.current === request) {
             journalStatusRequestRef.current = undefined
