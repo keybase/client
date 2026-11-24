@@ -222,26 +222,30 @@ const loadStartupSettings = () => {
   useSettingsContactsState.getState().dispatch.loadContactImportEnabled();
 };
 
-const refreshStartupChat = () => {
+const refreshStartupChat = (reason: "bootstrap" | "reconnected") => {
   // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
   // mounts behind a pushed conversation do not pay inbox startup cost.
   if (!isPhone && useCurrentUserState.getState().username) {
-    ignorePromise(useInboxLayoutState.getState().dispatch.refresh("bootstrap"));
+    ignorePromise(useInboxLayoutState.getState().dispatch.refresh(reason));
   }
 };
 
 // Loads that want a logged-in user but shouldn't compete with first paint
-const scheduleStartupOrReloginWork = () => {
-  const f = async () => {
+const afterFirstPaint = (f: () => void) => {
+  const wait = async () => {
     await timeoutPromise(1000);
-    requestAnimationFrame(() => {
-      requestFollowerInfoForStartup();
-      ignorePromise(updateServerConfigForStartup());
-      loadStartupSettings();
-      refreshStartupChat();
-    });
+    requestAnimationFrame(f);
   };
-  ignorePromise(f());
+  ignorePromise(wait());
+};
+
+const scheduleStartupOrReloginWork = () => {
+  afterFirstPaint(() => {
+    requestFollowerInfoForStartup();
+    ignorePromise(updateServerConfigForStartup());
+    loadStartupSettings();
+    refreshStartupChat("bootstrap");
+  });
 };
 
 // After an offline stretch, reread the session to pick up what the service learned while we could
@@ -274,18 +278,30 @@ const onLoggedInChanged = (loggedIn: ConfigState["loggedIn"]) => {
 };
 
 // A new connection may have missed notifications. A login reloads what they keep current, so a
-// handshake that leaves the same session logged in reloads it here.
-let loggedInAtHandshakeStart = false;
+// handshake that leaves the same user logged in, with no account switch in between, reloads it here.
+let uidAtHandshakeStart = "";
+let switchedDuringHandshake = false;
 const onHandshakeStateChanged = (
   state: DaemonState["handshakeState"],
 ) => {
   const { loggedIn, userSwitching } = useConfigState.getState();
+  const { uid } = useCurrentUserState.getState();
   if (state === "loading") {
-    loggedInAtHandshakeStart = loggedIn;
-  } else if (state === "done" && loggedInAtHandshakeStart && loggedIn && !userSwitching) {
-    requestFollowerInfoForStartup();
-    // The service's chat sync runs when it reaches the server, not when the app reconnects to it
-    ignorePromise(useInboxLayoutState.getState().dispatch.refresh("reconnected"));
+    uidAtHandshakeStart = loggedIn ? uid : "";
+    switchedDuringHandshake = userSwitching;
+  } else if (
+    state === "done" &&
+    loggedIn &&
+    !userSwitching &&
+    !switchedDuringHandshake &&
+    uid &&
+    uid === uidAtHandshakeStart
+  ) {
+    afterFirstPaint(() => {
+      requestFollowerInfoForStartup();
+      // The service's chat sync runs when it reaches the server, not when the app reconnects to it
+      refreshStartupChat("reconnected");
+    });
   }
 };
 
@@ -367,7 +383,9 @@ const onBootstrapStatusChanged = (
 const onUserSwitchingChanged = (
   userSwitching: ConfigState["userSwitching"],
 ) => {
-  if (!userSwitching) {
+  if (userSwitching) {
+    switchedDuringHandshake = true;
+  } else {
     onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus);
   }
 };

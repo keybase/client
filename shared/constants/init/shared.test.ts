@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
@@ -9,6 +10,12 @@ import {useDaemonState} from '@/stores/daemon'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useNotifState} from '@/stores/notifications'
 import * as Tabs from '@/constants/tabs'
+
+// isPhone is a plain property set per test: shared.tsx reads it when it runs
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isPhone: false}))
+const setPhone = (phone: boolean) => {
+  jest.requireMock<{isPhone: boolean}>('@/constants/platform').isPhone = phone
+}
 import {
   _onEngineIncoming,
   initSharedSubscriptions,
@@ -492,6 +499,7 @@ describe('a new connection', () => {
       'keybase.1.delegateUiCtl.registerGregorUIPrefs',
       'keybase.1.config.helloIAm',
       'keybase.1.config.requestFollowingAndUnverifiedFollowers',
+      'keybase.1.config.updateLastLoggedInAndServerConfig',
       'chat.1.local.requestInboxLayout',
     ]) {
       fake.answer(m, () => null)
@@ -501,6 +509,7 @@ describe('a new connection', () => {
     initSharedSubscriptions()
   })
   afterEach(() => {
+    setPhone(false)
     uninstallFakeEngine()
     resetAllStores()
     // resetAllStores keeps the service's last session, which the next test's fresh service does not have
@@ -647,43 +656,113 @@ describe('a new connection', () => {
 
   // Tracking changes made while disconnected were sent to no one, and with the same user still
   // logged in no login reloads them
+  // The reloads a login or a reconnect starts wait out first paint: a second and a frame
+  const pastFirstPaint = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1100))
+    await settle(3)
+  }
+  const reconnect = async () => {
+    fake.drop()
+    await settle()
+    fake.restart()
+    await settle()
+    await connect()
+  }
+
   test('a reconnect that keeps the user logged in reloads who they follow', async () => {
     session = userA
     await connect()
     expect(useConfigState.getState().loggedIn).toBe(true)
+    await pastFirstPaint()
+    const before = followerRequests()
+
+    await reconnect()
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    await pastFirstPaint()
+
+    expect(followerRequests()).toBe(before + 1)
+  })
+
+  // Chat changes made while disconnected were sent to no one, and the service's own chat sync runs
+  // only when it reaches the server
+  test('a reconnect that keeps the user logged in refreshes the inbox after first paint', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    const before = inboxRefreshes()
+
+    await reconnect()
+    expect(inboxRefreshes()).toBe(before)
+    await pastFirstPaint()
+
+    expect(inboxRefreshes()).toBe(before + 1)
+  })
+
+  // As at login, the focused inbox screen does the phone's refresh
+  test('a reconnect on a phone leaves the inbox refresh to the inbox screen', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    setPhone(true)
+    const before = inboxRefreshes()
+    const followersBefore = followerRequests()
+
+    await reconnect()
+    await pastFirstPaint()
+
+    expect(followerRequests()).toBe(followersBefore + 1)
+    expect(inboxRefreshes()).toBe(before)
+  })
+
+  // The login of the new user reloads it; a second reload from the handshake is a duplicate
+  test('a reconnect that finds another user logged in reloads once', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    const before = followerRequests()
+
+    session = {...userA, uid: 'u2', username: 'testuser-mac'}
+    await reconnect()
+    await pastFirstPaint()
+
+    expect(useCurrentUserState.getState().uid).toBe('u2')
+    expect(followerRequests()).toBe(before + 1)
+  })
+
+  test('an account switch that ends during the handshake reloads once', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
     const before = followerRequests()
 
     fake.drop()
     await settle()
     fake.restart()
     await settle()
-    await connect()
+    const reads = fake.hold('keybase.1.config.getBootstrapStatus')
+    connections++
+    onEngineConnected()
+    await settle(5)
+    expect(useDaemonState.getState().handshakeState).toBe('loading')
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+    await settle()
+    useConfigState.getState().dispatch.setUserSwitching(false)
+    await settle()
+    fake.answer('keybase.1.config.getBootstrapStatus', () => session)
+    reads.forEach(c => c.reply(session))
+    await connected()
+    await pastFirstPaint()
 
-    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(useConfigState.getState().loggedIn).toBe(true)
     expect(followerRequests()).toBe(before + 1)
-  })
-
-  // Chat changes made while disconnected were sent to no one, and the service's own chat sync runs
-  // only when it reaches the server
-  test('a reconnect that keeps the user logged in refreshes the inbox', async () => {
-    session = userA
-    await connect()
-    const before = inboxRefreshes()
-
-    fake.drop()
-    await settle()
-    fake.restart()
-    await settle()
-    await connect()
-
-    expect(inboxRefreshes()).toBe(before + 1)
   })
 
   test('the first handshake leaves the follower load to the login', async () => {
     session = userA
     await connect()
+    await pastFirstPaint()
 
     expect(useConfigState.getState().loggedIn).toBe(true)
-    expect(followerRequests()).toBe(0)
+    expect(followerRequests()).toBe(1)
   })
 })
