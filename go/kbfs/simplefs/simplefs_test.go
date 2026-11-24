@@ -1903,7 +1903,7 @@ func TestSyncStatusFilePaths(t *testing.T) {
 	require.ElementsMatch(t, []any{
 		"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/new.txt",
 	}, statusFields["UnflushedPaths"])
-	require.NotContains(t, statusFields, "UnflushedDirPaths")
+	require.NotContains(t, statusFields, "UnflushedFilePaths")
 	flush()
 
 	t.Log("A rename and a delete only touch the parent folder")
@@ -1944,8 +1944,8 @@ func TestSyncStatusFilePaths(t *testing.T) {
 	checkStatus(sorted, sorted[1:])
 	flush()
 
-	t.Log("A folder stays known once one revision shows it, even if a " +
-		"later one only changes its mtime")
+	t.Log("A folder whose later revision only changes its mtime is still " +
+		"not listed as a file")
 	jManager.PauseBackgroundWork(ctx, tlfID)
 	writeRemoteFile(
 		ctx, t, sfs, pathAppend(pathPriv, `a/later.txt`), []byte(`baz`))

@@ -249,7 +249,8 @@ func addUnflushedPaths(ctx context.Context,
 // parent directory's chain. An mtime setAttr can apply to either
 // type and leaves the node's pointer unchanged, so a chain with only
 // those is looked up in the node cache; if the node isn't cached, the
-// chain is not reported as a file.
+// chain is not reported as a file: rsync -a and cp -p touch folders far
+// more often than a touch alone changes a file.
 func unflushedChainIsFile(chain *crChain, cpp chainsPathPopulator) bool {
 	for _, op := range chain.ops {
 		switch realOp := op.(type) {

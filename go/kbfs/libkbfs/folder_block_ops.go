@@ -4079,6 +4079,10 @@ func (fbo *folderBlockOps) obfuscatorMaker() func() data.Obfuscator {
 func (fbo *folderBlockOps) cachedEntryType(ptr data.BlockPointer) (
 	data.EntryType, bool,
 ) {
+	// the node cache panics on an invalid ref, and is nil when disabled
+	if fbo.nodeCache == nil || !ptr.Ref().IsValid() {
+		return 0, false
+	}
 	n := fbo.nodeCache.Get(ptr.Ref())
 	if n == nil {
 		return 0, false
