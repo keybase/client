@@ -162,6 +162,15 @@ type subscriptionManager struct {
 	subscriptionIDs                 map[SubscriptionID]bool
 	subscriptionCountByFolderBranch map[data.FolderBranch]int
 	folderBranchPollerCancelers     map[SubscriptionID]context.CancelFunc
+	// set by Shutdown; a later subscribe would count a subscriber that
+	// nothing ever removes from watches
+	shutDown bool
+
+	// One overall sync status pass at a time, off the publisher's path;
+	// a publish during a pass reruns it once.
+	overallSyncStatusLock    sync.Mutex
+	overallSyncStatusRunning bool
+	overallSyncStatusAgain   bool
 }
 
 func (sm *subscriptionManager) notifyOnlineStatus() {
@@ -222,6 +231,7 @@ func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 	for _, sid := range nonPathSids {
 		sm.unsubscribeNonPathLocked(ctx, sid)
 	}
+	sm.shutDown = true
 	sm.lock.Unlock()
 	for _, fb := range unregister {
 		sm.unregisterFromChanges(ctx, fb)
@@ -544,6 +554,9 @@ func (sm *subscriptionManager) SubscribeNonPath(
 ) error {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
+	if sm.shutDown {
+		return errors.New("subscription manager is shut down")
+	}
 	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
 	if err != nil {
 		return err
@@ -654,6 +667,12 @@ func (sm *subscriptionManager) notifyRefLocked(
 	if !ok {
 		return
 	}
+	if len(topics) == 0 {
+		topics = []keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+			keybase1.PathSubscriptionTopic_CHILDREN,
+		}
+	}
 	ps.pendingLock.Lock()
 	for _, topic := range topics {
 		ps.pendingTopics[topic] = true
@@ -695,15 +714,42 @@ func (sm *subscriptionManager) nodeChangeLocked(
 // (the GUI checks any path's prefetch status for offline use, and a TLF
 // that just stopped syncing reads as not syncing here). Only TLFs that
 // sync (fully or partly) also reload their children: sync prefetching is
-// what drives this topic. The sync states are read without lock held.
+// what drives this topic. It runs in a goroutine, one pass at a time: the
+// prefetcher publishes while holding its own lock, and the sync states are
+// read under the config's lock, which a sync setting change holds across
+// disk work.
 func (sm *subscriptionManager) publishOverallSyncStatus() {
+	sm.overallSyncStatusLock.Lock()
+	defer sm.overallSyncStatusLock.Unlock()
+	if sm.overallSyncStatusRunning {
+		sm.overallSyncStatusAgain = true
+		return
+	}
+	sm.overallSyncStatusRunning = true
+	go func() {
+		for {
+			sm.publishOverallSyncStatusOnce()
+			sm.overallSyncStatusLock.Lock()
+			if !sm.overallSyncStatusAgain {
+				sm.overallSyncStatusRunning = false
+				sm.overallSyncStatusLock.Unlock()
+				return
+			}
+			sm.overallSyncStatusAgain = false
+			sm.overallSyncStatusLock.Unlock()
+		}
+	}()
+}
+
+func (sm *subscriptionManager) publishOverallSyncStatusOnce() {
 	sm.lock.RLock()
-	synced := make(map[tlf.ID]bool)
+	tlfs := make(map[tlf.ID]bool)
 	for ref := range sm.pathSubscriptions {
-		synced[ref.folderBranch.Tlf] = false
+		tlfs[ref.folderBranch.Tlf] = true
 	}
 	sm.lock.RUnlock()
-	for tlfID := range synced {
+	synced := make(map[tlf.ID]bool, len(tlfs))
+	for tlfID := range tlfs {
 		synced[tlfID] = sm.config.GetTlfSyncState(tlfID).Mode !=
 			keybase1.FolderSyncMode_DISABLED
 	}
@@ -711,13 +757,15 @@ func (sm *subscriptionManager) publishOverallSyncStatus() {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
 	for ref := range sm.pathSubscriptions {
-		if synced[ref.folderBranch.Tlf] {
-			sm.notifyRefLocked(ref,
-				keybase1.PathSubscriptionTopic_STAT,
-				keybase1.PathSubscriptionTopic_CHILDREN)
-		} else {
-			sm.notifyRefLocked(ref, keybase1.PathSubscriptionTopic_STAT)
+		topics := []keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
 		}
+		// a TLF first subscribed after its sync state was read above
+		// reloads its children too, to be safe
+		if isSynced, read := synced[ref.folderBranch.Tlf]; isSynced || !read {
+			topics = append(topics, keybase1.PathSubscriptionTopic_CHILDREN)
+		}
+		sm.notifyRefLocked(ref, topics...)
 	}
 	if nps, ok := sm.nonPathSubscriptions[keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS]; ok {
 		nps.debouncedNotify.notify()

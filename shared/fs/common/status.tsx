@@ -255,7 +255,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   )
 
   // One read at a time: a notice during a read marks it dirty, and a dirty read runs once more
-  // when it finishes, so a slow service is neither piled up on nor never heard from.
+  // when it finishes, so a slow service never has more than one read in flight and no notice is lost.
   const loadJournalStatus = React.useEffectEvent(() => {
     const generation = generationRef.current
     const inFlight = journalStatusRequestRef.current

@@ -278,9 +278,6 @@ type tlfJournal struct {
 	needResumeCh      chan struct{}
 	needShutdownCh    chan struct{}
 	needBranchCheckCh chan struct{}
-	// unflushedPutCh tells an idle or paused background loop that
-	// unflushed bytes came in, so it starts republishing the status.
-	unflushedPutCh chan struct{}
 
 	// Track the ways in which the journal is paused.  We don't allow
 	// work to resume unless a resume has come in corresponding to
@@ -485,7 +482,6 @@ func makeTLFJournal(
 		needResumeCh:         make(chan struct{}, 1),
 		needShutdownCh:       make(chan struct{}, 1),
 		needBranchCheckCh:    make(chan struct{}, 1),
-		unflushedPutCh:       make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
 		finishSingleOpCh:     make(chan flushContext, 1),
 		singleOpFlushContext: defaultFlushContext(),
@@ -547,45 +543,6 @@ func makeTLFJournal(
 	return j, nil
 }
 
-// tlfJournalStatusInterval is how often a journal republishes its status
-// while its endEstimate moves with the clock (unflushed bytes not being
-// flushed, or a block flush running overdue), and only while some client
-// subscribes to it. Often enough that the GUI's time estimate never looks
-// stuck, rarely enough that an idle journal seldom wakes.
-var tlfJournalStatusInterval = 4 * time.Second
-
-// journalStatusTimer fires every tlfJournalStatusInterval while some
-// client subscribes to journal status and want() holds. C is nil while
-// it is disarmed; subscribersChanged closes when the subscribers come
-// or go, so the caller can re-arm.
-type journalStatusTimer struct {
-	j                  *tlfJournal
-	want               func() bool
-	timer              *time.Timer
-	C                  <-chan time.Time
-	subscribersChanged <-chan struct{}
-}
-
-func (t *journalStatusTimer) stop() {
-	if t.timer != nil {
-		t.timer.Stop()
-		t.timer = nil
-	}
-	t.C = nil
-}
-
-func (t *journalStatusTimer) arm() {
-	t.stop()
-	subscribed, subscribersChanged := t.j.config.
-		SubscriptionManagerPublisher().SubscriberWatch(
-		keybase1.SubscriptionTopic_JOURNAL_STATUS)
-	t.subscribersChanged = subscribersChanged
-	if subscribed && t.want() {
-		t.timer = time.NewTimer(tlfJournalStatusInterval)
-		t.C = t.timer.C
-	}
-}
-
 func (j *tlfJournal) signalWork() {
 	j.wg.Add(1)
 	select {
@@ -623,9 +580,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 	// Non-nil when a retry has been scheduled for the future.
 	var retryTimer *time.Timer
-	// Armed while idle or paused with unflushed bytes and a journal
-	// status subscriber.
-	statusTimer := &journalStatusTimer{j: j, want: j.hasUnflushedBytes}
 	defer func() {
 		close(j.backgroundShutdownCh)
 		if j.bwDelegate != nil {
@@ -634,7 +588,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 		if retryTimer != nil {
 			retryTimer.Stop()
 		}
-		statusTimer.stop()
 	}()
 
 	// Below we have a state machine with three states:
@@ -675,22 +628,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.vlog.CLogf(
 				ctx, libkb.VLog1, "Waiting for the work signal for %s",
 				j.tlfID)
-			statusTimer.arm()
-		idleWait:
 			select {
-			case <-statusTimer.C:
-				j.config.SubscriptionManagerPublisher().PublishChange(
-					keybase1.SubscriptionTopic_JOURNAL_STATUS)
-				statusTimer.arm()
-				goto idleWait
-			case <-statusTimer.subscribersChanged:
-				statusTimer.arm()
-				goto idleWait
-			case <-j.unflushedPutCh:
-				if statusTimer.C == nil {
-					statusTimer.arm()
-				}
-				goto idleWait
 			case <-j.hasWorkCh:
 				j.vlog.CLogf(
 					ctx, libkb.VLog1, "Got work signal for %s", j.tlfID)
@@ -778,22 +716,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.log.CDebugf(
 				ctx, "Waiting to resume background work for %s",
 				j.tlfID)
-			statusTimer.arm()
-		pausedWait:
 			select {
-			case <-statusTimer.C:
-				j.config.SubscriptionManagerPublisher().PublishChange(
-					keybase1.SubscriptionTopic_JOURNAL_STATUS)
-				statusTimer.arm()
-				goto pausedWait
-			case <-statusTimer.subscribersChanged:
-				statusTimer.arm()
-				goto pausedWait
-			case <-j.unflushedPutCh:
-				if statusTimer.C == nil {
-					statusTimer.arm()
-				}
-				goto pausedWait
 			case <-j.needResumeCh:
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
@@ -1302,28 +1225,6 @@ func (j *tlfJournal) flushBlockEntries(
 			j.delegateBlockServer, j.config.BlockCache(), j.config.Reporter(),
 			j.tlfID, tlfName, entries, cacheType)
 	})
-	eg.Go(func() error {
-		// An overdue flush's endEstimate moves with the clock, so
-		// keep status subscribers updated until the puts finish.
-		statusTimer := &journalStatusTimer{
-			j:    j,
-			want: func() bool { return true },
-		}
-		defer statusTimer.stop()
-		for {
-			statusTimer.arm()
-			select {
-			case <-statusTimer.C:
-				if j.isCurrFlushOverdue() {
-					j.config.SubscriptionManagerPublisher().PublishChange(
-						keybase1.SubscriptionTopic_JOURNAL_STATUS)
-				}
-			case <-statusTimer.subscribersChanged:
-			case <-convertCtx.Done():
-				return nil
-			}
-		}
-	})
 	converted = false
 	eg.Go(func() error {
 		// We might need to run multiple conversions during a single
@@ -1788,36 +1689,6 @@ func (j *tlfJournal) isOnConflictBranch() (bool, error) {
 	return j.mdJournal.getBranchID() != kbfsmd.NullBranchID, nil
 }
 
-// timeLeftInCurrFlushLocked estimates how long the current block flush
-// has left. Once it runs past its expected time (always, with no
-// bandwidth estimate yet), it is overdue and the estimate stays one
-// second from now.
-func (j *tlfJournal) timeLeftInCurrFlushLocked(
-	now time.Time, bwEstimate float64,
-) (timeLeft time.Duration, overdue bool) {
-	if j.currBytesFlushing <= 0 {
-		return 0, false
-	}
-	timeFlushingSoFar := now.Sub(j.currFlushStarted)
-	totalExpectedTime := time.Duration(0)
-	if bwEstimate > 0 {
-		totalExpectedTime = time.Duration(
-			float64(j.currBytesFlushing)/bwEstimate) * time.Second
-	}
-	if totalExpectedTime > timeFlushingSoFar {
-		return totalExpectedTime - timeFlushingSoFar, false
-	}
-	return 1 * time.Second, true
-}
-
-func (j *tlfJournal) isCurrFlushOverdue() bool {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
-	_, overdue := j.timeLeftInCurrFlushLocked(
-		j.config.Clock().Now(), j.bytesPerSecEstimate.Value())
-	return overdue
-}
-
 func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	if err := j.checkEnabledLocked(); err != nil {
 		return TLFJournalStatus{}, err
@@ -1845,7 +1716,24 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		now := j.config.Clock().Now()
 		bwEstimate := j.bytesPerSecEstimate.Value()
 
-		timeLeftInCurrFlush, _ := j.timeLeftInCurrFlushLocked(now, bwEstimate)
+		// How long do we think is remaining in the current flush?
+		timeLeftInCurrFlush := time.Duration(0)
+		if j.currBytesFlushing > 0 {
+			timeFlushingSoFar := now.Sub(j.currFlushStarted)
+			totalExpectedTime := time.Duration(0)
+			if bwEstimate > 0 {
+				totalExpectedTime = time.Duration(
+					float64(j.currBytesFlushing)/bwEstimate) * time.Second
+			}
+
+			if totalExpectedTime > timeFlushingSoFar {
+				timeLeftInCurrFlush = totalExpectedTime - timeFlushingSoFar
+			} else {
+				// Arbitrarily say that there's one second left, if
+				// we've taken longer than expected to flush so far.
+				timeLeftInCurrFlush = 1 * time.Second
+			}
+		}
 
 		// Add the estimate for the blocks that haven't started flushing yet.
 
@@ -2360,12 +2248,6 @@ func (j *tlfJournal) putBlockData(
 		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
-	if putData {
-		select {
-		case j.unflushedPutCh <- struct{}{}:
-		default:
-		}
-	}
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,
