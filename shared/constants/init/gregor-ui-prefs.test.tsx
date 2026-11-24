@@ -9,6 +9,7 @@ import {getExplodingModeFromConfig} from '@/chat/conversation/thread-load'
 import {setConversationPinned} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useNotifState} from '@/stores/notifications'
+import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {settle} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
@@ -19,6 +20,9 @@ let fake: FakeEngine
 
 beforeEach(() => {
   fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  useCurrentUserState
+    .getState()
+    .dispatch.setBootstrap({deviceID: 'd1', deviceName: 'testuser-mac', uid: 'u1', username: 'testuser'})
 })
 
 afterEach(() => {
@@ -28,7 +32,7 @@ afterEach(() => {
 
 const pushPrefs = async (prefs: T.RPCGen.GregorUIPrefs) =>
   act(async () => {
-    await fake.push('keybase.1.gregorUI.pushUIPrefs', {prefs}, {oneway: true})
+    await fake.push('keybase.1.gregorUI.pushUIPrefs', {prefs, uid: 'u1'}, {oneway: true})
     await settle()
   })
 

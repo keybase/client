@@ -544,6 +544,7 @@ export const initSharedSubscriptions = (
   _sharedUnsubs.length = 0;
   _sharedUnsubs.push(
     subscribeValue(useConfigState, (s) => s.loggedIn, onLoggedInChanged),
+    subscribeValue(useCurrentUserState, (s) => s.uid, onCurrentUIDChanged),
     subscribeValue(
       useConfigState,
       (s) => s.revokedTrigger,
@@ -585,14 +586,35 @@ export const initSharedSubscriptions = (
 
 // Prefs read just before an account switch can arrive after it. Without a current uid they're
 // kept: the login push can arrive before the GUI learns the new account's uid.
+// A push read before a logout can land after it, so prefs apply only to the signed-in account;
+// prefs pushed before the app knows the account are read again once it does.
 const isUIPrefsForAnotherAccount = (
   action: EngineGen.Actions,
   currentUID: string,
 ) =>
   action.type === "keybase.1.gregorUI.pushUIPrefs" &&
-  !!currentUID &&
-  !!action.payload.params.uid &&
-  action.payload.params.uid !== currentUID;
+  (!currentUID || action.payload.params.uid !== currentUID);
+
+const onCurrentUIDChanged = (uid: string) => {
+  if (!uid) {
+    return;
+  }
+  const f = async () => {
+    try {
+      const prefs = await T.RPCGen.gregorGetUIPrefsRpcPromise();
+      if (useCurrentUserState.getState().uid !== uid) {
+        return;
+      }
+      _onEngineIncoming({
+        payload: { params: { prefs, uid } },
+        type: "keybase.1.gregorUI.pushUIPrefs",
+      });
+    } catch (error) {
+      logger.warn("reading the gregor UI prefs failed:", error);
+    }
+  };
+  ignorePromise(f());
+};
 
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {

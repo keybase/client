@@ -178,6 +178,8 @@ describe('the session comes from the service', () => {
     seq = 0
     current = loggedOut
     fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    // the app reads the gregor UI prefs once it knows the signed-in account
+    fake.answer('keybase.1.gregor.getUIPrefs', () => ({allowAnimatedEmojis: false, blockButtonsAdders: {}, chosenChannelsTeamnames: [], explodingModes: {}, pinnedConvs: [], teamAccessRequests: {}, unreadableExplodingModes: []}))
     fake.answer('keybase.1.config.getBootstrapStatus', () => ({...current, sessionSeq: seq}))
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
     useConfigState.getState().dispatch.setUserSwitching(false)
@@ -202,6 +204,23 @@ describe('the session comes from the service', () => {
     await send(userB)
     expect(useCurrentUserState.getState().username).toBe('testuser2')
     expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:1234', token: 'tok'})
+  })
+
+  test('once the app knows the signed-in account it reads that account\'s gregor prefs', async () => {
+    fake.answer('keybase.1.gregor.getUIPrefs', () => ({
+      allowAnimatedEmojis: false,
+      blockButtonsAdders: {},
+      chosenChannelsTeamnames: [],
+      explodingModes: {},
+      pinnedConvs: [],
+      teamAccessRequests: {},
+      unreadableExplodingModes: [],
+    }))
+    expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
+    await send(userA)
+    await settle()
+    expect(fake.calls.filter(c => c.method === 'keybase.1.gregor.getUIPrefs')).toHaveLength(1)
+    expect(useConfigState.getState().allowAnimatedEmojis).toBe(false)
   })
 
   test('a session sent applies without reading the service', async () => {
@@ -459,6 +478,8 @@ describe('a new connection subscribes before it reads', () => {
   // after the handshake read the session but before the subscription landed would reach no one.
   test('a login between the read and the subscription still reaches the app', async () => {
     const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    // the app reads the gregor UI prefs once it knows the signed-in account
+    fake.answer('keybase.1.gregor.getUIPrefs', () => ({allowAnimatedEmojis: false, blockButtonsAdders: {}, chosenChannelsTeamnames: [], explodingModes: {}, pinnedConvs: [], teamAccessRequests: {}, unreadableExplodingModes: []}))
     let session = loggedOut
     const subscribes = fake.hold('keybase.1.notifyCtl.setNotifications')
     fake.answer('keybase.1.config.getBootstrapStatus', () => session)

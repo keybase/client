@@ -1248,15 +1248,16 @@ describe('gregor prefs pushes', () => {
     expect(modeOfA()).toBe(0)
   })
 
-  test("another account's prefs are dropped; with no signed-in uid they're kept", async () => {
+  test("another account's prefs are dropped, and so are prefs while no account is known", async () => {
     await mountScreens([convA])
     await notify(prefsPush({allowAnimatedEmojis: false, explodingModes: {[convA]: 300}}, 'uid-2'))
     expect(modeOfA()).toBe(0)
     expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
 
+    // read before the logout and landing after it: the app reads the prefs once it knows the account
     await startSwitch('testuser-mac')
     await notify(prefsPush({allowAnimatedEmojis: false}, 'uid-2'))
-    expect(useConfigState.getState().allowAnimatedEmojis).toBe(false)
+    expect(useConfigState.getState().allowAnimatedEmojis).toBe(true)
   })
 })
 
