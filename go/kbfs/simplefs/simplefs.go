@@ -158,6 +158,11 @@ type SimpleFS struct {
 	// inProgress is for keeping state of operations in progress,
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
+	// readLists holds, for readListMemory, the lists whose handles
+	// SimpleFSReadList freed, so that closing or checking one after
+	// reading it still succeeds. readListOrder is oldest first.
+	readLists     map[keybase1.OpID]bool
+	readListOrder []readList
 
 	subscribeLock               sync.RWMutex
 	subscribeCurrTlfPathFromGUI string
@@ -243,6 +248,15 @@ type inprogress struct {
 	progress keybase1.OpProgress
 }
 
+type readList struct {
+	opid keybase1.OpID
+	at   time.Time
+}
+
+// readListMemory is how long a list freed by SimpleFSReadList can still be
+// closed or checked.
+const readListMemory = time.Minute
+
 type handle struct {
 	file   billy.File
 	async  any
@@ -314,6 +328,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 
 		handles:              map[keybase1.OpID]*handle{},
 		inProgress:           map[keybase1.OpID]*inprogress{},
+		readLists:            map[keybase1.OpID]bool{},
 		log:                  log,
 		vlog:                 config.MakeVLogger(log),
 		newFS:                defaultNewFS,
@@ -1271,7 +1286,22 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	// A list handle holds nothing but its result, and not every caller
 	// closes the op, so free it once the result is read.
 	delete(k.handles, opid)
+	k.rememberReadListLocked(opid)
 	return lr, nil
+}
+
+func (k *SimpleFS) rememberReadListLocked(opid keybase1.OpID) {
+	now := k.config.Clock().Now()
+	expired := 0
+	for _, rl := range k.readListOrder {
+		if now.Sub(rl.at) < readListMemory {
+			break
+		}
+		delete(k.readLists, rl.opid)
+		expired++
+	}
+	k.readListOrder = append(k.readListOrder[expired:], readList{opid, now})
+	k.readLists[opid] = true
 }
 
 // SimpleFSListFavorites lists the favorite, new,
@@ -2400,6 +2430,10 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 	delete(k.inProgress, opid)
 	h, ok := k.handles[opid]
 	if !ok {
+		if k.readLists[opid] {
+			delete(k.readLists, opid)
+			return nil
+		}
 		return errNoSuchHandle
 	}
 	delete(k.handles, opid)
@@ -2463,9 +2497,10 @@ func (k *SimpleFS) SimpleFSCheck(
 		}
 
 		return progress, nil
-	} else if _, ok := k.handles[opid]; ok {
+	} else if _, ok := k.handles[opid]; ok || k.readLists[opid] {
 		// Return an empty progress and nil error if there's no async
-		// operation pending, but there is still an open handle.
+		// operation pending, but there is still an open handle, or a
+		// list whose handle was freed when it was read.
 		return keybase1.OpProgress{}, nil
 	}
 	return keybase1.OpProgress{}, errNoResult
