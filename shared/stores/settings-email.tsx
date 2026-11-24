@@ -23,6 +23,8 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
+    // patches the row at once; the full list follows when the service has fetched it
+    notifyEmailVerified: (email: string) => void
     resetState: () => void
     // call after a verification email RPC succeeds; drives the resend cooldown UI
     sentVerificationEmail: (email: string) => void
@@ -34,6 +36,14 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', se
     notifyEmailAddressEmailsChanged: list => {
       set(s => {
         s.emails = new Map(list.map(row => [row.email, {...makeEmailRow(), ...row}]))
+      })
+    },
+    notifyEmailVerified: email => {
+      set(s => {
+        const old = s.emails.get(email)
+        if (old) {
+          old.isVerified = true
+        }
       })
     },
     resetState: Z.defaultReset,

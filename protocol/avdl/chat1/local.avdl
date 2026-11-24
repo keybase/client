@@ -1156,7 +1156,10 @@ protocol local {
     GlobalAppNotificationSettings chatGlobal;
   }
   NotificationSettingsLocal getNotificationSettingsLocal();
-  // Saves the subscriptions, then the chat settings, and fails if either save does.
+  // Saves the subscriptions, then the chat settings. Nothing is rolled back:
+  // if the subscriptions save fails nothing is written, but if the chat
+  // settings save fails (or the account changed in between, which skips it)
+  // the subscriptions stay saved and the call still fails.
   void setNotificationSettingsLocal(array<NotificationSubscriptionGroup> subscriptions, map<string, bool> chatGlobal);
 
   // Unpack message from a push notification

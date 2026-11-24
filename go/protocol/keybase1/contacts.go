@@ -152,12 +152,14 @@ type GetContactsForUserRecommendationsArg struct {
 }
 
 type GetImportContactsEnabledArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type SetImportContactsEnabledArg struct {
-	SessionID int  `codec:"sessionID" json:"sessionID"`
-	Enabled   bool `codec:"enabled" json:"enabled"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	Enabled   bool   `codec:"enabled" json:"enabled"`
 }
 
 type ContactsInterface interface {
@@ -165,7 +167,7 @@ type ContactsInterface interface {
 	SaveContactList(context.Context, SaveContactListArg) (ContactListResolutionResult, error)
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 	GetContactsForUserRecommendations(context.Context, int) ([]ProcessedContact, error)
-	GetImportContactsEnabled(context.Context, int) (bool, error)
+	GetImportContactsEnabled(context.Context, GetImportContactsEnabledArg) (bool, error)
 	SetImportContactsEnabled(context.Context, SetImportContactsEnabledArg) error
 }
 
@@ -244,7 +246,7 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetImportContactsEnabledArg)(nil), args)
 						return
 					}
-					ret, err = i.GetImportContactsEnabled(ctx, typedArgs[0].SessionID)
+					ret, err = i.GetImportContactsEnabled(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -293,8 +295,7 @@ func (c ContactsClient) GetContactsForUserRecommendations(ctx context.Context, s
 	return
 }
 
-func (c ContactsClient) GetImportContactsEnabled(ctx context.Context, sessionID int) (res bool, err error) {
-	__arg := GetImportContactsEnabledArg{SessionID: sessionID}
+func (c ContactsClient) GetImportContactsEnabled(ctx context.Context, __arg GetImportContactsEnabledArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.contacts.getImportContactsEnabled", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -183,16 +183,16 @@ func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID
 	return savedContacts, nil
 }
 
-func (h *ContactsHandler) GetImportContactsEnabled(ctx context.Context, sessionID int) (res bool, err error) {
+func (h *ContactsHandler) GetImportContactsEnabled(ctx context.Context, arg keybase1.GetImportContactsEnabledArg) (res bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.Trace("ContactsHandler#GetImportContactsEnabled", &err)()
-	return contacts.ImportContactsEnabled(mctx)
+	defer mctx.Trace(fmt.Sprintf("ContactsHandler#GetImportContactsEnabled(%s)", arg.Username), &err)()
+	return contacts.ImportContactsEnabled(mctx, arg.Username)
 }
 
 func (h *ContactsHandler) SetImportContactsEnabled(ctx context.Context, arg keybase1.SetImportContactsEnabledArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.Trace(fmt.Sprintf("ContactsHandler#SetImportContactsEnabled(%t)", arg.Enabled), &err)()
-	return contacts.SetImportContactsEnabled(mctx, arg.Enabled)
+	defer mctx.Trace(fmt.Sprintf("ContactsHandler#SetImportContactsEnabled(%s, %t)", arg.Username, arg.Enabled), &err)()
+	return contacts.SetImportContactsEnabled(mctx, arg.Username, arg.Enabled)
 }
 
 func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {

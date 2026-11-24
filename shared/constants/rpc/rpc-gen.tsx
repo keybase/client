@@ -36,7 +36,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifyEmailAddress.emailsChanged': {
-    inParam: {readonly list?: ReadonlyArray<Email> | null,readonly category: string,readonly email: EmailAddress},
+    inParam: {readonly list?: ReadonlyArray<Email> | null,readonly category: string,readonly email: EmailAddress,readonly uid: UID},
     outParam: void,
   },
   'keybase.1.NotifyFS.FSActivity': {
@@ -484,7 +484,7 @@ export type MessageTypes = {
     outParam: ReadonlyArray<ProcessedContact> | null,
   },
   'keybase.1.contacts.getImportContactsEnabled': {
-    inParam: undefined,
+    inParam: {readonly username: string},
     outParam: boolean,
   },
   'keybase.1.contacts.saveContactList': {
@@ -492,7 +492,7 @@ export type MessageTypes = {
     outParam: ContactListResolutionResult,
   },
   'keybase.1.contacts.setImportContactsEnabled': {
-    inParam: {readonly enabled: boolean},
+    inParam: {readonly username: string,readonly enabled: boolean},
     outParam: void,
   },
   'keybase.1.cryptocurrency.registerAddress': {

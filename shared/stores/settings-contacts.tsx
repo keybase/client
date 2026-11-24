@@ -121,8 +121,13 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           s.waitingToShowJoinedModal = true
         })
       }
+      // the service refuses the write if this is no longer the logged-in account
+      const {username} = useCurrentUserState.getState()
       const f = async () => {
-        await T.RPCGen.contactsSetImportContactsEnabledRpcPromise({enabled: enable}, importContactsWaitingKey)
+        await T.RPCGen.contactsSetImportContactsEnabledRpcPromise(
+          {enabled: enable, username},
+          importContactsWaitingKey
+        )
         get().dispatch.loadContactImportEnabled()
       }
       ignorePromise(f())
@@ -137,14 +142,18 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         if (!useConfigState.getState().loggedIn) {
           return
         }
+        const {username} = useCurrentUserState.getState()
         let enabled: boolean
         try {
-          enabled = await T.RPCGen.contactsGetImportContactsEnabledRpcPromise(undefined, importContactsWaitingKey)
+          enabled = await T.RPCGen.contactsGetImportContactsEnabledRpcPromise({username}, importContactsWaitingKey)
         } catch (error) {
           // a failed read is not "off": treating it as off would clear the uploaded contacts
           if (error instanceof RPCError) {
             logger.error(`Error reading contact import setting: ${error.message}`)
           }
+          return
+        }
+        if (useCurrentUserState.getState().username !== username) {
           return
         }
 

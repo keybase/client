@@ -192,6 +192,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
         }
       ],
       "response": "boolean"
@@ -201,6 +205,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
         },
         {
           "name": "enabled",

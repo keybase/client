@@ -3,5 +3,6 @@ protocol NotifyEmailAddress {
   import idl "common.avdl";
 
   void emailAddressVerified(EmailAddress emailAddress) oneway;
-  void emailsChanged(array<Email> list, string category, EmailAddress email) oneway;
+  // uid is the account the list belongs to.
+  void emailsChanged(array<Email> list, string category, EmailAddress email, UID uid) oneway;
 }

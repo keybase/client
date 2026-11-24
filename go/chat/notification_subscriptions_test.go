@@ -1,13 +1,80 @@
 package chat
 
 import (
+	"context"
 	"encoding/json"
+	"strconv"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
+
+// setActiveUserForTest makes username the active device's user, with keys, and
+// returns its chat uid.
+func setActiveUserForTest(t *testing.T, tc libkb.TestContext, username libkb.NormalizedUsername) gregor1.UID {
+	require.NoError(t, tc.G.ActiveDevice.Clear())
+	uid := libkb.UsernameToUID(username.String())
+	deviceID, err := libkb.NewDeviceID()
+	require.NoError(t, err)
+	sigKey, err := libkb.GenerateNaclSigningKeyPair()
+	require.NoError(t, err)
+	encKey, err := libkb.GenerateNaclDHKeyPair()
+	require.NoError(t, err)
+	require.NoError(t, tc.G.ActiveDevice.Set(libkb.NewMetaContextForTest(tc),
+		keybase1.UserVersion{Uid: uid, EldestSeqno: 1}, deviceID, sigKey, encKey, "testuser-mac", 0,
+		libkb.KeychainModeNone))
+	require.NoError(t, tc.G.Env.GetConfigWriter().SetUserConfig(
+		libkb.NewUserConfig(uid, username, nil, deviceID), true))
+	return gregor1.UID(uid.ToBytes())
+}
+
+// subscribeAPI stands in for the API server's account/subscribe endpoint.
+type subscribeAPI struct {
+	libkb.API
+	onPost func()
+}
+
+func (a *subscribeAPI) PostJSON(libkb.MetaContext, libkb.APIArg) (*libkb.APIRes, error) {
+	a.onPost()
+	return &libkb.APIRes{}, nil
+}
+
+// globalSettingsRemote records the chat server's global settings writes.
+type globalSettingsRemote struct {
+	chat1.RemoteInterface
+	saved []chat1.GlobalAppNotificationSettings
+}
+
+func (r *globalSettingsRemote) SetGlobalAppNotificationSettings(_ context.Context, s chat1.GlobalAppNotificationSettings) error {
+	r.saved = append(r.saved, s)
+	return nil
+}
+
+func TestSetNotificationSettingsStopsOnAccountSwitch(t *testing.T) {
+	tc := libkb.SetupTest(t, "SetNotificationSettingsAccountSwitch", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	remote := &globalSettingsRemote{}
+	ri := func() chat1.RemoteInterface { return remote }
+	arg := chat1.SetNotificationSettingsLocalArg{
+		ChatGlobal: map[string]bool{strconv.Itoa(int(chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE)): true},
+	}
+	uid := setActiveUserForTest(t, tc, "testuser")
+
+	tc.G.API = &subscribeAPI{onPost: func() {}}
+	require.NoError(t, setNotificationSettings(context.TODO(), g, ri, uid, arg))
+	require.Len(t, remote.saved, 1)
+
+	// another account becomes active while the subscriptions save
+	tc.G.API = &subscribeAPI{onPost: func() { setActiveUserForTest(t, tc, "testuser2") }}
+	require.Error(t, setNotificationSettings(context.TODO(), g, ri, uid, arg))
+	require.Len(t, remote.saved, 1, "testuser's chat settings were written while testuser2 was active")
+}
 
 func TestNotificationSubscriptionGroupsFromServer(t *testing.T) {
 	body := `{

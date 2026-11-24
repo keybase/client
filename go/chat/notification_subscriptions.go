@@ -6,8 +6,10 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type subscriptionsResponse struct {
@@ -83,8 +85,11 @@ func getNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 	}, nil
 }
 
+// setNotificationSettings saves uid's subscriptions, then its chat settings.
+// If the account switched during the first save it stops there, so uid's chat
+// settings are never written onto the next account.
 func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface,
-	arg chat1.SetNotificationSettingsLocalArg,
+	uid gregor1.UID, arg chat1.SetNotificationSettingsLocalArg,
 ) error {
 	mctx := libkb.NewMetaContext(ctx, g.ExternalG())
 	if _, err := mctx.G().API.PostJSON(mctx, libkb.APIArg{
@@ -93,6 +98,13 @@ func setNotificationSettings(ctx context.Context, g *globals.Context, ri func() 
 		JSONPayload: subscribePayload(arg.Subscriptions),
 	}); err != nil {
 		return err
+	}
+	current, err := utils.AssertLoggedInUID(ctx, g)
+	if err != nil {
+		return err
+	}
+	if !current.Eq(uid) {
+		return libkb.LoginRequiredError{Context: "the account changed while saving notification settings"}
 	}
 	return setGlobalAppNotificationSettings(ctx, g, ri, arg.ChatGlobal)
 }

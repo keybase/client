@@ -134,18 +134,29 @@ func (r *emailsGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1
 	}
 	m.Debug("email.verified unmarshaled: %+v", msg)
 
+	// The verified notice lets the UI mark the address at once, so the list
+	// fetch (a server call) runs off this handler, where it would hold up the
+	// dismissal and the gregor items behind it.
 	r.G().NotifyRouter.HandleEmailAddressVerified(ctx, msg.Email)
-	r.notifyEmailList(m, "email.verified", msg.Email)
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	uid := r.G().ActiveDevice.UID()
+	err := r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	go r.notifyEmailList(libkb.NewMetaContextBackground(r.G()).WithLogTag("EMV"), uid, "email.verified", msg.Email)
+	return err
 }
 
-func (r *emailsGregorHandler) notifyEmailList(mctx libkb.MetaContext, category string, email keybase1.EmailAddress) {
+// notifyEmailList sends uid's current email list. It drops the list if the
+// active account is no longer uid once the fetch returns.
+func (r *emailsGregorHandler) notifyEmailList(mctx libkb.MetaContext, uid keybase1.UID, category string, email keybase1.EmailAddress) {
 	emailList, err := emails.GetEmails(mctx)
 	if err != nil {
 		mctx.Error("Could not get current email list during %s: %s", category, err)
 		return
 	}
-	r.G().NotifyRouter.HandleEmailAddressChanged(mctx.Ctx(), emailList, category, email)
+	if !r.G().ActiveDevice.UID().Equal(uid) {
+		mctx.Debug("account changed during %s; dropping its email list", category)
+		return
+	}
+	r.G().NotifyRouter.HandleEmailAddressChanged(mctx.Ctx(), uid, emailList, category, email)
 }
 
 func (r *emailsGregorHandler) handleEmailChangedMsg(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
@@ -158,7 +169,7 @@ func (r *emailsGregorHandler) handleEmailChangedMsg(ctx context.Context, cli gre
 	}
 	mctx.Debug("%s unmarshaled: %+v", category, msg)
 
-	r.notifyEmailList(mctx, category, msg.Email)
+	r.notifyEmailList(mctx, r.G().ActiveDevice.UID(), category, msg.Email)
 	// Do not dismiss these notifications so other devices can see it and
 	// update their state as well.
 	return nil

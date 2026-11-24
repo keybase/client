@@ -29,25 +29,25 @@ func TestImportContactsEnabled(t *testing.T) {
 	require.NoError(t, tc.G.ConfigureGUIConfig())
 	mctx := libkb.NewMetaContextForTest(tc)
 
-	_, err := ImportContactsEnabled(mctx)
+	_, err := ImportContactsEnabled(mctx, "testuser")
 	require.Error(t, err, "no logged-in user")
-	require.Error(t, SetImportContactsEnabled(mctx, true))
+	require.Error(t, SetImportContactsEnabled(mctx, "testuser", true))
 
 	loginWithoutSignup(t, tc, "testuser")
 
 	// never set reads as off, not as an error
-	enabled, err := ImportContactsEnabled(mctx)
+	enabled, err := ImportContactsEnabled(mctx, "testuser")
 	require.NoError(t, err)
 	require.False(t, enabled)
 
 	// a value the app wrote before this RPC existed is still read
 	require.NoError(t, tc.G.Env.GetGUIConfig().SetBoolAtPath("ui.importContacts.testuser", true))
-	enabled, err = ImportContactsEnabled(mctx)
+	enabled, err = ImportContactsEnabled(mctx, "testuser")
 	require.NoError(t, err)
 	require.True(t, enabled)
 
-	require.NoError(t, SetImportContactsEnabled(mctx, false))
-	enabled, err = ImportContactsEnabled(mctx)
+	require.NoError(t, SetImportContactsEnabled(mctx, "testuser", false))
+	enabled, err = ImportContactsEnabled(mctx, "testuser")
 	require.NoError(t, err)
 	require.False(t, enabled)
 	stored, isSet := tc.G.Env.GetGUIConfig().GetBoolAtPath("ui.importContacts.testuser")
@@ -56,9 +56,27 @@ func TestImportContactsEnabled(t *testing.T) {
 
 	// the setting is per user
 	loginWithoutSignup(t, tc, "testuser2")
-	require.NoError(t, SetImportContactsEnabled(mctx, true))
+	require.NoError(t, SetImportContactsEnabled(mctx, "testuser2", true))
 	loginWithoutSignup(t, tc, "testuser")
-	enabled, err = ImportContactsEnabled(mctx)
+	enabled, err = ImportContactsEnabled(mctx, "testuser")
 	require.NoError(t, err)
 	require.False(t, enabled)
+}
+
+// A request made for one account and handled after a switch to another is
+// refused rather than applied to the account now logged in.
+func TestImportContactsEnabledRejectsOtherUser(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestImportContactsEnabledRejectsOtherUser", 1)
+	defer tc.Cleanup()
+	require.NoError(t, tc.G.ConfigureGUIConfig())
+	mctx := libkb.NewMetaContextForTest(tc)
+
+	loginWithoutSignup(t, tc, "testuser2")
+	require.Error(t, SetImportContactsEnabled(mctx, "testuser", true))
+	_, isSet := tc.G.Env.GetGUIConfig().GetBoolAtPath("ui.importContacts.testuser2")
+	require.False(t, isSet, "testuser's opt-in was written for testuser2")
+
+	require.NoError(t, SetImportContactsEnabled(mctx, "testuser2", true))
+	_, err := ImportContactsEnabled(mctx, "testuser")
+	require.Error(t, err, "testuser2's setting was read for testuser")
 }

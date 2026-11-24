@@ -10,23 +10,28 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// importContactsPath is the GUI config key for the logged-in user's contact
-// import setting. The key predates these helpers; libkb's config migration
-// writes the same shape.
-func importContactsPath(mctx libkb.MetaContext) (*libkb.JSONFile, string, error) {
-	username := mctx.ActiveDevice().Username(mctx)
-	if username.IsNil() {
+// importContactsPath is the GUI config key for username's contact import
+// setting. It fails unless username is the logged-in user, so a request made
+// for one account is never applied to the account that replaced it. The key
+// predates these helpers; libkb's config migration writes the same shape.
+func importContactsPath(mctx libkb.MetaContext, username string) (*libkb.JSONFile, string, error) {
+	active := mctx.ActiveDevice().Username(mctx)
+	if active.IsNil() {
 		return nil, "", libkb.LoginRequiredError{}
+	}
+	requested := libkb.NewNormalizedUsername(username)
+	if !active.Eq(requested) {
+		return nil, "", libkb.LoginRequiredError{Context: fmt.Sprintf("%q is not the logged-in user", username)}
 	}
 	guiConfig := mctx.G().Env.GetGUIConfig()
 	if guiConfig == nil {
 		return nil, "", errors.New("GUI config is not loaded")
 	}
-	return guiConfig, fmt.Sprintf("ui.importContacts.%s", username), nil
+	return guiConfig, fmt.Sprintf("ui.importContacts.%s", requested), nil
 }
 
-func ImportContactsEnabled(mctx libkb.MetaContext) (bool, error) {
-	guiConfig, path, err := importContactsPath(mctx)
+func ImportContactsEnabled(mctx libkb.MetaContext, username string) (bool, error) {
+	guiConfig, path, err := importContactsPath(mctx, username)
 	if err != nil {
 		return false, err
 	}
@@ -34,8 +39,8 @@ func ImportContactsEnabled(mctx libkb.MetaContext) (bool, error) {
 	return enabled, nil
 }
 
-func SetImportContactsEnabled(mctx libkb.MetaContext, enabled bool) error {
-	guiConfig, path, err := importContactsPath(mctx)
+func SetImportContactsEnabled(mctx libkb.MetaContext, username string, enabled bool) error {
+	guiConfig, path, err := importContactsPath(mctx, username)
 	if err != nil {
 		return err
 	}

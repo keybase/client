@@ -655,6 +655,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break;
     }
     case "keybase.1.NotifyEmailAddress.emailAddressVerified":
+      useSettingsEmailState
+        .getState()
+        .dispatch.notifyEmailVerified(action.payload.params.emailAddress);
       clearSignupEmail();
       break;
     case "keybase.1.NotifyPhoneNumber.phoneNumbersChanged": {
@@ -665,7 +668,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break;
     }
     case "keybase.1.NotifyEmailAddress.emailsChanged": {
-      const list = action.payload.params.list ?? [];
+      const { list: maybeList, uid } = action.payload.params;
+      // a list fetched for the account we just switched away from
+      if (uid !== useCurrentUserState.getState().uid) {
+        break;
+      }
+      const list = maybeList ?? [];
       useSettingsEmailState
         .getState()
         .dispatch.notifyEmailAddressEmailsChanged(list);

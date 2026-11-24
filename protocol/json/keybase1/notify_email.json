@@ -34,6 +34,10 @@
         {
           "name": "email",
           "type": "EmailAddress"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
         }
       ],
       "response": null,

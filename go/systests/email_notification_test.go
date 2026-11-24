@@ -1,7 +1,9 @@
 package systests
 
 import (
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 
@@ -19,6 +21,8 @@ type mockEmailNotification struct {
 
 type mockEmailListener struct {
 	libkb.NoopNotifyListener
+	// email.verified sends its list from a background goroutine
+	sync.Mutex
 	verifiedEmails      []keybase1.EmailAddress
 	changeNotifications []mockEmailNotification
 }
@@ -30,6 +34,8 @@ func (n *mockEmailListener) EmailAddressVerified(emailAddress keybase1.EmailAddr
 }
 
 func (n *mockEmailListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
+	n.Lock()
+	defer n.Unlock()
 	n.changeNotifications = append(n.changeNotifications, mockEmailNotification{
 		list:     list,
 		category: category,
@@ -59,13 +65,19 @@ func TestEmailVerificationNotifications(t *testing.T) {
 	expectedNotification := []keybase1.EmailAddress{keybase1.EmailAddress(email)}
 	require.Equal(t, expectedNotification, bobListener.verifiedEmails)
 
-	// it also sends the fresh list, so the UI does not patch its own copy
+	// it also sends the fresh list, once fetched after the item is dismissed
 	var verifiedChanges []mockEmailNotification
-	for _, n := range bobListener.changeNotifications {
-		if n.category == "email.verified" {
-			verifiedChanges = append(verifiedChanges, n)
+	require.Eventually(t, func() bool {
+		bobListener.Lock()
+		defer bobListener.Unlock()
+		verifiedChanges = nil
+		for _, n := range bobListener.changeNotifications {
+			if n.category == "email.verified" {
+				verifiedChanges = append(verifiedChanges, n)
+			}
 		}
-	}
+		return len(verifiedChanges) > 0
+	}, 10*time.Second, 50*time.Millisecond)
 	require.Len(t, verifiedChanges, 1)
 	change := verifiedChanges[0]
 	require.EqualValues(t, email, change.email)

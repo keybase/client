@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {isAndroidNewerThanN} from '@/constants/platform'
+import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import * as React from 'react'
 
@@ -132,16 +133,38 @@ export const buildNotificationSavePayload = (
   return {chatGlobal, subscriptions}
 }
 
+// Resolves false on any failure, a cancel included
+const saveNotificationSettings = async (groups: ReadonlyMap<string, NotificationsGroupState>) => {
+  try {
+    await T.RPCChat.localSetNotificationSettingsLocalRpcPromise(
+      buildNotificationSavePayload(groups),
+      S.waitingKeySettingsGeneric
+    )
+    return true
+  } catch (error) {
+    logger.warn('Failed to save notification settings', error)
+    return false
+  }
+}
+
 const useNotificationSettings = (): UseNotificationSettingsResult => {
   const loadRPC = C.useRPC(T.RPCChat.localGetNotificationSettingsLocalRpcPromise)
-  const saveRPC = C.useRPC(T.RPCChat.localSetNotificationSettingsLocalRpcPromise)
   const [allowEdit, setAllowEdit] = React.useState(false)
   const [groups, setGroups] = React.useState(emptyGroups)
+  // A load that overlaps a save may read the settings from before it, so its
+  // answer is dropped: savingRef covers a save still in flight, and the epoch
+  // (bumped when a save settles) one that settled while the load was out.
+  const savingRef = React.useRef(false)
+  const saveEpochRef = React.useRef(0)
 
   const refresh = React.useCallback(() => {
+    const epoch = saveEpochRef.current
     loadRPC(
       [undefined, S.refreshNotificationsWaitingKey],
       loaded => {
+        if (savingRef.current || saveEpochRef.current !== epoch) {
+          return
+        }
         setAllowEdit(true)
         setGroups(buildNotificationGroups(loaded))
       },
@@ -166,18 +189,27 @@ const useNotificationSettings = (): UseNotificationSettingsResult => {
       const nextGroups = toggleNotificationGroup(groups, group, name)
       setAllowEdit(false)
       setGroups(nextGroups)
+      savingRef.current = true
 
-      saveRPC(
-        [buildNotificationSavePayload(nextGroups), S.waitingKeySettingsGeneric],
-        () => setAllowEdit(true),
-        error => {
-          logger.warn('Failed to save notification settings', error)
+      // Called directly rather than through useRPC, which drops a quiet cancel:
+      // editing must come back however the save ends.
+      const save = async () => {
+        const saved = await saveNotificationSettings(nextGroups)
+        savingRef.current = false
+        saveEpochRef.current++
+        if (!saved) {
           setGroups(prevGroups)
-          setAllowEdit(true)
         }
-      )
+        setAllowEdit(true)
+        // part of a failed save may have landed (nothing is rolled back), so
+        // the old values shown meanwhile are replaced by what the server has
+        if (!saved) {
+          refresh()
+        }
+      }
+      ignorePromise(save())
     },
-    [allowEdit, groups, saveRPC]
+    [allowEdit, groups, refresh]
   )
 
   return {allowEdit, groups, refresh, toggle}

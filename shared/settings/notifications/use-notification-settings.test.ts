@@ -4,6 +4,7 @@ import {afterEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import {useConfigState} from '@/stores/config'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {
@@ -182,30 +183,94 @@ test('useNotificationSettings loads and saves notification settings in one call 
   expect(fake.calls.map(c => c.method)).toEqual([loadRpc, saveRpc])
 })
 
-test('useNotificationSettings restores the optimistic state when the save fails', async () => {
-  const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+const plaintextMobile = `${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`
+const plaintextMobileShown = (result: {current: UseNotificationSettingsResult}) =>
+  snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed
+
+// Loads plaintextmobile on, then turns it off, leaving the save held
+const loadThenToggle = async () => {
   const fake = installFakeEngine()
   const held = holdAll(fake)
   const {result} = renderHook(() => useNotificationSettings())
+  act(() => {
+    result.current.refresh()
+  })
+  await flush()
+  await reply(held.load, makeLoaded({[plaintextMobile]: true}))
+  expect(result.current.allowEdit).toBe(true)
+  act(() => {
+    result.current.toggle('security', 'plaintextmobile')
+  })
+  await flush()
+  expect(plaintextMobileShown(result)).toBe(false)
+  expect(held.save).toHaveLength(1)
+  return {held, result}
+}
+
+test('a failed save shows the old values, then reloads what the server kept', async () => {
+  const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  const {held, result} = await loadThenToggle()
+
+  await reply(held.save, fakeError(T.RPCGen.StatusCode.scgeneric, 'chat settings failed'))
+
+  expect(result.current.allowEdit).toBe(true)
+  expect(plaintextMobileShown(result)).toBe(true)
+  expect(warnSpy).toHaveBeenCalledWith('Failed to save notification settings', expect.anything())
+
+  // nothing is rolled back, so a partly applied save shows once reloaded
+  expect(held.load).toHaveLength(1)
+  const partlySaved: T.RPCChat.NotificationSettingsLocal = {
+    ...makeLoaded({[plaintextMobile]: true}),
+    subscriptions: [
+      {name: 'email', settings: [{description: 'Email', name: 'newmessages', subscribed: false}], unsub: false},
+    ],
+  }
+  await reply(held.load, partlySaved)
+  expect(snapshotGroups(result.current.groups)['email']?.settings[0]?.subscribed).toBe(false)
+})
+
+test('a reload answered during a save neither re-enables editing nor shows pre-save values', async () => {
+  const {held, result} = await loadThenToggle()
 
   act(() => {
     result.current.refresh()
   })
   await flush()
-  await reply(held.load, makeLoaded({[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: true}))
-  expect(result.current.allowEdit).toBe(true)
+  await reply(held.load, makeLoaded({[plaintextMobile]: true}))
+  expect(result.current.allowEdit).toBe(false)
+  expect(plaintextMobileShown(result)).toBe(false)
 
-  const previousGroups = snapshotGroups(result.current.groups)
+  await reply(held.save, null)
+  expect(result.current.allowEdit).toBe(true)
+  expect(plaintextMobileShown(result)).toBe(false)
+})
+
+test('a reload sent during a save and answered after it is dropped', async () => {
+  const {held, result} = await loadThenToggle()
 
   act(() => {
-    result.current.toggle('security', 'plaintextmobile')
+    result.current.refresh()
   })
   await flush()
-  expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
-
-  await reply(held.save, fakeError(T.RPCGen.StatusCode.scgeneric, 'subscribe failed'))
+  await reply(held.save, null)
+  await reply(held.load, makeLoaded({[plaintextMobile]: true}))
 
   expect(result.current.allowEdit).toBe(true)
-  expect(snapshotGroups(result.current.groups)).toEqual(previousGroups)
-  expect(warnSpy).toHaveBeenCalledWith('Failed to save notification settings', expect.anything())
+  expect(plaintextMobileShown(result)).toBe(false)
+})
+
+test('a quietly cancelled save still re-enables editing', async () => {
+  jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  const {result} = await loadThenToggle()
+
+  act(() => {
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+  })
+  await flush()
+
+  expect(result.current.allowEdit).toBe(true)
+  act(() => {
+    useConfigState.getState().dispatch.setUserSwitching(false)
+  })
 })

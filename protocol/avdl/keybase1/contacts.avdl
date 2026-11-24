@@ -77,8 +77,9 @@ protocol contacts {
     // resolved contact, etc.
     array<ProcessedContact> getContactsForUserRecommendations(int sessionID);
 
-    // The logged-in user's contact import setting on this device. Never set
-    // reads as false.
-    boolean getImportContactsEnabled(int sessionID);
-    void setImportContactsEnabled(int sessionID, boolean enabled);
+    // username's contact import setting on this device. Never set reads as
+    // false. Both fail if username is not the logged-in user, so a request
+    // made before an account switch never reads or writes the next account's.
+    boolean getImportContactsEnabled(int sessionID, string username);
+    void setImportContactsEnabled(int sessionID, string username, boolean enabled);
 }
