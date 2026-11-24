@@ -547,10 +547,11 @@ func makeTLFJournal(
 	return j, nil
 }
 
-// tlfJournalIdleStatusInterval is how often a journal that holds unflushed
-// bytes but isn't flushing them republishes its status: its endEstimate
-// moves with the clock then. It matches the GUI's old poll ceiling.
-var tlfJournalIdleStatusInterval = 4 * time.Second
+// tlfJournalStatusInterval is how often a journal republishes its status
+// while its endEstimate moves with the clock (unflushed bytes not being
+// flushed, or a block flush running overdue), and only while some client
+// subscribes to it. It matches the GUI's old poll ceiling.
+var tlfJournalStatusInterval = 4 * time.Second
 
 func (j *tlfJournal) signalWork() {
 	j.wg.Add(1)
@@ -589,7 +590,8 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 	// Non-nil when a retry has been scheduled for the future.
 	var retryTimer *time.Timer
-	// Non-nil while idle or paused with unflushed bytes.
+	// Non-nil while idle or paused with unflushed bytes and a journal
+	// status subscriber.
 	var statusTimer *time.Timer
 	stopStatusTimer := func() {
 		if statusTimer != nil {
@@ -598,14 +600,20 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 		}
 	}
 	// armStatusTimer returns the channel to wait on for the next status
-	// republish, or nil when nothing is unflushed.
-	armStatusTimer := func() <-chan time.Time {
+	// republish (nil when nobody subscribes or nothing is unflushed), and
+	// one closed when the subscribers come or go.
+	armStatusTimer := func() (
+		statusC <-chan time.Time, subscribersChanged <-chan struct{},
+	) {
 		stopStatusTimer()
-		if !j.hasUnflushedBytes() {
-			return nil
+		subscribed, subscribersChanged := j.config.
+			SubscriptionManagerPublisher().SubscriberWatch(
+			keybase1.SubscriptionTopic_JOURNAL_STATUS)
+		if !subscribed || !j.hasUnflushedBytes() {
+			return nil, subscribersChanged
 		}
-		statusTimer = time.NewTimer(tlfJournalIdleStatusInterval)
-		return statusTimer.C
+		statusTimer = time.NewTimer(tlfJournalStatusInterval)
+		return statusTimer.C, subscribersChanged
 	}
 	defer func() {
 		close(j.backgroundShutdownCh)
@@ -656,17 +664,20 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.vlog.CLogf(
 				ctx, libkb.VLog1, "Waiting for the work signal for %s",
 				j.tlfID)
-			statusC := armStatusTimer()
+			statusC, subscribersChanged := armStatusTimer()
 		idleWait:
 			select {
 			case <-statusC:
 				j.config.SubscriptionManagerPublisher().PublishChange(
 					keybase1.SubscriptionTopic_JOURNAL_STATUS)
-				statusC = armStatusTimer()
+				statusC, subscribersChanged = armStatusTimer()
+				goto idleWait
+			case <-subscribersChanged:
+				statusC, subscribersChanged = armStatusTimer()
 				goto idleWait
 			case <-j.unflushedPutCh:
 				if statusTimer == nil {
-					statusC = armStatusTimer()
+					statusC, subscribersChanged = armStatusTimer()
 				}
 				goto idleWait
 			case <-j.hasWorkCh:
@@ -756,17 +767,20 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.log.CDebugf(
 				ctx, "Waiting to resume background work for %s",
 				j.tlfID)
-			statusC := armStatusTimer()
+			statusC, subscribersChanged := armStatusTimer()
 		pausedWait:
 			select {
 			case <-statusC:
 				j.config.SubscriptionManagerPublisher().PublishChange(
 					keybase1.SubscriptionTopic_JOURNAL_STATUS)
-				statusC = armStatusTimer()
+				statusC, subscribersChanged = armStatusTimer()
+				goto pausedWait
+			case <-subscribersChanged:
+				statusC, subscribersChanged = armStatusTimer()
 				goto pausedWait
 			case <-j.unflushedPutCh:
 				if statusTimer == nil {
-					statusC = armStatusTimer()
+					statusC, subscribersChanged = armStatusTimer()
 				}
 				goto pausedWait
 			case <-j.needResumeCh:
@@ -1279,16 +1293,27 @@ func (j *tlfJournal) flushBlockEntries(
 	})
 	eg.Go(func() error {
 		// An overdue flush's endEstimate moves with the clock, so
-		// keep status readers updated until the puts finish.
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
+		// keep status subscribers updated until the puts finish.
+		publisher := j.config.SubscriptionManagerPublisher()
+		timer := time.NewTimer(tlfJournalStatusInterval)
+		defer timer.Stop()
 		for {
+			subscribed, subscribersChanged := publisher.SubscriberWatch(
+				keybase1.SubscriptionTopic_JOURNAL_STATUS)
+			var statusC <-chan time.Time
+			if subscribed {
+				timer.Reset(tlfJournalStatusInterval)
+				statusC = timer.C
+			} else {
+				timer.Stop()
+			}
 			select {
-			case <-ticker.C:
+			case <-statusC:
 				if j.isCurrFlushOverdue() {
-					j.config.SubscriptionManagerPublisher().PublishChange(
+					publisher.PublishChange(
 						keybase1.SubscriptionTopic_JOURNAL_STATUS)
 				}
+			case <-subscribersChanged:
 			case <-convertCtx.Done():
 				return nil
 			}

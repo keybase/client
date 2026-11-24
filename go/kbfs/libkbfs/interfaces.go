@@ -2196,6 +2196,11 @@ type SubscriptionManager interface {
 // used to publish changes to subscribers mangaged by it.
 type SubscriptionManagerPublisher interface {
 	PublishChange(topic keybase1.SubscriptionTopic)
+	// SubscriberWatch reports whether any client subscribes to topic, and
+	// returns a channel that is closed when that next changes. Publishers
+	// of periodic changes use it to stay quiet while nobody listens.
+	SubscriberWatch(
+		topic keybase1.SubscriptionTopic) (subscribed bool, changed <-chan struct{})
 }
 
 type kbContextGetter interface {

@@ -826,10 +826,11 @@ func TestSubscriptionManagerReportsOnlyChangedTopics(t *testing.T) {
 	sm.Unsubscribe(ctx, "sid2")
 }
 
-// Prefetch progress only shows for paths in TLFs that sync, so the overall
-// sync status ticks (up to once a second while prefetching) leave other
-// paths alone.
-func TestSubscriptionManagerOverallSyncNotifiesSyncedTLFsOnly(t *testing.T) {
+// The overall sync status ticks (up to once a second while prefetching)
+// come from sync prefetching, so only TLFs that sync reload their
+// children; every path reloads its own stat, since the GUI checks any
+// path's prefetch status for offline use.
+func TestSubscriptionManagerOverallSyncChildrenOnlyInSyncedTLFs(t *testing.T) {
 	config, sm, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 	// Syncing a TLF needs a disk block cache.
@@ -852,10 +853,20 @@ func TestSubscriptionManagerOverallSyncNotifiesSyncedTLFsOnly(t *testing.T) {
 		keybase1.PathSubscriptionTopic_CHILDREN, nil)
 	require.NoError(t, err)
 
-	// The mock notifier fails the test on this OnPathChange.
+	statNotified := make(chan struct{}, 10)
+	// The mock notifier fails the test on any other OnPathChange.
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		[]SubscriptionID{"sid1"}, "/keybase/private/jdoe",
+		[]keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+		}).Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+		[]keybase1.PathSubscriptionTopic,
+	) {
+		statNotified <- struct{}{}
+	}).Times(1)
 	config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS)
-	time.Sleep(200 * time.Millisecond)
+	recvWithin(t, statNotified, "stat notification")
 
 	notified := make(chan struct{}, 10)
 	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
@@ -878,4 +889,96 @@ func TestSubscriptionManagerOverallSyncNotifiesSyncedTLFsOnly(t *testing.T) {
 	recvWithin(t, notified, "overall sync notification")
 	sm.Unsubscribe(ctx, "sid1")
 	sm.Unsubscribe(ctx, "sid2")
+}
+
+// A raised rate limit replaces the debouncer, dropping any notification the
+// old one was holding back; the topics it was for must still go out.
+func TestSubscriptionManagerRaisedLimitKeepsPendingTopics(t *testing.T) {
+	config, sm, notifier, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	ctx, _, fileNode := makeSubscriptionTestTLF(t, config)
+	const filePath = "/keybase/private/jdoe/dir/file"
+
+	first := make(chan struct{}, 10)
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		[]SubscriptionID{"sid1"}, filePath,
+		[]keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+		}).Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+		[]keybase1.PathSubscriptionTopic,
+	) {
+		first <- struct{}{}
+	}).Times(1)
+	interval := time.Minute
+	err := sm.SubscribePath(ctx, "sid1", filePath,
+		keybase1.PathSubscriptionTopic_STAT, &interval)
+	require.NoError(t, err)
+	observer := sm.(Observer)
+	observer.LocalChange(ctx, fileNode, WriteRange{})
+	recvWithin(t, first, "first notification")
+
+	// Held back by the one-a-minute limit.
+	observer.LocalChange(ctx, fileNode, WriteRange{})
+
+	second := make(chan struct{}, 10)
+	notifier.EXPECT().OnPathChange(testSubscriptionManagerClientID,
+		sliceMatcherNoOrder{[]SubscriptionID{"sid1", "sid2"}}, filePath,
+		[]keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+		}).Do(func(SubscriptionManagerClientID, []SubscriptionID, string,
+		[]keybase1.PathSubscriptionTopic,
+	) {
+		second <- struct{}{}
+	}).Times(1)
+	err = sm.SubscribePath(ctx, "sid2", filePath,
+		keybase1.PathSubscriptionTopic_STAT, nil)
+	require.NoError(t, err)
+	recvWithin(t, second, "held-back notification")
+	sm.Unsubscribe(ctx, "sid1")
+	sm.Unsubscribe(ctx, "sid2")
+}
+
+func TestSubscriptionManagerSubscriberWatch(t *testing.T) {
+	config, sm, _, finish := initSubscriptionManagerTest(t)
+	defer finish()
+	ctx := context.Background()
+	publisher := config.SubscriptionManagerPublisher()
+	topic := keybase1.SubscriptionTopic_JOURNAL_STATUS
+	requireClosed := func(ch <-chan struct{}, closed bool) {
+		select {
+		case <-ch:
+			require.True(t, closed, "changed closed early")
+		default:
+			require.False(t, closed, "changed not closed")
+		}
+	}
+
+	subscribed, changed := publisher.SubscriberWatch(topic)
+	require.False(t, subscribed)
+	requireClosed(changed, false)
+
+	err := sm.SubscribeNonPath(ctx, "sid1", topic, nil)
+	require.NoError(t, err)
+	requireClosed(changed, true)
+	subscribed, changed = publisher.SubscriberWatch(topic)
+	require.True(t, subscribed)
+
+	// Another client, and another subscription by the same one, change
+	// nothing while one remains.
+	sm2 := config.SubscriptionManager("test2", false, nil)
+	err = sm2.SubscribeNonPath(ctx, "sid2", topic, nil)
+	require.NoError(t, err)
+	err = sm.SubscribeNonPath(ctx, "sid3", topic, nil)
+	require.NoError(t, err)
+	sm.Unsubscribe(ctx, "sid1")
+	sm.Unsubscribe(ctx, "sid3")
+	requireClosed(changed, false)
+	_, otherChanged := publisher.SubscriberWatch(
+		keybase1.SubscriptionTopic_FAVORITES)
+
+	sm2.Unsubscribe(ctx, "sid2")
+	requireClosed(changed, true)
+	requireClosed(otherChanged, false)
+	subscribed, _ = publisher.SubscriberWatch(topic)
+	require.False(t, subscribed)
 }

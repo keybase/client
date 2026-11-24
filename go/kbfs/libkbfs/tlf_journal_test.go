@@ -276,6 +276,8 @@ func setupTLFJournalTest(
 		keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
 	mockPublisher.EXPECT().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE).AnyTimes()
+	mockPublisher.EXPECT().SubscriberWatch(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS).Return(false, nil).AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -2115,11 +2117,23 @@ func testTLFJournalSingleOpPersistentFlushErr(
 
 // recordingPublisher records the subscription topics a tlfJournal publishes.
 // onPublish, when set, runs inside PublishChange, which tlfJournal calls
-// with journalLock held.
+// with journalLock held. Its subscribers are counted by the real
+// subscriberWatches; add one with add(topic, 1).
 type recordingPublisher struct {
+	*subscriberWatches
 	lock      sync.Mutex
 	topics    []keybase1.SubscriptionTopic
 	onPublish func(keybase1.SubscriptionTopic)
+}
+
+func newRecordingPublisher() *recordingPublisher {
+	return &recordingPublisher{subscriberWatches: newSubscriberWatches()}
+}
+
+func (p *recordingPublisher) SubscriberWatch(
+	topic keybase1.SubscriptionTopic,
+) (subscribed bool, changed <-chan struct{}) {
+	return p.watch(topic)
 }
 
 func (p *recordingPublisher) PublishChange(topic keybase1.SubscriptionTopic) {
@@ -2150,7 +2164,7 @@ func testTLFJournalPublishesJournalStatusOnMDPut(
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	publisher := &recordingPublisher{}
+	publisher := newRecordingPublisher()
 	config.subscriptionManagerPublisher = publisher
 
 	// The unflushed paths come from the MD journal, so a status
@@ -2173,7 +2187,7 @@ func testTLFJournalPublishesJournalStatusOnMDFlush(
 
 	var mdserver shimMDServer
 	config.mdserver = &mdserver
-	publisher := &recordingPublisher{}
+	publisher := newRecordingPublisher()
 	var mdLengthsAtPublish []uint64
 	publisher.onPublish = func(topic keybase1.SubscriptionTopic) {
 		if topic == keybase1.SubscriptionTopic_JOURNAL_STATUS {
@@ -2216,10 +2230,42 @@ func (bs gatedBlockServer) Put(
 		ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
-func testTLFJournalPublishesJournalStatusWhileFlushOverdue(
-	t *testing.T, ver kbfsmd.MetadataVer,
+func setShortTLFJournalStatusInterval(t *testing.T) {
+	oldInterval := tlfJournalStatusInterval
+	tlfJournalStatusInterval = 20 * time.Millisecond
+	t.Cleanup(func() { tlfJournalStatusInterval = oldInterval })
+}
+
+// requirePeriodicPublishes checks that count stays put while publisher has
+// no subscriber, climbs once one subscribes, and stops once it leaves.
+func requirePeriodicPublishes(
+	t *testing.T, publisher *recordingPublisher, count func() int,
 ) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	topic := keybase1.SubscriptionTopic_JOURNAL_STATUS
+	before := count()
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, before, count(), "published with no subscriber")
+
+	publisher.add(topic, 1)
+	require.Eventually(t, func() bool {
+		return count() >= before+4
+	}, 5*time.Second, 10*time.Millisecond)
+
+	publisher.add(topic, -1)
+	time.Sleep(100 * time.Millisecond)
+	afterUnsubscribe := count()
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, afterUnsubscribe, count(),
+		"published after the subscriber left")
+}
+
+// With no bandwidth estimate yet a block put is overdue right away, so
+// endEstimate moves with the clock; subscribers keep hearing about it until
+// the put finishes.
+func TestTLFJournalPublishesJournalStatusWhileFlushOverdue(t *testing.T) {
+	setShortTLFJournalStatusInterval(t)
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(
+		t, kbfsmd.SegregatedKeyBundlesVer, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
@@ -2227,7 +2273,14 @@ func testTLFJournalPublishesJournalStatusWhileFlushOverdue(
 	tlfJournal.delegateBlockServer = bs
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-	publisher := &recordingPublisher{}
+	// Leave the paused loop waiting on the setup publisher, which has no
+	// subscribers, so only the flush publishes to the new one.
+	time.Sleep(50 * time.Millisecond)
+	select {
+	case <-tlfJournal.unflushedPutCh:
+	default:
+	}
+	publisher := newRecordingPublisher()
 	config.subscriptionManagerPublisher = publisher
 
 	flushErrCh := make(chan error, 1)
@@ -2237,43 +2290,38 @@ func testTLFJournalPublishesJournalStatusWhileFlushOverdue(
 		flushErrCh <- err
 	}()
 
-	// With no bandwidth estimate yet the put is overdue right away, so
-	// endEstimate moves with the clock; readers must keep hearing about
-	// it until the put finishes.
-	require.Eventually(t, func() bool {
-		return publisher.count(keybase1.SubscriptionTopic_JOURNAL_STATUS) > 0
-	}, 5*time.Second, 10*time.Millisecond)
+	requirePeriodicPublishes(t, publisher, func() int {
+		return publisher.count(keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	})
 
 	close(bs.release)
 	require.NoError(t, <-flushErrCh)
 }
 
 // While flushing is paused with unflushed bytes, endEstimate moves with the
-// clock, so readers keep hearing about it until the journal empties.
+// clock, so subscribers keep hearing about it until the journal empties.
 func TestTLFJournalPublishesJournalStatusWhilePaused(t *testing.T) {
-	oldInterval := tlfJournalIdleStatusInterval
-	tlfJournalIdleStatusInterval = 20 * time.Millisecond
-	defer func() { tlfJournalIdleStatusInterval = oldInterval }()
-
+	setShortTLFJournalStatusInterval(t)
 	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(
 		t, kbfsmd.SegregatedKeyBundlesVer, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
-	publisher := &recordingPublisher{}
+	publisher := newRecordingPublisher()
 	config.subscriptionManagerPublisher = publisher
 	journalStatusCount := func() int {
 		return publisher.count(keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	}
 
+	publisher.add(keybase1.SubscriptionTopic_JOURNAL_STATUS, 1)
 	time.Sleep(100 * time.Millisecond)
 	require.Zero(t, journalStatusCount(), "an empty journal publishes nothing")
+	publisher.add(keybase1.SubscriptionTopic_JOURNAL_STATUS, -1)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-	require.Eventually(t, func() bool {
-		return journalStatusCount() >= 4
-	}, 5*time.Second, 10*time.Millisecond)
+	requirePeriodicPublishes(t, publisher, journalStatusCount)
 
+	publisher.add(keybase1.SubscriptionTopic_JOURNAL_STATUS, 1)
 	_, _, _, err := tlfJournal.flushBlockEntries(
 		ctx, firstValidJournalOrdinal+1, kbfsmd.ID{})
 	require.NoError(t, err)
@@ -2320,7 +2368,6 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalSingleOpPersistentFlushErr,
 		testTLFJournalPublishesJournalStatusOnMDPut,
 		testTLFJournalPublishesJournalStatusOnMDFlush,
-		testTLFJournalPublishesJournalStatusWhileFlushOverdue,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }
