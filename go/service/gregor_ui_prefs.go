@@ -132,6 +132,8 @@ type gregorUIPrefsHandler struct {
 	mu      sync.Mutex
 	lastSeq uint64
 	last    *keybase1.GregorUIPrefs
+	// the account last was sent for: another account's equal prefs are still sent
+	lastUID keybase1.UID
 }
 
 var _ libkb.GregorFirehoseHandler = (*gregorUIPrefsHandler)(nil)
@@ -160,10 +162,12 @@ func (h *gregorUIPrefsHandler) pushStateRead(s gregor1.State, r keybase1.PushRea
 		return
 	}
 	h.lastSeq = read.seq
-	if r != keybase1.PushReason_RECONNECTED && h.last != nil && reflect.DeepEqual(*h.last, prefs) {
+	if r != keybase1.PushReason_RECONNECTED && h.last != nil && h.lastUID.Equal(read.uid) &&
+		reflect.DeepEqual(*h.last, prefs) {
 		return
 	}
 	h.last = &prefs
+	h.lastUID = read.uid
 	if err := h.cli.PushUIPrefs(ctx, keybase1.PushUIPrefsArg{Prefs: prefs, Uid: read.uid}); err != nil {
 		h.G().Log.Errorf("Error in gregor UI prefs push: %s", err)
 	}

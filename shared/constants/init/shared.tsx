@@ -584,8 +584,6 @@ export const initSharedSubscriptions = (
   );
 };
 
-// Prefs read just before an account switch can arrive after it. Without a current uid they're
-// kept: the login push can arrive before the GUI learns the new account's uid.
 // A push read before a logout can land after it, so prefs apply only to the signed-in account;
 // prefs pushed before the app knows the account are read again once it does.
 const isUIPrefsForAnotherAccount = (
@@ -595,14 +593,22 @@ const isUIPrefsForAnotherAccount = (
   action.type === "keybase.1.gregorUI.pushUIPrefs" &&
   (!currentUID || action.payload.params.uid !== currentUID);
 
+// Counts the prefs pushes applied, so a read that one overtook is not applied over it: the service
+// sends a push only when the prefs change, so it would not send the newer ones again.
+let uiPrefsPushesApplied = 0;
+
 const onCurrentUIDChanged = (uid: string) => {
   if (!uid) {
     return;
   }
   const f = async () => {
     try {
+      const pushesBefore = uiPrefsPushesApplied;
       const prefs = await T.RPCGen.gregorGetUIPrefsRpcPromise();
-      if (useCurrentUserState.getState().uid !== uid) {
+      if (
+        useCurrentUserState.getState().uid !== uid ||
+        uiPrefsPushesApplied !== pushesBefore
+      ) {
         return;
       }
       _onEngineIncoming({
@@ -642,6 +648,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break;
     case "keybase.1.gregorUI.pushUIPrefs": {
+      uiPrefsPushesApplied++;
       const { prefs } = action.payload.params;
       useBlockButtonsState.getState().dispatch.updateFromPrefs(prefs);
       useNotifState.getState().dispatch.onEngineIncomingImpl(action);
