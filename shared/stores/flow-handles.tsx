@@ -43,6 +43,8 @@ export const callNamed = (owner: string, slot: string, ...args: Array<any>) => {
   named.get(makeNamedKey(owner, slot))?.handle(...args)
 }
 
+export const hasNamed = (owner: string, slot: string) => named.has(makeNamedKey(owner, slot))
+
 export const clearNamedIfToken = (owner: string, slot: string, token: number) => {
   const key = makeNamedKey(owner, slot)
   if (named.get(key)?.token === token) {

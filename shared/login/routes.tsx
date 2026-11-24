@@ -125,6 +125,8 @@ export const newRoutes = defineRouteMap({
   },
   recoverPasswordDeviceSelector: {
     getOptions: {
+      // a native swipe cannot be turned into the flow's answer (useAnswerRecoverPasswordOnBack)
+      gestureEnabled: false,
       ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
       title: 'Recover password',
     },
@@ -153,6 +155,8 @@ export const newRoutes = defineRouteMap({
   recoverPasswordPaperKey: {
     getOptions: {
       ...recoverPasswordGetOptions,
+      // a native swipe cannot be turned into the flow's answer (useAnswerRecoverPasswordOnBack)
+      gestureEnabled: false,
       ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),

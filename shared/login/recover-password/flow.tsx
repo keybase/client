@@ -7,7 +7,7 @@ import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {loggedInPastRecovery, showLoggedInScreens} from '@/router-v2/account-switch'
-import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
+import {callNamed, hasNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {isQuietCancel, RPCError} from '@/util/errors'
@@ -34,6 +34,7 @@ type Slot = (typeof slots)[keyof typeof slots]
 type ScopedHandle = ReturnType<typeof setNamedScoped>
 
 export const cancelRecoverPassword = () => callNamed(owner, slots.cancel)
+export const hasRecoverPasswordCancel = () => hasNamed(owner, slots.cancel)
 export const submitRecoverPasswordDeviceSelect = (deviceID?: T.Devices.DeviceID) =>
   callNamed(owner, slots.submitDeviceSelect, deviceID)
 export const submitRecoverPasswordNoDevice = () => callNamed(owner, slots.submitNoDevice)
@@ -201,6 +202,7 @@ export const startRecoverPassword = ({
                 wrapErrors((passphrase: string) => {
                   clear()
                   response.result({passphrase, storeSecret: false})
+                  cancelNextPrompt()
                 })
               )
               navigateAppend(
