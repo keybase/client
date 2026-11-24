@@ -65,15 +65,15 @@ export const useFilesTabUploadIcon = () => {
     loadUploadIcon()
   })
 
-  React.useEffect(() => {
-    if (!connected) {
-      generationRef.current++
-    }
-  }, [connected])
   C.Router2.useSafeFocusEffect(stableLoadUploadIcon)
 
   React.useEffect(() => {
-    if (!connected || connectionGeneration === undefined) {
+    if (!connected) {
+      // drops a read still in flight from before the disconnect
+      generationRef.current++
+      return
+    }
+    if (connectionGeneration === undefined) {
       return
     }
     let current = true

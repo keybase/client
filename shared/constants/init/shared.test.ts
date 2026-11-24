@@ -680,8 +680,6 @@ describe('a new connection', () => {
     expect(useNotifState.getState().navBadges.get(Tabs.chatTab)).toBe(3)
   })
 
-  // Tracking changes made while disconnected were sent to no one, and with the same user still
-  // logged in no login reloads them
   // The reloads a login or a reconnect starts wait out first paint: a second and a frame
   const pastFirstPaint = async () => {
     await new Promise(resolve => setTimeout(resolve, 1100))
@@ -695,6 +693,8 @@ describe('a new connection', () => {
     await connect()
   }
 
+  // Tracking changes made while disconnected were sent to no one, and with the same user still
+  // logged in no login reloads them
   test('a reconnect that keeps the user logged in reloads who they follow', async () => {
     session = userA
     await connect()
