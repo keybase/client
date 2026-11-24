@@ -168,14 +168,10 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 }
 
 func (e *TrackToken) notifyChanged(m libkb.MetaContext) {
-	// Remove this after desktop notification change complete:
+	// Both users' cached copies are stale: their tracker list and our
+	// following list now include the new link.
 	m.G().UserChanged(m.Ctx(), e.them.GetUID())
-
-	// Remove these after desktop notification change complete, but
-	// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
 	m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
-
-	// Keep this:
 	m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 }
 

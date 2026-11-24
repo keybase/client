@@ -26,18 +26,7 @@ export const FollowButton = (props: FollowProps) => {
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
   const followWaitingKey = C.waitingKeySettingsFollowButton(username)
 
-  const onFollow = () =>
-    followUser(
-      [{follow: true, guiID}, followWaitingKey],
-      () => {},
-      () => {}
-    )
-  const onUnfollow = () =>
-    followUser(
-      [{follow: false, guiID}, followWaitingKey],
-      () => {},
-      () => {}
-    )
+  const changeFollow = (follow: boolean) => followUser([{follow, guiID}, followWaitingKey], () => {}, () => {})
 
   const waitingKey: T.Waiting.WaitingKeys = [followWaitingKey, C.waitingKeyTrackerProfileLoad]
 
@@ -48,8 +37,8 @@ export const FollowButton = (props: FollowProps) => {
       followsYou={followsYou}
       waitingKey={waitingKey}
       small={props.small}
-      onFollow={onFollow}
-      onUnfollow={onUnfollow}
+      onFollow={() => changeFollow(true)}
+      onUnfollow={() => changeFollow(false)}
     />
   )
 }
