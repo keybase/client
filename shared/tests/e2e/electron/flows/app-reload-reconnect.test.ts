@@ -46,6 +46,7 @@ test('a draft typed in the open conversation survives a reload', async ({page}, 
       await openE2EChannel(page)
       const rpcs = await watchOutgoingRpcs(page)
       try {
+        await composer.clear(page)
         await composer.type(page, draft)
         await expect(composerInput(page)).toHaveValue(draft)
         // the composer saves its draft a moment after the last key
