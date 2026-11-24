@@ -5172,3 +5172,86 @@ func (ft journaledFolderTest) requireFlushes(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, status.BlockOpCount)
 }
+
+type bserverFailPuts struct {
+	BlockServer
+}
+
+func (b bserverFailPuts) Put(
+	context.Context, tlf.ID, kbfsblock.ID, kbfsblock.Context, []byte,
+	kbfscrypto.BlockCryptKeyServerHalf, DiskBlockCacheType,
+) error {
+	return kbfsblock.ServerErrorUnauthorized{Msg: "Token expired"}
+}
+
+// A sync that fails on a block put must leave a new, never-synced
+// directory readable, so it can still be listed and the sync retried.
+func TestKBFSOpsNewDirReadableAfterFailedBlockPut(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	kbfsOps := config.KBFSOps()
+
+	dirNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("d"))
+	require.NoError(t, err)
+
+	bserver := config.BlockServer()
+	config.SetBlockServer(bserverFailPuts{bserver})
+	// An exclusive create syncs at once, so the failed put undoes it.
+	_, _, err = kbfsOps.CreateFile(ctx, dirNode, testPPS("f"), false, WithExcl)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorUnauthorized))
+
+	children, err := kbfsOps.GetDirChildren(ctx, dirNode)
+	require.NoError(t, err, "listing the new directory after a failed sync")
+	require.Empty(t, children)
+	rootChildren, err := kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Contains(t, rootChildren, testPPS("d"))
+
+	config.SetBlockServer(bserver)
+	_, _, err = kbfsOps.CreateFile(ctx, dirNode, testPPS("f"), false, WithExcl)
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, dirNode)
+	require.NoError(t, err)
+	require.Contains(t, children, testPPS("f"))
+}
+
+// Same as above, for a failed rename into the new directory: the
+// directory stays readable, the renamed file keeps its entry, and the
+// next sync succeeds.
+func TestKBFSOpsNewDirReadableAfterFailedRenameInto(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	kbfsOps := config.KBFSOps()
+
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("x"), false, WithExcl)
+	require.NoError(t, err)
+	dirNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("d"))
+	require.NoError(t, err)
+
+	bserver := config.BlockServer()
+	config.SetBlockServer(bserverFailPuts{bserver})
+	// Sync every dir op, so the rename's failed sync undoes it.
+	config.SetBGFlushDirOpBatchSize(1)
+	err = kbfsOps.Rename(ctx, rootNode, testPPS("x"), dirNode, testPPS("y"))
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorUnauthorized))
+
+	children, err := kbfsOps.GetDirChildren(ctx, dirNode)
+	require.NoError(t, err, "listing the new directory after a failed sync")
+	require.Empty(t, children)
+	// The undo restores the renamed file's real entry.
+	xNode, _, err := kbfsOps.Lookup(ctx, rootNode, testPPS("x"))
+	require.NoError(t, err)
+	_, err = kbfsOps.Read(ctx, xNode, make([]byte, 1), 0)
+	require.NoError(t, err)
+
+	config.SetBlockServer(bserver)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, dirNode)
+	require.NoError(t, err)
+	require.Empty(t, children)
+}

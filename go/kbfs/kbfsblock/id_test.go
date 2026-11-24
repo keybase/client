@@ -60,6 +60,14 @@ func TestTemporaryIDRandom(t *testing.T) {
 	require.NotEqual(t, ID{}, b2)
 
 	require.NotEqual(t, b1, b2)
+	require.True(t, b1.IsTemporary())
+}
+
+func TestIsTemporary(t *testing.T) {
+	require.False(t, ID{}.IsTemporary())
+	fake, err := MakeFakeID()
+	require.NoError(t, err)
+	require.False(t, fake.IsTemporary())
 }
 
 // Test that MakeRandomIDInRange returns items in the range specified.

@@ -1136,8 +1136,10 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 		if wasDirty {
 			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
-			// A directory created since the last sync has no clean
-			// copy: its dirty block is the directory, so keep it.
+			// A directory not yet synced (temporary ID) has no clean
+			// copy: its dirty block is the directory itself, so keep
+			// it. createEntryLocked's cleanup deletes it if the create
+			// is undone.
 			if !ptr.ID.IsTemporary() {
 				_ = dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
 			}
@@ -1265,6 +1267,15 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 		return nil, err
 	}
 	dd := fbo.newDirDataLocked(lState, dir, chargedTo, kmd)
+	// A rename passes no entry, so the moved node isn't unlinked, but an
+	// undo must still restore the real entry.
+	restoreDe := oldDe
+	if !oldDe.IsInitialized() {
+		restoreDe, err = dd.Lookup(ctx, oldName)
+		if err != nil {
+			return nil, err
+		}
+	}
 	unrefs, err := dd.RemoveEntry(ctx, oldName)
 	if err != nil {
 		return nil, err
@@ -1288,13 +1299,13 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 		if unlinkUndoFn != nil {
 			unlinkUndoFn()
 		}
-		_, _ = dd.AddEntry(ctx, oldName, oldDe)
+		_, _ = dd.AddEntry(ctx, oldName, restoreDe)
 		return nil, err
 	}
 
 	undoDirtyFn := fbo.makeDirDirtyLocked(lState, dir.TailPointer(), unrefs)
 	return func() {
-		_, _ = dd.AddEntry(ctx, oldName, oldDe)
+		_, _ = dd.AddEntry(ctx, oldName, restoreDe)
 		if undoDirtyFn != nil {
 			undoDirtyFn()
 		}
