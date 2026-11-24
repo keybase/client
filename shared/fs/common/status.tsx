@@ -114,7 +114,7 @@ const loadUploadStatusImpl = async (
 }
 
 const loadJournalStatusImpl = async (
-  isCurrentRequest: () => boolean,
+  isCurrentGeneration: () => boolean,
   journalUpdate: (
     syncingPaths: ReadonlyArray<T.FS.Path>,
     totalSyncingBytes: number,
@@ -126,17 +126,35 @@ const loadJournalStatusImpl = async (
     const {syncingPaths, totalSyncingBytes, endEstimate} = await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
       filter: T.RPCGen.ListFilter.filterSystemHidden,
     })
-    if (!isCurrentRequest()) {
+    if (!isCurrentGeneration()) {
       return
     }
     journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
     useNotifState.getState().dispatch.badgeApp('kbfsUploading', totalSyncingBytes > 0 || !!syncingPaths?.length)
   } catch {
-    if (!isCurrentRequest()) {
+    if (!isCurrentGeneration()) {
       return
     }
     useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
     onError()
+  }
+}
+
+type JournalStatusRequest = {dirty: boolean; generation: number}
+
+const runJournalStatusRequest = async (
+  request: JournalStatusRequest,
+  isCurrentGeneration: () => boolean,
+  load: () => Promise<void>,
+  onDone: () => void
+) => {
+  try {
+    while (request.dirty && isCurrentGeneration()) {
+      request.dirty = false
+      await load()
+    }
+  } finally {
+    onDone()
   }
 }
 
@@ -151,7 +169,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const connectedRef = React.useRef(connected)
   const fsStatusStateRef = React.useRef(fsStatusState)
   const generationRef = React.useRef(0)
-  const journalStatusRequestRef = React.useRef(0)
+  const journalStatusRequestRef = React.useRef<JournalStatusRequest | undefined>(undefined)
   const [currentGeneration, setCurrentGeneration] = React.useState(0)
   const [prevConnected, setPrevConnected] = React.useState(connected)
 
@@ -233,14 +251,28 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     }
   )
 
+  // One read at a time: a notice during a read marks it dirty, and a dirty read runs once more
+  // when it finishes, so a slow service is neither piled up on nor never heard from.
   const loadJournalStatus = React.useEffectEvent(() => {
     const generation = generationRef.current
-    const request = ++journalStatusRequestRef.current
+    const inFlight = journalStatusRequestRef.current
+    if (inFlight?.generation === generation) {
+      inFlight.dirty = true
+      return
+    }
+    const request = {dirty: true, generation}
+    journalStatusRequestRef.current = request
+    const isCurrent = () => isCurrentGeneration(generation)
     C.ignorePromise(
-      loadJournalStatusImpl(
-        () => request === journalStatusRequestRef.current && isCurrentGeneration(generation),
-        journalUpdate,
-        checkKbfsDaemonRpcStatus
+      runJournalStatusRequest(
+        request,
+        isCurrent,
+        async () => loadJournalStatusImpl(isCurrent, journalUpdate, checkKbfsDaemonRpcStatus),
+        () => {
+          if (journalStatusRequestRef.current === request) {
+            journalStatusRequestRef.current = undefined
+          }
+        }
       )
     )
   })

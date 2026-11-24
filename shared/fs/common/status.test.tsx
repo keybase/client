@@ -90,18 +90,23 @@ test('an unflushed journal is not polled', async () => {
   expect(syncStatusCalls()).toBe(calls)
 })
 
-// Notifications come at most once a second, but reads can still answer out of order.
-test('an older sync status answer does not replace a newer one', async () => {
+// Under a steady stream of notifications, one read is in flight at a time, each answer is
+// shown, and notices that came in during a read get one more read after it.
+test('notifications during a slow read coalesce into one more read', async () => {
   await renderStatus()
   const held = fake.hold(syncStatus)
   await notifyJournalStatus()
   await notifyJournalStatus()
+  await notifyJournalStatus()
+  expect(held).toHaveLength(1)
+
+  held[0]?.reply({endEstimate: null, syncingPaths: ['/keybase/private/testuser/a.pdf'], totalSyncingBytes: 585})
+  await flush()
+  screen.getByText('1 paths, 585 bytes')
   expect(held).toHaveLength(2)
 
   held[1]?.reply({endEstimate: null, syncingPaths: null, totalSyncingBytes: 0})
   await flush()
-  held[0]?.reply({endEstimate: null, syncingPaths: ['/keybase/private/testuser/a.pdf'], totalSyncingBytes: 585})
-  await flush()
-
   screen.getByText('0 paths, 0 bytes')
+  expect(held).toHaveLength(2)
 })
