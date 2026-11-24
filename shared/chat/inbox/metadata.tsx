@@ -53,11 +53,14 @@ export const metaReceivedError = (
   conversationIDKey: T.Chat.ConversationIDKey,
   error: T.RPCChat.InboxUIItemError
 ) => {
-  pendingUnboxRows.delete(conversationIDKey)
-  failedUnboxRows.set(conversationIDKey, unboxGeneration())
+  // only an answer to our own request is remembered: a failure from the inbox load was never asked
+  // for, and a later request should still go
+  if (pendingUnboxRows.delete(conversationIDKey)) {
+    failedUnboxRows.set(conversationIDKey, unboxGeneration())
+  }
   if (error.typ === T.RPCChat.ConversationErrorType.transient) {
     logger.info(
-      `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+      `metaReceivedError: transient error, keeping the current meta for convID: ${conversationIDKey} error: ${error.message}`
     )
     return
   }
@@ -210,11 +213,15 @@ export const clearConversationsForInboxSync = () => {
 const unboxGeneration = () => `${useDaemonState.getState().handshakeGeneration}:${getAccountGeneration()}`
 
 // Convs asked of the service with no answer yet. The service answers every conv while the session and
-// the link last, so an entry ends with its answer, a store reset, or a new generation; none needs a
-// timeout.
-const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, {generation: string}>()
-const isUnboxPending = (id: T.Chat.ConversationIDKey) =>
-  pendingUnboxRows.get(id)?.generation === unboxGeneration()
+// the link last, so an entry ends with its answer, a store reset, or a new generation. An answer it
+// could not deliver (no chat UI yet, a failed send) is lost, so an entry also lapses after
+// unboxPendingMs and the conv can be asked again.
+const unboxPendingMs = 60_000
+const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, {at: number; generation: string}>()
+const isUnboxPending = (id: T.Chat.ConversationIDKey) => {
+  const entry = pendingUnboxRows.get(id)
+  return entry?.generation === unboxGeneration() && Date.now() - entry.at < unboxPendingMs
+}
 
 // Convs the service answered with a failure, each with the generation it failed in. Asking again
 // would get the same answer, so only something that can change it asks again in that generation: a
@@ -348,7 +355,7 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
     if (!conversationIDKeys.length) {
       return
     }
-    const entry = {generation: unboxGeneration()}
+    const entry = {at: Date.now(), generation: unboxGeneration()}
     conversationIDKeys.forEach(id => pendingUnboxRows.set(id, entry))
     let asked: boolean | undefined
     logger.info(

@@ -143,10 +143,13 @@ func (h *UIInboxLoader) UnboxConvs(ctx context.Context, convIDs []chat1.Conversa
 		return nil
 	}
 	unboxer := h.unboxer
-	workCtx := globals.WithStop(globals.BackgroundChatCtx(globals.CtxAddLocalizerCancelable(ctx), h.G()),
-		h.workCtx)
+	// cancelled once the run ends, so a request leaves nothing registered on the session or the
+	// loader's stop context
+	bgCtx, cancel := globals.BackgroundChatCtxWithCancel(globals.CtxAddLocalizerCancelable(ctx), h.G())
+	workCtx := globals.WithStop(bgCtx, h.workCtx)
 	// added under the lock while started, so it never races a Stop's eg.Wait
 	h.eg.Go(func() error {
+		defer cancel()
 		unboxer.run(workCtx, start)
 		return nil
 	})
