@@ -69,12 +69,16 @@ const useSafeIsFocused = () => {
 
 type FsSubscription = {
   count: number
+  // the handshake generation of the connection it was made on
+  generation: number
   subscribed: boolean
   subscriptionID: string
   unsubscribeTimer?: ReturnType<typeof setTimeout>
 }
 
 type FsSubscriptionManager = {
+  // the newest handshake generation a subscription was wanted on
+  generation?: number
   subscriptions: Map<string, FsSubscription>
 }
 
@@ -773,6 +777,21 @@ const releaseFsSubscription = (
   scheduleFsSubscriptionUnsubscribeIfUnused(manager, subscriptionKey, subscription)
 }
 
+// A subscribe that never settles (the engine reset under it) would keep its entry forever, under a
+// key no later connection uses. If it does settle, its handler finds the entry gone and
+// unsubscribes. Older entries that did subscribe are let go by their own unsubscribe timers.
+const dropOlderUnsubscribedFsSubscriptions = (manager: FsSubscriptionManager, generation: number) => {
+  if (manager.generation === generation) {
+    return
+  }
+  manager.generation = generation
+  for (const [key, subscription] of manager.subscriptions) {
+    if (subscription.generation < generation && !subscription.subscribed) {
+      manager.subscriptions.delete(key)
+    }
+  }
+}
+
 const useFsSubscriptionEffect = ({
   enabled = true,
   errorPath,
@@ -802,12 +821,13 @@ const useFsSubscriptionEffect = ({
   const subscribeEvent = React.useEffectEvent(subscribe)
   const onSubscribedEvent = React.useEffectEvent(() => onSubscribed?.())
   React.useEffect(() => {
-    if (!connected || !enabled) {
+    if (!connected || !enabled || handshakeGeneration === undefined) {
       return
     }
 
     const manager = subscriptionManager
     if (manager) {
+      dropOlderUnsubscribedFsSubscriptions(manager, handshakeGeneration)
       const existingSubscription = manager.subscriptions.get(subscriptionKey)
       if (existingSubscription) {
         cancelScheduledSubscriptionUnsubscribe(existingSubscription)
@@ -823,7 +843,7 @@ const useFsSubscriptionEffect = ({
     }
 
     const subscriptionID = makeUUID()
-    const subscription = {count: 1, subscribed: false, subscriptionID}
+    const subscription = {count: 1, generation: handshakeGeneration, subscribed: false, subscriptionID}
     manager?.subscriptions.set(subscriptionKey, subscription)
     const removeSubscription = () => {
       if (manager?.subscriptions.get(subscriptionKey) === subscription) {
@@ -872,7 +892,7 @@ const useFsSubscriptionEffect = ({
       }
       releaseFsSubscription(manager, subscriptionKey, currentSubscription)
     }
-  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager, username])
+  }, [connected, enabled, errorPath, handshakeGeneration, subscriptionKey, subscriptionManager, username])
 }
 
 const useFsPathSubscriptionEffect = (
@@ -916,9 +936,14 @@ type FsPathItemOptions = {
   subscribe?: boolean
 }
 
-const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic, enabled = true) => {
+const useFsNonPathSubscriptionEffect = (
+  topic: T.RPCGen.SubscriptionTopic,
+  enabled: boolean,
+  onSubscribed: () => void
+) => {
   useFsSubscriptionEffect({
     enabled,
+    onSubscribed,
     subscribe: async subscriptionID => {
       await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
         clientID: fsClientID,
@@ -1014,7 +1039,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path, loadChildren = true) => 
     focused && pathIsItem && loadsChildren,
     () => routeData?.loadFolderChildren(path, true)
   )
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused, () => routeData?.loadTlfs())
 
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
@@ -1145,7 +1170,7 @@ export const useFsOnlineStatus = () => {
     }
     C.ignorePromise(checkOnlineStatus(retries))
   })
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus, true, () => loadOnlineStatus(1))
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
@@ -1229,7 +1254,9 @@ export const useFsDownloadStatus = () => {
   const routeData = React.useContext(FsDataContext)
   const loadDownloadStatus = routeData?.loadDownloadStatus
   const focused = useSafeIsFocused()
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus, !!loadDownloadStatus)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus, !!loadDownloadStatus, () =>
+    loadDownloadStatus?.()
+  )
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {

@@ -368,16 +368,16 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
       ),
     ])
     // Read once the service holds the subscriptions: a change before then sent no notification
-    C.ignorePromise(
-      subscribed.then(() => {
-        if (!current) {
-          return
-        }
-        loadSettings()
-        loadUploadStatus()
-        loadJournalStatus()
-      })
-    )
+    const loadOnceSubscribed = async () => {
+      await subscribed
+      if (!current) {
+        return
+      }
+      loadSettings()
+      loadUploadStatus()
+      loadJournalStatus()
+    }
+    C.ignorePromise(loadOnceSubscribed())
     return () => {
       current = false
       unsubscribe(settingsSubID)

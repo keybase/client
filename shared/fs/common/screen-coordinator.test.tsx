@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, render, screen} from '@testing-library/react'
 import * as Tabs from '@/constants/tabs'
@@ -12,7 +13,7 @@ import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {resetAllStores} from '@/util/zustand'
 import {FsDaemonProvider} from './daemon'
-import {FsDataProvider, useFsFolderChildItems, useFsScreenCoordinator} from './hooks'
+import {FsDataProvider, useFsDataContextValue, useFsFolderChildItems, useFsScreenCoordinator} from './hooks'
 
 const subscribePath = 'keybase.1.SimpleFS.simpleFSSubscribePath'
 const folder = T.FS.stringToPath('/keybase/private/testuser/work')
@@ -207,4 +208,81 @@ test('a reconnect subscribes the folder again and lists a file added while away'
   const newIDs = subscribed.filter(id => !firstIDs.includes(id))
   expect(newIDs.length).toBe(firstIDs.length)
   expect(unsubscribed.some(id => newIDs.includes(id))).toBe(false)
+})
+
+const answerBootstrap = () =>
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({
+    loggedIn: true,
+    sessionSeq: 0,
+    uid: 'uid',
+    username: 'testuser',
+  }))
+
+const renderFolder = (extra?: React.ReactNode) =>
+  render(
+    <FsDaemonProvider>
+      <FsDataProvider>
+        <FolderScreen />
+        {extra}
+      </FsDataProvider>
+    </FsDaemonProvider>,
+    {wrapper: navigationWrapper({route: 'fsRoot', tab: Tabs.fsTab}).wrapper}
+  )
+
+// Favorites changed while the app was away sent no notification either
+test('a reconnect reads the favorites again once their new subscription lands', async () => {
+  const favoritesReads = () => fake.calls.filter(c => c.method === 'keybase.1.SimpleFS.simpleFSListFavorites').length
+  fake.answer(subscribePath, () => null)
+  answerBootstrap()
+  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush()
+  renderFolder()
+  await flush(8)
+  const before = favoritesReads()
+
+  act(() => fake.drop())
+  await flush()
+  act(() => fake.restart())
+  await flush()
+  const held = fake.hold('keybase.1.SimpleFS.simpleFSSubscribeNonPath')
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush(8)
+  expect(held.length).toBeGreaterThan(0)
+  expect(favoritesReads()).toBe(before)
+
+  for (const c of held) c.reply(null)
+  await flush(8)
+
+  expect(favoritesReads()).toBe(before + 1)
+})
+
+// A subscribe that never settles (the engine reset under it) leaves an entry no later
+// connection uses; a new connection lets go of it.
+test('a new connection drops the entries an older one never finished subscribing', async () => {
+  let subscriptions: ReadonlyMap<string, unknown> | undefined
+  const Manager = () => {
+    const routeData = useFsDataContextValue()
+    React.useEffect(() => {
+      subscriptions = routeData?.subscriptionManager.subscriptions
+    })
+    return null
+  }
+  answerBootstrap()
+  fake.hold(subscribePath)
+  fake.hold('keybase.1.SimpleFS.simpleFSSubscribeNonPath')
+  useDaemonState.getState().dispatch.initBootstrapSteps([])
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush()
+  renderFolder(<Manager />)
+  await flush(8)
+  const oldGeneration = useDaemonState.getState().handshakeGeneration
+  const keysOf = (generation: number) => [...(subscriptions?.keys() ?? [])].filter(k => k.endsWith(`@${generation}`))
+  expect(keysOf(oldGeneration).length).toBeGreaterThan(0)
+
+  act(() => useDaemonState.getState().dispatch.startHandshake())
+  await flush(8)
+
+  expect(keysOf(oldGeneration)).toEqual([])
+  expect(keysOf(useDaemonState.getState().handshakeGeneration).length).toBeGreaterThan(0)
 })
