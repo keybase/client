@@ -105,11 +105,10 @@ test('a team page reloads only for kinds that change what it shows', async () =>
   expect(teamLoads(teamA)).toBe(4)
 })
 
-// a bulk add sends a notice per member: the burst reloads once at its start and
-// once after it, not per notice, and two pages for the team share each load
-test('a burst of changes to a team costs a load at its start and one after it', async () => {
-  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
-  render(
+const mountTwoPagesForTeamA = () => render(<TwoPagesForTeamA />)
+
+function TwoPagesForTeamA() {
+  return (
     <LoadedTeamsListProvider>
       <LoadedTeamProvider teamID={teamA}>
         <Name teamID={teamA} />
@@ -119,6 +118,13 @@ test('a burst of changes to a team costs a load at its start and one after it', 
       </LoadedTeamProvider>
     </LoadedTeamsListProvider>
   )
+}
+
+// a bulk add sends a notice per member: the burst reloads once at its start and
+// once after it, not per notice, and two pages for the team share each load
+test('a burst of changes to a team costs a load at its start and one after it', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
+  mountTwoPagesForTeamA()
   await flush()
   const loads = teamLoads(teamA)
 
