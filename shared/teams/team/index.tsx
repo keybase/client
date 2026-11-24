@@ -129,7 +129,10 @@ const TeamBody = (props: Props) => {
     navigation.setParams({justFinishedAddWizard: undefined})
   }, [navigation])
 
-  const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {loaded: loadedTeam, loading: reloadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  // only the first load shows the loading row: a reload that swapped the rows out would unmount
+  // whichever row has its menu open
+  const loadingTeam = reloadingTeam && !loadedTeam
 
   // useSafeFocusEffect re-runs (and so runs its cleanup) whenever the callback
   // identity changes, so an inline callback here would fire the gregor dismiss
