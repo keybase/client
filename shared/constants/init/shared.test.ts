@@ -470,7 +470,7 @@ describe('a new connection subscribes before it reads', () => {
       'keybase.1.delegateUiCtl.registerSecretUI',
       'keybase.1.delegateUiCtl.registerIdentify3UI',
       'keybase.1.delegateUiCtl.registerRekeyUI',
-      'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+      'keybase.1.delegateUiCtl.registerGregorUIPrefs',
       'keybase.1.config.helloIAm',
     ]) {
       fake.answer(m, () => null)
