@@ -2217,11 +2217,28 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 		Source:              source,
 	}
 
+	kinds := keybase1.TeamChangedKinds{
+		Membership: changes.MembershipChanged,
+		KeyRotated: changes.KeyRotated,
+		Renamed:    changes.Renamed,
+		Settings:   changes.Misc,
+	}
+	sendTeamChanged := kinds != (keybase1.TeamChangedKinds{})
+	changedArg := keybase1.TeamChangedArg{TeamID: teamID, Kinds: kinds}
+
+	// One pass serves both channels: a connection on teamChanged gets that in
+	// place of teamChangedByID.
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamChangedByID notification (team:%v, seqno:%v, implicit:%v)",
-		teamID, latestSeqno, implicitTeam)
+	n.G().Log.CDebugf(ctx, "+ Sending TeamChangedByID notification (team:%v, seqno:%v, implicit:%v, kinds:%+v)",
+		teamID, latestSeqno, implicitTeam, kinds)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.wantsCoarseTeamNotifications(id) {
+		ch := n.getNotificationChannels(id)
+		switch {
+		case ch.TeamChanged:
+			if sendTeamChanged {
+				n.enqueueTeamChanged(&wg, id, xp, changedArg)
+			}
+		case ch.Team:
 			n.enqueueWG(&wg, id, func() {
 				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
@@ -2234,15 +2251,11 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.TeamChangedByID(teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno, source)
+		if sendTeamChanged {
+			listener.TeamChanged(teamID, kinds, 0)
+		}
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeamChangedByID notification")
-
-	n.HandleTeamChanged(ctx, teamID, keybase1.TeamChangedKinds{
-		Membership: changes.MembershipChanged,
-		KeyRotated: changes.KeyRotated,
-		Renamed:    changes.Renamed,
-		Settings:   changes.Misc,
-	}, 0)
 }
 
 // wantsCoarseTeamNotifications says whether a connection gets the team
@@ -2252,28 +2265,30 @@ func (n *NotifyRouter) wantsCoarseTeamNotifications(id ConnectionID) bool {
 	return ch.Team && !ch.TeamChanged
 }
 
-// HandleTeamChanged sends teamChanged. An empty teamID goes with the kinds that
-// are about the current user (roleMap, memberShowcase).
+func (n *NotifyRouter) enqueueTeamChanged(wg *sync.WaitGroup, id ConnectionID, xp rpc.Transporter, arg keybase1.TeamChangedArg) {
+	n.enqueueWG(wg, id, func() {
+		_ = (keybase1.NotifyTeamClient{
+			Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+		}).TeamChanged(context.Background(), arg)
+	})
+}
+
+// HandleTeamChanged sends teamChanged, unless no kind is set. An empty teamID
+// goes with the kinds that are about the current user (roleMap,
+// memberShowcase).
 func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.TeamID,
 	kinds keybase1.TeamChangedKinds, roleMapVersion keybase1.UserTeamVersion,
 ) {
-	if n == nil {
+	if n == nil || kinds == (keybase1.TeamChangedKinds{}) {
 		return
 	}
 
+	arg := keybase1.TeamChangedArg{TeamID: teamID, Kinds: kinds, RoleMapVersion: roleMapVersion}
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending TeamChanged notification (team:%v, kinds:%+v)", teamID, kinds)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).TeamChanged {
-			n.enqueueWG(&wg, id, func() {
-				_ = (keybase1.NotifyTeamClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamChanged(context.Background(), keybase1.TeamChangedArg{
-					TeamID:         teamID,
-					Kinds:          kinds,
-					RoleMapVersion: roleMapVersion,
-				})
-			})
+			n.enqueueTeamChanged(&wg, id, xp, arg)
 		}
 		return true
 	})

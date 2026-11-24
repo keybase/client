@@ -50,15 +50,17 @@ func (c *TeamMemberCountCache) startNotifyLoop() {
 	go c.notifyLoop(ctx)
 }
 
-func (c *TeamMemberCountCache) takePending() []keybase1.TeamID {
+// popPending takes one team off pending. The notify loop sends one team at a
+// time so a logout (which clears pending) drops the sends still queued for the
+// old user.
+func (c *TeamMemberCountCache) popPending() (keybase1.TeamID, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	teamIDs := make([]keybase1.TeamID, 0, len(c.pending))
 	for teamID := range c.pending {
-		teamIDs = append(teamIDs, teamID)
+		delete(c.pending, teamID)
+		return teamID, true
 	}
-	c.pending = make(map[keybase1.TeamID]struct{})
-	return teamIDs
+	return "", false
 }
 
 func (c *TeamMemberCountCache) notifyLoop(ctx context.Context) {
@@ -72,7 +74,7 @@ func (c *TeamMemberCountCache) notifyLoop(ctx context.Context) {
 		select {
 		case <-c.notifyCh:
 			ctx, cancel := context.WithTimeout(context.Background(), notifyTimeout)
-			for _, teamID := range c.takePending() {
+			for teamID, ok := c.popPending(); ok; teamID, ok = c.popPending() {
 				c.g.NotifyRouter.HandleTeamChanged(ctx, teamID, keybase1.TeamChangedKinds{MemberCount: true}, 0)
 			}
 			c.g.NotifyRouter.HandleTeamMetadataUpdate(ctx)

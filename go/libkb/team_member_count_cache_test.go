@@ -44,8 +44,62 @@ func TestTeamMemberCountCacheSignalsOnlyRealChanges(t *testing.T) {
 	count, ok := c.Get(implicit)
 	require.True(t, ok)
 	require.Equal(t, 5, count, "silent set still caches")
-	require.Equal(t, []keybase1.TeamID{explicit}, c.takePending(), "only signalled teams are pending")
-	require.Empty(t, c.takePending(), "taking pending clears it")
+	teamID, ok := c.popPending()
+	require.True(t, ok)
+	require.Equal(t, explicit, teamID, "only signalled teams are pending")
+	_, ok = c.popPending()
+	require.False(t, ok, "popping takes the team off pending")
+}
+
+type blockingMemberCountListener struct {
+	NoopNotifyListener
+	entered chan keybase1.TeamID
+	release chan struct{}
+}
+
+func (l *blockingMemberCountListener) TeamChanged(teamID keybase1.TeamID, kinds keybase1.TeamChangedKinds, _ keybase1.UserTeamVersion) {
+	if !kinds.MemberCount {
+		return
+	}
+	l.entered <- teamID
+	<-l.release
+}
+
+// A logout while the notify loop is sending drops the member counts still
+// queued for the old user.
+func TestTeamMemberCountCacheLogoutDropsPendingSends(t *testing.T) {
+	tc := SetupTest(t, "TeamMemberCountCache", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	listener := &blockingMemberCountListener{
+		entered: make(chan keybase1.TeamID, 10),
+		release: make(chan struct{}),
+	}
+	g.NotifyRouter.AddListener(listener)
+
+	c := g.TeamMemberCountCache
+	// fill pending before signalling so one loop round sees both teams
+	c.lock.Lock()
+	c.pending[keybase1.TeamID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa24")] = struct{}{}
+	c.pending[keybase1.TeamID("cccccccccccccccccccccccccccccc24")] = struct{}{}
+	c.lock.Unlock()
+	c.notifyCh <- struct{}{}
+
+	select {
+	case <-listener.entered:
+	case <-time.After(10 * time.Second):
+		t.Fatal("no memberCount teamChanged sent")
+	}
+	require.NoError(t, c.OnLogout(NewMetaContextForTest(tc)))
+	close(listener.release)
+
+	select {
+	case teamID := <-listener.entered:
+		t.Fatalf("memberCount teamChanged for %s sent after logout", teamID)
+	case <-time.After(6 * time.Second):
+	}
 }
 
 // The notify loop sends one teamChanged per team whose count changed, to

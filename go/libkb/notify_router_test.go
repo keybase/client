@@ -501,3 +501,54 @@ func TestTeamChangedReplacesCoarseTeamNotifications(t *testing.T) {
 	}
 	require.Equal(t, wantCoarse, gotCoarse)
 }
+
+type teamChangedListener struct {
+	NoopNotifyListener
+	sync.Mutex
+	kinds []keybase1.TeamChangedKinds
+}
+
+func (l *teamChangedListener) TeamChanged(_ keybase1.TeamID, kinds keybase1.TeamChangedKinds, _ keybase1.UserTeamVersion) {
+	l.Lock()
+	defer l.Unlock()
+	l.kinds = append(l.kinds, kinds)
+}
+
+// A change set with no flag that teamChanged carries (gregor rows copy theirs
+// per message) sends no teamChanged; coarse connections still get
+// teamChangedByID.
+func TestTeamChangedSkipsEmptyKinds(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	app := NewNotifyRecorder(g, keybase1.NotificationChannels{Team: true, TeamChanged: true})
+	defer app.Close()
+	coarse := NewNotifyRecorder(g, keybase1.NotificationChannels{Team: true})
+	defer coarse.Close()
+	listener := &teamChangedListener{}
+	g.NotifyRouter.AddListener(listener)
+
+	ctx := context.Background()
+	n := g.NotifyRouter
+	teamID := keybase1.TeamID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa24")
+	n.HandleTeamChangedByID(ctx, teamID, 3, false, keybase1.TeamChangeSet{}, 0, 0, keybase1.TeamChangedSource_SERVER)
+	n.HandleTeamChanged(ctx, teamID, keybase1.TeamChangedKinds{}, 0)
+	n.HandleTeamChangedByID(ctx, teamID, 4, false, keybase1.TeamChangeSet{Renamed: true}, 0, 0, keybase1.TeamChangedSource_SERVER)
+
+	// each send waits for delivery, and the recorder records before the send returns
+	var got []keybase1.TeamChangedKinds
+	for _, m := range app.Messages() {
+		require.Equal(t, "keybase.1.NotifyTeam.teamChanged", m.Method)
+		var arg keybase1.TeamChangedArg
+		require.NoError(t, m.Decode(&arg))
+		got = append(got, arg.Kinds)
+	}
+	want := []keybase1.TeamChangedKinds{{Renamed: true}}
+	require.Equal(t, want, got)
+	listener.Lock()
+	require.Equal(t, want, listener.kinds)
+	listener.Unlock()
+	require.Len(t, coarse.Messages(), 2)
+}
