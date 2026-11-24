@@ -1,13 +1,16 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {afterEach, beforeEach, describe, expect, test} from '@jest/globals'
+import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
+import * as C from '@/constants'
 import * as T from '@/constants/types'
+import {useConfigState} from '@/stores/config'
 import {_onEngineIncoming} from '@/constants/init/shared'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
+import {navigationWrapper} from '@/test/navigation'
 import {pushTeamChanged} from '@/test/team-changed'
 import {useTeamTreeMemberships} from './use-team-tree-memberships'
 
@@ -46,6 +49,7 @@ const tree = [
 ]
 
 const loads = () => fake.calls.filter(c => c.method === loadTree)
+const activityLoads = () => fake.calls.filter(c => c.method === lastActive)
 
 beforeEach(() => {
   fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
@@ -115,48 +119,182 @@ describe('useTeamTreeMemberships', () => {
     expect(result.current.errors).toEqual([])
   })
 
-  test('reloads for a change to any team in the tree, and not for other teams', async () => {
-    await mount()
+  test('refreshes only activity when the page is shown again', async () => {
+    useConfigState.setState({loggedIn: true})
+    const {wrapper} = navigationWrapper({params: {teamID, username}, route: 'teamMember'})
+    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username), {wrapper})
+    await flush()
     expect(loads()).toHaveLength(1)
+    expect(activityLoads()).toHaveLength(2)
 
-    await pushTeamChanged(fake, 'elsewhere', {membership: true})
+    act(() => {
+      C.Router2.navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
+    })
+    await flush()
+    fake.answer(lastActive, (p: {teamIDs: Array<string>}) => ({[p.teamIDs[0] ?? '']: 3000}))
+    act(() => C.Router2.clearModals())
+    await flush()
+
     expect(loads()).toHaveLength(1)
-
-    await pushTeamChanged(fake, 'sub2', {membership: true})
-    expect(loads()).toHaveLength(2)
-
-    await pushTeamChanged(fake, teamID, {renamed: true})
-    expect(loads()).toHaveLength(3)
+    expect(activityLoads().map(c => (c.params as {teamIDs: Array<string>}).teamIDs)).toEqual([
+      [teamID],
+      ['sub1'],
+      [teamID],
+      ['sub1'],
+    ])
+    expect(result.current.nodesIn.map(n => n.lastActivity)).toEqual([3000, 3000])
   })
 
-  test('ignores kinds the rows do not show, and reloads for a change with no kind', async () => {
-    await mount()
+  describe('team changes', () => {
+    beforeEach(() => {
+      jest.useFakeTimers({doNotFake: ['setImmediate']})
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
 
-    await pushTeamChanged(fake, 'sub1', {channels: true, keyRotated: true, settings: true})
-    expect(loads()).toHaveLength(1)
+    const advance = async (ms: number) => {
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(ms)
+      })
+      await flush()
+    }
+    const change = async (changedTeamID: string, kinds: Partial<T.RPCGen.TeamChangedKinds>) => {
+      await pushTeamChanged(fake, changedTeamID, kinds)
+      await advance(0)
+    }
+    const mountNow = async () => {
+      const hook = renderHook(() => useTeamTreeMemberships(teamID, username))
+      await advance(0)
+      return hook
+    }
 
-    await pushTeamChanged(fake, 'sub1', {})
-    expect(loads()).toHaveLength(2)
+    test('reloads for a change to any team in the tree, and not for other teams', async () => {
+      await mountNow()
+      expect(loads()).toHaveLength(1)
 
-    await pushTeamChanged(fake, 'sub1', {memberCount: true})
-    expect(loads()).toHaveLength(3)
-  })
+      await change('elsewhere', {membership: true})
+      await advance(3000)
+      expect(loads()).toHaveLength(1)
 
-  test('a burst of changes during a load costs one more load', async () => {
-    await mount()
-    const held = fake.hold(loadTree)
+      await change('sub2', {membership: true})
+      expect(loads()).toHaveLength(1)
+      await advance(3000)
+      expect(loads()).toHaveLength(2)
 
-    await pushTeamChanged(fake, 'sub1', {membership: true})
-    await pushTeamChanged(fake, 'sub2', {membership: true})
-    await pushTeamChanged(fake, teamID, {membership: true})
-    expect(loads()).toHaveLength(2)
+      await change(teamID, {renamed: true})
+      await advance(3000)
+      expect(loads()).toHaveLength(3)
+    })
 
-    held[0]?.reply(tree)
-    await flush()
-    expect(loads()).toHaveLength(3)
-    held[1]?.reply(tree)
-    await flush()
-    expect(loads()).toHaveLength(3)
+    test('ignores kinds the rows do not show, and reloads for a change with no kind', async () => {
+      await mountNow()
+
+      await change('sub1', {channels: true, keyRotated: true, memberShowcase: true, settings: true})
+      await advance(3000)
+      expect(loads()).toHaveLength(1)
+
+      await change('sub1', {})
+      await advance(3000)
+      expect(loads()).toHaveLength(2)
+    })
+
+    test("the member counts a tree load caches for each team do not reload it", async () => {
+      await mountNow()
+      for (const id of [teamID, 'sub1', 'sub2']) {
+        await change(id, {memberCount: true})
+      }
+      await advance(3000)
+      expect(loads()).toHaveLength(1)
+    })
+
+    test('a trickle of changes costs at most one reload per window', async () => {
+      await mountNow()
+
+      await change('sub1', {membership: true})
+      await advance(1000)
+      await change('sub2', {membership: true})
+      await advance(1000)
+      await change('sub1', {roles: true})
+      expect(loads()).toHaveLength(1)
+      await advance(1000)
+      expect(loads()).toHaveLength(2)
+
+      await change('sub2', {membership: true})
+      await advance(1000)
+      await change('sub1', {membership: true})
+      await advance(1000)
+      expect(loads()).toHaveLength(2)
+      await advance(1000)
+      expect(loads()).toHaveLength(3)
+    })
+
+    test('a burst of changes during a load costs one more load', async () => {
+      await mountNow()
+      const held = fake.hold(loadTree)
+
+      await change('sub1', {membership: true})
+      await advance(3000)
+      expect(loads()).toHaveLength(2)
+      await change('sub2', {membership: true})
+      await advance(3000)
+      await change(teamID, {membership: true})
+      await advance(3000)
+      expect(loads()).toHaveLength(2)
+
+      held[0]?.reply(tree)
+      await advance(0)
+      expect(loads()).toHaveLength(3)
+      held[1]?.reply(tree)
+      await advance(3000)
+      expect(loads()).toHaveLength(3)
+    })
+
+    test('a reload that fails shows its error in place of the old rows, and is in flight until it settles', async () => {
+      const {result} = await mountNow()
+      expect(result.current.errors.map(e => e.teamName)).toEqual(['p.c'])
+
+      const held = fake.hold(loadTree)
+      act(() => result.current.reload())
+      // the engine throttles waiting increments
+      await advance(500)
+      expect(result.current.loading).toBe(true)
+      expect(result.current.nodesIn).toHaveLength(2)
+
+      held[0]?.reply(fakeError(2623, 'not an admin'))
+      await advance(0)
+      expect(result.current.loading).toBe(false)
+      expect(result.current.loadError).toBe('not an admin')
+      expect(result.current.nodesIn).toEqual([])
+      expect(result.current.nodesNotIn).toEqual([])
+      expect(result.current.errors).toEqual([])
+
+      fake.answer(loadTree, () => tree)
+      act(() => result.current.reload())
+      await advance(0)
+      expect(result.current.loadError).toBeUndefined()
+      expect(result.current.nodesIn).toHaveLength(2)
+    })
+
+    test('the target team going away clears the rows at once and shows why', async () => {
+      const {result} = await mountNow()
+      expect(result.current.nodesIn).toHaveLength(2)
+
+      const held = fake.hold(loadTree)
+      await change(teamID, {deleted: true})
+      expect(loads()).toHaveLength(2)
+      expect(result.current.nodesIn).toEqual([])
+      expect(result.current.nodesNotIn).toEqual([])
+      expect(result.current.errors).toEqual([])
+      await advance(500)
+      expect(result.current.loading).toBe(true)
+
+      held[0]?.reply(fakeError(2614, 'team not found'))
+      await advance(0)
+      expect(result.current.loading).toBe(false)
+      expect(result.current.loadError).toBe('team not found')
+      expect(result.current.nodesIn).toEqual([])
+    })
   })
 
   test('switching the target team drops the old rows and ignores the old answer', async () => {

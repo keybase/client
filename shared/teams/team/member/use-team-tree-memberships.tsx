@@ -5,7 +5,8 @@ import * as React from 'react'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRPCLoad} from '@/util/use-rpc-load'
-import {useTeamChanged} from '@/teams/use-team-changed'
+import {useThrottledCallback} from '@/util/use-debounce'
+import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
 
 export type TeamTreeRowNotIn = {
   teamID: T.Teams.TeamID
@@ -54,13 +55,17 @@ const toTeamTree = (memberships: ReadonlyArray<T.RPCGen.TeamTreeMembership> | nu
   return tree
 }
 
-const notOnRows = new Set<keyof T.RPCGen.TeamChangedKinds>(['channels', 'keyRotated', 'memberShowcase', 'settings'])
+// memberCount is left out: the service sends it when it caches a count, which every tree load
+// does for each team, and the rows carry the count the load computed
+const onRows = new Set<keyof T.RPCGen.TeamChangedKinds>(['deleted', 'exited', 'membership', 'renamed', 'roles'])
 // A server change can come with no kind set, which says nothing about what changed, so it
 // reloads too
 const changesTree = (kinds: T.RPCGen.TeamChangedKinds) => {
   const set = (Object.keys(kinds) as Array<keyof T.RPCGen.TeamChangedKinds>).filter(k => kinds[k])
-  return set.length === 0 || set.some(k => !notOnRows.has(k))
+  return set.length === 0 || set.some(k => onRows.has(k))
 }
+// A tree load polls the server for every team in it, so changes reload at most once per window
+const refreshWindowMs = 3000
 
 export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   const currentUsername = useCurrentUserState(s => s.username)
@@ -102,9 +107,10 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
     }
   })
 
-  const {data, loading, refresh, reload} = useRPCLoad(
+  const loadWaitingKey = C.waitingKeyTeamsLoadTeamTree(targetTeamID, username)
+  const {data, error, loading, refresh, reload, setData} = useRPCLoad(
     T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise,
-    [{teamID: targetTeamID, username}],
+    [{teamID: targetTeamID, username}, loadWaitingKey],
     {
       key,
       map: toTeamTree,
@@ -114,19 +120,46 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
       onResult: loadActivity,
     }
   )
-  const tree = data ?? emptyTree
+  const inFlight = C.Waiting.useAnyWaiting(loadWaitingKey)
+  // the newest load failed: its error replaces the rows of an older one
+  const tree = (error ? undefined : data) ?? emptyTree
+
+  const refreshSoon = useThrottledCallback(refresh, refreshWindowMs, {leading: false})
+  React.useEffect(() => refreshSoon.cancel, [key, refreshSoon])
 
   const watchedTeamIDs = React.useMemo(() => new Set([targetTeamID, ...tree.teamIDs]), [targetTeamID, tree])
-  useTeamChanged(watchedTeamIDs, kinds => {
-    if (changesTree(kinds)) {
+  useTeamChanged(watchedTeamIDs, (kinds, changedTeamID) => {
+    if (changedTeamID === targetTeamID && teamGone(kinds)) {
+      // the tree hangs off this team, so its rows are gone; the load says why
+      refreshSoon.cancel()
+      setData(undefined)
       refresh()
+    } else if (changesTree(kinds)) {
+      refreshSoon()
     }
   })
+
+  // chat activity sends no teamChanged, so refresh it when the page shows again
+  const refreshActivity = React.useEffectEvent(() => {
+    if (data && !error) loadActivity(data)
+  })
+  const [onFocus] = React.useState(() => () => {
+    refreshActivity()
+    return undefined
+  })
+  C.Router2.useSafeFocusEffect(onFocus)
 
   const lastActivity = activity.key === key ? activity.byTeam : noActivity
   const nodesIn = React.useMemo(
     () => tree.nodesIn.map(node => ({...node, lastActivity: lastActivity.get(node.teamID)})),
     [tree, lastActivity]
   )
-  return {errors: tree.errors, loading, nodesIn, nodesNotIn: tree.nodesNotIn, reload}
+  return {
+    errors: tree.errors,
+    loadError: error?.desc,
+    loading: loading || inFlight,
+    nodesIn,
+    nodesNotIn: tree.nodesNotIn,
+    reload,
+  }
 }

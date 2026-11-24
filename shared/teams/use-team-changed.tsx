@@ -27,7 +27,7 @@ export const subscribeTeamChanged = (
 // calls onChange with what changed, for changes to this team or to any of these teams
 export const useTeamChanged = (
   teams: T.Teams.TeamID | ReadonlySet<T.Teams.TeamID> | undefined,
-  onChange: (kinds: T.RPCGen.TeamChangedKinds) => void,
+  onChange: (kinds: T.RPCGen.TeamChangedKinds, teamID: T.Teams.TeamID) => void,
   enabled = true
 ) => {
   useEngineActionListener(
@@ -35,7 +35,7 @@ export const useTeamChanged = (
     action => {
       const {kinds, teamID: changedTeamID} = action.payload.params
       if (typeof teams === 'string' ? changedTeamID === teams : teams?.has(changedTeamID)) {
-        onChange(kinds)
+        onChange(kinds, changedTeamID)
       }
     },
     enabled && (typeof teams === 'string' ? !!teams : !!teams?.size)
