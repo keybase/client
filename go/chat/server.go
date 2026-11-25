@@ -1939,6 +1939,26 @@ func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res
 	return getGlobalAppNotificationSettings(ctx, h.G(), h.remoteClient)
 }
 
+func (h *Server) GetNotificationSettingsLocal(ctx context.Context) (res chat1.NotificationSettingsLocal, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, &err, "GetNotificationSettingsLocal")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	return getNotificationSettings(ctx, h.G(), h.remoteClient, uid)
+}
+
+func (h *Server) SetNotificationSettingsLocal(ctx context.Context, arg chat1.SetNotificationSettingsLocalArg) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, &err, "SetNotificationSettingsLocal")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return setNotificationSettings(ctx, h.G(), h.remoteClient, uid, arg)
+}
+
 func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	arg chat1.AddTeamMemberAfterResetArg,
 ) (err error) {

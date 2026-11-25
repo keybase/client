@@ -176,7 +176,7 @@ func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res ke
 		}
 	}
 	res.Emails = emails
-	res.PhoneNumbers = phoneNumbers
+	res.PhoneNumbers = phonenumbers.DedupeSuperseded(phoneNumbers)
 	return res, nil
 }
 

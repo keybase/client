@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -116,9 +117,15 @@ func pplPromptLoop(m MetaContext, maxAttempts int, ls *LoginSession, arg keybase
 			return err
 		}
 		arg.RetryLabel = err.Error()
+		arg.RetryBadPassword = errors.Is(err, errServerRejectedPassword)
 	}
 	return err
 }
+
+// errServerRejectedPassword is the only PassphraseError the prompt loop marks
+// RetryBadPassword; others (such as a local secretbox failure) keep just their
+// retry label.
+var errServerRejectedPassword = PassphraseError{"Invalid password. Server rejected login attempt."}
 
 type loginReply struct {
 	Status    AppStatus    `json:"status"`
@@ -154,9 +161,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		return nil, err
 	}
 	if res.Status.Code == SCBadLoginPassword {
-		// NOTE: This error message is also hardcoded in the frontend to detect
-		// this class of errors.
-		return nil, PassphraseError{"Invalid password. Server rejected login attempt."}
+		return nil, errServerRejectedPassword
 	}
 	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}

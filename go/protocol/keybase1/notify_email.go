@@ -18,6 +18,7 @@ type EmailsChangedArg struct {
 	List     []Email      `codec:"list" json:"list"`
 	Category string       `codec:"category" json:"category"`
 	Email    EmailAddress `codec:"email" json:"email"`
+	Uid      UID          `codec:"uid" json:"uid"`
 }
 
 type NotifyEmailAddressInterface interface {

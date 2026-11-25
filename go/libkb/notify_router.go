@@ -2586,7 +2586,7 @@ func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddr
 	})
 }
 
-func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, list []keybase1.Email, category string, emailAddress keybase1.EmailAddress) {
+func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, uid keybase1.UID, list []keybase1.Email, category string, emailAddress keybase1.EmailAddress) {
 	if n == nil {
 		return
 	}
@@ -2599,6 +2599,7 @@ func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, list []key
 					List:     list,
 					Category: category,
 					Email:    emailAddress,
+					Uid:      uid,
 				})
 			})
 		}

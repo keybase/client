@@ -151,11 +151,24 @@ type GetContactsForUserRecommendationsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetImportContactsEnabledArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
+type SetImportContactsEnabledArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	Enabled   bool   `codec:"enabled" json:"enabled"`
+}
+
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
 	SaveContactList(context.Context, SaveContactListArg) (ContactListResolutionResult, error)
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 	GetContactsForUserRecommendations(context.Context, int) ([]ProcessedContact, error)
+	GetImportContactsEnabled(context.Context, GetImportContactsEnabledArg) (bool, error)
+	SetImportContactsEnabled(context.Context, SetImportContactsEnabledArg) error
 }
 
 func ContactsProtocol(i ContactsInterface) rpc.Protocol {
@@ -222,6 +235,36 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getImportContactsEnabled": {
+				MakeArg: func() any {
+					var ret [1]GetImportContactsEnabledArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]GetImportContactsEnabledArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetImportContactsEnabledArg)(nil), args)
+						return
+					}
+					ret, err = i.GetImportContactsEnabled(ctx, typedArgs[0])
+					return
+				},
+			},
+			"setImportContactsEnabled": {
+				MakeArg: func() any {
+					var ret [1]SetImportContactsEnabledArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]SetImportContactsEnabledArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetImportContactsEnabledArg)(nil), args)
+						return
+					}
+					err = i.SetImportContactsEnabled(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -249,5 +292,15 @@ func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID i
 func (c ContactsClient) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := GetContactsForUserRecommendationsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []any{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ContactsClient) GetImportContactsEnabled(ctx context.Context, __arg GetImportContactsEnabledArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.getImportContactsEnabled", []any{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ContactsClient) SetImportContactsEnabled(ctx context.Context, __arg SetImportContactsEnabledArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.setImportContactsEnabled", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

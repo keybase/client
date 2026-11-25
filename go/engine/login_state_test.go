@@ -40,6 +40,42 @@ func (m *GetPassphraseMock) CheckLastErr(t *testing.T) {
 	require.NoError(t, m.LastErr)
 }
 
+// passphraseSequenceUI answers each prompt with the next scripted passphrase
+// and records the prompts.
+type passphraseSequenceUI struct {
+	passphrases []string
+	args        []keybase1.GUIEntryArg
+}
+
+func (m *passphraseSequenceUI) GetPassphrase(p keybase1.GUIEntryArg, _ *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	m.args = append(m.args, p)
+	if len(m.passphrases) == 0 {
+		return res, errors.New("GetPassphrase called more times than scripted")
+	}
+	res.Passphrase, m.passphrases = m.passphrases[0], m.passphrases[1:]
+	return res, nil
+}
+
+// A retry after the server rejects the password says so in a field, so the
+// UI does not have to match the retry label's text.
+func TestLoginWithPromptPassphraseRetryMarksBadPassword(t *testing.T) {
+	tc := SetupEngineTest(t, "login with prompt (bad password retry)")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "lwbp")
+	Logout(tc)
+
+	secretUI := &passphraseSequenceUI{passphrases: []string{fu.Passphrase + "x", fu.Passphrase}}
+	mctx := NewMetaContextForTest(tc).WithNewProvisionalLoginContext().WithUIs(libkb.UIs{SecretUI: secretUI})
+	err := libkb.PassphraseLoginPrompt(mctx, fu.Username, 2)
+	require.NoError(t, err)
+	require.Len(t, secretUI.args, 2)
+	require.False(t, secretUI.args[0].RetryBadPassword)
+	require.Empty(t, secretUI.args[0].RetryLabel)
+	require.True(t, secretUI.args[1].RetryBadPassword)
+	require.NotEmpty(t, secretUI.args[1].RetryLabel)
+}
+
 // Test that login works while already logged in.
 func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	tc := SetupEngineTest(t, "login while already logged in")

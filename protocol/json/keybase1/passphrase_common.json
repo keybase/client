@@ -73,6 +73,10 @@
           "name": "retryLabel"
         },
         {
+          "type": "boolean",
+          "name": "retryBadPassword"
+        },
+        {
           "type": "PassphraseType",
           "name": "type"
         },

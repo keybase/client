@@ -190,7 +190,7 @@ func (r *phoneNumbersGregorHandler) handlePhoneMsg(ctx context.Context, cli greg
 	if err != nil {
 		mctx.Error("Could not get current phone number list during handlePhoneMsg: %s", err)
 	} else {
-		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phoneNumbers, category, msg.PhoneNumber)
+		r.G().NotifyRouter.HandlePhoneNumbersChanged(ctx, phonenumbers.DedupeSuperseded(phoneNumbers), category, msg.PhoneNumber)
 	}
 	// Do not dismiss these notifications so other devices can see it and
 	// update their state as well.

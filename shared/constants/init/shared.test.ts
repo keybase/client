@@ -5,6 +5,7 @@ import {RPCError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
+import {useSettingsEmailState} from '@/stores/settings-email'
 import {_onEngineIncoming, initSharedSubscriptions, loadAccountsStep, onNetworkOnlineChanged} from './shared'
 
 describe('loadAccountsStep', () => {
@@ -337,5 +338,47 @@ describe('the session comes from the daemon; notifications only say to read it',
     await flush()
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().loginError).toBeUndefined()
+  })
+})
+
+describe('email notifications', () => {
+  const notify = (type: string, params: unknown) => _onEngineIncoming({payload: {params}, type} as never)
+  const row = (email: string, isVerified: boolean) =>
+    ({email, isPrimary: false, isVerified, lastVerifyEmailDate: 0, visibility: 0}) as T.RPCGen.Email
+  const isVerified = (email: string) => useSettingsEmailState.getState().emails.get(email)?.isVerified
+
+  beforeEach(() => {
+    useCurrentUserState
+      .getState()
+      .dispatch.setBootstrap({deviceID: 'd1', deviceName: 'testuser-mac', uid: 'u1', username: 'testuser'})
+    useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged([row('a@keybase.io', false)])
+  })
+  afterEach(() => {
+    resetAllStores()
+  })
+
+  test('a verified notice marks the address verified before the list arrives', () => {
+    notify('keybase.1.NotifyEmailAddress.emailAddressVerified', {emailAddress: 'a@keybase.io'})
+    expect(isVerified('a@keybase.io')).toBe(true)
+  })
+
+  test('a list for the current account replaces the emails', () => {
+    notify('keybase.1.NotifyEmailAddress.emailsChanged', {
+      category: 'email.verified',
+      email: 'a@keybase.io',
+      list: [row('a@keybase.io', true)],
+      uid: 'u1',
+    })
+    expect(isVerified('a@keybase.io')).toBe(true)
+  })
+
+  test('a list for another account is dropped', () => {
+    notify('keybase.1.NotifyEmailAddress.emailsChanged', {
+      category: 'email.verified',
+      email: 'b@keybase.io',
+      list: [row('b@keybase.io', true)],
+      uid: 'u2',
+    })
+    expect([...useSettingsEmailState.getState().emails.keys()]).toEqual(['a@keybase.io'])
   })
 })

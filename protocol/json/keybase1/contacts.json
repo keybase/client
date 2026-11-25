@@ -186,6 +186,36 @@
         "type": "array",
         "items": "ProcessedContact"
       }
+    },
+    "getImportContactsEnabled": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setImportContactsEnabled": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

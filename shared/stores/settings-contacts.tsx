@@ -63,8 +63,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
     }
   }
 
-  const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
-
   const nativeContactsToContacts = (
     contacts: Array<{
       fullName?: string | null
@@ -123,14 +121,11 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           s.waitingToShowJoinedModal = true
         })
       }
+      // the service refuses the write if this is no longer the logged-in account
+      const {username} = useCurrentUserState.getState()
       const f = async () => {
-        const username = useCurrentUserState.getState().username
-        if (!username) {
-          logger.warn('no username')
-          return
-        }
-        await T.RPCGen.configGuiSetValueRpcPromise(
-          {path: importContactsConfigKey(username), value: {b: enable, isNull: false}},
+        await T.RPCGen.contactsSetImportContactsEnabledRpcPromise(
+          {enabled: enable, username},
           importContactsWaitingKey
         )
         get().dispatch.loadContactImportEnabled()
@@ -147,25 +142,19 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         if (!useConfigState.getState().loggedIn) {
           return
         }
-        const username = useCurrentUserState.getState().username
-        if (!username) {
-          logger.warn('no username')
+        const {username} = useCurrentUserState.getState()
+        let enabled: boolean
+        try {
+          enabled = await T.RPCGen.contactsGetImportContactsEnabledRpcPromise({username}, importContactsWaitingKey)
+        } catch (error) {
+          // a failed read is not "off": treating it as off would clear the uploaded contacts
+          if (error instanceof RPCError) {
+            logger.error(`Error reading contact import setting: ${error.message}`)
+          }
           return
         }
-        let enabled = false
-        try {
-          const value = await T.RPCGen.configGuiGetValueRpcPromise(
-            {path: importContactsConfigKey(username)},
-            importContactsWaitingKey
-          )
-          enabled = !!value.b && !value.isNull
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          if (!error.message.includes('no such key')) {
-            logger.error(`Error reading config: ${error.message}`)
-          }
+        if (useCurrentUserState.getState().username !== username) {
+          return
         }
 
         set(s => {

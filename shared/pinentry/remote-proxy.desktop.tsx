@@ -1,5 +1,4 @@
 // Manages remote pinentry windows
-import {invalidPasswordErrorString} from '@/constants/config'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {wrapErrors} from '@/constants/utils'
@@ -98,10 +97,7 @@ const PinentryProxy = () => {
         const {pinentry} = params
         const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
         const showTyping = features.showTyping
-        let {retryLabel} = pinentry
-        if (retryLabel === invalidPasswordErrorString) {
-          retryLabel = 'Incorrect password.'
-        }
+        const retryLabel = pinentry.retryBadPassword ? 'Incorrect password.' : pinentry.retryLabel
         logger.info('Asked for password')
         // Only one prompt is shown at a time; the one it replaces still needs its answer
         handlersRef.current.cancel?.()

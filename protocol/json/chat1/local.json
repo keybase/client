@@ -3413,6 +3413,62 @@
     },
     {
       "type": "record",
+      "name": "NotificationSubscription",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "boolean",
+          "name": "subscribed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NotificationSubscriptionGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "NotificationSubscription"
+          },
+          "name": "settings"
+        },
+        {
+          "type": "boolean",
+          "name": "unsub"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NotificationSettingsLocal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "NotificationSubscriptionGroup"
+          },
+          "name": "subscriptions"
+        },
+        {
+          "type": "GlobalAppNotificationSettings",
+          "name": "chatGlobal"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ResetConvMember",
       "fields": [
         {
@@ -5734,6 +5790,30 @@
     "getGlobalAppNotificationSettingsLocal": {
       "request": [],
       "response": "GlobalAppNotificationSettings"
+    },
+    "getNotificationSettingsLocal": {
+      "request": [],
+      "response": "NotificationSettingsLocal"
+    },
+    "setNotificationSettingsLocal": {
+      "request": [
+        {
+          "name": "subscriptions",
+          "type": {
+            "type": "array",
+            "items": "NotificationSubscriptionGroup"
+          }
+        },
+        {
+          "name": "chatGlobal",
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "string"
+          }
+        }
+      ],
+      "response": null
     },
     "unboxMobilePushNotification": {
       "request": [

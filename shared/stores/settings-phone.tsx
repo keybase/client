@@ -23,6 +23,10 @@ const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
   }
 }
 
+// the service sends one row per number
+const toPhoneMap = (list: ReadonlyArray<T.RPCGen.UserPhoneNumber>) =>
+  new Map(list.map(row => [row.phoneNumber, toPhoneRow(row)]))
+
 export const makePhoneError = (e: RPCError) => {
   switch (e.code) {
     case RPCGen.StatusCode.scphonenumberwrongverificationcode:
@@ -68,19 +72,13 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', se
   const dispatch: State['dispatch'] = {
     notifyPhoneNumberPhoneNumbersChanged: list => {
       set(s => {
-        s.phones = new Map((list ?? []).map(row => [row.phoneNumber, toPhoneRow(row)]))
+        s.phones = toPhoneMap(list ?? [])
       })
     },
     resetState: Z.defaultReset,
     setNumbers: phoneNumbers => {
       set(s => {
-        s.phones = phoneNumbers?.reduce((map, row) => {
-          if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {
-            return map
-          }
-          map.set(row.phoneNumber, toPhoneRow(row))
-          return map
-        }, new Map<string, PhoneRow>())
+        s.phones = phoneNumbers && toPhoneMap(phoneNumbers)
       })
     },
   }
