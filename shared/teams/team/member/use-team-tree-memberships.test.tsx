@@ -361,3 +361,20 @@ describe('useTeamTreeMemberships', () => {
     expect(result.current.nodesIn.map(n => n.lastActivity)).toEqual([2000, 2000])
   })
 })
+
+test('reopening the page with the tree cached asks for each row activity once', async () => {
+  useConfigState.setState({loggedIn: true})
+  const open = async () => {
+    const {wrapper} = navigationWrapper({params: {teamID, username}, route: 'teamMember'})
+    const hook = renderHook(() => useTeamTreeMemberships(teamID, username), {wrapper})
+    await flush()
+    return hook
+  }
+  const first = await open()
+  expect(activityLoads()).toHaveLength(2)
+  first.unmount()
+
+  await open()
+  expect(loads()).toHaveLength(2)
+  expect(activityLoads()).toHaveLength(4)
+})

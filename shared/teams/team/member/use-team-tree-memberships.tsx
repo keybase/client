@@ -121,7 +121,7 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
   // the newest load failed: its error replaces the rows of an older one
   const tree = (error ? undefined : data) ?? emptyTree
 
-  // each load's rows get their activity; the focus below covers rows already cached at mount
+  // each load's rows get their activity, including the load every mount makes
   const lastLoadCount = React.useRef(loadCount)
   React.useEffect(() => {
     if (lastLoadCount.current === loadCount) {
@@ -151,8 +151,14 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
     }
   })
 
-  // chat activity sends no teamChanged, so refresh it when the page shows again
+  // chat activity sends no teamChanged, so refresh it when the page shows again. Not on the focus
+  // that comes with the mount: the mount's load brings it.
+  const focusedBefore = React.useRef(false)
   const refreshActivity = React.useEffectEvent(() => {
+    if (!focusedBefore.current) {
+      focusedBefore.current = true
+      return
+    }
     if (data && !error) loadActivity(data)
   })
   const [onFocus] = React.useState(() => () => {
