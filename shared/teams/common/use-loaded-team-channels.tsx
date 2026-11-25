@@ -57,8 +57,9 @@ const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 // Reload a team's channel list wherever it is shown, and mark it stale where it is not. Notices
 // come in bursts (teamChangedByID fires for every incoming message in a team, and a bulk create or
 // delete sends one per channel), so the cache debounces them: a lone change lands at once, the
-// rest of a burst costs one more load, and a team that is never quiet still reloads. A team whose
-// channels were never loaded has no entry, so nothing happens for it.
+// rest of a burst costs one more load, and a team that is never quiet still reloads (every 5
+// debounces, the cache's max wait). A team no screen has asked for has no entry, so nothing
+// happens for it; a list no screen is loading is only marked stale.
 export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
   if (key) {
