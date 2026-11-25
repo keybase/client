@@ -260,26 +260,6 @@
       ],
       "response": null,
       "oneway": true
-    },
-    "teamTreeMembershipsPartial": {
-      "request": [
-        {
-          "name": "membership",
-          "type": "TeamTreeMembership"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "teamTreeMembershipsDone": {
-      "request": [
-        {
-          "name": "result",
-          "type": "TeamTreeMembershipsDoneResult"
-        }
-      ],
-      "response": null,
-      "oneway": true
     }
   },
   "namespace": "keybase.1"

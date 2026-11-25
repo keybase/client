@@ -3751,6 +3751,13 @@
         {
           "type": "TeamID",
           "name": "teamID"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "memberCount"
         }
       ]
     },
@@ -3823,50 +3830,6 @@
         {
           "type": "TeamTreeMembershipResult",
           "name": "result"
-        },
-        {
-          "type": "TeamID",
-          "name": "targetTeamID"
-        },
-        {
-          "type": "string",
-          "name": "targetUsername"
-        },
-        {
-          "type": "int",
-          "name": "guid"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "TeamTreeMembershipsDoneResult",
-      "fields": [
-        {
-          "type": "int",
-          "name": "expectedCount"
-        },
-        {
-          "type": "TeamID",
-          "name": "targetTeamID"
-        },
-        {
-          "type": "string",
-          "name": "targetUsername"
-        },
-        {
-          "type": "int",
-          "name": "guid"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "TeamTreeInitial",
-      "fields": [
-        {
-          "type": "int",
-          "name": "guid"
         }
       ]
     }
@@ -4990,7 +4953,7 @@
       ],
       "response": "AnnotatedTeam"
     },
-    "loadTeamTreeMembershipsAsync": {
+    "loadTeamTreeMemberships": {
       "request": [
         {
           "name": "sessionID",
@@ -5005,7 +4968,10 @@
           "type": "string"
         }
       ],
-      "response": "TeamTreeInitial"
+      "response": {
+        "type": "array",
+        "items": "TeamTreeMembership"
+      }
     },
     "findAssertionsInTeamNoResolve": {
       "request": [

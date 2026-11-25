@@ -3,10 +3,9 @@ package systests
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"slices"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -31,56 +30,34 @@ func mustCreateSubteam(t *testing.T, tc *libkb.TestContext,
 	return *id
 }
 
-func loadTeamTree(t *testing.T, tmctx libkb.MetaContext, notifications *teamNotifyHandler,
+func loadTeamTree(t *testing.T, tmctx libkb.MetaContext,
 	teamID keybase1.TeamID, username string, failureTeamIDs []keybase1.TeamID,
 	teamFailures []string,
 ) ([]keybase1.TeamTreeMembership, error) {
-	var err error
-
-	guid := rand.Int() //nolint:gosec // G404: Test GUID generation, not security-critical
-
-	l, err := teams.NewTreeloader(tmctx, username, teamID, guid, true /* includeAncestors */)
+	l, err := teams.NewTreeloader(tmctx, username, teamID, true /* includeAncestors */)
 	if err != nil {
 		return nil, err
 	}
 	if failureTeamIDs != nil {
 		l.Converter = newMockConverter(failureTeamIDs, l)
 	}
-	err = l.LoadAsync(tmctx)
+	results, err := l.Load(tmctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []keybase1.TeamTreeMembership
-	var expectedCount *int
-	got := 0
-loop:
-	for {
-		select {
-		case res := <-notifications.teamTreeMembershipsDoneCh:
-			// We don't immediately break in this case because we are not guaranteed to receive this
-			// notification last by the RPC layer. So we wait until all of the messages are
-			// received. Even if there were errors, we should still get exactly this many
-			// notifications in teamTreeMembershipsPartialCh.
-			expectedCount = &res.ExpectedCount
-			require.Equal(t, guid, res.Guid)
-		case res := <-notifications.teamTreeMembershipsPartialCh:
-			got++
-			results = append(results, res)
-			s, err := res.Result.S()
-			require.NoError(t, err, "should never happen")
-			switch s {
-			case keybase1.TeamTreeMembershipStatus_OK:
-			case keybase1.TeamTreeMembershipStatus_ERROR:
-				require.Contains(t, teamFailures, res.TeamName,
-					"unexpectedly got an error while loading team: %s", res.Result.Error().Message)
-			}
-			require.Equal(t, guid, res.Guid)
-		case <-time.After(10 * time.Second):
-			require.FailNow(t, "timed out waiting for team tree notifications")
-		}
-		if expectedCount != nil && *expectedCount == got {
-			break loop
+	require.True(t, slices.IsSortedFunc(results, func(a, b keybase1.TeamTreeMembership) int {
+		return strings.Compare(a.TeamName, b.TeamName)
+	}), "results are sorted by team name")
+	for _, res := range results {
+		s, err := res.Result.S()
+		require.NoError(t, err, "should never happen")
+		switch s {
+		case keybase1.TeamTreeMembershipStatus_OK:
+			require.NotNil(t, res.Result.Ok().MemberCount, "counted the members of %s", res.TeamName)
+		case keybase1.TeamTreeMembershipStatus_ERROR:
+			require.Contains(t, teamFailures, res.TeamName,
+				"unexpectedly got an error while loading team: %s", res.Result.Error().Message)
 		}
 	}
 	return results, nil
@@ -600,8 +577,7 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 		name := fmt.Sprintf("happy/%d", idx)
 		t.Run(name, func(t *testing.T) {
 			mctx := libkb.NewMetaContextForTest(*tst.requester.tc)
-			results, err := loadTeamTree(t, mctx, tst.requester.notifications,
-				tst.teamID, tst.target.username, nil, nil)
+			results, err := loadTeamTree(t, mctx, tst.teamID, tst.target.username, nil, nil)
 			require.NoError(t, err)
 			checkTeamTreeResults(t, tst.expected, nil, tst.hidden, results)
 		})
@@ -700,7 +676,7 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 		name := fmt.Sprintf("error/%d", idx)
 		t.Run(name, func(t *testing.T) {
 			mctx := libkb.NewMetaContextForTest(*tst.requester.tc)
-			results, err := loadTeamTree(t, mctx, tst.requester.notifications, tst.teamID,
+			results, err := loadTeamTree(t, mctx, tst.teamID,
 				tst.target.username, tst.failureTeamIDs, tst.failureTeamNames)
 			require.NoError(t, err)
 			checkTeamTreeResults(t, tst.expectedSuccesses, tst.failureTeamNames,
@@ -712,9 +688,9 @@ func TestLoadTeamTreeMemberships(t *testing.T) {
 	zuluMctx := libkb.NewMetaContextForTest(*zulu.tc)
 	victMctx := libkb.NewMetaContextForTest(*vict.tc)
 
-	_, err = loadTeamTree(t, zuluMctx, zulu.notifications, cID, unif.username, nil, nil)
+	_, err = loadTeamTree(t, zuluMctx, cID, unif.username, nil, nil)
 	require.ErrorAs(t, err, new(libkb.NoKeyError), "cannot load a deleted user")
 
-	_, err = loadTeamTree(t, victMctx, vict.notifications, cID, yank.username, nil, nil)
+	_, err = loadTeamTree(t, victMctx, cID, yank.username, nil, nil)
 	require.ErrorAs(t, err, new(teams.StubbedError), "can only load if you're an admin")
 }

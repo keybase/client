@@ -24,9 +24,9 @@ export const subscribeTeamChanged = (
   )
 }
 
-// calls onChange with what changed, for changes to this one team
+// calls onChange with what changed, for changes to this team or to any of these teams
 export const useTeamChanged = (
-  teamID: T.Teams.TeamID | undefined,
+  teams: T.Teams.TeamID | ReadonlySet<T.Teams.TeamID> | undefined,
   onChange: (kinds: T.RPCGen.TeamChangedKinds) => void,
   enabled = true
 ) => {
@@ -34,11 +34,11 @@ export const useTeamChanged = (
     'keybase.1.NotifyTeam.teamChanged',
     action => {
       const {kinds, teamID: changedTeamID} = action.payload.params
-      if (changedTeamID === teamID) {
+      if (typeof teams === 'string' ? changedTeamID === teams : teams?.has(changedTeamID)) {
         onChange(kinds)
       }
     },
-    enabled && !!teamID
+    enabled && (typeof teams === 'string' ? !!teams : !!teams?.size)
   )
 }
 

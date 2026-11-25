@@ -96,7 +96,4 @@ protocol NotifyTeam {
   // Sent to connections on the teamChanged notification channel, once per
   // change. roleMapVersion is set only with kinds.roleMap.
   void teamChanged(TeamID teamID, TeamChangedKinds kinds, UserTeamVersion roleMapVersion) oneway;
-
-  void teamTreeMembershipsPartial(TeamTreeMembership membership) oneway;
-  void teamTreeMembershipsDone(TeamTreeMembershipsDoneResult result) oneway;
 }

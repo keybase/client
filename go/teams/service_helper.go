@@ -1043,24 +1043,32 @@ func removeMemberFromSubtree(mctx libkb.MetaContext, targetTeamID keybase1.TeamI
 	// We don't care about the roles; we just want the list of teams. So we can pass our
 	// own username.
 	myUsername := mctx.G().Env.GetUsername()
-	guid := 0
-	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID, guid,
+	treeloader, err := NewTreeloader(mctx, myUsername.String(), targetTeamID,
 		false /* includeAncestors */)
 	if err != nil {
 		return fmt.Errorf("could not start loading subteams: %w", err)
 	}
-	// All or nothing; we can assume all results will be OK.
-	teamTreeMemberships, err := treeloader.LoadSync(mctx)
+	teamTreeMemberships, err := treeloader.Load(mctx)
 	if err != nil {
 		return fmt.Errorf("could not load subteams: %w", err)
 	}
+	// All or nothing: remove from no team unless every team in the subtree loaded
+	for _, membership := range teamTreeMemberships {
+		status, err := membership.Result.S()
+		if err != nil {
+			return fmt.Errorf("could not load subteam %s: %w", membership.TeamName, err)
+		}
+		if status == keybase1.TeamTreeMembershipStatus_ERROR {
+			return fmt.Errorf("could not load subteam %s: %s", membership.TeamName,
+				membership.Result.Error().Message)
+		}
+		if status != keybase1.TeamTreeMembershipStatus_OK {
+			return fmt.Errorf("removeMemberFromSubtree: unexpectedly got a non-OK status for %s: %v",
+				membership.TeamName, status)
+		}
+	}
 	var errs []error
 	for _, membership := range teamTreeMemberships {
-		status, _ := membership.Result.S()
-		if status != keybase1.TeamTreeMembershipStatus_OK {
-			return fmt.Errorf("removeMemberFromSubtree: unexpectedly got a non-OK status from Treeloader.LoadSync: %v", status)
-		}
-
 		teamID := membership.Result.Ok().TeamID
 
 		// Don't remove member from the targetTeam; just the subtree

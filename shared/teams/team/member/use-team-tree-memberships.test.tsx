@@ -1,251 +1,219 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {expect, jest, test, describe, beforeEach, afterEach} from '@jest/globals'
-import {act, renderHook} from '@testing-library/react'
+import {afterEach, beforeEach, describe, expect, test} from '@jest/globals'
+import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {_onEngineIncoming} from '@/constants/init/shared'
+import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {pushTeamChanged} from '@/test/team-changed'
 import {useTeamTreeMemberships} from './use-team-tree-memberships'
 
 const teamID = 'tid1' as T.Teams.TeamID
-const username = 'testuser'
+const username = 'testuser-mac'
+const loadTree = 'keybase.1.teams.loadTeamTreeMemberships'
+const lastActive = 'chat.1.local.getLastActiveAtMultiLocal'
 
-let loadCalls: Array<{teamID: string; username: string}> = []
-jest
-  .spyOn(T.RPCGen, 'teamsLoadTeamTreeMembershipsAsyncRpcPromise')
-  .mockImplementation(async (params: unknown) => {
-    loadCalls.push(params as {teamID: string; username: string})
-    await Promise.resolve()
-    return undefined as never
-  })
-jest.spyOn(T.RPCChat, 'localGetLastActiveAtMultiLocalRpcPromise').mockImplementation(async () => {
-  await Promise.resolve()
-  return {} as never
+let fake: FakeEngine
+
+const ok = (
+  teamName: string,
+  subTeamID: string,
+  role: T.RPCGen.TeamRole,
+  extra?: {joinTime?: number; memberCount?: number}
+): T.RPCGen.TeamTreeMembership => ({
+  result: {
+    ok: {joinTime: extra?.joinTime ?? null, memberCount: extra?.memberCount ?? null, role, teamID: subTeamID},
+    s: T.RPCGen.TeamTreeMembershipStatus.ok,
+  },
+  teamName,
+})
+const failed = (teamName: string): T.RPCGen.TeamTreeMembership => ({
+  result: {
+    error: {message: 'boom', willSkipAncestors: false, willSkipSubtree: true},
+    s: T.RPCGen.TeamTreeMembershipStatus.error,
+  },
+  teamName,
 })
 
-// state updates land through engine notifications and a follow-up activity rpc;
-// let both settle inside act so react does not warn about updates outside it
-const emit = async (fn: () => void) => {
-  await act(async () => {
-    fn()
-    await Promise.resolve()
-    await Promise.resolve()
-  })
-}
+const tree = [
+  ok('p', teamID, T.RPCGen.TeamRole.admin, {joinTime: 10, memberCount: 4}),
+  ok('p.a', 'sub1', T.RPCGen.TeamRole.writer, {joinTime: 55, memberCount: 2}),
+  ok('p.b', 'sub2', T.RPCGen.TeamRole.none, {memberCount: 7}),
+  failed('p.c'),
+]
 
-const done = (p: {expectedCount: number; guid: number; targetTeamID?: string; targetUsername?: string}) => {
-  notifyEngineActionListeners({
-    payload: {
-      params: {
-        result: {
-          expectedCount: p.expectedCount,
-          guid: p.guid,
-          targetTeamID: p.targetTeamID ?? teamID,
-          targetUsername: p.targetUsername ?? username,
-        },
-      },
-    },
-    type: 'keybase.1.NotifyTeam.teamTreeMembershipsDone',
-  } as never)
-}
-
-const partialOk = (p: {
-  guid: number
-  joinTime?: number
-  role: T.RPCGen.TeamRole
-  subTeamID: string
-  targetTeamID?: string
-  teamName: string
-}) => {
-  notifyEngineActionListeners({
-    payload: {
-      params: {
-        membership: {
-          guid: p.guid,
-          result: {
-            ok: {joinTime: p.joinTime ?? null, role: p.role, teamID: p.subTeamID},
-            s: T.RPCGen.TeamTreeMembershipStatus.ok,
-          },
-          targetTeamID: p.targetTeamID ?? teamID,
-          targetUsername: username,
-          teamName: p.teamName,
-        },
-      },
-    },
-    type: 'keybase.1.NotifyTeam.teamTreeMembershipsPartial',
-  } as never)
-}
-
-const partialError = (p: {guid: number; teamName: string}) => {
-  notifyEngineActionListeners({
-    payload: {
-      params: {
-        membership: {
-          guid: p.guid,
-          result: {error: {message: 'boom'}, s: T.RPCGen.TeamTreeMembershipStatus.error},
-          targetTeamID: teamID,
-          targetUsername: username,
-          teamName: p.teamName,
-        },
-      },
-    },
-    type: 'keybase.1.NotifyTeam.teamTreeMembershipsPartial',
-  } as never)
-}
+const loads = () => fake.calls.filter(c => c.method === loadTree)
 
 beforeEach(() => {
-  loadCalls = []
+  fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  fake.answer(loadTree, () => tree)
+  fake.answer(lastActive, (p: {teamIDs: Array<string>}) => ({[p.teamIDs[0] ?? '']: 1000}))
+  useCurrentUserState.setState({username: 'testuser'})
 })
 
 afterEach(() => {
+  cleanup()
   resetAllStores()
 })
 
+const mount = async () => {
+  const hook = renderHook(() => useTeamTreeMemberships(teamID, username))
+  await flush()
+  return hook
+}
+
 describe('useTeamTreeMemberships', () => {
-  test('kicks off a load for the target team and starts out loading', () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    expect(loadCalls).toEqual([{teamID, username}])
-    expect(result.current.loading).toBe(true)
-    expect(result.current.nodesIn).toEqual([])
-    expect(result.current.nodesNotIn).toEqual([])
-  })
+  test('loads the tree in one call and splits it into rows and errors', async () => {
+    const {result} = await mount()
 
-  test('splits results into teams you are in and teams you are not', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 2, guid: 1})
-      partialOk({guid: 1, joinTime: 55, role: T.RPCGen.TeamRole.admin, subTeamID: 'sub1', teamName: 'p.a'})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.none, subTeamID: 'sub2', teamName: 'p.b'})
-    })
-
+    expect(loads().map(c => c.params)).toEqual([expect.objectContaining({teamID, username})])
     expect(result.current.loading).toBe(false)
     expect(result.current.nodesIn).toEqual([
-      {
-        joinTime: 55,
-        lastActivity: undefined,
-        memberCount: undefined,
-        role: 'admin',
-        teamID: 'sub1',
-        teamname: 'p.a',
-      },
+      {joinTime: 10, lastActivity: 1000, memberCount: 4, role: 'admin', teamID, teamname: 'p'},
+      {joinTime: 55, lastActivity: 1000, memberCount: 2, role: 'writer', teamID: 'sub1', teamname: 'p.a'},
     ])
     expect(result.current.nodesNotIn).toEqual([
-      {joinTime: undefined, lastActivity: undefined, memberCount: undefined, teamID: 'sub2', teamname: 'p.b'},
+      {joinTime: undefined, memberCount: 7, teamID: 'sub2', teamname: 'p.b'},
     ])
+    expect(result.current.errors.map(e => e.teamName)).toEqual(['p.c'])
   })
 
-  test('stays loading until every expected membership has landed', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 3, guid: 1})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub1', teamName: 'p.a'})
-    })
-    expect(result.current.loading).toBe(true)
-    await emit(() => {
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub2', teamName: 'p.b'})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub3', teamName: 'p.c'})
-    })
-    expect(result.current.loading).toBe(false)
-  })
-
-  test('a newer generation throws away everything from the old one', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 1, guid: 1})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'stale', teamName: 'p.stale'})
-    })
-    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['stale'])
-
-    await emit(() => {
-      partialOk({guid: 2, role: T.RPCGen.TeamRole.reader, subTeamID: 'fresh', teamName: 'p.fresh'})
-    })
-    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['fresh'])
-  })
-
-  test('a late partial from an older generation is ignored', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 1, guid: 5})
-      partialOk({guid: 5, role: T.RPCGen.TeamRole.writer, subTeamID: 'current', teamName: 'p.current'})
-      partialOk({guid: 4, role: T.RPCGen.TeamRole.writer, subTeamID: 'old', teamName: 'p.old'})
-    })
-    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['current'])
-  })
-
-  test('a late done from an older generation does not reset the expected count', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 1, guid: 5})
-      partialOk({guid: 5, role: T.RPCGen.TeamRole.writer, subTeamID: 'current', teamName: 'p.current'})
-    })
-    expect(result.current.loading).toBe(false)
-
-    await emit(() => {
-      done({expectedCount: 9, guid: 4})
-    })
-    expect(result.current.loading).toBe(false)
-    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['current'])
-  })
-
-  test('notifications for another team or user are ignored', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 1, guid: 1, targetTeamID: 'other'})
-      done({expectedCount: 1, guid: 1, targetUsername: 'testuser-mac'})
-      partialOk({
-        guid: 1,
-        role: T.RPCGen.TeamRole.writer,
-        subTeamID: 'nope',
-        targetTeamID: 'other',
-        teamName: 'other.a',
-      })
-    })
+  test('is loading until the tree arrives', async () => {
+    const held = fake.hold(loadTree)
+    const {result} = await mount()
     expect(result.current.loading).toBe(true)
     expect(result.current.nodesIn).toEqual([])
+
+    held[0]?.reply(tree)
+    await flush()
+    expect(result.current.loading).toBe(false)
+    expect(result.current.nodesIn).toHaveLength(2)
   })
 
-  test('failed subtrees are surfaced as errors, not as rows', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 2, guid: 1})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub1', teamName: 'p.a'})
-      partialError({guid: 1, teamName: 'p.broken'})
-    })
-    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['sub1'])
-    expect(result.current.nodesNotIn).toEqual([])
-    expect(result.current.errors.map(e => e.teamName)).toEqual(['p.broken'])
+  test('asks for activity once per team the user is in, and one failure costs only that row', async () => {
+    fake.answer(lastActive, (p: {teamIDs: Array<string>}) =>
+      p.teamIDs[0] === 'sub1' ? fakeError(1, 'no activity') : {[p.teamIDs[0] ?? '']: 1000}
+    )
+    const {result} = await mount()
+
+    const activityCalls = fake.calls.filter(c => c.method === lastActive).map(c => c.params)
+    expect(activityCalls).toEqual([
+      expect.objectContaining({teamIDs: [teamID], username}),
+      expect.objectContaining({teamIDs: ['sub1'], username}),
+    ])
+    expect(result.current.nodesIn.map(n => n.lastActivity)).toEqual([1000, undefined])
   })
 
-  test('reload clears the rows and asks the service again', async () => {
-    const {result} = renderHook(() => useTeamTreeMemberships(teamID, username))
-    await emit(() => {
-      done({expectedCount: 1, guid: 1})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub1', teamName: 'p.a'})
-    })
-    expect(result.current.nodesIn).toHaveLength(1)
-
-    await emit(() => {
-      result.current.reload()
-    })
+  test('a failed load ends loading with no rows', async () => {
+    fake.answer(loadTree, () => fakeError(2623, 'not an admin'))
+    const {result} = await mount()
+    expect(result.current.loading).toBe(false)
     expect(result.current.nodesIn).toEqual([])
-    expect(result.current.loading).toBe(true)
-    expect(loadCalls).toHaveLength(2)
+    expect(result.current.errors).toEqual([])
   })
 
-  test('switching the target team drops the previous team rows immediately', async () => {
+  test('reloads for a change to any team in the tree, and not for other teams', async () => {
+    await mount()
+    expect(loads()).toHaveLength(1)
+
+    await pushTeamChanged(fake, 'elsewhere', {membership: true})
+    expect(loads()).toHaveLength(1)
+
+    await pushTeamChanged(fake, 'sub2', {membership: true})
+    expect(loads()).toHaveLength(2)
+
+    await pushTeamChanged(fake, teamID, {renamed: true})
+    expect(loads()).toHaveLength(3)
+  })
+
+  test('ignores kinds the rows do not show, and reloads for a change with no kind', async () => {
+    await mount()
+
+    await pushTeamChanged(fake, 'sub1', {channels: true, keyRotated: true, settings: true})
+    expect(loads()).toHaveLength(1)
+
+    await pushTeamChanged(fake, 'sub1', {})
+    expect(loads()).toHaveLength(2)
+
+    await pushTeamChanged(fake, 'sub1', {memberCount: true})
+    expect(loads()).toHaveLength(3)
+  })
+
+  test('a burst of changes during a load costs one more load', async () => {
+    await mount()
+    const held = fake.hold(loadTree)
+
+    await pushTeamChanged(fake, 'sub1', {membership: true})
+    await pushTeamChanged(fake, 'sub2', {membership: true})
+    await pushTeamChanged(fake, teamID, {membership: true})
+    expect(loads()).toHaveLength(2)
+
+    held[0]?.reply(tree)
+    await flush()
+    expect(loads()).toHaveLength(3)
+    held[1]?.reply(tree)
+    await flush()
+    expect(loads()).toHaveLength(3)
+  })
+
+  test('switching the target team drops the old rows and ignores the old answer', async () => {
+    const held = fake.hold(loadTree)
     const {rerender, result} = renderHook(
       ({id}: {id: T.Teams.TeamID}) => useTeamTreeMemberships(id, username),
       {initialProps: {id: teamID}}
     )
-    await emit(() => {
-      done({expectedCount: 1, guid: 1})
-      partialOk({guid: 1, role: T.RPCGen.TeamRole.writer, subTeamID: 'sub1', teamName: 'p.a'})
-    })
-    expect(result.current.nodesIn).toHaveLength(1)
+    await flush()
 
-    rerender({id: 'tid2' as T.Teams.TeamID})
+    rerender({id: 'tid2'})
+    await flush()
+    expect(loads().map(c => (c.params as {teamID: string}).teamID)).toEqual([teamID, 'tid2'])
+
+    held[0]?.reply(tree)
+    await flush()
     expect(result.current.nodesIn).toEqual([])
     expect(result.current.loading).toBe(true)
-    expect(loadCalls.at(-1)).toEqual({teamID: 'tid2', username})
+
+    held[1]?.reply([ok('q', 'tid2', T.RPCGen.TeamRole.reader)])
+    await flush()
+    expect(result.current.nodesIn.map(n => n.teamID)).toEqual(['tid2'])
+  })
+
+  test('an account switch mid-load drops the old account answer', async () => {
+    const held = fake.hold(loadTree)
+    const {result} = await mount()
+
+    act(() => useCurrentUserState.setState({username: 'testuser2'}))
+    await flush()
+    expect(loads()).toHaveLength(2)
+
+    held[0]?.reply(tree)
+    await flush()
+    expect(result.current.nodesIn).toEqual([])
+    expect(result.current.loading).toBe(true)
+
+    held[1]?.reply([ok('q', teamID, T.RPCGen.TeamRole.reader)])
+    await flush()
+    expect(result.current.nodesIn.map(n => n.teamname)).toEqual(['q'])
+  })
+
+  test("activity that lands after an account switch does not replace the new account's", async () => {
+    const heldActivity = fake.hold(lastActive)
+    const {result} = await mount()
+    expect(heldActivity).toHaveLength(2)
+
+    act(() => useCurrentUserState.setState({username: 'testuser2'}))
+    await flush()
+    expect(heldActivity).toHaveLength(4)
+
+    heldActivity[2]?.reply({[teamID]: 2000})
+    heldActivity[3]?.reply({sub1: 2000})
+    await flush()
+    heldActivity[0]?.reply({[teamID]: 5})
+    heldActivity[1]?.reply({sub1: 5})
+    await flush()
+    expect(result.current.nodesIn.map(n => n.lastActivity)).toEqual([2000, 2000])
   })
 })

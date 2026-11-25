@@ -111,8 +111,6 @@ type NotifyListener interface {
 	SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64)
 	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 	UpdateInviteCounts(keybase1.InviteCounts)
-	TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)
-	TeamTreeMembershipsDone(keybase1.TeamTreeMembershipsDoneResult)
 }
 
 type NoopNotifyListener struct{}
@@ -283,8 +281,6 @@ func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOpera
 
 func (n *NoopNotifyListener) UpdateInviteCounts(keybase1.InviteCounts) {
 }
-func (n *NoopNotifyListener) TeamTreeMembershipsPartial(keybase1.TeamTreeMembership)         {}
-func (n *NoopNotifyListener) TeamTreeMembershipsDone(keybase1.TeamTreeMembershipsDoneResult) {}
 
 type NotifyListenerID string
 
@@ -3089,49 +3085,5 @@ func (n *NotifyRouter) HandleUpdateInviteCounts(ctx context.Context, counts keyb
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.UpdateInviteCounts(counts)
-	})
-}
-
-func (n *NotifyRouter) HandleTeamTreeMembershipsPartial(ctx context.Context,
-	result keybase1.TeamTreeMembership,
-) {
-	if n == nil {
-		return
-	}
-
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Team {
-			n.enqueue(id, func() {
-				_ = (keybase1.NotifyTeamClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamTreeMembershipsPartial(context.Background(), result)
-			})
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.TeamTreeMembershipsPartial(result)
-	})
-}
-
-func (n *NotifyRouter) HandleTeamTreeMembershipsDone(ctx context.Context, result keybase1.TeamTreeMembershipsDoneResult) {
-	if n == nil {
-		return
-	}
-
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Team {
-			n.enqueue(id, func() {
-				_ = (keybase1.NotifyTeamClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamTreeMembershipsDone(context.Background(), result)
-			})
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.TeamTreeMembershipsDone(result)
 	})
 }

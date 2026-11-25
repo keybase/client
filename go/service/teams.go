@@ -934,25 +934,20 @@ func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.T
 	return teams.GetUntrustedTeamInfo(mctx, name)
 }
 
-func (h *TeamsHandler) LoadTeamTreeMembershipsAsync(ctx context.Context,
-	arg keybase1.LoadTeamTreeMembershipsAsyncArg,
-) (res keybase1.TeamTreeInitial, err error) {
+func (h *TeamsHandler) LoadTeamTreeMemberships(ctx context.Context,
+	arg keybase1.LoadTeamTreeMembershipsArg,
+) (res []keybase1.TeamTreeMembership, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "TMTREE")
-	defer h.G().CTrace(ctx, fmt.Sprintf("LoadTeamTreeMembershipsAsync(%s, %s, %d)",
-		arg.TeamID, arg.Username, arg.SessionID), &err)()
+	defer h.G().CTrace(ctx, fmt.Sprintf("LoadTeamTreeMemberships(%s, %s)",
+		arg.TeamID, arg.Username), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID,
-		arg.SessionID, true /* includeAncestors */)
+	loader, err := teams.NewTreeloader(mctx, arg.Username, arg.TeamID, true /* includeAncestors */)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	err = loader.LoadAsync(mctx)
-	if err != nil {
-		return res, err
-	}
-	return keybase1.TeamTreeInitial{Guid: arg.SessionID}, nil
+	return loader.Load(mctx)
 }
 
 func (h *TeamsHandler) GetInviteLinkDetails(ctx context.Context, inviteID keybase1.TeamInviteID) (details keybase1.InviteLinkDetails, err error) {
