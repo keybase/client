@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useRequestLogout} from './use-request-logout'
 import {useRandomPWState} from './use-random-pw'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {useRpcData} from '@/query'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
@@ -210,9 +210,8 @@ const Container = () => {
     navigation.setOptions({title})
   }, [navigation, title])
 
-  const {data: hasPGPKeyOnServer} = useRPCLoad(T.RPCGen.accountHasServerKeysRpcPromise, [undefined], {
-    map: ({hasServerKeys}) => hasServerKeys,
-  })
+  const {data: serverKeys} = useRpcData(T.RPCGen.accountHasServerKeysRpcPromise, undefined)
+  const hasPGPKeyOnServer = serverKeys?.hasServerKeys
 
   const props = {
     error,

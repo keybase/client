@@ -38,10 +38,21 @@ const unhold = (h: Held) => {
 }
 
 export const getAccountGeneration = () => accountGeneration
+// Told at once when the account's generation goes up, before anything else reacts to the logout
+const generationListeners = new Set<() => void>()
+export const onNewAccountGeneration = (listener: () => void) => {
+  generationListeners.add(listener)
+  return () => {
+    generationListeners.delete(listener)
+  }
+}
 // Called before anything reacts to the logout, so calls the logout itself starts are the new
 // generation's. A call held for the old account will never go out.
 export const startNewAccountGeneration = () => {
   accountGeneration++
+  for (const listener of [...generationListeners]) {
+    listener()
+  }
   for (const h of held.splice(0)) {
     clearTimeout(h.warn)
     devLog('reject', h.method, 'the account changed while it was held')
