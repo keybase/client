@@ -30,8 +30,9 @@ const warnTeamsList = warnUnlessNetwork('teams list')
 const warnTeamsRoleMap = warnUnlessNetwork('teams role map')
 
 // Most reloads come back deep-equal: the service sends a memberCount teamChanged the first time it
-// counts each team in a session, and settings changes the list does not show. The cache keeps prior identities (the whole array when nothing changed), so consumers
-// like TeamsRoot can bail.
+// counts each team in a session, and a settings teamChanged for settings the list does not show.
+// The cache keeps prior identities (the whole array when nothing changed), so consumers like
+// TeamsRoot can bail.
 const toTeams = (result: T.RPCGen.AnnotatedTeamList | null): ReadonlyArray<T.Teams.TeamMeta> => [
   ...Teams.teamListToMeta(result?.teams ?? []).values(),
 ]
