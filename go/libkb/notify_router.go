@@ -81,6 +81,7 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamRoleMapChanged(version keybase1.UserTeamVersion)
+	// Only in-process listeners (tests) implement TeamChanged; clients get it over their connection
 	TeamChanged(teamID keybase1.TeamID, kinds keybase1.TeamChangedKinds, roleMapVersion keybase1.UserTeamVersion)
 	UserBlocked(b keybase1.UserBlockedBody)
 	TeamExit(teamID keybase1.TeamID)

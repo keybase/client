@@ -51,9 +51,8 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // which localizes every channel in the team.
 //
 // A reload after a team change is nearly always identical to what is already
-// cached: the cache keeps
-// the previous Maps when nothing changed, and the previous entries when only some
-// did, so downstream memos can bail.
+// cached: the cache keeps the previous Maps when nothing changed, and the previous
+// entries when only some did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
 // Teams whose channels this session loaded: the only ones a notice has anything to reload

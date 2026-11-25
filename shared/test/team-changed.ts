@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import type {FakeEngine} from './fake-engine'
 import {flush} from './flush'
 
-export const noTeamChanges: T.RPCGen.TeamChangedKinds = {
+const noTeamChanges: T.RPCGen.TeamChangedKinds = {
   channels: false,
   deleted: false,
   exited: false,
