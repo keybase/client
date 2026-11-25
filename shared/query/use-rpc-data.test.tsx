@@ -775,8 +775,8 @@ test('debounced notices that never stop still reload, every max wait', async () 
     await flush()
     expect(listCalls()).toBe(1)
 
-    // one a second for 12 seconds, never 2 seconds apart: held since the second one, at 1s
-    for (let i = 0; i < 12; i++) {
+    // one a second for 10 seconds, never 2 seconds apart
+    for (let i = 0; i < 10; i++) {
       act(() => refreshRpc(listRpc, 2000))
       await flush()
       act(() => {
@@ -784,7 +784,7 @@ test('debounced notices that never stop still reload, every max wait', async () 
       })
       await flush()
     }
-    // the first at once, and the held ones once the max wait (5 debounces) was up, at 11s
+    // the first at once, and the held ones a max wait (5 debounces) after it, at 10s
     expect(listCalls()).toBe(3)
   } finally {
     jest.useRealTimers()
