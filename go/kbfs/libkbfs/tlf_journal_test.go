@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
-	idutiltest "github.com/keybase/client/go/kbfs/idutil/test"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -25,6 +24,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -314,7 +314,7 @@ func setupTLFJournalTest(
 		math.MaxInt64, math.MaxInt64, math.MaxInt64)
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, uid.AsUserOrTeam(), config, delegateBlockServer,
-		bwStatus, delegate, nil, nil, nil, diskLimitSemaphore, tlf.NullID)
+		bwStatus, delegate, nil, nil, diskLimitSemaphore, tlf.NullID)
 	require.NoError(t, err)
 
 	switch bwStatus {
@@ -519,14 +519,13 @@ func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
 
 type refusingBlockServer struct {
 	BlockServer
-	msg string
 }
 
 func (bs refusingBlockServer) Put(
 	_ context.Context, _ tlf.ID, _ kbfsblock.ID, _ kbfsblock.Context,
 	_ []byte, _ kbfscrypto.BlockCryptKeyServerHalf, _ DiskBlockCacheType,
 ) error {
-	return kbfsblock.ServerErrorNoPermission{Msg: bs.msg}
+	return kbfsblock.ServerErrorNoPermission{Msg: "public folder writes are disabled"}
 }
 
 type refusingMDServer struct {
@@ -540,14 +539,15 @@ func (md refusingMDServer) Put(
 	return kbfsmd.ServerErrorWriteAccess{}
 }
 
-type countingWriteRefusalListener struct {
-	calls int
+type singleUsernameGetter struct {
+	name kbun.NormalizedUsername
 }
 
-func (l *countingWriteRefusalListener) onTLFWriteRefused(
-	_ tlf.ID, _ tlf.CanonicalName, _ error,
-) {
-	l.calls++
+func (g singleUsernameGetter) GetNormalizedUsername(
+	_ context.Context, _ keybase1.UserOrTeamID,
+	_ keybase1.OfflineAvailability,
+) (kbun.NormalizedUsername, error) {
+	return g.name, nil
 }
 
 type tlfNameRecordingReporter struct {
@@ -570,15 +570,10 @@ func testTLFJournalReportsWriteRefusalOnce(t *testing.T, ver kbfsmd.MetadataVer)
 		ReporterSimple: config.reporter.(*ReporterSimple),
 	}
 	config.reporter = reporter
-	config.nug = idutiltest.NormalizedUsernameGetter{
-		config.uid.AsUserOrTeam(): "fake_user",
-	}
-	// Only public folders discard refused writes, and this one is private.
-	listener := &countingWriteRefusalListener{}
-	tlfJournal.onWriteRefused = listener
+	config.nug = singleUsernameGetter{"fake_user"}
 
 	bserver := tlfJournal.delegateBlockServer
-	tlfJournal.delegateBlockServer = refusingBlockServer{bserver, kbfsblock.PublicWritesDisabledMsg}
+	tlfJournal.delegateBlockServer = refusingBlockServer{bserver}
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
 
 	// With no MD to name the folder, nothing is reported yet.
@@ -591,8 +586,9 @@ func testTLFJournalReportsWriteRefusalOnce(t *testing.T, ver kbfsmd.MetadataVer)
 		require.ErrorAs(t, tlfJournal.flush(ctx), new(kbfsblock.ServerErrorNoPermission))
 	}
 	require.Equal(t, []tlf.CanonicalName{"fake_user"}, reporter.names)
-	require.ErrorAs(t, reporter.AllKnownErrors()[0].Error,
-		new(kbfsblock.ServerErrorNoPermission))
+	errs := reporter.AllKnownErrors()
+	require.Len(t, errs, 1)
+	require.ErrorAs(t, errs[0].Error, new(kbfsblock.ServerErrorNoPermission))
 
 	// The blocks go through before the MD is refused, so that refusal
 	// is reported again.
@@ -601,7 +597,6 @@ func testTLFJournalReportsWriteRefusalOnce(t *testing.T, ver kbfsmd.MetadataVer)
 	config.mdserver = refusingMDServer{mdserver}
 	require.ErrorAs(t, tlfJournal.flush(ctx), new(kbfsmd.ServerErrorWriteAccess))
 	require.Equal(t, []tlf.CanonicalName{"fake_user", "fake_user"}, reporter.names)
-	require.Zero(t, listener.calls)
 
 	config.mdserver = mdserver
 	require.NoError(t, tlfJournal.flush(ctx))

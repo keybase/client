@@ -9164,36 +9164,6 @@ func (fbo *folderBranchOps) onMDFlush(
 	})
 }
 
-// onTLFWriteRefused discards the journaled writes the server refused,
-// since retrying them can't succeed, and then reports the refusal.
-func (fbo *folderBranchOps) onTLFWriteRefused(
-	tlfName tlf.CanonicalName, refusal error,
-) {
-	fbo.goTracked(func() {
-		ctx, cancelFunc := fbo.newCtxWithFBOID()
-		defer cancelFunc()
-
-		err := fbo.CancelUploads(ctx, fbo.folderBranch)
-		switch {
-		case err == nil:
-			refusal = WritesDiscardedError{refusal}
-		case errors.As(err, new(NotPermittedWhileDirtyError)) ||
-			errors.Is(err, errCancelUploadsBeforeHead):
-			// Once the writes are synced or the head is loaded, the
-			// journal's next refused flush tries again.
-			fbo.log.CDebugf(ctx, "Will retry discarding refused writes: %+v", err)
-			if jManager, _ := GetJournalManager(fbo.config); jManager != nil {
-				jManager.retryWriteRefusal(fbo.id())
-			}
-			return
-		default:
-			fbo.log.CDebugf(ctx, "Couldn't discard refused writes: %+v", err)
-		}
-		fbo.config.Reporter().ReportErr(
-			ctx, tlfName, fbo.id().Type(), WriteMode, refusal)
-	})
-}
-
 // TeamNameChanged implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) TeamNameChanged(
 	ctx context.Context, tid keybase1.TeamID,

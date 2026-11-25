@@ -4950,6 +4950,27 @@ func TestKBFSOpsCancelUploads(t *testing.T) {
 	require.Empty(t, children)
 }
 
+func TestKBFSOpsReportsRefusedInitialWrite(t *testing.T) {
+	var userName kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, string(userName), tlf.Public)
+	require.NoError(t, err)
+
+	// A public folder that doesn't exist yet writes its first root
+	// block directly, not through a journal.
+	config.SetBlockServer(refusingBlockServer{config.BlockServer()})
+	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.ErrorAs(t, err, new(kbfsblock.ServerErrorNoPermission))
+	require.ErrorAs(t, err, new(reportedError))
+
+	reported := config.Reporter().AllKnownErrors()
+	require.Len(t, reported, 1)
+	require.ErrorAs(t, reported[0].Error, new(kbfsblock.ServerErrorNoPermission))
+}
+
 type journaledFolderTest struct {
 	config   *ConfigLocal
 	ctx      context.Context
@@ -4997,28 +5018,6 @@ func setupJournaledFolderTest(
 	return journaledFolderTest{config, ctx, kbfsOps, jManager, fb, aNode}
 }
 
-// refuseBlockWrites pauses the folder's journal and has the server refuse
-// its block writes with msg. The returned function has the server accept
-// them again.
-func (ft journaledFolderTest) refuseBlockWrites(
-	t *testing.T, msg string,
-) (accept func()) {
-	ft.jManager.PauseBackgroundWork(ft.ctx, ft.fb.Tlf)
-	tj, ok := ft.jManager.getTLFJournal(ft.fb.Tlf, nil)
-	require.True(t, ok)
-	bserver := tj.delegateBlockServer
-	tj.delegateBlockServer = refusingBlockServer{bserver, msg}
-	return func() {
-		ft.jManager.PauseBackgroundWork(ft.ctx, ft.fb.Tlf)
-		err := ft.jManager.Wait(ft.ctx, ft.fb.Tlf)
-		require.NoError(t, err)
-		tj.delegateBlockServer = bserver
-		ft.jManager.ResumeBackgroundWork(ft.ctx, ft.fb.Tlf)
-		err = ft.jManager.Flush(ft.ctx, ft.fb.Tlf)
-		require.NoError(t, err)
-	}
-}
-
 func (ft journaledFolderTest) writeFile(t *testing.T, name string) Node {
 	n, _, err := ft.kbfsOps.CreateFile(
 		ft.ctx, ft.aNode, testPPS(name), false, NoExcl)
@@ -5028,86 +5027,15 @@ func (ft journaledFolderTest) writeFile(t *testing.T, name string) Node {
 	return n
 }
 
-func (ft journaledFolderTest) waitForReportedError(t *testing.T) error {
-	reporter := ft.config.Reporter()
-	require.Eventually(t, func() bool {
-		return len(reporter.AllKnownErrors()) > 0
-	}, individualTestTimeout, 10*time.Millisecond)
-	errs := reporter.AllKnownErrors()
-	require.Len(t, errs, 1)
-	return errs[0].Error
-}
-
-func (ft journaledFolderTest) requireDiscarded(t *testing.T) {
-	children, err := ft.kbfsOps.GetDirChildren(ft.ctx, ft.aNode)
+// requireFlushes syncs the folder and requires its journal to flush.
+func (ft journaledFolderTest) requireFlushes(t *testing.T) {
+	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
 	require.NoError(t, err)
-	require.Empty(t, children)
+	err = ft.jManager.Wait(ft.ctx, ft.fb.Tlf)
+	require.NoError(t, err)
 	status, err := ft.jManager.JournalStatus(ft.fb.Tlf)
 	require.NoError(t, err)
 	require.Zero(t, status.BlockOpCount)
-	require.Equal(t, kbfsmd.RevisionUninitialized, status.RevisionStart)
-}
-
-func TestKBFSOpsDiscardsRefusedPublicWrites(t *testing.T) {
-	ft := setupJournaledFolderTest(t, tlf.Public)
-	ft.refuseBlockWrites(t, kbfsblock.PublicWritesDisabledMsg)
-
-	t.Log("Write a file, and wait for it to be refused and discarded")
-	ft.writeFile(t, "b")
-	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
-	require.NoError(t, err)
-	ft.jManager.ResumeBackgroundWork(ft.ctx, ft.fb.Tlf)
-
-	reported := ft.waitForReportedError(t)
-	require.ErrorAs(t, reported, new(WritesDiscardedError))
-	require.ErrorAs(t, reported, new(kbfsblock.ServerErrorNoPermission))
-	ft.requireDiscarded(t)
-}
-
-func TestKBFSOpsKeepsOtherRefusedPublicWrites(t *testing.T) {
-	ft := setupJournaledFolderTest(t, tlf.Public)
-	// Not the refusal for disabled public writes, so it may go
-	// through later.
-	accept := ft.refuseBlockWrites(t, "")
-
-	ft.writeFile(t, "b")
-	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
-	require.NoError(t, err)
-	ft.jManager.ResumeBackgroundWork(ft.ctx, ft.fb.Tlf)
-
-	reported := ft.waitForReportedError(t)
-	require.NotErrorAs(t, reported, new(WritesDiscardedError))
-	require.ErrorAs(t, reported, new(kbfsblock.ServerErrorNoPermission))
-	children, err := ft.kbfsOps.GetDirChildren(ft.ctx, ft.aNode)
-	require.NoError(t, err)
-	require.Len(t, children, 1)
-	status, err := ft.jManager.JournalStatus(ft.fb.Tlf)
-	require.NoError(t, err)
-	require.NotZero(t, status.BlockOpCount)
-
-	t.Log("The kept writes go through once the server accepts them")
-	accept()
-	ft.requireFlushes(t)
-}
-
-func TestKBFSOpsDiscardsRefusedPublicWritesOnceSynced(t *testing.T) {
-	ft := setupJournaledFolderTest(t, tlf.Public)
-	ft.refuseBlockWrites(t, kbfsblock.PublicWritesDisabledMsg)
-
-	t.Log("Refuse a flush while another write is still unsynced")
-	ft.writeFile(t, "b")
-	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
-	require.NoError(t, err)
-	ft.writeFile(t, "c")
-	ft.jManager.ResumeBackgroundWork(ft.ctx, ft.fb.Tlf)
-	ft.waitForRefusalRetry(t)
-
-	t.Log("Once it's synced, the next refusal discards both")
-	err = ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
-	require.NoError(t, err)
-	reported := ft.waitForReportedError(t)
-	require.ErrorAs(t, reported, new(WritesDiscardedError))
-	ft.requireDiscarded(t)
 }
 
 func TestKBFSOpsCancelUploadsKeepsUserPause(t *testing.T) {
@@ -5147,30 +5075,6 @@ func TestKBFSOpsCancelUploadsBeforeHeadLoaded(t *testing.T) {
 	public.aNode, _, err = ft.kbfsOps.CreateDir(ft.ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	public.requireFlushes(t)
-}
-
-// waitForRefusalRetry waits until the folder's journal has handled a
-// refused flush, and has then been asked to handle the next one again.
-func (ft journaledFolderTest) waitForRefusalRetry(t *testing.T) {
-	tj, ok := ft.jManager.getTLFJournal(ft.fb.Tlf, nil)
-	require.True(t, ok)
-	require.Eventually(t, func() bool {
-		tj.flushLock.Lock()
-		reported := tj.writeRefusalReported
-		tj.flushLock.Unlock()
-		return tj.getLastFlushErr() != nil && !reported
-	}, individualTestTimeout, 10*time.Millisecond)
-}
-
-// requireFlushes syncs the folder and requires its journal to flush.
-func (ft journaledFolderTest) requireFlushes(t *testing.T) {
-	err := ft.kbfsOps.SyncAll(ft.ctx, ft.fb)
-	require.NoError(t, err)
-	err = ft.jManager.Wait(ft.ctx, ft.fb.Tlf)
-	require.NoError(t, err)
-	status, err := ft.jManager.JournalStatus(ft.fb.Tlf)
-	require.NoError(t, err)
-	require.Zero(t, status.BlockOpCount)
 }
 
 type bserverFailPuts struct {

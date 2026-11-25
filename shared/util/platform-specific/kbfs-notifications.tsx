@@ -29,12 +29,8 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
   switch (notification.errorType) {
     case T.RPCGen.FSErrorType.accessDenied: {
       const prefix = user ? `${user} does` : 'You do'
-      const denied = `${prefix} not have ${notification.params?.['mode'] ?? ''} access to ${notification.filename}`
       return {
-        body:
-          notification.params?.['discarded'] === 'true'
-            ? `${denied}. Changes there that had not uploaded yet were discarded.`
-            : denied,
+        body: `${prefix} not have ${notification.params?.['mode'] ?? ''} access to ${notification.filename}`,
         title: 'Keybase: Access denied',
       }
     }

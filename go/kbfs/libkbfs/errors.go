@@ -106,19 +106,20 @@ func (e WriteUnsupportedError) Error() string {
 	return fmt.Sprintf("Writing to %s is unsupported", e.Filename)
 }
 
-// WritesDiscardedError indicates that a folder's journaled writes were
-// discarded because the server refused them.
-type WritesDiscardedError struct {
-	Err error
+// reportedError wraps an error that has already been passed to
+// Reporter.ReportErr, so a later ReportErr (e.g. from FUSE/Dokan
+// processError) skips a second user notification. The underlying error
+// is still returned to callers so they can map it (EACCES, etc.).
+type reportedError struct {
+	error
 }
 
-// Error implements the error interface for WritesDiscardedError
-func (e WritesDiscardedError) Error() string {
-	return fmt.Sprintf("Discarded writes the server refused: %v", e.Err)
+func (e reportedError) Cause() error {
+	return e.error
 }
 
-func (e WritesDiscardedError) Unwrap() error {
-	return e.Err
+func (e reportedError) Unwrap() error {
+	return e.error
 }
 
 // WriteToReadonlyNodeError indicates an error when trying to write a

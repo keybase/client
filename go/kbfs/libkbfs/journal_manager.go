@@ -121,15 +121,6 @@ type mdFlushListener interface {
 	onMDFlush(tlf.ID, kbfsmd.BranchID, kbfsmd.Revision)
 }
 
-// writeRefusalListener describes a caller that will get updates via
-// the onTLFWriteRefused method when the server refuses a public TLF's
-// journaled writes because public folder writes are disabled.  The
-// implementer must access the journal from another goroutine to avoid
-// deadlocks.
-type writeRefusalListener interface {
-	onTLFWriteRefused(tlf.ID, tlf.CanonicalName, error)
-}
-
 type clearedConflictKey struct {
 	tlfID tlf.ID
 	date  time.Time // the conflict time truncated to be just the date
@@ -168,7 +159,6 @@ type JournalManager struct {
 	delegateMDOps           MDOps
 	onBranchChange          branchChangeListener
 	onMDFlush               mdFlushListener
-	onWriteRefused          writeRefusalListener
 
 	// Just protects lastQuotaError.
 	lastQuotaErrorLock sync.Mutex
@@ -195,7 +185,7 @@ func makeJournalManager(
 	config Config, log logger.Logger, dir string,
 	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache,
 	bserver BlockServer, mdOps MDOps, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener, onWriteRefused writeRefusalListener,
+	onMDFlush mdFlushListener,
 	bws TLFJournalBackgroundWorkStatus,
 ) *JournalManager {
 	if len(dir) == 0 {
@@ -213,7 +203,6 @@ func makeJournalManager(
 		delegateMDOps:           mdOps,
 		onBranchChange:          onBranchChange,
 		onMDFlush:               onMDFlush,
-		onWriteRefused:          onWriteRefused,
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
 		dirtyOps:                make(map[tlf.ID]uint),
 		clearedConflictTlfs:     make(map[clearedConflictKey]clearedConflictVal),
@@ -481,8 +470,7 @@ func (j *JournalManager) makeJournalForConflictTlfLocked(
 		ctx, j.currentUID, j.currentVerifyingKey, dir,
 		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
 		j.delegateBlockServer, TLFJournalBackgroundWorkPaused, delegate,
-		j.onBranchChange, j.onMDFlush, j.onWriteRefused, j.config.DiskLimiter(),
-		fakeTlfID)
+		j.onBranchChange, j.onMDFlush, j.config.DiskLimiter(), fakeTlfID)
 	if err != nil {
 		return nil, tlf.ID{}, time.Time{}, err
 	}
@@ -853,7 +841,7 @@ func (j *JournalManager) enableLocked(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
 		j.delegateBlockServer, bws, delegate, j.onBranchChange, j.onMDFlush,
-		j.onWriteRefused, j.config.DiskLimiter(),
+		j.config.DiskLimiter(),
 		tlf.NullID)
 	if err != nil {
 		return nil, err
@@ -980,14 +968,6 @@ func (j *JournalManager) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID)
 	j.log.CDebugf(ctx,
 		"Could not find journal for %s; dropping resume signal",
 		tlfID)
-}
-
-// retryWriteRefusal makes the given TLF's journal handle its next write
-// refusal again.
-func (j *JournalManager) retryWriteRefusal(tlfID tlf.ID) {
-	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
-		tlfJournal.retryWriteRefusal()
-	}
 }
 
 // Flush flushes the write journal for the given TLF.

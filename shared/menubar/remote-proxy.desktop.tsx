@@ -1,5 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {ensureWidgetMetas, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useConfigState} from '@/stores/config'
@@ -90,7 +91,10 @@ const toRemoteTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfU
   tlf: t.path,
   updates: t.history.map(u => {
     const path = T.FS.stringToPath(u.filename)
-    return {path, uploading: uploads.syncingPaths.has(path) || uploads.writingToJournal.has(path)}
+    return {
+      path,
+      uploading: uploads.syncingPaths.has(path) || FS.pathIsActivelyWritingToJournal(uploads, path),
+    }
   }),
   writer: t.writer,
 })
