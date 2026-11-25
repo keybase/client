@@ -165,7 +165,7 @@ func TestIncomingShareRepeatOfAllDroppedKeepsItsNotice(t *testing.T) {
 	})
 	defer cleanup()
 	h.G().SetClock(clockwork.NewFakeClock())
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		res, err := h.GetIncomingShareItems(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, res.Items)

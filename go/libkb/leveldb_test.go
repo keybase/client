@@ -182,7 +182,7 @@ func TestLevelDb(t *testing.T) {
 
 				putAcrossPrefixes := func(round int) {
 					for _, prefix := range []string{"aa", "kv", "lo", "pm", "zz"} {
-						for i := 0; i < 20; i++ {
+						for i := range 20 {
 							key := []byte(fmt.Sprintf("%s:%d:%d", prefix, round, i))
 							require.NoError(t, db.db.Load().Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
 						}
@@ -190,7 +190,7 @@ func TestLevelDb(t *testing.T) {
 				}
 				// Existing tables spanning the whole key space, so a table
 				// compaction of the flushed memtable would have inputs.
-				for round := 0; round < 2; round++ {
+				for round := range 2 {
 					putAcrossPrefixes(round)
 					tr, err := db.db.Load().OpenTransaction()
 					require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestLevelDb(t *testing.T) {
 				require.NoError(t, err)
 
 				var wg sync.WaitGroup
-				for i := 0; i < 8; i++ {
+				for range 8 {
 					wg.Add(2)
 					go func() {
 						defer wg.Done()
@@ -283,7 +283,7 @@ func TestLevelDb(t *testing.T) {
 				wg.Wait()
 
 				// A lazy open racing a Nuke reopens rather than reporting closed.
-				for i := 0; i < 8; i++ {
+				for range 8 {
 					wg.Add(2)
 					go func() {
 						defer wg.Done()

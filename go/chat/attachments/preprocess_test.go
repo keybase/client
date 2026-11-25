@@ -13,8 +13,8 @@ import (
 
 func TestDetectMIMETypeSmallFile(t *testing.T) {
 	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
-	for x := 0; x < 4; x++ {
-		for y := 0; y < 4; y++ {
+	for x := range 4 {
+		for y := range 4 {
 			img.Set(x, y, color.RGBA{R: 200, G: 30, B: 30, A: 255})
 		}
 	}

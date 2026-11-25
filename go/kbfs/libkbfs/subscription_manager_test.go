@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -536,12 +537,7 @@ func TestSubscriptionManagerUnregistersAfterLastSubscription(t *testing.T) {
 func smRegisteredOn(fbo *folderBranchOps, sm *subscriptionManager) bool {
 	fbo.observers.lock.RLock()
 	defer fbo.observers.lock.RUnlock()
-	for _, o := range fbo.observers.observers {
-		if o == Observer(sm) {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(fbo.observers.observers, Observer(sm))
 }
 
 func testStopDuringPoll(t *testing.T, stop func(context.Context, *subscriptionManager)) {

@@ -43,7 +43,7 @@ func waitCleanerRunning(t *testing.T, c *levelDbCleaner) {
 func putKeys(t *testing.T, db *LevelDb, numKeys int) DbKey {
 	t.Helper()
 	var last DbKey
-	for i := 0; i < numKeys; i++ {
+	for i := range numKeys {
 		last = DbKey{Key: fmt.Sprintf("k%05d", i), Typ: 0}
 		require.NoError(t, db.Put(last, nil, []byte{1}))
 	}
@@ -138,7 +138,7 @@ func TestCleanerStatusDuringReopen(t *testing.T) {
 			}
 		}
 	}()
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		_, err := db.Nuke()
 		require.NoError(t, err)
 		require.NoError(t, db.ForceOpen())
