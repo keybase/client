@@ -65,13 +65,20 @@ func (c *TeamMemberCountCache) notifyLoop(ctx context.Context) {
 	}
 }
 
-func (c *TeamMemberCountCache) Set(teamID keybase1.TeamID, count int) {
+// Set caches a team's member count. With notify, a new or changed count
+// schedules a teamMetadataUpdate, because the teams list shows the cached count
+// in place of the server's. A first insert counts as a change: the server's
+// count can differ from the locally computed one.
+func (c *TeamMemberCountCache) Set(teamID keybase1.TeamID, count int, notify bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if c, ok := c.cache[teamID]; ok && c == count {
 		return
 	}
 	c.cache[teamID] = count
+	if !notify {
+		return
+	}
 	select {
 	case c.notifyCh <- struct{}{}:
 	default:

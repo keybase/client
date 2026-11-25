@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {invalidateTeamChannels} from '@/teams/common/team-channels-invalidation'
 import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
@@ -75,12 +74,6 @@ const EditChannel = (props: Props) => {
     ]
     Promise.all(ps)
       .then(() => {
-        // renaming a channel or editing its description fires no
-        // teamChangedByID, so the shared channel caches would keep serving the
-        // old name and description for their stale window
-        if (ps.length) {
-          invalidateTeamChannels(teamID)
-        }
         nav.safeNavigateUp()
       })
       .catch(() => {})

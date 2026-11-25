@@ -70,6 +70,26 @@ describe('deriveCanPerform', () => {
     expect(implicit.setRetentionPolicy).toBe(false)
   })
 
+  // the service's CanUserPerform grants each of these to admins and implicit admins alike
+  test('implicit admins get every admin-or-implicit-admin team setting', () => {
+    const adminOrImplicit = [
+      'changeOpenTeam',
+      'changeTarsDisabled',
+      'editTeamDescription',
+      'manageBots',
+      'manageMembers',
+      'manageSubteams',
+      'setPublicityAny',
+      'setTeamShowcase',
+    ] as const
+    for (const role of ['none', 'reader', 'writer'] as const) {
+      const ops = deriveCanPerform(roleAndDetails(role, true))
+      for (const key of adminOrImplicit) {
+        expect([role, key, ops[key]]).toEqual([role, key, true])
+      }
+    }
+  })
+
   test('members never see joinTeam and only implicit admins rename the team', () => {
     for (const role of ['reader', 'writer', 'admin', 'owner'] as const) {
       const ops = deriveCanPerform(roleAndDetails(role, false))

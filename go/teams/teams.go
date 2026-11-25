@@ -139,7 +139,9 @@ func (t *Team) calculateAndCacheMemberCount(ctx context.Context) (int, error) {
 
 	}
 	count := len(memberUIDs) - len(members.Bots) - len(members.RestrictedBots)
-	t.G().TeamMemberCountCache.Set(t.ID, count)
+	// The app's teams list leaves out implicit teams (only the CLI lists them),
+	// so an implicit team's count change is not worth a teamMetadataUpdate.
+	t.G().TeamMemberCountCache.Set(t.ID, count, !t.IsImplicit())
 	return count, nil
 }
 
