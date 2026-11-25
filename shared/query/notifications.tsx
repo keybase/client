@@ -9,7 +9,7 @@ type Stale = {
   readonly rpc: Rpc
   /** only for a notice this accepts */
   readonly when?: (action: EngineGen.Actions) => boolean
-  /** for notices that keep coming: see refreshMethod */
+  /** for notices that keep coming, which then reload once per 5 debounces while they last: see refreshMethod */
   readonly debounceMs?: number
 }
 

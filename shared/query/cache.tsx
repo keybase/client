@@ -55,7 +55,7 @@ export type Entry = {
   // the last change notice counted for it, and when
   lastNotice: number
   lastNoticeAt: number
-  // when a notice last reloaded it: a reload is not held back past maxWaitMs after that
+  // when a notice last reloaded it (or queued a reload behind the load on the wire)
   noticeLoadAt: number
   noticeTimer?: ReturnType<typeof setTimeout>
   retryTimer?: ReturnType<typeof setTimeout>
@@ -146,6 +146,7 @@ const start = (e: Entry) => {
   const controller = new AbortController()
   clearTimeout(e.retryTimer)
   e.retryTimer = undefined
+  dropHeldNotice(e)
   e.inFlight = controller
   e.queued = false
   // cleared now, not when the answer lands: a notice that arrives meanwhile is about that answer
@@ -221,7 +222,7 @@ const stop = (e: Entry) => {
   controller?.abort()
 }
 
-// a reload starting now, or data that is gone, covers the notices a debounce was holding back
+// a load starting now, or data that is gone, covers the notices a debounce was holding back
 const dropHeldNotice = (e: Entry) => {
   clearTimeout(e.noticeTimer)
   e.noticeTimer = undefined
@@ -243,6 +244,7 @@ const clear = (e: Entry, forgotten = false) => {
   }
   e.loadedAt = 0
   e.failedAt = 0
+  e.lastNotice = 0
   e.lastNoticeAt = 0
   e.noticeLoadAt = 0
   e.stale = false
@@ -443,10 +445,10 @@ const currentNotice = () => {
 
 const refreshEntry = (e: Entry) => {
   dropHeldNotice(e)
-  e.noticeLoadAt = Date.now()
   if (!e.loaders) {
     return
   }
+  e.noticeLoadAt = Date.now()
   if (e.inFlight) {
     e.queued = true
   } else {
@@ -459,8 +461,9 @@ const refreshEntry = (e: Entry) => {
  * answer, so it finishes and one more follows it: a burst of notices costs at most two loads.
  * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry.
  * debounceMs is for notices that keep coming (one per message in a busy team): the first reloads
- * at once, and the rest reload once, debounceMs after the last of them, or maxWaitMs after the
- * reload before if they never stop.
+ * at once, and the rest reload once, debounceMs after the last of them, or maxWaitMs (never less
+ * than debounceMs) after the reload before if they never stop. Two notice reloads are never closer
+ * than debounceMs.
  */
 export const refreshMethod = (method: string, key?: string, debounceMs = 0, maxWaitMs = 5 * debounceMs) => {
   const notice = currentNotice()
@@ -471,7 +474,7 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0, maxW
     if (e.lastNotice === notice || e.snapshot.forgotten) continue
     e.lastNotice = notice
     e.stale = true
-    const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs
+    const quiet = !e.noticeTimer && now - Math.max(e.lastNoticeAt, e.noticeLoadAt) >= debounceMs
     e.lastNoticeAt = now
     if (!debounceMs || quiet) {
       refreshEntry(e)
@@ -480,7 +483,7 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0, maxW
     clearTimeout(e.noticeTimer)
     e.noticeTimer = setTimeout(
       () => refreshEntry(e),
-      Math.max(0, Math.min(debounceMs, e.noticeLoadAt + maxWaitMs - now))
+      Math.max(0, Math.min(debounceMs, e.noticeLoadAt + Math.max(debounceMs, maxWaitMs) - now))
     )
   }
 }
@@ -495,6 +498,8 @@ export const setEntryData = (e: Entry, next: (prev: unknown) => unknown) => {
     stop(e)
     e.stale = true
   }
+  // a refresh after this is about the new data, not the notice an earlier one in this turn counted
+  e.lastNotice = 0
   update(e, {data: next(e.snapshot.data), loading: false, settled: true})
 }
 

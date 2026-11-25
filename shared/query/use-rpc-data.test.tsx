@@ -768,8 +768,7 @@ const advance = async (ms: number) => {
 const useFreshDevices = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
 
 test('debounced notices that never stop still reload, every max wait', async () => {
-  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
-  try {
+  await fakeClock(async () => {
     fake.answer(listMethod, () => [device('laptop')])
     renderHook(useDevices)
     await flush()
@@ -779,46 +778,77 @@ test('debounced notices that never stop still reload, every max wait', async () 
     for (let i = 0; i < 10; i++) {
       act(() => refreshRpc(listRpc, 2000))
       await flush()
-      act(() => {
-        jest.advanceTimersByTime(1000)
-      })
-      await flush()
+      await advance(1000)
     }
     // the first at once, and the held ones a max wait (5 debounces) after it, at 10s
     expect(listCalls()).toBe(3)
-  } finally {
-    jest.useRealTimers()
-  }
+  })
 })
 
+// one notice reloads at once and a second is held, half a second later
+const holdANotice = async () => {
+  fake.answer(listMethod, () => [device('laptop')])
+  const hook = renderHook(useDevices)
+  await flush()
+  act(() => refreshRpc(listRpc, 2000))
+  await flush()
+  await advance(500)
+  act(() => refreshRpc(listRpc, 2000))
+  await flush()
+  expect(listCalls()).toBe(2)
+  return hook
+}
+
 test('a notice that reloads at once takes a held one with it', async () => {
-  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
-  try {
-    fake.answer(listMethod, () => [device('laptop')])
-    renderHook(useDevices)
-    await flush()
-    act(() => refreshRpc(listRpc, 2000))
-    await flush()
-    act(() => {
-      jest.advanceTimersByTime(500)
-    })
-    act(() => refreshRpc(listRpc, 2000))
-    await flush()
-    expect(listCalls()).toBe(2)
-    act(() => {
-      jest.advanceTimersByTime(500)
-    })
+  await fakeClock(async () => {
+    await holdANotice()
+    await advance(500)
     act(() => refreshRpc(listRpc))
     await flush()
     expect(listCalls()).toBe(3)
+    await advance(10_000)
+    expect(listCalls()).toBe(3)
+  })
+})
+
+test('a reload by hand takes a held notice with it', async () => {
+  await fakeClock(async () => {
+    const {result} = await holdANotice()
+    act(() => result.current.reload())
+    await flush()
+    expect(listCalls()).toBe(3)
+    await advance(10_000)
+    expect(listCalls()).toBe(3)
+  })
+})
+
+test('a notice just after a held reload ran is held too', async () => {
+  await fakeClock(async () => {
+    await holdANotice()
+    await advance(2000)
+    expect(listCalls()).toBe(3)
+    // more than a debounce since the last notice, but not since the reload
+    await advance(50)
+    act(() => refreshRpc(listRpc, 2000))
+    await flush()
+    expect(listCalls()).toBe(3)
+    await advance(2000)
+    expect(listCalls()).toBe(4)
+  })
+})
+
+test('a refresh after the data was overwritten loads, in the turn of a held notice too', async () => {
+  await fakeClock(async () => {
+    const {result} = await holdANotice()
     act(() => {
-      jest.advanceTimersByTime(10_000)
+      refreshRpc(listRpc, 2000)
+      setRpcData(listRpc, undefined, () => undefined)
+      refreshRpc(listRpc)
     })
     await flush()
     expect(listCalls()).toBe(3)
-  } finally {
-    jest.useRealTimers()
-  }
+    expect(result.current.data).toEqual(['laptop'])
+  })
 })
 
 test('one debounced notice heard by several listeners is one load, with none trailing', async () => {
