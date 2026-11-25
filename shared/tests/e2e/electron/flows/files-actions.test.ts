@@ -7,6 +7,7 @@ import {test, expect, e2eMarker} from '@/tests/e2e/electron/helpers/fixtures'
 import {clickUnoccluded, openSelfConversation, rowByOrdinal, waitForRow} from '@/tests/e2e/electron/helpers/chat'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
 import {
+  clearFolderFilter,
   clickFresh,
   closeSecondTrackerPopups,
   filesRow,
@@ -20,6 +21,7 @@ import {
   pickFromRowMenu,
   refavoritePair,
   removeOwnKbfs,
+  rowInFolder,
   stampedEntry,
   newWorkFolder,
   workFolderWith,
@@ -150,9 +152,10 @@ test('ignore a folder', async ({page}, testInfo) => {
   await withCleanup(
     async () => {
       await openKbfsFolder(page, '/keybase/private')
-      await expect(filesRow(page, pairName()), 'the smoke+second row').toHaveCount(1, {timeout: 20_000})
+      await rowInFolder(page, pairName(), 'the smoke+second row')
       ignored = true
       await pickFromRowMenu(page, pairName(), 'Ignore this folder')
+      await clearFolderFilter(page)
       await expect.poll(pairFavoriteState, {message: 'the folder from the service', timeout: 20_000}).toEqual({favorite: false, ignored: true})
       await expect(filesRow(page, pairName()), 'the ignored row').toHaveCount(0, {timeout: 20_000})
       await step(page, testInfo, 'ignored', {card: true})
@@ -163,7 +166,7 @@ test('ignore a folder', async ({page}, testInfo) => {
         await refavoritePair()
         await reloadKeepingCoverage(page)
         await openKbfsFolder(page, '/keybase/private')
-        await expect(filesRow(page, pairName()), 'the smoke+second row after favoriteAdd').toHaveCount(1, {timeout: 20_000})
+        await rowInFolder(page, pairName(), 'the smoke+second row after favoriteAdd')
       },
       async () => closeSecondTrackerPopups(page),
     ]
