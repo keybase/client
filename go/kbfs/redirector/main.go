@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 //
-//go:build !windows
+//go:build !windows && !darwin
 
 package main
 
@@ -27,13 +27,6 @@ import (
 	"github.com/keybase/client/go/utils"
 	"github.com/keybase/gomounts"
 )
-
-var kbfusePath = fuse.OSXFUSEPaths{
-	DevicePrefix: "/dev/kbfuse",
-	Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
-	Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
-	DaemonVar:    "_FUSE_DAEMON_PATH",
-}
 
 const (
 	mountpointTimeout = 5 * time.Second
@@ -179,13 +172,9 @@ func (r *root) findKBFSMount(ctx context.Context) (
 	if err != nil {
 		return "", err
 	}
-	fuseType := "fuse"
-	if runtime.GOOS == "darwin" {
-		fuseType = "kbfuse"
-	}
 	var fuseMountPoints []string
 	for _, v := range vols {
-		if v.Type != fuseType {
+		if v.Type != "fuse" {
 			continue
 		}
 		if v.Owner != u.Uid {
@@ -367,14 +356,7 @@ func main() {
 	options := []fuse.MountOption{fuse.AllowOther()}
 	options = append(options, fuse.FSName("keybase-redirector"))
 	options = append(options, fuse.ReadOnly())
-	switch runtime.GOOS {
-	case "darwin":
-		options = append(options, fuse.OSXFUSELocations(kbfusePath))
-		options = append(options, fuse.VolumeName("keybase"))
-		options = append(options, fuse.NoBrowse())
-		// Without NoLocalCaches(), OSX will cache symlinks for a long time.
-		options = append(options, fuse.NoLocalCaches())
-	case "linux":
+	if runtime.GOOS == "linux" {
 		err := disableDumpable()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to prctl: %v", err)

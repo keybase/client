@@ -58,15 +58,20 @@ func (h *KBFSMountHandler) WaitForMounts(ctx context.Context) (active bool, err 
 				// error too. So just wait it out.
 			}
 			if !preferredMountFound {
-				if len(libkb.FindPreferredKBFSMountDirs()) > 0 {
-					preferredMountFound = true
-				}
+				preferredMountFound = preferredMountSatisfied(
+					libkb.HasPreferredKBFSMountDirs(), libkb.FindPreferredKBFSMountDirs())
 			}
 		case <-ctx.Done():
 			return false, nil
 		}
 	}
 	return true, nil
+}
+
+// preferredMountSatisfied returns true once a preferred mount dir is found, or
+// right away on platforms that have none.
+func preferredMountSatisfied(platformHasPreferredDirs bool, found []string) bool {
+	return !platformHasPreferredDirs || len(found) > 0
 }
 
 func (h *KBFSMountHandler) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
