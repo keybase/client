@@ -22,6 +22,7 @@ const subscriptionDeduplicateIntervalSecond = 1
 
 const makeEmptyUploads = (): T.FS.Uploads => ({
   endEstimate: undefined,
+  syncingFilePaths: [],
   syncingPaths: new Set(),
   totalSyncingBytes: 0,
   writingToJournal: new Map(),
@@ -115,6 +116,7 @@ const loadUploadStatusImpl = async (
 
 type JournalUpdate = (
   syncingPaths: ReadonlyArray<T.FS.Path>,
+  syncingFilePaths: ReadonlyArray<T.FS.Path>,
   totalSyncingBytes: number,
   endEstimate?: number
 ) => void
@@ -125,13 +127,20 @@ const loadJournalStatusImpl = async (
   onError: () => void
 ) => {
   try {
-    const {syncingPaths, totalSyncingBytes, endEstimate} = await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
-      filter: T.RPCGen.ListFilter.filterSystemHidden,
-    })
+    const {syncingPaths, syncingFilePaths, totalSyncingBytes, endEstimate} =
+      await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
+        filter: T.RPCGen.ListFilter.filterSystemHidden,
+      })
     if (!isCurrentGeneration()) {
       return
     }
-    journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
+    journalUpdate(
+      (syncingPaths || []).map(T.FS.stringToPath),
+      // A service that predates syncingFilePaths leaves it out; it always sends a list otherwise
+      (syncingFilePaths ?? syncingPaths ?? []).map(T.FS.stringToPath),
+      totalSyncingBytes,
+      endEstimate ?? undefined
+    )
     useNotifState.getState().dispatch.badgeApp('kbfsUploading', totalSyncingBytes > 0 || !!syncingPaths?.length)
   } catch {
     if (!isCurrentGeneration()) {
@@ -239,13 +248,21 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   })
 
   const journalUpdate = React.useEffectEvent(
-    (syncingPaths: ReadonlyArray<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => {
+    (
+      syncingPaths: ReadonlyArray<T.FS.Path>,
+      syncingFilePaths: ReadonlyArray<T.FS.Path>,
+      totalSyncingBytes: number,
+      endEstimate?: number
+    ) => {
       setFsStatusState(s => {
         const currentState = getStatusStateForCurrentGeneration(s)
         return C.produce(currentState, draft => {
           const sp = new Set(syncingPaths)
           if (!isEqual(sp, currentState.uploads.syncingPaths)) {
             draft.uploads.syncingPaths = T.castDraft(sp)
+          }
+          if (!isEqual(syncingFilePaths, currentState.uploads.syncingFilePaths)) {
+            draft.uploads.syncingFilePaths = T.castDraft(syncingFilePaths)
           }
           draft.uploads.totalSyncingBytes = totalSyncingBytes
           draft.uploads.endEstimate = endEstimate

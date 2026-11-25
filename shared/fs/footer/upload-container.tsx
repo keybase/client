@@ -2,14 +2,11 @@ import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import {useFsUploadStatus, useKbfsDaemonStatus} from '../common'
-import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
 const UploadContainer = () => {
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
-
-  // Filter out folder paths.
-  const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
+  const filePaths = uploads.syncingFilePaths
 
   const np = useUploadCountdown({
     endEstimate: uploads.endEstimate || 0,

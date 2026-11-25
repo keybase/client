@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -28,6 +29,8 @@ const (
 )
 
 type (
+	// unflushedPathsPerRevMap maps each path to whether it is known to
+	// be a file as of the revision.
 	unflushedPathsPerRevMap map[string]bool
 	unflushedPathsMap       map[kbfsmd.Revision]unflushedPathsPerRevMap
 )
@@ -226,17 +229,43 @@ func addUnflushedPaths(ctx context.Context,
 			// paths.
 			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().
 				CanonicalPathPlaintext()
+			isFile := unflushedChainIsFile(chain, cpp)
 			for _, op := range chain.ops {
 				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
 				if !ok {
 					panic(fmt.Sprintf("No rev map for revision %d",
 						op.getWriterInfo().revision))
 				}
-				revPaths[finalPath] = true
+				revPaths[finalPath] = revPaths[finalPath] || isFile
 			}
 		}
 	}
 	return nil
+}
+
+// unflushedChainIsFile reports whether the chain is known to be a
+// file, without fetching any blocks: sync ops and non-mtime setAttr
+// ops live in a file's chain, while create and rm ops live in the
+// parent directory's chain. An mtime setAttr can apply to either
+// type and leaves the node's pointer unchanged, so a chain with only
+// those is looked up in the node cache; if the node isn't cached, the
+// chain is not reported as a file: rsync -a and cp -p touch folders far
+// more often than a touch alone changes a file.
+func unflushedChainIsFile(chain *crChain, cpp chainsPathPopulator) bool {
+	for _, op := range chain.ops {
+		switch realOp := op.(type) {
+		case *syncOp:
+			return true
+		case *setAttrOp:
+			if realOp.Attr != mtimeAttr {
+				return true
+			}
+		default:
+			return false
+		}
+	}
+	et, ok := cpp.cachedEntryType(chain.mostRecent)
+	return ok && et != data.Dir
 }
 
 // prepUnflushedPaths returns a set of paths that were updated in the

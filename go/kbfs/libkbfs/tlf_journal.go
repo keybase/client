@@ -126,14 +126,18 @@ type TLFJournalStatus struct {
 	// The byte counters below are signed because
 	// os.FileInfo.Size() is signed. The file counter is signed
 	// for consistency.
-	StoredBytes     int64
-	StoredFiles     int64
-	UnflushedBytes  int64
-	UnflushedPaths  []string
-	EndEstimate     *time.Time
-	QuotaUsedBytes  int64
-	QuotaLimitBytes int64
-	LastFlushErr    string `json:",omitempty"`
+	StoredBytes    int64
+	StoredFiles    int64
+	UnflushedBytes int64
+	UnflushedPaths []string
+	// UnflushedFilePaths are the UnflushedPaths known to be
+	// files. Left out of the JSON so `.kbfs_status` keeps its plain
+	// path list.
+	UnflushedFilePaths []string `json:"-"`
+	EndEstimate        *time.Time
+	QuotaUsedBytes     int64
+	QuotaLimitBytes    int64
+	LastFlushErr       string `json:",omitempty"`
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -1944,13 +1948,21 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			"trying again to get the status")
 	}
 
-	pathsSeen := make(map[string]bool)
+	// A path is a file if any revision shows it is one; another
+	// revision may only touch its mtime, which can't tell.
+	pathIsFile := make(map[string]bool)
 	for _, revPaths := range unflushedPaths {
-		for path := range revPaths {
-			if !pathsSeen[path] {
+		for path, isFile := range revPaths {
+			prevIsFile, seen := pathIsFile[path]
+			if !seen {
 				jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, path)
-				pathsSeen[path] = true
 			}
+			pathIsFile[path] = prevIsFile || isFile
+		}
+	}
+	for _, path := range jStatus.UnflushedPaths {
+		if pathIsFile[path] {
+			jStatus.UnflushedFilePaths = append(jStatus.UnflushedFilePaths, path)
 		}
 	}
 

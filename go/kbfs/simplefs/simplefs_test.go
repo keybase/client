@@ -1819,6 +1819,146 @@ func TestBadgeState(t *testing.T) {
 	jManager.ResumeBackgroundWork(ctx, tlfID)
 }
 
+func newSyncStatusTestFS(ctx context.Context, t *testing.T) (
+	*SimpleFS, *libkbfs.ConfigLocal, *libkbfs.JournalManager, *libfs.FS,
+) {
+	tempdir, err := os.MkdirTemp(TempDirBase, "journal_for_simplefs_sync_status")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(tempdir) })
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	t.Cleanup(func() { closeSimpleFS(ctx, t, sfs) })
+	config := sfs.config.(*libkbfs.ConfigLocal)
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := libkbfs.GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	opCtx, err := sfs.startOpWrapContext(ctx)
+	require.NoError(t, err)
+	remoteFS, _, err := sfs.getFS(
+		opCtx, keybase1.NewPathWithKbfsPath(`/private/jdoe`))
+	require.NoError(t, err)
+	return sfs, config, jManager, remoteFS.(*libfs.FS)
+}
+
+// The sync status lists every unflushed path, folders included, in sorted
+// order; its file list keeps only the paths known to be files.
+func TestSyncStatusFilePaths(t *testing.T) {
+	ctx := context.Background()
+	sfs, config, jManager, fs := newSyncStatusTestFS(ctx, t)
+	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+
+	err := fs.MkdirAll("a", 0o755)
+	require.NoError(t, err)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/old.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	_, tlfIDs := jManager.Status(ctx)
+	require.Len(t, tlfIDs, 1)
+	tlfID := tlfIDs[0]
+	err = jManager.Wait(ctx, tlfID)
+	require.NoError(t, err)
+
+	checkStatus := func(paths, filePaths []string) {
+		t.Helper()
+		status, err := sfs.SimpleFSSyncStatus(ctx, keybase1.ListFilter_NO_FILTER)
+		require.NoError(t, err)
+		require.Equal(t, paths, status.SyncingPaths)
+		require.Equal(t, filePaths, status.SyncingFilePaths)
+	}
+	flush := func() {
+		t.Helper()
+		jManager.ResumeBackgroundWork(ctx, tlfID)
+		err := jManager.Wait(ctx, tlfID)
+		require.NoError(t, err)
+		checkStatus(nil, []string{})
+	}
+
+	t.Log("A new file lists its parent folder, which the file list drops")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/new.txt`), []byte(`bar`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/new.txt"},
+		[]string{"/keybase/private/jdoe/a/new.txt"})
+
+	t.Log("The .kbfs_status JSON keeps its plain path list")
+	folderStatus, _, err := config.KBFSOps().FolderStatus(
+		ctx, data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
+	require.NoError(t, err)
+	require.NotNil(t, folderStatus.Journal)
+	statusJSON, err := json.Marshal(folderStatus.Journal)
+	require.NoError(t, err)
+	var statusFields map[string]any
+	err = json.Unmarshal(statusJSON, &statusFields)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []any{
+		"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/new.txt",
+	}, statusFields["UnflushedPaths"])
+	require.NotContains(t, statusFields, "UnflushedFilePaths")
+	flush()
+
+	t.Log("A rename and a delete only touch the parent folder")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	err = fs.Rename("a/old.txt", "a/renamed.txt")
+	require.NoError(t, err)
+	err = fs.Remove("a/new.txt")
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus([]string{"/keybase/private/jdoe/a"}, []string{})
+	flush()
+
+	t.Log("An mtime change alone takes the type from the cached node, " +
+		"so a touched folder (rsync -a, cp -p) is not a file")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	mtime := time.Now().Add(-time.Hour)
+	err = fs.Chtimes("a/renamed.txt", mtime, mtime)
+	require.NoError(t, err)
+	err = fs.Chtimes("a", mtime, mtime)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/renamed.txt"},
+		[]string{"/keybase/private/jdoe/a/renamed.txt"})
+	flush()
+
+	t.Log("Paths come back sorted")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	for _, name := range []string{"z.txt", "m.txt", "b.txt", "y.txt", "c.txt"} {
+		writeRemoteFile(ctx, t, sfs, pathAppend(pathPriv, name), []byte(name))
+		syncFS(ctx, t, sfs, "/private/jdoe")
+	}
+	sorted := []string{
+		"/keybase/private/jdoe", "/keybase/private/jdoe/b.txt",
+		"/keybase/private/jdoe/c.txt", "/keybase/private/jdoe/m.txt",
+		"/keybase/private/jdoe/y.txt", "/keybase/private/jdoe/z.txt",
+	}
+	checkStatus(sorted, sorted[1:])
+	flush()
+
+	t.Log("A folder whose later revision only changes its mtime is still " +
+		"not listed as a file")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `a/later.txt`), []byte(`baz`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	err = fs.Chtimes("a", mtime, mtime)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	checkStatus(
+		[]string{"/keybase/private/jdoe/a", "/keybase/private/jdoe/a/later.txt"},
+		[]string{"/keybase/private/jdoe/a/later.txt"})
+	flush()
+}
+
 func TestProfiles(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(

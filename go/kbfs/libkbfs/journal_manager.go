@@ -92,14 +92,18 @@ type JournalManagerStatus struct {
 	// The byte counters below are signed because
 	// os.FileInfo.Size() is signed. The file counter is signed
 	// for consistency.
-	StoredBytes       int64
-	StoredFiles       int64
-	UnflushedBytes    int64
-	UnflushedPaths    []string
-	EndEstimate       *time.Time
-	DiskLimiterStatus any
-	Conflicts         []ConflictJournalRecord `json:",omitempty"`
-	ClearedConflicts  []ConflictJournalRecord `json:",omitempty"`
+	StoredBytes    int64
+	StoredFiles    int64
+	UnflushedBytes int64
+	UnflushedPaths []string
+	// UnflushedFilePaths are the UnflushedPaths known to be
+	// files. Left out of the JSON so `.kbfs_status` keeps its plain
+	// path list.
+	UnflushedFilePaths []string `json:"-"`
+	EndEstimate        *time.Time
+	DiskLimiterStatus  any
+	Conflicts          []ConflictJournalRecord `json:",omitempty"`
+	ClearedConflicts   []ConflictJournalRecord `json:",omitempty"`
 }
 
 // branchChangeListener describes a caller that will get updates via

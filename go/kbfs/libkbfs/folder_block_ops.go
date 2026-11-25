@@ -4056,6 +4056,7 @@ func (fbo *folderBlockOps) MarkNode(
 type chainsPathPopulator interface {
 	populateChainPaths(context.Context, logger.Logger, *crChains, bool) error
 	obfuscatorMaker() func() data.Obfuscator
+	cachedEntryType(ptr data.BlockPointer) (data.EntryType, bool)
 }
 
 // populateChainPaths updates all the paths in all the ops tracked by
@@ -4071,6 +4072,22 @@ func (fbo *folderBlockOps) populateChainPaths(ctx context.Context,
 
 func (fbo *folderBlockOps) obfuscatorMaker() func() data.Obfuscator {
 	return fbo.nodeCache.ObfuscatorMaker()
+}
+
+// cachedEntryType returns the type of the node cached for `ptr`, if
+// any, without fetching blocks.
+func (fbo *folderBlockOps) cachedEntryType(ptr data.BlockPointer) (
+	data.EntryType, bool,
+) {
+	// the node cache panics on an invalid ref, and is nil when disabled
+	if fbo.nodeCache == nil || !ptr.Ref().IsValid() {
+		return 0, false
+	}
+	n := fbo.nodeCache.Get(ptr.Ref())
+	if n == nil {
+		return 0, false
+	}
+	return n.EntryType(), true
 }
 
 var _ chainsPathPopulator = (*folderBlockOps)(nil)

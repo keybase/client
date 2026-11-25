@@ -2565,16 +2565,22 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 		return keybase1.FSSyncStatus{}, nil
 	}
 
+	keep := func(p string) bool {
+		return filter == keybase1.ListFilter_NO_FILTER ||
+			!isFiltered(filter, stdpath.Base(p))
+	}
 	var syncingPaths []string
-	if filter == keybase1.ListFilter_NO_FILTER {
-		syncingPaths = status.UnflushedPaths
-	} else {
-		for _, p := range status.UnflushedPaths {
-
-			if isFiltered(filter, stdpath.Base(p)) {
-				continue
-			}
+	// Never nil: the GUI reads a missing list as an older service that
+	// doesn't send one.
+	syncingFilePaths := []string{}
+	for _, p := range status.UnflushedPaths {
+		if keep(p) {
 			syncingPaths = append(syncingPaths, p)
+		}
+	}
+	for _, p := range status.UnflushedFilePaths {
+		if keep(p) {
+			syncingFilePaths = append(syncingFilePaths, p)
 		}
 	}
 
@@ -2583,6 +2589,7 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 	return keybase1.FSSyncStatus{
 		TotalSyncingBytes: status.UnflushedBytes,
 		SyncingPaths:      syncingPaths,
+		SyncingFilePaths:  syncingFilePaths,
 		EndEstimate:       keybase1.ToTimePtr(status.EndEstimate),
 	}, nil
 }

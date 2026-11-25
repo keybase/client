@@ -228,6 +228,13 @@
           "name": "syncingPaths"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncingFilePaths"
+        },
+        {
           "type": [
             null,
             "Time"

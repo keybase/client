@@ -10,6 +10,7 @@ import {_onEngineIncoming} from '@/constants/init/shared'
 import {resetAllStores} from '@/util/zustand'
 import {clientID} from './client'
 import {FsStatusProvider, useFsUploadStatus} from './status'
+import UploadContainer from '../footer/upload-container'
 
 const syncStatus = 'keybase.1.SimpleFS.simpleFSSyncStatus'
 
@@ -109,4 +110,53 @@ test('notifications during a slow read coalesce into one more read', async () =>
   await flush()
   screen.getByText('0 paths, 0 bytes')
   expect(held).toHaveLength(2)
+})
+
+const renderUploadFooter = async () => {
+  render(
+    <FsStatusProvider>
+      <UploadContainer />
+    </FsStatusProvider>
+  )
+  await flush()
+}
+
+// The service leaves folders out of syncingFilePaths, so a new file in a folder reads as one file.
+test('the upload footer counts the files the service reports, not the folders', async () => {
+  journal = {
+    endEstimate: Date.now() + 5000,
+    syncingFilePaths: ['/keybase/private/testuser/dir/a.pdf', '/keybase/private/testuser/dir/b.pdf'],
+    syncingPaths: [
+      '/keybase/private/testuser/dir',
+      '/keybase/private/testuser/dir/a.pdf',
+      '/keybase/private/testuser/dir/b.pdf',
+    ],
+    totalSyncingBytes: 585,
+  }
+  await renderUploadFooter()
+
+  screen.getByText('Encrypting and updating 2 items...')
+})
+
+test('a service that sends no file list counts every syncing path', async () => {
+  journal = {
+    endEstimate: Date.now() + 5000,
+    syncingPaths: ['/keybase/private/testuser/dir', '/keybase/private/testuser/dir/a.pdf'],
+    totalSyncingBytes: 585,
+  }
+  await renderUploadFooter()
+
+  screen.getByText('Encrypting and updating 2 items...')
+})
+
+test('an empty file list counts no files even while folders sync', async () => {
+  journal = {
+    endEstimate: Date.now() + 5000,
+    syncingFilePaths: [],
+    syncingPaths: ['/keybase/private/testuser/dir'],
+    totalSyncingBytes: 585,
+  }
+  await renderUploadFooter()
+
+  screen.getByText('Encrypting and updating items...')
 })

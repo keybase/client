@@ -100,6 +100,8 @@ protocol kbfsCommon {
   record FSSyncStatus {
     int64 totalSyncingBytes;
     array<string> syncingPaths;
+    // The syncingPaths known to be files, sorted like syncingPaths.
+    array<string> syncingFilePaths;
     union { null, Time} endEstimate;
   }
 
