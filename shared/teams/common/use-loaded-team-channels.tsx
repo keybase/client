@@ -3,10 +3,9 @@ import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import * as React from 'react'
-import {registerExternalResetter} from '@/util/zustand'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {makeTeamReloadDebouncer, subscribeTeamChanged, teamGone} from '../use-team-changed'
-import {forgetLoad, markLoadStale, refreshLoad, unforgetLoad, useLoadData} from '@/query'
+import {subscribeTeamChanged, teamGone, teamReloadDebounceMs} from '../use-team-changed'
+import {forgetLoad, markLoadStale, refreshLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -54,25 +53,13 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // entries when only some did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
-// Teams whose channels this session loaded: the only ones a notice has anything to reload
-const loadedTeams = new Set<T.Teams.TeamID>()
-const teamChannelsChangedDebouncer = makeTeamReloadDebouncer(teamID =>
-  refreshLoad(loadedTeamChannelsLoad, teamID)
-)
-
-// module scope outlives sign-out and this is per-user team data
-registerExternalResetter('loaded-team-channels', () => {
-  teamChannelsChangedDebouncer.cancelAll()
-  loadedTeams.clear()
-})
-
-// Reload a team's channel list wherever it is shown, and mark it stale where it is not, coalescing
-// a burst (a bulk create or delete sends one notice per channel). A team whose channels were never
-// loaded has nothing to reload, so it schedules nothing.
+// Reload a team's channel list wherever it is shown, and mark it stale where it is not. The cache
+// debounces a burst (a bulk create or delete sends one notice per channel). A team whose channels
+// were never loaded has no entry, so nothing happens for it.
 export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
-  if (key && loadedTeams.has(key)) {
-    teamChannelsChangedDebouncer.schedule(key)
+  if (key) {
+    refreshLoad(loadedTeamChannelsLoad, key, teamReloadDebounceMs)
   }
 }
 
@@ -83,18 +70,16 @@ export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
 // team left and rejoined.
 subscribeTeamChanged('loaded-team-channels', (kinds, teamID) => {
   const key = loadableTeamID(teamID)
-  if (!key || !loadedTeams.has(key)) {
+  if (!key) {
     return
   }
   if (teamGone(kinds)) {
-    teamChannelsChangedDebouncer.cancel(key)
     forgetLoad(loadedTeamChannelsLoad, key)
     return
   }
   if (kinds.membership) {
-    unforgetLoad(loadedTeamChannelsLoad, key)
-  }
-  if (kinds.channels || kinds.membership) {
+    reviveLoad(loadedTeamChannelsLoad, key, teamReloadDebounceMs)
+  } else if (kinds.channels) {
     invalidateTeamChannels(key)
   }
   if (kinds.renamed) {
@@ -130,7 +115,6 @@ const useLoadedTeamChannelsRaw = (
     loadedTeamChannelsLoad,
     teamIDToLoad,
     async (signal): Promise<LoadedTeamChannelsData> => {
-      loadedTeams.add(teamIDToLoad)
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         teamChannelsRPCParams(teamnameToLoad),
         C.waitingKeyTeamsGetChannels(teamIDToLoad),

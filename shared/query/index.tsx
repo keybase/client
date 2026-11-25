@@ -6,7 +6,6 @@ export {
   refreshLoad,
   refreshRpc,
   reviveLoad,
-  unforgetLoad,
   setRpcData,
   useCachedRpcData,
   useLoadData,
