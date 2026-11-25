@@ -7,7 +7,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   getCurrentUser,
-  getExplodingModeFromGregorItems,
+  getExplodingModeFromPrefs,
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
 } from './thread-load'
@@ -293,16 +293,8 @@ export const useThreadEngineListeners = (
   })
   // gregor is not a chat notification; it reaches every listener on the engine bus, and a thread
   // whose account has left ignores it like everything else
-  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
-    const items = (action.payload.params.state.items ?? []).reduce<
-      Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
-    >((arr, {md, item}) => {
-      if (md && item) {
-        arr.push({item, md})
-      }
-      return arr
-    }, [])
-    const seconds = getExplodingModeFromGregorItems(id, items)
+  useEngineActionListener('keybase.1.gregorUI.pushUIPrefs', action => {
+    const seconds = getExplodingModeFromPrefs(id, action.payload.params.prefs)
     if (seconds !== undefined) {
       threadActions.setExplodingMode(seconds, true)
     }

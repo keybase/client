@@ -232,6 +232,8 @@ describe('the run ends on what the daemon says', () => {
     daemonLoggedIn = false
     uninstallFakeEngine()
     fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    // the app reads the gregor UI prefs once it knows the signed-in account
+    fake.answer('keybase.1.gregor.getUIPrefs', () => ({allowAnimatedEmojis: false, blockButtonsAdders: {}, chosenChannelsTeamnames: [], explodingModes: {}, pinnedConvs: [], teamAccessRequests: {}, unreadableExplodingModes: []}))
     fake.answer('keybase.1.config.getBootstrapStatus', () => status(daemonLoggedIn))
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
     initSharedSubscriptions()

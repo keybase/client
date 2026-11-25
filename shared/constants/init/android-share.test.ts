@@ -154,10 +154,10 @@ test('a share is opened once: it is shown while its route is in the state', asyn
 test('a share navigated to is not navigated to again before its state is reported', async () => {
   ready()
   hold(1)
-  useConfigState.setState(s => ({allowAnimatedEmojis: !s.allowAnimatedEmojis}))
+  useConfigState.setState(s => ({windowShownCount: new Map(s.windowShownCount)}))
   expect(opened()).toEqual([1])
   await renders()
-  useConfigState.setState(s => ({allowAnimatedEmojis: !s.allowAnimatedEmojis}))
+  useConfigState.setState(s => ({windowShownCount: new Map(s.windowShownCount)}))
   expect(opened()).toEqual([1])
 })
 

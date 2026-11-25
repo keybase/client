@@ -22,7 +22,6 @@ import { ignorePromise, timeoutPromise } from "../utils";
 import { isPhone, serverConfigFileName } from "../platform";
 import { useAvatarState } from "@/common-adapters/avatar/store";
 import { useInboxLayoutState } from "@/chat/inbox/layout-state";
-import { getPinnedConvIDs } from "@/chat/inbox/pinned-convs";
 import { useConfigState } from "@/stores/config";
 import { useCurrentUserState } from "@/stores/current-user";
 import {
@@ -202,22 +201,6 @@ const scheduleStartupOrReloginWork = () => {
     });
   };
   ignorePromise(f());
-};
-
-// Go reads pins from gregor while building the inbox layout, but gregor state only exists once
-// the service connects, and items that arrive in the connect-time sync don't reach the in-band
-// handlers. The GUI gets the synced state pushed afterwards, so rebuild when the pins in it change.
-const onGregorPushStateChanged = (
-  pushState: ConfigState["gregorPushState"],
-  previous: ConfigState["gregorPushState"],
-) => {
-  if (!useConfigState.getState().loggedIn) return;
-  if (isEqual(getPinnedConvIDs(pushState), getPinnedConvIDs(previous))) return;
-  ignorePromise(
-    T.RPCChat.localRequestInboxLayoutRpcPromise({
-      reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
-    }),
-  );
 };
 
 // After an offline stretch, reread the session to pick up what the service learned while we could
@@ -560,12 +543,8 @@ export const initSharedSubscriptions = (
   for (const unsub of _sharedUnsubs) unsub();
   _sharedUnsubs.length = 0;
   _sharedUnsubs.push(
-    subscribeValue(
-      useConfigState,
-      (s) => s.gregorPushState,
-      onGregorPushStateChanged,
-    ),
     subscribeValue(useConfigState, (s) => s.loggedIn, onLoggedInChanged),
+    subscribeValue(useCurrentUserState, (s) => s.uid, onCurrentUIDChanged),
     subscribeValue(
       useConfigState,
       (s) => s.revokedTrigger,
@@ -605,10 +584,50 @@ export const initSharedSubscriptions = (
   );
 };
 
+// A push read before a logout can land after it, so prefs apply only to the signed-in account;
+// prefs pushed before the app knows the account are read again once it does.
+const isUIPrefsForAnotherAccount = (
+  action: EngineGen.Actions,
+  currentUID: string,
+) =>
+  action.type === "keybase.1.gregorUI.pushUIPrefs" &&
+  (!currentUID || action.payload.params.uid !== currentUID);
+
+// Counts the prefs pushes applied, so a read that one overtook is not applied over it: the service
+// sends a push only when the prefs change, so it would not send the newer ones again.
+let uiPrefsPushesApplied = 0;
+
+const onCurrentUIDChanged = (uid: string) => {
+  if (!uid) {
+    return;
+  }
+  const f = async () => {
+    try {
+      const pushesBefore = uiPrefsPushesApplied;
+      const prefs = await T.RPCGen.gregorGetUIPrefsRpcPromise();
+      if (
+        useCurrentUserState.getState().uid !== uid ||
+        uiPrefsPushesApplied !== pushesBefore
+      ) {
+        return;
+      }
+      _onEngineIncoming({
+        payload: { params: { prefs, uid } },
+        type: "keybase.1.gregorUI.pushUIPrefs",
+      });
+    } catch (error) {
+      logger.warn("reading the gregor UI prefs failed:", error);
+    }
+  };
+  ignorePromise(f());
+};
+
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
+  const currentUID = useCurrentUserState.getState().uid;
   if (
-    isChatNotificationNotForSignedInAccount(action, useCurrentUserState.getState().uid)
+    isChatNotificationNotForSignedInAccount(action, currentUID) ||
+    isUIPrefsForAnotherAccount(action, currentUID)
   ) {
     return;
   }
@@ -628,24 +647,10 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useNotifState.getState().dispatch.onEngineIncomingImpl(action);
       }
       break;
-    case "keybase.1.gregorUI.pushState": {
-      const { state } = action.payload.params;
-      const items = state.items || [];
-      const goodState = items.reduce<
-        Array<{ md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item }>
-      >((arr, { md, item }) => {
-        if (md && item) {
-          arr.push({ item, md });
-        }
-        return arr;
-      }, []);
-      if (goodState.length !== items.length) {
-        logger.warn("Lost some messages in filtering out nonNull gregor items");
-      }
-      useBlockButtonsState
-        .getState()
-        .dispatch.updateFromGregorItems(state.items);
-
+    case "keybase.1.gregorUI.pushUIPrefs": {
+      uiPrefsPushesApplied++;
+      const { prefs } = action.payload.params;
+      useBlockButtonsState.getState().dispatch.updateFromPrefs(prefs);
       useNotifState.getState().dispatch.onEngineIncomingImpl(action);
       break;
     }

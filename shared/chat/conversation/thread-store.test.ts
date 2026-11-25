@@ -138,9 +138,7 @@ describe('a new store', () => {
 
   test('takes its exploding mode from gregor for its own conversation', () => {
     useConfigState.setState({
-      gregorPushState: [
-        {item: {body: new TextEncoder().encode('86400'), category: `exploding:${convA}`}},
-      ] as unknown as ReturnType<typeof useConfigState.getState>['gregorPushState'],
+      gregorUIPrefs: {allowAnimatedEmojis: true, explodingModes: {[convA]: 86400}},
     })
     expect(makeThread(convA).store.getState().explodingMode).toBe(86400)
     expect(makeThread(convB).store.getState().explodingMode).toBe(0)

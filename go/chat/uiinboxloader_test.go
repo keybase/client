@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 	"testing"
@@ -590,4 +591,33 @@ func TestUIInboxLoaderStopRejectsUnbox(t *testing.T) {
 	defer func() { <-loader.Stop(ctx) }()
 	require.True(t, loader.uid.Eq(uidB))
 	require.False(t, loader.uid.Eq(uidA))
+}
+
+// Only a layout already sent to the UI is rebuilt: with none there is nothing to correct, and the
+// first one reads the state current when it is built.
+func TestUIInboxLoaderUpdateShownLayout(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestUIInboxLoaderUpdateShownLayout", 1)
+	defer tc.Cleanup()
+	chatG := &globals.ChatContext{}
+	chatG.MarkChatReady()
+	loader := NewUIInboxLoader(globals.NewContext(tc.G, chatG))
+	ctx := context.TODO()
+	reselect := chat1.InboxLayoutReselectMode_DEFAULT
+
+	loader.setLastLayout(&chat1.UIInboxLayout{})
+	require.False(t, loader.UpdateShownLayout(ctx, reselect, "not started"))
+
+	// started without its loops, so the queued request stays where the test can see it
+	loader.started = true
+	loader.uid = gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+	loader.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1)
+	loader.setLastLayout(nil)
+	require.False(t, loader.UpdateShownLayout(ctx, reselect, "nothing shown"))
+	require.Empty(t, loader.layoutCh)
+
+	loader.setLastLayout(&chat1.UIInboxLayout{})
+	require.True(t, loader.UpdateShownLayout(ctx, reselect, "shown"))
+	require.Len(t, loader.layoutCh, 1)
+	// a full queue already holds a rebuild that will read the current state
+	require.True(t, loader.UpdateShownLayout(ctx, reselect, "queue full"))
 }

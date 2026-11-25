@@ -193,7 +193,7 @@ describe('a call that outlives its account', () => {
     // What the old delegateUiCtl./notifyCtl. prefixes matched among the calls the GUI makes
     const prefixed = [
       'keybase.1.delegateUiCtl.registerChatUI',
-      'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+      'keybase.1.delegateUiCtl.registerGregorUIPrefs',
       'keybase.1.delegateUiCtl.registerHomeUI',
       'keybase.1.delegateUiCtl.registerIdentify3UI',
       'keybase.1.delegateUiCtl.registerLogUI',

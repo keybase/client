@@ -1,4 +1,3 @@
-import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as Strings from '@/constants/strings'
@@ -7,7 +6,6 @@ import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import {persistRoute} from '@/util/storeless-actions'
-import {uint8ArrayToString} from '@/util/uint8array'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {type ThreadLoadReconcile, getOrdinalForMessageID} from './thread-message-state'
@@ -47,32 +45,18 @@ export const getCurrentUser = () => {
   return {devicename: s.deviceName, username: s.username}
 }
 
-export const getExplodingModeFromGregorItems = (
+// undefined when the service couldn't read this conversation's stored mode, so an open thread
+// keeps the mode it has
+export const getExplodingModeFromPrefs = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  items: ReadonlyArray<{item: T.RPCGen.Gregor1.Item}>
-) => {
-  const explodingItems = items.filter(i => i.item.category.startsWith(Common.explodingModeGregorKeyPrefix))
-  if (!explodingItems.length) {
-    return 0
-  }
-  const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-  const item = explodingItems.find(i => i.item.category === category)
-  if (!item) {
-    // Other conversations have exploding modes but this one's category is absent,
-    // meaning it was dismissed: the mode is off.
-    return 0
-  }
-  const secondsString = uint8ArrayToString(item.item.body)
-  const seconds = parseInt(secondsString, 10)
-  if (isNaN(seconds)) {
-    logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-    return undefined
-  }
-  return seconds
-}
+  prefs: T.RPCGen.GregorUIPrefs
+) =>
+  prefs.unreadableExplodingModes?.includes(conversationIDKey)
+    ? undefined
+    : (prefs.explodingModes?.[conversationIDKey] ?? 0)
 
 export const getExplodingModeFromConfig = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getExplodingModeFromGregorItems(conversationIDKey, useConfigState.getState().gregorPushState) ?? 0
+  getExplodingModeFromPrefs(conversationIDKey, useConfigState.getState().gregorUIPrefs) ?? 0
 
 export const persistExplodingMode = (
   conversationIDKey: T.Chat.ConversationIDKey,

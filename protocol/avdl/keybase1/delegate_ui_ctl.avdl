@@ -20,4 +20,8 @@ protocol delegateUiCtl {
    */
   @lint("ignore")
   void registerGregorFirehoseFiltered(array<string> systems);
+
+  // registerGregorUIPrefs pushes GregorUIPrefs to this client when they change, in place of
+  // the raw gregor state the firehose sends.
+  void registerGregorUIPrefs();
 }

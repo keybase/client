@@ -37,6 +37,7 @@ import {
   useConversationThreadStore,
   type ConversationThreadActions,
 } from './conversation/thread-context'
+import {getExplodingModeFromConfig} from './conversation/thread-load'
 import {ConversationThreadLoadStatusProvider} from './conversation/thread-load-status-context'
 import {ConversationInputProvider, useConversationInput} from './conversation/input-area/input-state'
 import {useBotCommandsUpdateState} from './conversation/input-area/suggestors/commands'
@@ -273,11 +274,14 @@ const pendingText = (id: T.Chat.ConversationIDKey, outboxID: string) =>
     timestamp: 100,
   })
 
-// a chat notification is the service's for the signed-in account
+// a chat notification or prefs push is the service's for the signed-in account
 const engineAction = (type: string, params: object) =>
   ({
     payload: {
-      params: type.startsWith('chat.1.NotifyChat.') ? {uid: useCurrentUserState.getState().uid, ...params} : params,
+      params:
+        type.startsWith('chat.1.NotifyChat.') || type === 'keybase.1.gregorUI.pushUIPrefs'
+          ? {uid: useCurrentUserState.getState().uid, ...params}
+          : params,
     },
     type,
   }) as never
@@ -1091,16 +1095,8 @@ const signIn = (uid: string, username: string) =>
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'test-device', uid, username})
 
 const explodingModeIn = (id: T.Chat.ConversationIDKey, seconds: number) =>
-  engineAction('keybase.1.gregorUI.pushState', {
-    reason: T.RPCGen.PushReason.none,
-    state: {
-      items: [
-        {
-          item: {body: new TextEncoder().encode(String(seconds)), category: `exploding:${id}`},
-          md: {msgID: new Uint8Array([1])},
-        },
-      ],
-    },
+  engineAction('keybase.1.gregorUI.pushUIPrefs', {
+    prefs: {allowAnimatedEmojis: true, explodingModes: {[id]: seconds}},
   })
 
 // The switch as the stores see it: setUserSwitching resets every store, which empties the signed-in
@@ -1226,6 +1222,42 @@ describe('an account switch', () => {
     expect(typersIn('A-mid')).toEqual(['testuser-2'])
     await notify(explodingModeIn(convA, 300))
     expect(mounted.get('A-mid')?.store.getState().explodingMode).toBe(300)
+  })
+})
+
+describe('gregor prefs pushes', () => {
+  const prefsPush = (prefs: Partial<T.RPCGen.GregorUIPrefs>, uid?: string) =>
+    engineAction('keybase.1.gregorUI.pushUIPrefs', {
+      prefs: {allowAnimatedEmojis: true, ...prefs},
+      ...(uid === undefined ? {} : {uid}),
+    })
+  const modeOfA = () => mounted.get('A')?.store.getState().explodingMode
+
+  test("a mode the service couldn't read leaves the open thread's mode alone", async () => {
+    await mountScreens([convA])
+    await notify(explodingModeIn(convA, 300))
+    expect(modeOfA()).toBe(300)
+
+    await notify(prefsPush({unreadableExplodingModes: [convA]}))
+    expect(modeOfA()).toBe(300)
+    // a new thread starts with the mode off, as it did before the service parsed the prefs
+    expect(getExplodingModeFromConfig(convA)).toBe(0)
+
+    // dismissed: the mode is off
+    await notify(prefsPush({}))
+    expect(modeOfA()).toBe(0)
+  })
+
+  test("another account's prefs are dropped, and so are prefs while no account is known", async () => {
+    await mountScreens([convA])
+    await notify(prefsPush({allowAnimatedEmojis: false, explodingModes: {[convA]: 300}}, 'uid-2'))
+    expect(modeOfA()).toBe(0)
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
+
+    // read before the logout and landing after it: the app reads the prefs once it knows the account
+    await startSwitch('testuser-mac')
+    await notify(prefsPush({allowAnimatedEmojis: false}, 'uid-2'))
+    expect(useConfigState.getState().gregorUIPrefs.allowAnimatedEmojis).toBe(true)
   })
 })
 

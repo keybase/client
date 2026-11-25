@@ -1,18 +1,7 @@
 /// <reference types="jest" />
 import {expect, test} from '@jest/globals'
 import type * as T from '@/constants/types'
-import {getPinnedConvIDs, maxPinnedConvs, nextPinnedList, pinToTop, pruneToLayout, unpin} from './pinned-convs'
-
-const enc = (s: string) => new TextEncoder().encode(s)
-const item = (category: string, body: string) =>
-  ({item: {body: enc(body), category}}) as unknown as {item: T.RPCGen.Gregor1.Item}
-
-test('getPinnedConvIDs reads the category and ignores junk', () => {
-  expect(getPinnedConvIDs(undefined)).toEqual([])
-  expect(getPinnedConvIDs([item('other', '["a"]')])).toEqual([])
-  expect(getPinnedConvIDs([item('chatPinnedConvs', 'nope')])).toEqual([])
-  expect(getPinnedConvIDs([item('chatPinnedConvs', '["a",1,"b"]')])).toEqual(['a', 'b'])
-})
+import {maxPinnedConvs, nextPinnedList, pinToTop, pruneToLayout, unpin} from './pinned-convs'
 
 test('pinToTop prepends and moves existing', () => {
   expect(pinToTop([], 'a')).toEqual(['a'])

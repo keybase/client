@@ -8,7 +8,7 @@ import {useShellState} from '@/stores/shell'
 import * as DarkMode from '@/stores/darkmode'
 
 const Display = () => {
-  const allowAnimatedEmojis = useConfigState(s => s.allowAnimatedEmojis)
+  const allowAnimatedEmojis = useConfigState(s => s.gregorUIPrefs.allowAnimatedEmojis)
   const forceSmallNav = useShellState(s => s.forceSmallNav)
   const setForceSmallNav = useShellState(s => s.dispatch.setForceSmallNav)
   const toggleForceSmallNav = () => {

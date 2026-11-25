@@ -912,15 +912,37 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 	reason string,
 ) {
 	defer h.Trace(ctx, nil, "UpdateLayout: %s", reason)()
+	h.queueLayout(ctx, reselectMode)
+}
+
+// UpdateShownLayout queues a rebuild only when a layout has been sent to the UI this session, and
+// reports whether one will follow. Without a UI showing the inbox there is nothing to correct.
+func (h *UIInboxLoader) UpdateShownLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
+	reason string,
+) bool {
+	defer h.Trace(ctx, nil, "UpdateShownLayout: %s", reason)()
+	h.lastLayoutMu.Lock()
+	shown := h.lastLayout != nil
+	h.lastLayoutMu.Unlock()
+	if !shown {
+		h.Debug(ctx, "UpdateShownLayout: skipping, no layout sent this session")
+		return false
+	}
+	return h.queueLayout(ctx, reselectMode)
+}
+
+func (h *UIInboxLoader) queueLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode) bool {
 	if _, err := h.sessionUID(ctx); err != nil {
-		h.Debug(ctx, "UpdateLayout: rejecting, loader not started for current session")
-		return
+		h.Debug(ctx, "queueLayout: rejecting, loader not started for current session")
+		return false
 	}
 	select {
 	case h.layoutCh <- reselectMode:
 	default:
+		// the updates already queued build from the state current when they run
 		h.Debug(ctx, "failed to queue layout update, queue full")
 	}
+	return true
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {

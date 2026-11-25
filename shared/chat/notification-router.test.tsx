@@ -87,7 +87,7 @@ describe('isChatNotification', () => {
     'chat.1.NotifyChat.ChatArchiveProgress',
     'chat.1.chatUi.chatShowManageChannels',
     'chat.1.chatUi.chatMaybeMentionUpdate',
-    'keybase.1.gregorUI.pushState',
+    'keybase.1.gregorUI.pushUIPrefs',
     'keybase.1.NotifyTeam.teamChanged',
   ])('%s is not', type => {
     expect(isChatNotification({payload: {params: {}}, type} as never)).toBe(false)

@@ -13,5 +13,8 @@ func TestParsePinnedConvs(t *testing.T) {
 	require.Nil(t, ParsePinnedConvs([]byte(`{"a":1}`)))
 	require.Equal(t, []chat1.ConvIDStr{"aa", "bb"},
 		ParsePinnedConvs([]byte(`["aa","","bb","aa"]`)))
+	// one bad entry drops only itself
+	require.Equal(t, []chat1.ConvIDStr{"aa", "bb"},
+		ParsePinnedConvs([]byte(`["aa",3,null,{"x":1},"bb"]`)))
 	require.Empty(t, ParsePinnedConvs([]byte(`[]`)))
 }

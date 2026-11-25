@@ -42,6 +42,7 @@ import {flush} from '@/test/flush'
 import {threadWrapper} from '@/test/thread-tree'
 import {useConversationThreadActions} from '../conversation/thread-context'
 import BlockButtons from './invitation-to-block'
+import {useBlockButtonsState} from './block-buttons-state'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const teamID = 'aabbccdd'
@@ -84,7 +85,6 @@ const renderBanner = async (opts?: {ownMessage?: boolean}) => {
     </>,
     {wrapper: threadWrapper(conversationIDKey).wrapper}
   )
-  // the block-buttons state the banner loads from gregor
   await flush()
 }
 
@@ -113,17 +113,10 @@ beforeEach(() => {
   mockFirstOnWave = undefined
   firstThreadActions = undefined
   fake = installFakeEngine()
-  // gregor holds the banner for this team: testuser-mac added you
-  fake.answer('keybase.1.gregor.getState', () => ({
-    items: [
-      {
-        item: {
-          body: new TextEncoder().encode(JSON.stringify({adder: 'testuser-mac'})),
-          category: `blockButtons.${teamID}`,
-        },
-      },
-    ],
-  }))
+  // the service's prefs hold the banner for this team: testuser-mac added you
+  useBlockButtonsState
+    .getState()
+    .dispatch.updateFromPrefs({allowAnimatedEmojis: true, blockButtonsAdders: {[teamID]: 'testuser-mac'}})
   fake.answer(dismissBlockButtons, () => {})
   fake.answer(postText, () => {})
   useConfigState.setState({loggedIn: true})

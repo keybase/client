@@ -1184,9 +1184,7 @@ describe('window gate', () => {
 describe('exploding mode', () => {
   test('a new store starts from the gregor exploding item for its conversation', () => {
     useConfigState.setState({
-      gregorPushState: [
-        {item: {body: new TextEncoder().encode('300'), category: `exploding:${convID}`}},
-      ] as unknown as ReturnType<typeof useConfigState.getState>['gregorPushState'],
+      gregorUIPrefs: {allowAnimatedEmojis: true, explodingModes: {[convID]: 300}},
     })
     expect(renderThread().state().explodingMode).toBe(300)
     expect(renderThread(otherConvID).state().explodingMode).toBe(0)

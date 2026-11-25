@@ -1,15 +1,5 @@
 import * as T from './types'
 import type {Device} from './provision'
-import {uint8ArrayToString} from '@/util/uint8array'
-
-export const bodyToJSON = (body?: Uint8Array): unknown => {
-  if (!body) return undefined
-  try {
-    return JSON.parse(uint8ArrayToString(body))
-  } catch {
-    return undefined
-  }
-}
 
 export const rpcDeviceToDevice = (d: T.RPCGen.Device): Device => {
   const type = d.type

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -197,9 +198,22 @@ type gregorHandler struct {
 	gregorCli   *grclient.Client
 
 	firehoseHandlers []libkb.GregorFirehoseHandler
-	badger           *badges.Badger
-	reachability     *reachability
-	chatLog          utils.DebugLabeler
+
+	// Every read of the state for the firehose takes the next stateReadSeq, so a push can tell
+	// whether a newer read already went out, and whether Reset ended the session it was read in
+	// (seq <= resetSeq).
+	stateReadMu  sync.Mutex
+	stateReadSeq uint64
+	resetSeq     uint64
+
+	// the pinned conversations the shown inbox layout was last rebuilt for, and the read they came from
+	pinsMu      sync.Mutex
+	lastPins    []chat1.ConvIDStr
+	lastPinsSeq uint64
+
+	badger       *badges.Badger
+	reachability *reachability
+	chatLog      utils.DebugLabeler
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -515,13 +529,52 @@ func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler)
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
 	g.Unlock()
 
-	s, err := g.getState(context.Background())
+	s, read, err := g.readStateForPush(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
 	}
 	g.Debug(context.Background(), "PushFirehoseHandler: pushing state with %d items", len(s.Items_))
-	handler.PushState(s, keybase1.PushReason_RECONNECTED)
+	pushToFirehoseHandler(handler, s, keybase1.PushReason_RECONNECTED, read)
+}
+
+// gregorStateRead identifies one read of the state pushed to the firehose.
+type gregorStateRead struct {
+	gh  *gregorHandler
+	seq uint64
+	// the account whose state was read
+	uid keybase1.UID
+}
+
+func (r gregorStateRead) sessionEnded() bool {
+	r.gh.stateReadMu.Lock()
+	defer r.gh.stateReadMu.Unlock()
+	return r.seq <= r.gh.resetSeq
+}
+
+// The UI prefs handler drops pushes of state older than one it already sent. Pushes run on several
+// goroutines, so they can reach it out of read order.
+func pushToFirehoseHandler(h libkb.GregorFirehoseHandler, s gregor1.State, r keybase1.PushReason, read gregorStateRead) {
+	if ph, ok := h.(*gregorUIPrefsHandler); ok {
+		ph.pushStateRead(s, r, read)
+		return
+	}
+	h.PushState(s, r)
+}
+
+func (g *gregorHandler) readStateForPush(ctx context.Context) (gregor1.State, gregorStateRead, error) {
+	g.stateReadMu.Lock()
+	defer g.stateReadMu.Unlock()
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return gregor1.State{}, gregorStateRead{}, err
+	}
+	s, err := exportGregorState(ctx, gcli)
+	if err != nil {
+		return gregor1.State{}, gregorStateRead{}, err
+	}
+	g.stateReadSeq++
+	return s, gregorStateRead{gh: g, seq: g.stateReadSeq, uid: keybase1.UID(gcli.User.String())}, nil
 }
 
 // iterateOverFirehoseHandlers applies the function f to all live firehose handlers
@@ -565,19 +618,44 @@ func (g *gregorHandler) pushStateNewDataDebouncer(shutdownCh chan struct{}) {
 
 func (g *gregorHandler) pushStateOnce(r keybase1.PushReason) {
 	ctx := libkb.WithLogTag(context.Background(), "GRGRSTATE")
-	s, err := g.getState(ctx)
+	s, read, err := g.readStateForPush(ctx)
 	if err != nil {
 		g.Warning(ctx, "Cannot push state in firehose handler: %s", err)
 		return
 	}
 	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
 		g.Debug(ctx, "pushState: pushing state with %d items", len(s.Items_))
-		h.PushState(s, r)
+		pushToFirehoseHandler(h, s, r, read)
 	})
+	g.updateLayoutOnPinsChange(ctx, s, read)
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
 	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
 		g.badger.PushState(ctx, s)
+	}
+}
+
+// updateLayoutOnPinsChange rebuilds the shown inbox layout when the pinned list in the state
+// differs from the one it was last rebuilt for. It diffs state rather than reacting to in-band
+// messages because a dismissal synced while offline is consumed before replay, so no handler
+// ever sees it. lastPins only moves when a rebuild is queued. Before a layout is shown (headless,
+// or the GUI hasn't loaded the inbox) nothing is rebuilt; the first push after one is shown then
+// rebuilds once if the pins differ from lastPins, which covers a change made while that first
+// layout was being built.
+func (g *gregorHandler) updateLayoutOnPinsChange(ctx context.Context, s gregor1.State, read gregorStateRead) {
+	pins := pinnedConvsFromState(s)
+	g.pinsMu.Lock()
+	defer g.pinsMu.Unlock()
+	if read.seq <= g.lastPinsSeq || read.sessionEnded() {
+		return
+	}
+	g.lastPinsSeq = read.seq
+	if slices.Equal(pins, g.lastPins) {
+		return
+	}
+	loader := g.G().UIInboxLoader
+	if loader != nil && loader.UpdateShownLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "pinned convs changed") {
+		g.lastPins = pins
 	}
 }
 
@@ -1375,6 +1453,12 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown(context.Background())
 	g.setFirstConnect(true)
 	g.shutdownGregorClient(context.TODO())
+	g.stateReadMu.Lock()
+	g.resetSeq = g.stateReadSeq
+	g.stateReadMu.Unlock()
+	g.pinsMu.Lock()
+	g.lastPins = nil
+	g.pinsMu.Unlock()
 	return nil
 }
 
@@ -1853,14 +1937,15 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 }
 
 func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err error) {
-	var s gregor.State
-
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return res, err
 	}
+	return exportGregorState(ctx, gcli)
+}
 
-	s, err = gcli.StateMachineState(ctx, nil, true)
+func exportGregorState(ctx context.Context, gcli *grclient.Client) (res gregor1.State, err error) {
+	s, err := gcli.StateMachineState(ctx, nil, true)
 	if err != nil {
 		return res, err
 	}
@@ -1894,6 +1979,15 @@ func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err
 	}
 	g.G().Log.CDebugf(ctx, "GetState: returning %d items", len(res.Items_))
 	return res, nil
+}
+
+func (g *gregorRPCHandler) GetUIPrefs(ctx context.Context) (res keybase1.GregorUIPrefs, err error) {
+	defer g.G().CTrace(ctx, "gregorRPCHandler#GetUIPrefs", &err)()
+	s, err := g.gh.getState(ctx)
+	if err != nil {
+		return res, err
+	}
+	return buildGregorUIPrefs(ctx, g.G().Log, s), nil
 }
 
 func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (res gregor1.MsgID, err error) {
