@@ -73,7 +73,7 @@ func (s *CmdKbfsMount) Run() error {
 		}
 		dui.Printf("%s\n", out)
 	case "install":
-		result := install.Install(s.G(), "", "", []string{install.ComponentNameFuse.String()}, false, 0, s.G().Log)
+		result := install.Install(s.G(), "", []string{install.ComponentNameFuse.String()}, false, 0, s.G().Log)
 		dui.Printf("%v\n", result.Status)
 	}
 	return err

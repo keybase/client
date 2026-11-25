@@ -256,15 +256,11 @@ type InstallKBFSArg struct {
 type UninstallKBFSArg struct {
 }
 
-type InstallCommandLinePrivilegedArg struct {
-}
-
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
 	InstallFuse(context.Context) (InstallResult, error)
 	InstallKBFS(context.Context) (InstallResult, error)
 	UninstallKBFS(context.Context) (UninstallResult, error)
-	InstallCommandLinePrivileged(context.Context) (InstallResult, error)
 }
 
 func InstallProtocol(i InstallInterface) rpc.Protocol {
@@ -316,16 +312,6 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 					return
 				},
 			},
-			"installCommandLinePrivileged": {
-				MakeArg: func() any {
-					var ret [1]InstallCommandLinePrivilegedArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					ret, err = i.InstallCommandLinePrivileged(ctx)
-					return
-				},
-			},
 		},
 	}
 }
@@ -351,10 +337,5 @@ func (c InstallClient) InstallKBFS(ctx context.Context) (res InstallResult, err 
 
 func (c InstallClient) UninstallKBFS(ctx context.Context) (res UninstallResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.install.uninstallKBFS", []any{UninstallKBFSArg{}}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c InstallClient) InstallCommandLinePrivileged(ctx context.Context) (res InstallResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.installCommandLinePrivileged", []any{InstallCommandLinePrivilegedArg{}}, &res, 0*time.Millisecond)
 	return
 }
