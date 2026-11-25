@@ -8,7 +8,8 @@
 //                                 before its subteam, which holds back while one is left)
 //   messages                      the account's own, in the scratch channel, the smoke<->second
 //                                 conversation or (smoke only) the self conversation
-//   KBFS entries                  directly in a folder kbfsRoots names
+//   KBFS entries                  directly in a folder kbfsRoots names; a directory goes with
+//                                 everything in it
 //   devices                       e2e-<runid>-prov only; peer devices are kept
 //   paper keys                    only those the ledger (paper-key-ledger.ts) recorded, by device id
 //                                 and unchanged name
@@ -53,8 +54,8 @@ export type SweepCandidate = {
   account: SweepAccount
   kind: SweepKind
   name: string
-  // kbfs: set when the entry is a directory
-  dir?: {empty: boolean}
+  // kbfs: the entry is a directory, removed with everything in it
+  isDir?: boolean
   // email: the account's primary address, which cannot be deleted
   primary?: boolean
   // message: its conversation (hex id), id and sender
@@ -235,7 +236,6 @@ const judge = (c: SweepCandidate, ctx: SweepContext): Verdict => {
   if (notOlder) return notOlder
 
   if (c.kind === 'email' && c.primary) return {reason: 'the primary email cannot be deleted', to: 'listOnly'}
-  if (c.kind === 'kbfs' && c.dir && !c.dir.empty) return {reason: 'a directory that is not empty', to: 'listOnly'}
   return {to: 'delete'}
 }
 

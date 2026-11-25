@@ -160,10 +160,12 @@ describe('selectSweepTargets', () => {
     expect(decide({account: 'second', kind: 'kbfs', name: `/keybase/team/testteam/e2e-${old}-f`})).toMatch(/^kept: refused/)
   })
 
-  test('kbfs: a directory is removed only when empty', () => {
-    const dir = `/keybase/private/testuser/e2e-${old}-d`
-    expect(decide(smoke({dir: {empty: false}, kind: 'kbfs', name: dir}))).toMatch(/^list: .*not empty/)
-    expect(decide(smoke({dir: {empty: true}, kind: 'kbfs', name: dir}))).toBe('delete')
+  test('kbfs: a directory is removed like a file, whatever is in it', () => {
+    expect(decide(smoke({isDir: true, kind: 'kbfs', name: `/keybase/private/testuser/e2e-${old}-d`}))).toBe('delete')
+    // one of this run is not, like any other entry of it
+    expect(decide(smoke({isDir: true, kind: 'kbfs', name: `/keybase/private/testuser/e2e-${ctx.currentRunId}-d`}))).toMatch(
+      /^kept: made by this run/
+    )
   })
 })
 
