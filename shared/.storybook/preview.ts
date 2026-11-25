@@ -8,6 +8,7 @@ import {useDarkModeState} from '@/stores/darkmode'
 // The real app sets this from the Electron preload script; storybook sets it here.
 const kb2Stub: KB2 = {
   constants: {
+    arch: 'arm64' as const,
     assetRoot: '/',
     configOverload: {},
     dokanPath: '',

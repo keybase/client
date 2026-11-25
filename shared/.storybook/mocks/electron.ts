@@ -2,6 +2,7 @@ import type {KB2} from '../../util/electron'
 
 const stub: KB2 = {
   constants: {
+    arch: 'arm64' as const,
     assetRoot: '/',
     configOverload: {},
     dokanPath: '',

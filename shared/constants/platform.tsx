@@ -26,6 +26,7 @@ export const isDarwin: boolean = isMobile ? false : KB2.constants.platform === '
 export const isWindows: boolean = isMobile ? false : KB2.constants.platform === 'win32'
 export const isLinux: boolean = isMobile ? false : KB2.constants.platform === 'linux'
 export const isMac: boolean = isDarwin && !isIOS
+export const isAppleSilicon: boolean = isMobile ? false : KB2.constants.arch === 'arm64'
 
 export const defaultUseNativeFrame: boolean = isMobile ? true : isDarwin || isLinux
 // For storyshots, we only want to test macOS

@@ -1,26 +1,23 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useFuseClosedSourceConsent} from './hooks'
+import MacfusePrompt, {macfusePromptCopy, useEnableNote} from './macfuse-prompt'
 import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {
   mode: 'Icon' | 'Button'
-  invert?: boolean
 }
 
 const SFMIPopup = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {invert} = props
+  const {mode} = props
   const {driverEnable, driverStatus} = useSystemFileManagerIntegration()
+  const enableNote = useEnableNote()
   const {type} = driverStatus
   const isEnabling = type === T.FS.DriverStatusType.Disabled ? driverStatus.isEnabling : false
+  const macfuseCopy = type === T.FS.DriverStatusType.Disabled ? macfusePromptCopy(driverStatus) : undefined
   const enableDriver = () => driverEnable()
-  const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
-    type === T.FS.DriverStatusType.Disabled && isEnabling,
-    invert
-  )
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -41,24 +38,28 @@ const SFMIPopup = (props: Props) => {
           <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
             <Kb.ImageIcon type="icon-fancy-finder-132-96" />
           </Kb.Box2>
-          <Kb.Text type="BodyBig" style={styles.text}>
-            Enable Keybase in {C.fileUIName}?
-          </Kb.Text>
-          <Kb.Text type="BodySmall" style={styles.text} center={true}>
-            Get access to your files and folders just like you normally do with your local files. It&apos;s
-            encrypted and secure.
-          </Kb.Text>
-          <Kb.Divider style={styles.divider} />
-          {fuseConsentComponent}
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
-            <Kb.Button
-              type="Success"
-              label="Yes, enable"
-              waiting={type === T.FS.DriverStatusType.Disabled && isEnabling}
-              disabled={!canContinue}
-              onClick={enableDriver}
-            />
-          </Kb.Box2>
+          {macfuseCopy ? (
+            <MacfusePrompt copy={macfuseCopy} onAction={hidePopup} variant="popup" />
+          ) : (
+            <>
+              <Kb.Text type="BodyBig" style={styles.text}>
+                Enable Keybase in {C.fileUIName}?
+              </Kb.Text>
+              <Kb.Text type="BodySmall" style={styles.text} center={true}>
+                Get access to your files and folders just like you normally do with your local files.
+                It&apos;s encrypted and secure.
+              </Kb.Text>
+              {enableNote ? (
+                <Kb.Text type="BodySmall" style={styles.text} center={true}>
+                  {enableNote}
+                </Kb.Text>
+              ) : null}
+              <Kb.Divider style={styles.divider} />
+              <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
+                <Kb.Button type="Success" label="Yes, enable" waiting={isEnabling} onClick={enableDriver} />
+              </Kb.Box2>
+            </>
+          )}
         </Kb.ClickableBox>
       </Kb.Popup>
     )
@@ -70,7 +71,7 @@ const SFMIPopup = (props: Props) => {
   }
   return (
     <>
-      {props.mode === 'Icon' ? (
+      {mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
           <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor}>
             <Kb.Icon

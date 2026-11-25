@@ -8,6 +8,7 @@ jest.mock('@/util/electron', () => ({
   __esModule: true,
   default: {
     constants: {
+      arch: 'arm64',
       env: {},
       pathSep: '/',
       platform: 'darwin',

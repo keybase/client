@@ -1,5 +1,5 @@
 // implementation of KB2, requires node context! preload will proxy this with the contextBridge
-import {nativeTheme} from 'electron'
+import {app, nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
 import type {KB2} from '@/util/electron'
@@ -18,6 +18,8 @@ if (_pathSep !== '/' && _pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
+  // an Intel build can run under Rosetta on Apple silicon
+  arch: process.arch === 'arm64' || app.runningUnderARM64Translation ? 'arm64' : 'x64',
   // The page origin serves /images/...: the Vite dev server in hot dev, the app
   // scheme otherwise.
   assetRoot: `${pageOrigin}/`,
