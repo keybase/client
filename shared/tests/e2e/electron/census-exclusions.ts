@@ -78,6 +78,7 @@ export const EXCLUSIONS: Exclusions = {
     'keybase.1.config.logSend': 'manual-only: feedback-send',
     'keybase.1.config.startUpdateIfNeeded': 'manual-only: auto-update-installer',
     'keybase.1.contacts.saveContactList': 'mobile only: phone contacts import (stores/settings-contacts.tsx)',
+    'keybase.1.contacts.setImportContactsEnabled': 'mobile only: phone contacts import (stores/settings-contacts.tsx)',
     'keybase.1.ctl.dbNuke': "owner: excluded (wipes the main service's local database)",
     'keybase.1.ctl.setOnLoginStartup': 'owner: excluded (changes the macOS login items)',
     'keybase.1.ctl.stop': 'manual-only: quit-app (stops the main service and the app; the run must keep both)',

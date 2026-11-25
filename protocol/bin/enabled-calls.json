@@ -249,7 +249,6 @@
   "keybase.1.apiserver.Delete": {"promise":true},
   "keybase.1.apiserver.GetWithSession": {"promise":true},
   "keybase.1.apiserver.Post": {"promise":true},
-  "keybase.1.apiserver.PostJSON": {"promise":true},
   "keybase.1.appState.powerMonitorEvent": {"promise":true},
   "keybase.1.appState.updateMobileNetState": {"promise":true},
   "keybase.1.config.appendGUILogs": {"promise":true,"survivesAccountChange":true},
