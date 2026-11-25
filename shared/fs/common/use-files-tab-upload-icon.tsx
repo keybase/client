@@ -1,9 +1,10 @@
+import logger from '@/logger'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {clientID as fsClientID, makeUUID} from './client'
-import {useKbfsDaemonStatus} from './daemon'
+import {useFsConnectionGeneration, useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
 
 export const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
@@ -43,6 +44,7 @@ const fetchUploadIcon = async (
 
 export const useFilesTabUploadIcon = () => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  const connectionGeneration = useFsConnectionGeneration()
   const connectedRef = React.useRef(connected)
   const generationRef = React.useRef(0)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -64,19 +66,18 @@ export const useFilesTabUploadIcon = () => {
     loadUploadIcon()
   })
 
-  React.useEffect(() => {
-    if (!connected) {
-      generationRef.current++
-      return
-    }
-    loadUploadIcon()
-  }, [connected])
   C.Router2.useSafeFocusEffect(stableLoadUploadIcon)
 
   React.useEffect(() => {
     if (!connected) {
+      // drops a read still in flight from before the disconnect
+      generationRef.current++
       return
     }
+    if (connectionGeneration === undefined) {
+      return
+    }
+    let current = true
     const subscriptionID = makeUUID()
     const f = async () => {
       try {
@@ -88,11 +89,21 @@ export const useFilesTabUploadIcon = () => {
           topic: T.RPCGen.SubscriptionTopic.filesTabBadge,
         })
       } catch (error) {
-        onError(error)
+        try {
+          onError(error)
+        } catch (thrown) {
+          logger.warn('files tab badge subscribe failed:', thrown)
+        }
+      }
+      // Read once the service holds the subscription (or failed to): a change before then sent no
+      // notification
+      if (current) {
+        loadUploadIcon()
       }
     }
     C.ignorePromise(f())
     return () => {
+      current = false
       C.ignorePromise(
         T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
           clientID: fsClientID,
@@ -101,7 +112,7 @@ export const useFilesTabUploadIcon = () => {
         }).catch(() => {})
       )
     }
-  }, [connected])
+  }, [connected, connectionGeneration])
 
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',

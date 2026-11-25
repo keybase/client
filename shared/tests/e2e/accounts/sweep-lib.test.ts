@@ -2,7 +2,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {
   checkDelete,
+  describeCandidate,
   heldByTeamRepos,
+  kbfsRmArgs,
   kbfsRoots,
   listedEmojiAlias,
   localPgpHeld,
@@ -160,10 +162,12 @@ describe('selectSweepTargets', () => {
     expect(decide({account: 'second', kind: 'kbfs', name: `/keybase/team/testteam/e2e-${old}-f`})).toMatch(/^kept: refused/)
   })
 
-  test('kbfs: a directory is removed only when empty', () => {
-    const dir = `/keybase/private/testuser/e2e-${old}-d`
-    expect(decide(smoke({dir: {empty: false}, kind: 'kbfs', name: dir}))).toMatch(/^list: .*not empty/)
-    expect(decide(smoke({dir: {empty: true}, kind: 'kbfs', name: dir}))).toBe('delete')
+  test('kbfs: a directory is removed with what is in it, and the report says so', () => {
+    const name = `/keybase/private/testuser/e2e-${old}-d`
+    expect(kbfsRmArgs(smoke({isDir: true, kind: 'kbfs', name}))).toEqual(['fs', 'rm', '-r', name])
+    expect(kbfsRmArgs(smoke({kind: 'kbfs', name}))).toEqual(['fs', 'rm', name])
+    expect(describeCandidate(smoke({isDir: true, kind: 'kbfs', name}))).toBe(`smoke kbfs ${name}/ (with what is in it)`)
+    expect(describeCandidate(smoke({kind: 'kbfs', name}))).toBe(`smoke kbfs ${name}`)
   })
 })
 

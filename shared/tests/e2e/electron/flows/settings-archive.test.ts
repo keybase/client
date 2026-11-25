@@ -9,7 +9,7 @@ import type {Locator, Page, TestInfo} from '@playwright/test'
 import {loadE2EAccounts} from '@/tests/e2e/accounts/env'
 import {openSelfConversation} from '@/tests/e2e/electron/helpers/chat'
 import {withCleanup} from '@/tests/e2e/electron/helpers/cleanup'
-import {kbfsCopyIn, kbfsMkdir, openKbfsFolder, pickFromRowMenu, removeOwnKbfs, smokeFolder, stampedEntry} from '@/tests/e2e/electron/helpers/files'
+import {kbfsCopyIn, kbfsMkdir, openKbfsFolder, pickFromRowMenu, removeOwnKbfs, rowInFolder, smokeFolder, stampedEntry} from '@/tests/e2e/electron/helpers/files'
 import {test, expect, e2eRunId} from '@/tests/e2e/electron/helpers/fixtures'
 import {connectMainProcess} from '@/tests/e2e/electron/helpers/main-process'
 import {navigateToPeople} from '@/tests/e2e/electron/helpers/navigate'
@@ -187,6 +187,7 @@ test('KBFS backup of one folder', async ({page}, testInfo) => {
       removeOutputFile(src)
 
       await openKbfsFolder(page, smokeFolder())
+      await rowInFolder(page, name)
       await pickFromRowMenu(page, name, 'Backup folder')
       await expect(page.getByText('Save a copy of your content to your local drive', {exact: true}), 'the backup modal').toBeVisible({timeout: 10_000})
       await startToDestination(page, dest)

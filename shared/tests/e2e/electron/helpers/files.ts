@@ -44,6 +44,27 @@ export const filesRow = (page: Page, name: string) =>
     .locator('visible=true')
     .filter({has: page.getByText(name, {exact: true})})
 
+const folderFilter = (page: Page) => page.getByRole('textbox', {name: /^Filter/}).locator('visible=true')
+
+// The row named `name` in the folder shown, once the page has it. The listing is virtualized, so a
+// row past what it draws is not in the page at all, and a long folder can leave a name there: the
+// folder's own filter box narrows the listing to it. Opening a folder clears the filter, so one
+// typed while the folder was still opening is typed again.
+export const rowInFolder = async (page: Page, name: string, what = `the row ${name}`) => {
+  const row = filesRow(page, name)
+  await expect(async () => {
+    await folderFilter(page).fill(name)
+    await expect(row).toHaveCount(1, {timeout: 2_000})
+  }, what).toPass({timeout: 20_000})
+  return row
+}
+
+// Shows the whole folder again, with the keyboard out of the filter box.
+export const clearFolderFilter = async (page: Page) => {
+  await folderFilter(page).fill('')
+  await folderFilter(page).blur()
+}
+
 // Opens `folder` (/keybase/private or a path under it) by clicking down to it from the Files root.
 export const openKbfsFolder = async (page: Page, folder: string) => {
   const parts = folder.split('/').filter(Boolean)
@@ -55,10 +76,7 @@ export const openKbfsFolder = async (page: Page, folder: string) => {
     await expect(tlfTypes, 'the Files root').toHaveCount(3, {timeout: 2_000})
   }, {intervals: [0], timeout: 10_000})
   await clickFresh(tlfTypes.filter({hasText: 'private'}), 'the private folder row')
-  for (const name of parts.slice(2)) {
-    await expect(filesRow(page, name), `the row ${name}`).toHaveCount(1, {timeout: 20_000})
-    await clickFresh(filesRow(page, name), `the row ${name}`)
-  }
+  for (const name of parts.slice(2)) await clickFresh(await rowInFolder(page, name), `the row ${name}`)
   await expect(page.getByText(parts.at(-1) ?? '', {exact: true}).locator('visible=true').first(), 'the folder title').toBeVisible({timeout: 10_000})
 }
 
@@ -91,7 +109,8 @@ export const makeFolderInApp = async (page: Page, folder: string) => {
   const input = page.getByTestId(T.FILES_EDITING_ROW).locator('input')
   await input.fill(name)
   await input.press('Enter')
-  await expect(filesRow(page, name), 'the new folder row').toHaveCount(1, {timeout: 20_000})
+  await rowInFolder(page, name, 'the new folder row')
+  await clearFolderFilter(page)
   await expect.poll(async () => (await kbfsEntry(parent, name))?.isDir, {message: `${folder} from the CLI`, timeout: 30_000}).toBe(true)
 }
 

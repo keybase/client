@@ -194,3 +194,9 @@ export const useKbfsDaemonStatus = () =>
   React.useContext(FsDaemonStatusContext) ?? Constants.unknownKbfsDaemonStatus
 
 export const useFsDaemonActions = () => React.useContext(FsDaemonActionsContext) ?? emptyFsDaemonActions
+
+// The connection's handshake generation once its handshake is done, else undefined. Every
+// connection subscribes again and rereads: notifications sent while the link was down are lost,
+// a restarted service holds no subscriptions at all, and KBFS's own status need not change.
+export const useFsConnectionGeneration = () =>
+  useDaemonState(s => (s.handshakeState === 'done' ? s.handshakeGeneration : undefined))

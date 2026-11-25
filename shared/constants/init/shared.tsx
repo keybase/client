@@ -117,24 +117,65 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig);
 };
 
-// The service sends a notification only to a connection subscribed to its channel, so every
-// handshake subscribes before it reads anything.
-const subscribeNotificationsStep = async () => {
+// The subscription gates the handshake, so one that never settles would hold the splash forever
+const subscribeTimeoutMs = 10000;
+
+// The service sends a notification only to a connection subscribed to its channel, so nothing is
+// read on a connection before it subscribes.
+const subscribeNotifications = async () => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("Subscribing to notifications timed out")),
+      subscribeTimeoutMs,
+    );
+  });
   try {
-    // prettier-ignore
-    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-      channels: {
-        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-        paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
-        team: true, teamChanged: true, teambot: false, tracking: true, users: true, wallet: false,
-      },
-    })
-  } catch (error) {
-    logger.warn("error in toggling notifications: ", error);
+    await Promise.race([
+      // prettier-ignore
+      T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+        channels: {
+          allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+          chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+          deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+          devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+          paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
+          team: true, teamChanged: true, teambot: false, tracking: true, users: true, wallet: false,
+        },
+      }),
+      timedOut,
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
+};
+
+// One per connection. The handshake's step subscribes it; a failed attempt throws so the handshake
+// retries, and the retry calls the service again. `subscribed` settles once an attempt succeeds.
+type ConnectionSubscription = {
+  attempt?: Promise<void>;
+  onSubscribed: () => void;
+  subscribed: Promise<void>;
+};
+const newConnectionSubscription = (): ConnectionSubscription => {
+  let onSubscribed = () => {};
+  const subscribed = new Promise<void>((resolve) => {
+    onSubscribed = resolve;
+  });
+  return { onSubscribed, subscribed };
+};
+let connectionSubscription = newConnectionSubscription();
+
+const subscribeNotificationsStep = async () => {
+  const sub = connectionSubscription;
+  sub.attempt ??= subscribeNotifications().then(
+    sub.onSubscribed,
+    (error: unknown) => {
+      sub.attempt = undefined;
+      throw error;
+    },
+  );
+  await sub.attempt;
 };
 
 export const loadAccountsStep = async () => {
@@ -181,26 +222,30 @@ const loadStartupSettings = () => {
   useSettingsContactsState.getState().dispatch.loadContactImportEnabled();
 };
 
-const refreshStartupChat = () => {
+const refreshStartupChat = (reason: "bootstrap" | "reconnected") => {
   // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
   // mounts behind a pushed conversation do not pay inbox startup cost.
   if (!isPhone && useCurrentUserState.getState().username) {
-    ignorePromise(useInboxLayoutState.getState().dispatch.refresh("bootstrap"));
+    ignorePromise(useInboxLayoutState.getState().dispatch.refresh(reason));
   }
 };
 
 // Loads that want a logged-in user but shouldn't compete with first paint
-const scheduleStartupOrReloginWork = () => {
-  const f = async () => {
+const afterFirstPaint = (f: () => void) => {
+  const wait = async () => {
     await timeoutPromise(1000);
-    requestAnimationFrame(() => {
-      requestFollowerInfoForStartup();
-      ignorePromise(updateServerConfigForStartup());
-      loadStartupSettings();
-      refreshStartupChat();
-    });
+    requestAnimationFrame(f);
   };
-  ignorePromise(f());
+  ignorePromise(wait());
+};
+
+const scheduleStartupOrReloginWork = () => {
+  afterFirstPaint(() => {
+    requestFollowerInfoForStartup();
+    ignorePromise(updateServerConfigForStartup());
+    loadStartupSettings();
+    refreshStartupChat("bootstrap");
+  });
 };
 
 // After an offline stretch, reread the session to pick up what the service learned while we could
@@ -230,6 +275,42 @@ const onLoggedInChanged = (loggedIn: ConfigState["loggedIn"]) => {
     useBlockButtonsState.getState().dispatch.resetState();
   }
   ignorePromise(useConfigState.getState().dispatch.refreshAccounts());
+};
+
+// A new connection may have missed notifications. A login reloads what they keep current, so a
+// handshake that leaves the same user logged in, with no account switch in between, reloads it here.
+let uidAtHandshakeStart = "";
+let switchedDuringHandshake = false;
+const onHandshakeStateChanged = (
+  state: DaemonState["handshakeState"],
+) => {
+  const { loggedIn, userSwitching } = useConfigState.getState();
+  const { uid } = useCurrentUserState.getState();
+  if (state === "loading") {
+    uidAtHandshakeStart = loggedIn ? uid : "";
+    switchedDuringHandshake = userSwitching;
+  } else if (
+    state === "done" &&
+    loggedIn &&
+    !userSwitching &&
+    !switchedDuringHandshake &&
+    uid &&
+    uid === uidAtHandshakeStart
+  ) {
+    afterFirstPaint(() => {
+      // a switch or logout during the wait makes this another account's reload
+      if (
+        useCurrentUserState.getState().uid !== uid ||
+        !useConfigState.getState().loggedIn ||
+        useConfigState.getState().userSwitching
+      ) {
+        return;
+      }
+      requestFollowerInfoForStartup();
+      // The service's chat sync runs when it reaches the server, not when the app reconnects to it
+      refreshStartupChat("reconnected");
+    });
+  }
 };
 
 const onRevokedTriggerChanged = () => {
@@ -310,7 +391,9 @@ const onBootstrapStatusChanged = (
 const onUserSwitchingChanged = (
   userSwitching: ConfigState["userSwitching"],
 ) => {
-  if (!userSwitching) {
+  if (userSwitching) {
+    switchedDuringHandshake = true;
+  } else {
     onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus);
   }
 };
@@ -495,9 +578,18 @@ const onNavStateChanged = (
 };
 
 export const onEngineConnected = () => {
+  const sub = newConnectionSubscription();
+  connectionSubscription = sub;
   {
     const registerUIs = async () => {
       try {
+        // Registering the identify UI is when the service resends the badge state, so it must
+        // come after the subscription or the badges it sends are dropped
+        await sub.subscribed;
+        // A newer connection registers its own UIs
+        if (sub !== connectionSubscription) {
+          return;
+        }
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise();
         await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise();
         logger.info("Registered Chat UI");
@@ -567,6 +659,11 @@ export const initSharedSubscriptions = (
       useDaemonState,
       (s) => s.bootstrapStatus,
       onBootstrapStatusChanged,
+    ),
+    subscribeValue(
+      useDaemonState,
+      (s) => s.handshakeState,
+      onHandshakeStateChanged,
     ),
   );
   _sharedUnsubs.push(watchChatSelection());

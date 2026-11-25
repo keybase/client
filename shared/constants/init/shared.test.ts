@@ -1,12 +1,21 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {settle} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useSettingsEmailState} from '@/stores/settings-email'
+import {useNotifState} from '@/stores/notifications'
+import * as Tabs from '@/constants/tabs'
+
+// isPhone is a plain property set per test: shared.tsx reads it when it runs
+jest.mock('@/constants/platform', () => ({...jest.requireActual<object>('@/constants/platform'), isPhone: false}))
+const setPhone = (phone: boolean) => {
+  jest.requireMock<{isPhone: boolean}>('@/constants/platform').isPhone = phone
+}
 import {
   _onEngineIncoming,
   initSharedSubscriptions,
@@ -454,7 +463,7 @@ describe('email notifications', () => {
   })
 })
 
-describe('a new connection subscribes before it reads', () => {
+describe('a new connection', () => {
   const userA = {
     deviceID: 'd1',
     deviceName: 'testuser-mac',
@@ -468,46 +477,319 @@ describe('a new connection subscribes before it reads', () => {
     username: 'testuser',
   } as T.RPCGen.BootstrapStatus
   const loggedOut = {...userA, deviceID: '', deviceName: '', loggedIn: false, uid: '', username: ''}
+  const badges = {
+    bigTeamBadgeCount: 0,
+    homeTodoItems: 0,
+    inboxVers: 1,
+    newTeamAccessRequestCount: 0,
+    smallTeamBadgeCount: 3,
+    unverifiedEmails: 0,
+    unverifiedPhones: 0,
+  }
 
-  afterEach(() => {
-    uninstallFakeEngine()
-    resetAllStores()
-  })
+  let fake: FakeEngine
+  // The service's session, and whether the current connection subscribed to its notifications
+  let session: T.RPCGen.BootstrapStatus
+  let subscribed = false
+  const followerRequests = () =>
+    fake.calls.filter(c => c.method === 'keybase.1.config.requestFollowingAndUnverifiedFollowers').length
+  const inboxRefreshes = () => fake.calls.filter(c => c.method === 'chat.1.local.requestInboxLayout').length
 
-  // The service sends a change only to a connection subscribed to its channel, so a change made
-  // after the handshake read the session but before the subscription landed would reach no one.
-  test('a login between the read and the subscription still reaches the app', async () => {
-    const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  // The service as each connection meets it: it sends a notification only to a subscribed
+  // connection, and resends the badge state when the identify UI registers
+  beforeEach(() => {
+    fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
     // the app reads the gregor UI prefs once it knows the signed-in account
     fake.answer('keybase.1.gregor.getUIPrefs', () => ({allowAnimatedEmojis: false, blockButtonsAdders: {}, chosenChannelsTeamnames: [], explodingModes: {}, pinnedConvs: [], teamAccessRequests: {}, unreadableExplodingModes: []}))
-    let session = loggedOut
-    const subscribes = fake.hold('keybase.1.notifyCtl.setNotifications')
+    session = loggedOut
+    subscribed = false
+    connections = 0
     fake.answer('keybase.1.config.getBootstrapStatus', () => session)
     fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
+    fake.answer('keybase.1.notifyCtl.setNotifications', () => {
+      subscribed = true
+      return null
+    })
+    fake.answer('keybase.1.delegateUiCtl.registerIdentify3UI', () => {
+      if (subscribed) {
+        void fake.push('keybase.1.NotifyBadges.badgeState', {badgeState: badges}, {oneway: true})
+      }
+      return null
+    })
     for (const m of [
       'keybase.1.delegateUiCtl.registerChatUI',
       'keybase.1.delegateUiCtl.registerLogUI',
       'keybase.1.delegateUiCtl.registerHomeUI',
       'keybase.1.delegateUiCtl.registerSecretUI',
-      'keybase.1.delegateUiCtl.registerIdentify3UI',
       'keybase.1.delegateUiCtl.registerRekeyUI',
       'keybase.1.delegateUiCtl.registerGregorUIPrefs',
       'keybase.1.config.helloIAm',
+      'keybase.1.config.requestFollowingAndUnverifiedFollowers',
+      'keybase.1.config.updateLastLoggedInAndServerConfig',
+      'chat.1.local.requestInboxLayout',
     ]) {
       fake.answer(m, () => null)
     }
     fake.answer('keybase.1.config.guiGetValue', () => fakeError(1, 'no value'))
     useConfigState.setState({chatBuiltinCommands: {} as any, chatDeletableByDeleteHistory: new Set()})
     initSharedSubscriptions()
-    onEngineConnected()
-    await settle()
+  })
+  afterEach(() => {
+    setPhone(false)
+    uninstallFakeEngine()
+    resetAllStores()
+    // resetAllStores keeps the service's last session, which the next test's fresh service does not have
+    useDaemonState.setState({bootstrapStatus: undefined})
+  })
 
-    // The user logs in on the service before the subscription lands, so nothing is sent to us
+  // Until the handshake is done and the last UI is registered
+  const connected = async () => {
+    for (let i = 0; i < 100; i++) {
+      const rekeyRegistrations = fake.calls.filter(c => c.method === 'keybase.1.delegateUiCtl.registerRekeyUI')
+      if (useDaemonState.getState().handshakeState === 'done' && rekeyRegistrations.length === connections) {
+        return
+      }
+      await settle()
+    }
+    throw new Error('the handshake never finished registering the UIs')
+  }
+  let connections = 0
+  const connect = async () => {
+    connections++
+    onEngineConnected()
+    await connected()
+  }
+
+  // Subscribing is held until the test lets it land
+  const holdSubscribe = () => {
+    const held = fake.hold('keybase.1.notifyCtl.setNotifications')
+    return () =>
+      held.forEach(c => {
+        subscribed = true
+        c.reply(null)
+      })
+  }
+
+  // A change made after the handshake read the session but before the subscription landed would
+  // reach no one
+  test('a login between the read and the subscription still reaches the app', async () => {
+    const subscribe = holdSubscribe()
+    connections++
+    onEngineConnected()
+    await settle(10)
+
     session = userA
-    subscribes.forEach(c => c.reply(null))
-    await settle()
+    if (subscribed) {
+      await fake.push('keybase.1.NotifySession.sessionChanged', {status: {...userA, sessionSeq: 1}}, {oneway: true})
+    }
+    subscribe()
+    await connected()
 
     expect(useDaemonState.getState().handshakeState).toBe('done')
     expect(useConfigState.getState().loggedIn).toBe(true)
+  })
+
+  const subscribeCalls = () => fake.calls.filter(c => c.method === 'keybase.1.notifyCtl.setNotifications').length
+
+  // A connection left unsubscribed would run with no notifications at all
+  test('a failed subscription fails the attempt and the retry subscribes again', async () => {
+    let attempts = 0
+    let readBeforeSubscribed = false
+    fake.answer('keybase.1.notifyCtl.setNotifications', () => {
+      attempts++
+      if (attempts === 1) {
+        return fakeError(1, 'subscribe failed')
+      }
+      subscribed = true
+      return null
+    })
+    fake.answer('keybase.1.config.getBootstrapStatus', () => {
+      readBeforeSubscribed ||= !subscribed
+      return session
+    })
+    connections++
+    onEngineConnected()
+    // past the delay before a retry
+    for (let i = 0; i < 300 && useDaemonState.getState().handshakeState !== 'done'; i++) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+    await connected()
+
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(attempts).toBe(2)
+    expect(readBeforeSubscribed).toBe(false)
+  })
+
+  describe('on fake timers', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+    // The engine's replies travel on node's setImmediate, which fake timers leave alone
+    const advance = async (ms: number) => {
+      jest.advanceTimersByTime(ms)
+      for (let i = 0; i < 10; i++) {
+        await tick()
+      }
+    }
+
+    test('a subscription that never settles fails the attempt so the retry subscribes again', async () => {
+      fake.hold('keybase.1.notifyCtl.setNotifications')
+      onEngineConnected()
+      await advance(0)
+      expect(subscribeCalls()).toBe(1)
+
+      fake.answer('keybase.1.notifyCtl.setNotifications', () => {
+        subscribed = true
+        return null
+      })
+      for (let i = 0; i < 120 && useDaemonState.getState().handshakeState !== 'done'; i++) {
+        await advance(1000)
+      }
+
+      expect(useDaemonState.getState().handshakeState).toBe('done')
+      expect(subscribeCalls()).toBe(2)
+    })
+
+    // Both connections' subscriptions land on the live link; only the newer one's UIs register
+    test('a connection superseded before its subscription lands registers no UIs', async () => {
+      const held = fake.hold('keybase.1.notifyCtl.setNotifications')
+      onEngineConnected()
+      await advance(0)
+      onEngineConnected()
+      await advance(0)
+      expect(held.length).toBe(2)
+      held.forEach(c => c.reply(null))
+      await advance(0)
+      await advance(0)
+
+      expect(fake.calls.filter(c => c.method === 'keybase.1.delegateUiCtl.registerChatUI').length).toBe(1)
+    })
+  })
+
+  test('the badge state the service resends on connect reaches the app', async () => {
+    const subscribe = holdSubscribe()
+    connections++
+    onEngineConnected()
+    await settle(10)
+    subscribe()
+    await connected()
+    await settle()
+
+    expect(useNotifState.getState().navBadges.get(Tabs.chatTab)).toBe(3)
+  })
+
+  // The reloads a login or a reconnect starts wait out first paint: a second and a frame
+  const pastFirstPaint = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1100))
+    await settle(3)
+  }
+  const reconnect = async () => {
+    fake.drop()
+    await settle()
+    fake.restart()
+    await settle()
+    await connect()
+  }
+
+  // Tracking changes made while disconnected were sent to no one, and with the same user still
+  // logged in no login reloads them
+  test('a reconnect that keeps the user logged in reloads who they follow', async () => {
+    session = userA
+    await connect()
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    await pastFirstPaint()
+    const before = followerRequests()
+
+    await reconnect()
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    await pastFirstPaint()
+
+    expect(followerRequests()).toBe(before + 1)
+  })
+
+  // Chat changes made while disconnected were sent to no one, and the service's own chat sync runs
+  // only when it reaches the server
+  test('a reconnect that keeps the user logged in refreshes the inbox after first paint', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    const before = inboxRefreshes()
+
+    await reconnect()
+    expect(inboxRefreshes()).toBe(before)
+    await pastFirstPaint()
+
+    expect(inboxRefreshes()).toBe(before + 1)
+  })
+
+  // As at login, the focused inbox screen does the phone's refresh
+  test('a reconnect on a phone leaves the inbox refresh to the inbox screen', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    setPhone(true)
+    const before = inboxRefreshes()
+    const followersBefore = followerRequests()
+
+    await reconnect()
+    await pastFirstPaint()
+
+    expect(followerRequests()).toBe(followersBefore + 1)
+    expect(inboxRefreshes()).toBe(before)
+  })
+
+  // The login of the new user reloads it; a second reload from the handshake is a duplicate
+  test('a reconnect that finds another user logged in reloads once', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    const before = followerRequests()
+
+    session = {...userA, uid: 'u2', username: 'testuser-mac'}
+    await reconnect()
+    await pastFirstPaint()
+
+    expect(useCurrentUserState.getState().uid).toBe('u2')
+    expect(followerRequests()).toBe(before + 1)
+  })
+
+  test('an account switch that ends during the handshake reloads once', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+    const before = followerRequests()
+
+    fake.drop()
+    await settle()
+    fake.restart()
+    await settle()
+    const reads = fake.hold('keybase.1.config.getBootstrapStatus')
+    connections++
+    onEngineConnected()
+    await settle(5)
+    expect(useDaemonState.getState().handshakeState).toBe('loading')
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+    await settle()
+    useConfigState.getState().dispatch.setUserSwitching(false)
+    await settle()
+    fake.answer('keybase.1.config.getBootstrapStatus', () => session)
+    reads.forEach(c => c.reply(session))
+    await connected()
+    await pastFirstPaint()
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(followerRequests()).toBe(before + 1)
+  })
+
+  test('the first handshake leaves the follower load to the login', async () => {
+    session = userA
+    await connect()
+    await pastFirstPaint()
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(followerRequests()).toBe(1)
   })
 })

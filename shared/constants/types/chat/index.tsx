@@ -108,6 +108,7 @@ export type RefreshReason =
   | 'componentNeverLoaded'
   | 'inboxSyncedCurrentButEmpty'
   | 'inboxStale'
+  | 'reconnected'
   | 'inboxSyncedClear'
   | 'inboxSyncedUnknown'
   | 'navigatedToInbox'
