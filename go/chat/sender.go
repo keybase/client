@@ -1319,6 +1319,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		*boxed, nil); err != nil {
 		s.Debug(ctx, "Send: failed to update inbox: %s", err)
 	}
+	if typ := boxed.GetMessageType(); typ == chat1.MessageType_METADATA || typ == chat1.MessageType_HEADLINE {
+		notifyTeamChannelsChanged(ctx, s.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
+	}
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		unboxedMsg, err = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, convID,

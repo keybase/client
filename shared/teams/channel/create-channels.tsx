@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {CreateChannelsModal} from '../new-team/wizard/create-channels'
-import {invalidateTeamChannels} from '../common/team-channels-invalidation'
 import {useLoadedTeam} from '../team/use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
@@ -35,7 +34,6 @@ const submitChannels = async (
         C.waitingKeyTeamsCreateChannel(teamID)
       )
     }
-    invalidateTeamChannels(teamID)
     setSuccess(true)
     C.Router2.clearModals()
   } catch (error_) {

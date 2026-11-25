@@ -1,12 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {subscribeToEngineAction, useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
-import {registerTeamChannelsInvalidator} from './team-channels-invalidation'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {forgetLoad, refreshLoad, reviveLoad, useLoadData} from '@/query'
+import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -55,10 +54,14 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
-// A remount inside the stale window serves the cached channels, so the
-// create/delete screens have to say the list changed.
-registerTeamChannelsInvalidator((teamID: T.Teams.TeamID) => {
-  refreshLoad(loadedTeamChannelsLoad, loadableTeamID(teamID) ?? T.Teams.noTeamID)
+// Module scope, not per hook: a change that lands while no list is mounted must
+// still mark the shared entry stale, or a remount inside the stale window serves the
+// pre-change channels.
+subscribeToEngineAction('keybase.1.NotifyTeam.teamChangedByID', action => {
+  const teamID = loadableTeamID(action.payload.params.teamID)
+  if (teamID) {
+    reviveLoad(loadedTeamChannelsLoad, teamID)
+  }
 })
 
 const teamChannelsRPCParams = (teamname: string) => ({
@@ -67,14 +70,8 @@ const teamChannelsRPCParams = (teamname: string) => ({
   topicType: T.RPCChat.TopicType.chat,
 })
 
-// keep a team's channel list fresh: reload on team changes, drop it when the
-// team is deleted or left
-const useReloadOnTeamChannelChanges = (teamID: T.Teams.TeamID, enabled: boolean) => {
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === teamID) {
-      reviveLoad(loadedTeamChannelsLoad, teamID)
-    }
-  })
+// drop a team's channel list when the team is deleted or left
+const useForgetOnTeamGone = (teamID: T.Teams.TeamID, enabled: boolean) => {
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === teamID) {
       forgetLoad(loadedTeamChannelsLoad, teamID)
@@ -140,7 +137,7 @@ const useLoadedTeamChannelsRaw = (
       staleMs: loadedTeamChannelsReloadStaleMs,
     }
   )
-  useReloadOnTeamChannelChanges(teamIDToLoad, enabled && !!validTeamID)
+  useForgetOnTeamGone(teamIDToLoad, enabled && !!validTeamID)
 
   const {channelMetas, channelParticipants, channels} = data
   return React.useMemo(

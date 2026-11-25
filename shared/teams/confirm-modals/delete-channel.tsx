@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {pluralize} from '@/util/string'
 import setRouteParamsIfPresent from './set-route-params-if-present'
-import {invalidateTeamChannels} from '@/teams/common/team-channels-invalidation'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
@@ -78,12 +77,11 @@ const DeleteChannel = (props: Props) => {
       for (const channelID of channelIDs) {
         await deleteChannel(channelID)
       }
-      invalidateTeamChannels(teamID)
       setRouteParamsIfPresent(navigation, 'team', {selectedChannels: undefined})
       C.Router2.clearModals()
     }
     C.ignorePromise(f())
-  }, [channelIDs, deleteChannel, navigation, teamID])
+  }, [channelIDs, deleteChannel, navigation])
 
   return (
     <Kb.ConfirmModal

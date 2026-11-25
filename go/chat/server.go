@@ -517,6 +517,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			h.Debug(ctx, "NewConversationLocal: unable to post new channel system message: %v", err)
 		}
 	}
+	if created {
+		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Info.Triple.Tlfid)
+	}
 
 	// If we have this conv hidden, then let's bring it back before returning
 	if !utils.GetConversationStatusBehavior(conv.Info.Status).ShowInInbox {
@@ -1713,8 +1716,16 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
 	}
+	// read before the delete: the inbox marks the conversation deleted
+	conv, convErr := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if convErr != nil {
+		h.Debug(ctx, "DeleteConversationLocal: unable to read conv, not notifying team: %v", convErr)
+	}
 	if err := h.G().InboxSource.RemoteDeleteConversation(ctx, uid, arg.ConvID); err != nil {
 		return res, err
+	}
+	if convErr == nil {
+		notifyTeamChannelsChanged(ctx, h.G(), conv.GetMembersType(), conv.GetTopicType(), conv.Conv.Metadata.IdTriple.Tlfid)
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
