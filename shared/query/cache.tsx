@@ -55,6 +55,8 @@ export type Entry = {
   // the last change notice counted for it, and when
   lastNotice: number
   lastNoticeAt: number
+  // when the reload noticeTimer holds back was first held: it is not held past maxWaitMs
+  noticeHeldAt: number
   noticeTimer?: ReturnType<typeof setTimeout>
   retryTimer?: ReturnType<typeof setTimeout>
   selected: WeakMap<object, {input: unknown; output: unknown}>
@@ -219,14 +221,20 @@ const stop = (e: Entry) => {
   controller?.abort()
 }
 
+// a reload starting now, or data that is gone, covers the notices a debounce was holding back
+const dropHeldNotice = (e: Entry) => {
+  clearTimeout(e.noticeTimer)
+  e.noticeTimer = undefined
+  e.noticeHeldAt = 0
+}
+
 const noLoader = async () => Promise.reject(new Error('rpc data: no screen is loading this'))
 
 // Back to not loaded. loadCount is kept, so a screen that stays mounted can tell the next load's
 // data from what it had.
 const clear = (e: Entry, forgotten = false) => {
   stop(e)
-  clearTimeout(e.noticeTimer)
-  e.noticeTimer = undefined
+  dropHeldNotice(e)
   clearTimeout(e.retryTimer)
   e.retryTimer = undefined
   if (!e.loaders) {
@@ -311,6 +319,7 @@ export const getEntry = (key: string, method: string): Entry => {
     inFlightWasStale: false,
     lastNotice: 0,
     lastNoticeAt: 0,
+    noticeHeldAt: 0,
     listeners: new Set(),
     // a loading screen sets it (setLoader) before it can start a load
     load: noLoader,
@@ -448,9 +457,10 @@ const refreshEntry = (e: Entry) => {
  * answer, so it finishes and one more follows it: a burst of notices costs at most two loads.
  * Entries no screen is loading reload when one next mounts. `key` narrows it to one entry.
  * debounceMs is for notices that keep coming (one per message in a busy team): the first reloads
- * at once, and the rest reload once, debounceMs after the last of them.
+ * at once, and the rest reload once, debounceMs after the last of them, or maxWaitMs after the
+ * first of them if they never stop.
  */
-export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
+export const refreshMethod = (method: string, key?: string, debounceMs = 0, maxWaitMs = 5 * debounceMs) => {
   const notice = currentNotice()
   const now = Date.now()
   const keyed = key === undefined ? undefined : entries.get(key)
@@ -462,14 +472,19 @@ export const refreshMethod = (method: string, key?: string, debounceMs = 0) => {
     const quiet = !e.noticeTimer && now - e.lastNoticeAt >= debounceMs
     e.lastNoticeAt = now
     if (!debounceMs || quiet) {
+      dropHeldNotice(e)
       refreshEntry(e)
       continue
     }
     clearTimeout(e.noticeTimer)
-    e.noticeTimer = setTimeout(() => {
-      e.noticeTimer = undefined
-      refreshEntry(e)
-    }, debounceMs)
+    e.noticeHeldAt ||= now
+    e.noticeTimer = setTimeout(
+      () => {
+        dropHeldNotice(e)
+        refreshEntry(e)
+      },
+      Math.max(0, Math.min(debounceMs, e.noticeHeldAt + maxWaitMs - now))
+    )
   }
 }
 

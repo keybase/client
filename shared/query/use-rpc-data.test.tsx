@@ -767,6 +767,60 @@ const advance = async (ms: number) => {
 }
 const useFreshDevices = () => useRpcData(listRpc, undefined, {select: toNames, staleMs: 60_000})
 
+test('debounced notices that never stop still reload, every max wait', async () => {
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
+  try {
+    fake.answer(listMethod, () => [device('laptop')])
+    renderHook(useDevices)
+    await flush()
+    expect(listCalls()).toBe(1)
+
+    // one a second for 12 seconds, never 2 seconds apart: held since the second one, at 1s
+    for (let i = 0; i < 12; i++) {
+      act(() => refreshRpc(listRpc, 2000))
+      await flush()
+      act(() => {
+        jest.advanceTimersByTime(1000)
+      })
+      await flush()
+    }
+    // the first at once, and the held ones once the max wait (5 debounces) was up, at 11s
+    expect(listCalls()).toBe(3)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test('a notice that reloads at once takes a held one with it', async () => {
+  jest.useFakeTimers({doNotFake: ['setImmediate', 'queueMicrotask', 'nextTick']})
+  try {
+    fake.answer(listMethod, () => [device('laptop')])
+    renderHook(useDevices)
+    await flush()
+    act(() => refreshRpc(listRpc, 2000))
+    await flush()
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    act(() => refreshRpc(listRpc, 2000))
+    await flush()
+    expect(listCalls()).toBe(2)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    act(() => refreshRpc(listRpc))
+    await flush()
+    expect(listCalls()).toBe(3)
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    })
+    await flush()
+    expect(listCalls()).toBe(3)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
 test('one debounced notice heard by several listeners is one load, with none trailing', async () => {
   await fakeClock(async () => {
     fake.answer(listMethod, () => [device('laptop')])
