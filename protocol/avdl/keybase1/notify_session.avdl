@@ -1,9 +1,14 @@
 
 @namespace("keybase.1")
 protocol NotifySession {
+  import idl "config.avdl";
 
   @notify("")
   void loggedOut();
   void loggedIn(string username, boolean signedUp); // signedUp if this is due to a signup
   void clientOutOfDate(string upgradeTo, string upgradeURI, string upgradeMsg);
+
+  // Sent after every login and logout, in order on each connection. The status is read when the
+  // notification is built, so it can already include a later change.
+  void sessionChanged(BootstrapStatus status) oneway;
 }

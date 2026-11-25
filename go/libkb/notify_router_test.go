@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -125,4 +126,311 @@ func TestSetChannelsAfterCloseRegistersNothing(t *testing.T) {
 	_, registered := n.state[id]
 	n.Unlock()
 	require.False(t, registered, "SetChannels must not resurrect a closed connection's state entry")
+}
+
+// sessionState stands in for the service's session reader (the Bootstrap engine, which libkb
+// cannot import): it reports whichever user the test has made current.
+type sessionState struct {
+	mu       sync.Mutex
+	username string
+}
+
+func (s *sessionState) set(u string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.username = u
+}
+
+func (s *sessionState) read(MetaContext) (keybase1.BootstrapStatus, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return keybase1.BootstrapStatus{LoggedIn: s.username != "", Username: s.username}, nil
+}
+
+// waitSessionSent waits until the read that began last has been sent and has reached rec.
+func waitSessionSent(t *testing.T, n *NotifyRouter, rec *NotifyRecorder) {
+	require.Eventually(t, func() bool {
+		n.sessionMu.Lock()
+		done, seq := n.sessionReadSent == n.sessionReadsStarted, n.sessionSeq
+		n.sessionMu.Unlock()
+		got := sessionChanges(t, rec)
+		return done && len(got) > 0 && got[len(got)-1].SessionSeq == seq
+	}, 10*time.Second, time.Millisecond)
+}
+
+func sessionChanges(t *testing.T, rec *NotifyRecorder) []keybase1.BootstrapStatus {
+	var res []keybase1.BootstrapStatus
+	for _, m := range rec.Messages() {
+		if m.Method != "keybase.1.NotifySession.sessionChanged" {
+			continue
+		}
+		var arg keybase1.SessionChangedArg
+		require.NoError(t, m.Decode(&arg))
+		res = append(res, arg.Status)
+	}
+	return res
+}
+
+// Each login and logout sends the session it led to, numbered in the order sent.
+func TestSessionChangedFollowsLoginAndLogout(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	g.NotifyRouter.SetSessionStatusSource(state.read)
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+	ctx := context.Background()
+
+	step := func(want int, change func()) {
+		change()
+		require.Eventually(t, func() bool {
+			return len(sessionChanges(t, rec)) == want
+		}, 5*time.Second, time.Millisecond)
+	}
+	step(1, func() {
+		state.set("testuser")
+		g.NotifyRouter.HandleLogin(ctx, "testuser")
+	})
+	step(2, func() {
+		state.set("")
+		g.NotifyRouter.HandleLogout(ctx)
+	})
+	step(3, func() {
+		state.set("testuser-mac")
+		g.NotifyRouter.HandleSignup(ctx, "testuser-mac")
+	})
+
+	got := sessionChanges(t, rec)
+	require.Equal(t, []string{"testuser", "", "testuser-mac"},
+		[]string{got[0].Username, got[1].Username, got[2].Username})
+	require.Equal(t, []bool{true, false, true}, []bool{got[0].LoggedIn, got[1].LoggedIn, got[2].LoggedIn})
+	require.Equal(t, []int{1, 2, 3}, []int{got[0].SessionSeq, got[1].SessionSeq, got[2].SessionSeq})
+
+	read, err := g.NotifyRouter.SessionStatus(NewMetaContext(ctx, g))
+	require.NoError(t, err)
+	require.Equal(t, "testuser-mac", read.Username)
+	require.Equal(t, 3, read.SessionSeq, "a read carries the seq of the latest sessionChanged before it")
+}
+
+// Back-to-back changes: every connection sees increasing seqs, and the last status it gets is the
+// session as it ended. Reads that a later one overtook are not sent.
+func TestSessionChangedBurstEndsOnCurrentSession(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	g.NotifyRouter.SetSessionStatusSource(state.read)
+
+	recs := []*NotifyRecorder{
+		NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true}),
+		NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true}),
+	}
+	for _, rec := range recs {
+		defer rec.Close()
+	}
+	ctx := context.Background()
+	const rounds = 100
+	last := ""
+	for i := range rounds {
+		state.set("")
+		g.NotifyRouter.HandleLogout(ctx)
+		last = "testuser"
+		if i%2 == 1 {
+			last = "testuser-mac"
+		}
+		state.set(last)
+		g.NotifyRouter.HandleLogin(ctx, last)
+	}
+
+	for _, rec := range recs {
+		waitSessionSent(t, g.NotifyRouter, rec)
+		got := sessionChanges(t, rec)
+		for i, s := range got {
+			require.Equal(t, i+1, s.SessionSeq, "sessionChanged %d arrived out of order", i)
+		}
+		require.Equal(t, last, got[len(got)-1].Username)
+	}
+}
+
+// Logout announces while holding switchUserMu. Reading the session must not make it wait, or a
+// read that needs a lock the logout holds deadlocks it.
+func TestSessionChangedDoesNotBlockTheAnnouncer(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	var held sync.Mutex
+	state := &sessionState{}
+	g.NotifyRouter.SetSessionStatusSource(func(m MetaContext) (keybase1.BootstrapStatus, error) {
+		held.Lock()
+		defer held.Unlock()
+		return state.read(m)
+	})
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+
+	held.Lock()
+	returned := make(chan struct{})
+	go func() {
+		g.NotifyRouter.HandleLogout(context.Background())
+		close(returned)
+	}()
+	select {
+	case <-returned:
+	case <-time.After(5 * time.Second):
+		t.Fatal("HandleLogout waited on the session read")
+	}
+	held.Unlock()
+	require.Eventually(t, func() bool {
+		return len(sessionChanges(t, rec)) == 1
+	}, 5*time.Second, time.Millisecond)
+}
+
+// stallFirstRead makes the first session read take its status and then wait for release, as a
+// slow read that a later change overtakes.
+func stallFirstRead(state *sessionState) (source SessionStatusSource, reading <-chan struct{}, release func()) {
+	var once sync.Once
+	readingCh := make(chan struct{})
+	releaseCh := make(chan struct{})
+	source = func(m MetaContext) (keybase1.BootstrapStatus, error) {
+		status, err := state.read(m)
+		first := false
+		once.Do(func() { first = true })
+		if first {
+			close(readingCh)
+			<-releaseCh
+		}
+		return status, err
+	}
+	return source, readingCh, func() { close(releaseCh) }
+}
+
+// A slow read for sessionChanged must not hold up a caller reading the session.
+func TestSessionStatusDoesNotWaitOnASessionChangedRead(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	source, reading, release := stallFirstRead(state)
+	defer release()
+	g.NotifyRouter.SetSessionStatusSource(source)
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+
+	state.set("testuser")
+	g.NotifyRouter.HandleLogin(context.Background(), "testuser")
+	<-reading
+
+	type result struct {
+		status keybase1.BootstrapStatus
+		err    error
+	}
+	read := make(chan result)
+	go func() {
+		status, err := g.NotifyRouter.SessionStatus(NewMetaContext(context.Background(), g))
+		read <- result{status, err}
+	}()
+	select {
+	case res := <-read:
+		require.NoError(t, res.err)
+		status := res.status
+		require.Equal(t, "testuser", status.Username)
+		require.Equal(t, 0, status.SessionSeq)
+	case <-time.After(5 * time.Second):
+		t.Fatal("SessionStatus waited on the sessionChanged read")
+	}
+}
+
+// A read that a later-begun read overtook is dropped, not sent with a newer seq than the later one.
+func TestSessionChangedDropsAnOvertakenRead(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	source, reading, release := stallFirstRead(state)
+	g.NotifyRouter.SetSessionStatusSource(source)
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+	ctx := context.Background()
+
+	g.NotifyRouter.HandleLogout(ctx)
+	<-reading
+	state.set("testuser")
+	g.NotifyRouter.HandleLogin(ctx, "testuser")
+	require.Eventually(t, func() bool {
+		return len(sessionChanges(t, rec)) == 1
+	}, 5*time.Second, time.Millisecond)
+
+	release()
+	require.Never(t, func() bool {
+		return len(sessionChanges(t, rec)) > 1
+	}, 500*time.Millisecond, time.Millisecond, "the overtaken read was sent")
+	got := sessionChanges(t, rec)
+	require.Equal(t, "testuser", got[0].Username)
+	require.Equal(t, 1, got[0].SessionSeq)
+}
+
+// A sessionChanged read that a caller's read began after is read again: sent as read, its older
+// status would outrank the caller's newer one.
+func TestSessionChangedRereadsAfterACallersRead(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	state := &sessionState{}
+	source, reading, release := stallFirstRead(state)
+	g.NotifyRouter.SetSessionStatusSource(source)
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{Session: true})
+	defer rec.Close()
+	ctx := context.Background()
+
+	state.set("testuser")
+	g.NotifyRouter.HandleLogin(ctx, "testuser")
+	<-reading
+	// the push's read saw testuser; the session then ends and a caller reads it
+	state.set("")
+	status, err := g.NotifyRouter.SessionStatus(NewMetaContext(ctx, g))
+	require.NoError(t, err)
+	require.False(t, status.LoggedIn)
+	require.Equal(t, 0, status.SessionSeq)
+
+	release()
+	require.Eventually(t, func() bool {
+		return len(sessionChanges(t, rec)) == 1
+	}, 5*time.Second, time.Millisecond)
+	got := sessionChanges(t, rec)
+	require.False(t, got[0].LoggedIn, "the push sent its older read above the caller's")
+	require.Equal(t, 1, got[0].SessionSeq)
+}
+
+func TestSessionStatusFailsWithoutASource(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	m := NewMetaContextForTest(tc)
+
+	_, err := tc.G.NotifyRouter.SessionStatus(m)
+	require.Error(t, err)
+
+	var nilRouter *NotifyRouter
+	_, err = nilRouter.SessionStatus(m)
+	require.Error(t, err)
+}
+
+func TestSessionStatusReturnsTheReadError(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	tc.G.NotifyRouter.SetSessionStatusSource(func(MetaContext) (keybase1.BootstrapStatus, error) {
+		return keybase1.BootstrapStatus{LoggedIn: true}, errors.New("read failed")
+	})
+
+	_, err := tc.G.NotifyRouter.SessionStatus(NewMetaContextForTest(tc))
+	require.EqualError(t, err, "read failed")
 }

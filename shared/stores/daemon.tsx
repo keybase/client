@@ -33,14 +33,12 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    initBootstrapSteps: (steps: Array<BootstrapStep>) => void
-    loadDaemonBootstrapStatus: () => Promise<void>
-    /** reads the session afresh, superseding any read in flight; for hints that it changed */
+    initBootstrapSteps: (steps: Array<BootstrapStep>, subscribe: BootstrapStep) => void
+    onSessionChanged: (status: T.RPCGen.BootstrapStatus) => void
     refreshSessionFromDaemon: (reason: string) => void
     // refreshSessionFromDaemon for a caller that waits: settles once the read has applied, or failed
     readSessionFromDaemon: (reason: string) => Promise<void>
     resetState: () => void
-    setBootstrapStatus: (bs: T.RPCGen.BootstrapStatus) => void
     setError: (e?: Error) => void
     startHandshake: () => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
@@ -51,51 +49,77 @@ const retryDelayMs = 1000
 
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   let bootstrapSteps: Array<BootstrapStep> = []
+  // Runs before anything is read: a change between a read and the subscription would never reach us
+  let subscribeStep: BootstrapStep | undefined
   // bumped on every startHandshake (engine reconnect, splash Reload) so a stale in-flight
   // run can't write results over a newer one
   let generation = 0
-  // The latest read in flight. Only the latest read's reply is applied: a read asked for later
-  // reflects every session change the service had made by then.
-  let inflightBootstrapStatus: Promise<void> | undefined
-  let readSeq = 0
+  // The service numbers its sessionChanged pushes per process. A read carries the number of the
+  // latest push it is at least as new as, so it may replace that push; a push replaces only older
+  // ones. Counted per connection: a new handshake may be talking to a restarted service.
+  let sessionSeq = -1
+  // Reads are numbered as they are issued. Two reads can carry the same seq and reply in either
+  // order, so at an equal seq only a read issued after the one that applied may replace it.
+  let readsIssued = 0
+  let readAppliedAtSeq = 0
+  // Until this connection's first read replies, a push may still be one the previous connection
+  // sent (a restarted service numbers from zero again), so it is held back. The highest seq held
+  // back is read again if the first read is older than it.
+  let firstReadDone = false
+  let heldPushSeq = -1
+
+  // read is the read's issue number, undefined for a push
+  const applySession = (bs: T.RPCGen.BootstrapStatus, read?: number) => {
+    const stale =
+      read === undefined
+        ? bs.sessionSeq <= sessionSeq
+        : bs.sessionSeq < sessionSeq || (bs.sessionSeq === sessionSeq && read < readAppliedAtSeq)
+    if (stale) {
+      return
+    }
+    readAppliedAtSeq = read ?? 0
+    sessionSeq = bs.sessionSeq
+    if (isEqual(bs, get().bootstrapStatus)) {
+      return
+    }
+    set(s => {
+      s.bootstrapStatus = T.castDraft(bs)
+    })
+  }
 
   const readBootstrapStatus = async () => {
     const gen = generation
-    const seq = ++readSeq
-    const f = async (): Promise<void> => {
-      const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-      logger.info(
-        `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
-      )
-      // a newer handshake owns the store now; don't write a potentially older status over its load
-      if (gen !== generation) {
-        return
-      }
-      if (seq !== readSeq) {
-        // superseded: settle with the newer read, so a caller awaiting this one sees its status
-        return inflightBootstrapStatus
-      }
-      if (isEqual(bs, get().bootstrapStatus)) {
-        return
-      }
-      set(s => {
-        s.bootstrapStatus = T.castDraft(bs)
-      })
+    const read = ++readsIssued
+    const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+    logger.info(
+      `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} seq: ${bs.sessionSeq} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
+    )
+    // a newer handshake owns the store now
+    if (gen !== generation) {
+      return
     }
-    const p = f().finally(() => {
-      if (inflightBootstrapStatus === p) {
-        inflightBootstrapStatus = undefined
+    applySession(bs, read)
+    if (!firstReadDone) {
+      firstReadDone = true
+      if (heldPushSeq > bs.sessionSeq) {
+        get().dispatch.refreshSessionFromDaemon('a session sent before the first read replied')
       }
-    })
-    inflightBootstrapStatus = p
-    return p
+    }
   }
 
   const dispatch: State['dispatch'] = {
-    initBootstrapSteps: steps => {
+    initBootstrapSteps: (steps, subscribe) => {
       bootstrapSteps = steps
+      subscribeStep = subscribe
     },
-    loadDaemonBootstrapStatus: async () => inflightBootstrapStatus ?? readBootstrapStatus(),
+    onSessionChanged: status => {
+      logger.info(`[Bootstrap] session changed: loggedIn: ${status.loggedIn ? 1 : 0} seq: ${status.sessionSeq}`)
+      if (!firstReadDone) {
+        heldPushSeq = Math.max(heldPushSeq, status.sessionSeq)
+        return
+      }
+      applySession(status)
+    },
     readSessionFromDaemon: async reason => {
       logger.info(`[Bootstrap] reading the session: ${reason}`)
       try {
@@ -111,6 +135,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       set(s => ({
         ...s,
         ...initialStore,
+        // The service's session, not the account's: it stays what the service last said, so an
+        // account switch that ends with no session change can apply it again.
+        bootstrapStatus: s.bootstrapStatus,
         dispatch: s.dispatch,
         // Both track the connection, not the account, and the closure counter behind the
         // generation keeps climbing across a reset: zeroing the copy here would make the live
@@ -118,11 +145,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         handshakeGeneration: s.handshakeGeneration,
         handshakeState: s.handshakeState,
       }))
-    },
-    setBootstrapStatus: bs => {
-      set(s => {
-        s.bootstrapStatus = T.castDraft(bs)
-      })
     },
     setError: e => {
       if (e) {
@@ -134,9 +156,10 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     },
     startHandshake: () => {
       const gen = ++generation
-      // startHandshake follows a lost link, which failed the RPCs in flight on it; a read from
-      // before it is not the new connection's answer
-      inflightBootstrapStatus = undefined
+      sessionSeq = -1
+      readAppliedAtSeq = 0
+      firstReadDone = false
+      heldPushSeq = -1
       set(s => {
         s.error = undefined
         s.handshakeFailedReason = ''
@@ -147,7 +170,8 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       const run = async () => {
         while (gen === generation) {
           try {
-            await get().dispatch.loadDaemonBootstrapStatus()
+            await subscribeStep?.()
+            await readBootstrapStatus()
             await Promise.all(bootstrapSteps.map(async step => step()))
             if (gen !== generation) {
               return

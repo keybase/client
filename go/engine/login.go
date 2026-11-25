@@ -105,6 +105,9 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 	if loggedInOK {
+		// Nothing changed here, but the session can turn valid without a login announce
+		// (bootstrapActiveDevice), so the client asking to log in may still show it logged out.
+		m.G().NotifyRouter.SendSessionChanged(m.Ctx())
 		return nil
 	}
 	m.Debug("Login: not currently logged in")

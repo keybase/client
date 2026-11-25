@@ -4,7 +4,12 @@ import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
+import {_onEngineIncoming} from '@/constants/init/shared'
+import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
 import {FatalHandshakeError, useDaemonState} from '../daemon'
+
+const noSubscribe = async () => {}
 
 const bootstrapStatus = {
   deviceID: 'd1',
@@ -30,7 +35,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {})
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -44,7 +49,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValueOnce(new Error('flaky'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -63,7 +68,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValue(new Error('down'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -81,7 +86,7 @@ describe('daemon store', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValue(new FatalHandshakeError('pipe owner fail'))
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
+    store.getState().dispatch.initBootstrapSteps([step], noSubscribe)
 
     store.getState().dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
@@ -89,21 +94,6 @@ describe('daemon store', () => {
     expect(step).toHaveBeenCalledTimes(1)
     expect(store.getState().handshakeState).toBe('failed')
     expect(store.getState().handshakeRetriesLeft).toBe(0)
-  })
-
-  test('loadDaemonBootstrapStatus dedupes concurrent loads', async () => {
-    const spy = jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValue(bootstrapStatus)
-    const store = useDaemonState
-
-    await Promise.all([
-      store.getState().dispatch.loadDaemonBootstrapStatus(),
-      store.getState().dispatch.loadDaemonBootstrapStatus(),
-    ])
-
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(store.getState().bootstrapStatus?.uid).toBe('u1')
   })
 
   test('startHandshake does not reuse a load orphaned by an engine reset', async () => {
@@ -114,9 +104,9 @@ describe('daemon store', () => {
       .mockImplementationOnce(async () => new Promise<never>(() => {}))
       .mockResolvedValue(bootstrapStatus)
     const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([])
+    store.getState().dispatch.initBootstrapSteps([], noSubscribe)
 
-    ignorePromise(store.getState().dispatch.loadDaemonBootstrapStatus())
+    ignorePromise(store.getState().dispatch.readSessionFromDaemon('test'))
     await jest.advanceTimersByTimeAsync(0)
 
     store.getState().dispatch.startHandshake()
@@ -151,7 +141,7 @@ describe('daemon store', () => {
   test('resetState keeps the handshake generation: it counts connections, not accounts', () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const {dispatch} = useDaemonState.getState()
-    dispatch.initBootstrapSteps([])
+    dispatch.initBootstrapSteps([], noSubscribe)
     dispatch.startHandshake()
     dispatch.startHandshake()
     const gen = useDaemonState.getState().handshakeGeneration
@@ -163,7 +153,137 @@ describe('daemon store', () => {
   })
 })
 
-describe('reading the session from the daemon', () => {
+describe('the session the service sends and the session read from it', () => {
+  const status = (username: string, sessionSeq: number) =>
+    ({...bootstrapStatus, httpSrvInfo: null, sessionSeq, userReacjis: {skinTone: 0, topReacjis: null}, username}) as T.RPCGen.BootstrapStatus
+  const bootstrapRpc = 'keybase.1.config.getBootstrapStatus'
+
+  let fake: FakeEngine
+  let reads: ReturnType<FakeEngine['hold']>
+  const send = async (bs: T.RPCGen.BootstrapStatus) => {
+    await fake.push('keybase.1.NotifySession.sessionChanged', {status: bs}, {oneway: true})
+    await settle()
+  }
+  const reply = async (bs: T.RPCGen.BootstrapStatus) => {
+    reads[reads.length - 1]!.reply(bs)
+    await settle()
+  }
+  const username = () => useDaemonState.getState().bootstrapStatus?.username
+
+  // A connection whose handshake read is held for the test to answer
+  beforeEach(async () => {
+    fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    reads = fake.hold(bootstrapRpc)
+    useDaemonState.getState().dispatch.initBootstrapSteps([], noSubscribe)
+    useDaemonState.getState().dispatch.startHandshake()
+    await settle()
+  })
+  afterEach(() => {
+    uninstallFakeEngine()
+    resetAllStores()
+  })
+
+  test('a read older than a session already sent is dropped', async () => {
+    await reply(status('testuser', 0))
+    await send(status('testuser2', 2))
+    useDaemonState.getState().dispatch.refreshSessionFromDaemon('test')
+    await settle()
+    await reply(status('testuser', 1))
+
+    expect(username()).toBe('testuser2')
+  })
+
+  // It may be the previous connection's, so it is not applied, but it may also be newer than the read
+  test('a session sent before the first read replies, newer than that read, is read again', async () => {
+    await send(status('testuser2', 2))
+    await reply(status('testuser', 1))
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(reads).toHaveLength(2)
+
+    await reply(status('testuser2', 2))
+    expect(username()).toBe('testuser2')
+  })
+
+  test('a session sent before the first read replies, no newer than that read, is not read again', async () => {
+    await send(status('testuser2', 1))
+    await reply(status('testuser', 1))
+
+    expect(reads).toHaveLength(1)
+    expect(username()).toBe('testuser')
+  })
+
+  // A restarted service numbers from zero again
+  test("a session the previous connection sent, handled after a new handshake began, does not block the new connection's", async () => {
+    await reply(status('testuser', 0))
+    useDaemonState.getState().dispatch.startHandshake()
+    await settle()
+    await send(status('testuser', 6))
+
+    await reply(status('testuser2', 0))
+    expect(username()).toBe('testuser2')
+    // the held session is newer than the read, so it is read again
+    await reply(status('testuser2', 0))
+    await send(status('', 1))
+    expect(username()).toBe('')
+  })
+
+  test('of two reads at the same seq, the one issued later wins whichever replies last', async () => {
+    await reply(status('testuser', 0))
+    const {dispatch} = useDaemonState.getState()
+    dispatch.refreshSessionFromDaemon('first')
+    dispatch.refreshSessionFromDaemon('second')
+    await settle()
+    expect(reads).toHaveLength(3)
+
+    reads[2]!.reply({...status('testuser', 0), fullname: 'newer'})
+    await settle()
+    reads[1]!.reply({...status('testuser', 0), fullname: 'older'})
+    await settle()
+
+    expect(useDaemonState.getState().bootstrapStatus?.fullname).toBe('newer')
+  })
+
+  // The session can change without a login or logout (a device bootstrapped by an engine)
+  test('a read as new as the latest session sent applies', async () => {
+    await reply(status('testuser', 0))
+    await send(status('testuser', 1))
+    useDaemonState.getState().dispatch.refreshSessionFromDaemon('test')
+    await settle()
+
+    await reply({...status('testuser', 1), fullname: 'changed'})
+
+    expect(useDaemonState.getState().bootstrapStatus?.fullname).toBe('changed')
+  })
+
+  test('a session sent no later than the read applied is dropped', async () => {
+    await reply(status('testuser2', 2))
+    await send(status('testuser', 2))
+
+    expect(username()).toBe('testuser2')
+  })
+
+  test('a new handshake counts again, for a restarted service', async () => {
+    await reply(status('testuser', 0))
+    await send(status('testuser', 5))
+    useDaemonState.getState().dispatch.startHandshake()
+    await settle()
+
+    await reply(status('testuser2', 0))
+    expect(username()).toBe('testuser2')
+    await send(status('', 1))
+    expect(username()).toBe('')
+  })
+
+  test('a store reset keeps the session: it is the service’s, not the account’s', async () => {
+    await reply(status('testuser', 0))
+
+    useDaemonState.getState().dispatch.resetState()
+
+    expect(username()).toBe('testuser')
+  })
+})
+
+describe('reading the session again', () => {
   beforeEach(() => {
     jest.useFakeTimers()
   })
@@ -171,102 +291,6 @@ describe('reading the session from the daemon', () => {
     jest.useRealTimers()
     jest.restoreAllMocks()
     resetAllStores()
-  })
-
-  const deferredReads = () => {
-    const replies: Array<(bs: T.RPCGen.BootstrapStatus) => void> = []
-    const spy = jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockImplementation(
-      async () =>
-        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
-          replies.push(resolve)
-        })
-    )
-    return {replies, spy}
-  }
-
-  test('a refresh asks again even while a read is in flight', async () => {
-    const {spy} = deferredReads()
-    const {dispatch} = useDaemonState.getState()
-
-    ignorePromise(dispatch.loadDaemonBootstrapStatus())
-    dispatch.refreshSessionFromDaemon('test')
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(spy).toHaveBeenCalledTimes(2)
-  })
-
-  test('of two overlapping refreshes, the older reply is dropped', async () => {
-    const {replies} = deferredReads()
-    const {dispatch} = useDaemonState.getState()
-
-    dispatch.refreshSessionFromDaemon('first')
-    dispatch.refreshSessionFromDaemon('second')
-    await jest.advanceTimersByTimeAsync(0)
-    replies[1]?.({...bootstrapStatus, username: 'newer'})
-    await jest.advanceTimersByTimeAsync(0)
-    replies[0]?.({...bootstrapStatus, username: 'older'})
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('newer')
-  })
-
-  test('an older reply that lands first is dropped too, the newer one is coming', async () => {
-    const {replies} = deferredReads()
-    const {dispatch} = useDaemonState.getState()
-
-    dispatch.refreshSessionFromDaemon('first')
-    dispatch.refreshSessionFromDaemon('second')
-    await jest.advanceTimersByTimeAsync(0)
-    replies[0]?.({...bootstrapStatus, username: 'older'})
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(useDaemonState.getState().bootstrapStatus).toBeUndefined()
-
-    replies[1]?.({...bootstrapStatus, username: 'newer'})
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('newer')
-  })
-
-  test('a load superseded by a refresh settles with the refresh, so the handshake sees the newer status', async () => {
-    const {replies} = deferredReads()
-    const {dispatch} = useDaemonState.getState()
-    const seen: Array<string | undefined> = []
-    dispatch.initBootstrapSteps([
-      async () => {
-        seen.push(useDaemonState.getState().bootstrapStatus?.username)
-        return Promise.resolve()
-      },
-    ])
-
-    dispatch.startHandshake()
-    await jest.advanceTimersByTimeAsync(0)
-    dispatch.refreshSessionFromDaemon('hint')
-    await jest.advanceTimersByTimeAsync(0)
-    replies[0]?.({...bootstrapStatus, username: 'older'})
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(useDaemonState.getState().handshakeState).toBe('loading')
-
-    replies[1]?.({...bootstrapStatus, username: 'newer'})
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(seen).toEqual(['newer'])
-    expect(useDaemonState.getState().handshakeState).toBe('done')
-  })
-
-  test('a load started after a refresh joins it instead of asking again', async () => {
-    const {replies, spy} = deferredReads()
-    const {dispatch} = useDaemonState.getState()
-
-    dispatch.refreshSessionFromDaemon('hint')
-    const joined = dispatch.loadDaemonBootstrapStatus()
-    await jest.advanceTimersByTimeAsync(0)
-    replies[0]?.(bootstrapStatus)
-    await joined
-
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
   })
 
   test('a failed refresh is logged, not thrown', async () => {
@@ -279,6 +303,7 @@ describe('reading the session from the daemon', () => {
     expect(warn).toHaveBeenCalled()
   })
 })
+
 
 describe('a superseded read', () => {
   beforeEach(() => {
@@ -302,9 +327,9 @@ describe('a superseded read', () => {
       )
       .mockResolvedValue(bootstrapStatus)
     const {dispatch} = useDaemonState.getState()
-    dispatch.initBootstrapSteps([])
+    dispatch.initBootstrapSteps([], noSubscribe)
 
-    const losing = dispatch.loadDaemonBootstrapStatus()
+    const losing = dispatch.readSessionFromDaemon('test')
     dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
     resolveLosing({...bootstrapStatus, username: 'stale'})

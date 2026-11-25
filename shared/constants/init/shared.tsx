@@ -118,6 +118,26 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig);
 };
 
+// The service sends a notification only to a connection subscribed to its channel, so every
+// handshake subscribes before it reads anything.
+const subscribeNotificationsStep = async () => {
+  try {
+    // prettier-ignore
+    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+      channels: {
+        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+        paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
+        team: true, teambot: false, tracking: true, users: true, wallet: false,
+      },
+    })
+  } catch (error) {
+    logger.warn("error in toggling notifications: ", error);
+  }
+};
+
 export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts;
   // refreshAccounts is local (config/keychain + offline uidmap). Handshake must
@@ -259,9 +279,9 @@ const onBootstrapStatusChanged = (
     userSwitching,
     userSwitchingTo,
   } = useConfigState.getState();
-  // Mid-switch, only the target's session applies: a logged-out status, or one for the account
-  // being left (a read in flight when the switch began). onUserSwitchingChanged applies the
-  // latest status once the switch ends.
+  // Mid-switch, only the target's session applies: not the switch's own logout, nor the account
+  // being left (sent before that logout). onUserSwitchingChanged applies the latest status once the
+  // switch ends.
   if (userSwitching && (!loggedIn || username !== userSwitchingTo)) {
     logger.info(
       "[Bootstrap] ignoring a status other than the switch target's during account switch",
@@ -269,10 +289,10 @@ const onBootstrapStatusChanged = (
     return;
   }
 
-  // Logged in as someone else than the user we hold is a logout and then a login, however the
-  // notifications in between reached us. Logging out clears the previous account's stores, the
-  // daemon's status among them, so put this status back and let that change apply it. Read the
-  // held uid before anything below writes the current user.
+  // Logged in as someone else than the user we hold is a logout and then a login. The service reads
+  // the session when it sends it, so the status sent for the logout can already be the next login.
+  // Log the previous account out of our stores first. Read the held uid before anything below
+  // writes the current user.
   const currentUid = useCurrentUserState.getState().uid;
   if (
     loggedIn &&
@@ -284,8 +304,6 @@ const onBootstrapStatusChanged = (
       "[Bootstrap] the session is another user now, logging out the previous one",
     );
     configDispatch.setLoggedIn(false);
-    useDaemonState.getState().dispatch.setBootstrapStatus(bootstrap);
-    return;
   }
 
   useCurrentUserState
@@ -304,8 +322,8 @@ const onBootstrapStatusChanged = (
   }
 };
 
-// A switch that failed after the service logged out has a logged-out status nothing applied, and
-// a read after the switch returns the same status, which does not count as a change.
+// Mid-switch only the target's status applies, and a switch that fails before the service changes
+// the session gets no status at all, so the latest one applies once the switch ends.
 const onUserSwitchingChanged = (
   userSwitching: ConfigState["userSwitching"],
 ) => {
@@ -516,28 +534,6 @@ export const onEngineConnected = () => {
   }
   useConfigState.getState().dispatch.onEngineConnected();
   useDaemonState.getState().dispatch.startHandshake();
-  {
-    const notifyCtl = async () => {
-      try {
-        // prettier-ignore
-        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-          channels: {
-            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-            devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: false, runtimestats: false, saltpack: true, service: true, session: true,
-            team: true, teambot: false, tracking: true, users: true, wallet: false,
-          },
-        })
-      } catch (error) {
-        if (error) {
-          logger.warn("error in toggling notifications: ", error);
-        }
-      }
-    };
-    ignorePromise(notifyCtl());
-  }
 };
 
 export const onEngineDisconnected = () => {
@@ -558,7 +554,7 @@ export const initSharedSubscriptions = (
       loadChatStaticConfigStep,
       loadAccountsStep,
       ...platformBootstrapSteps,
-    ]);
+    ], subscribeNotificationsStep);
 
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub();
@@ -620,11 +616,10 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     routeChatNotification(action);
   }
   switch (action.type) {
-    // These can reach us out of order with each other, so none of them sets the session: each only
-    // says it changed, and the daemon's reply to the latest read is what applies.
-    case "keybase.1.NotifySession.loggedIn":
-    case "keybase.1.NotifySession.loggedOut":
-      useDaemonState.getState().dispatch.refreshSessionFromDaemon(action.type);
+    case "keybase.1.NotifySession.sessionChanged":
+      useDaemonState
+        .getState()
+        .dispatch.onSessionChanged(action.payload.params.status);
       break;
     case "keybase.1.NotifyBadges.badgeState":
       {

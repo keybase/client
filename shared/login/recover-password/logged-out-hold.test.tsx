@@ -214,12 +214,17 @@ describe('the run ends on what the daemon says', () => {
     registered: true,
     uid: loggedIn ? 'uid-1' : '',
     userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
+    sessionSeq,
     username: loggedIn ? 'testuser' : '',
   })
   let daemonLoggedIn = false
+  // the service numbers each session it announces and a read carries the latest number; the
+  // daemon store keeps the last one across a reset, so this only grows
+  let sessionSeq = 0
   const notifyLogin = async () => {
     daemonLoggedIn = true
-    await fake.push('keybase.1.NotifySession.loggedIn', {signedUp: false, username: 'testuser'}, {oneway: true})
+    sessionSeq++
+    await fake.push('keybase.1.NotifySession.sessionChanged', {status: status(true)}, {oneway: true})
     await flush()
   }
 
@@ -286,6 +291,8 @@ describe('the run ends on what the daemon says', () => {
   test('a failed run the daemon still reads as logged in shows the app it is logged in to', async () => {
     await mount()
     const {reply} = await toSaved()
+    // the service announces the login it could not undo, so the session it reads is a newer one
+    sessionSeq++
     reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'password change failed'))
     await flush()
     expect(roots).toEqual(['loggedOut', 'loggedIn'])

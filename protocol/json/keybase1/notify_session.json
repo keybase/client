@@ -1,6 +1,11 @@
 {
   "protocol": "NotifySession",
-  "imports": [],
+  "imports": [
+    {
+      "path": "config.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [],
   "messages": {
     "loggedOut": {
@@ -37,6 +42,16 @@
         }
       ],
       "response": null
+    },
+    "sessionChanged": {
+      "request": [
+        {
+          "name": "status",
+          "type": "BootstrapStatus"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

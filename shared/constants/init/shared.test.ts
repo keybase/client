@@ -1,12 +1,19 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {RPCError} from '@/util/errors'
+import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {_onEngineIncoming, initSharedSubscriptions, loadAccountsStep, onNetworkOnlineChanged} from './shared'
+import {
+  _onEngineIncoming,
+  initSharedSubscriptions,
+  loadAccountsStep,
+  onEngineConnected,
+  onNetworkOnlineChanged,
+} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -121,31 +128,37 @@ describe('onNetworkOnlineChanged', () => {
   })
 })
 
-describe('the session comes from the daemon; notifications only say to read it', () => {
+describe('the session comes from the service', () => {
   const status = (over: Partial<T.RPCGen.BootstrapStatus> = {}) =>
     ({
       deviceID: 'd1',
       deviceName: 'testuser-mac',
       fullname: '',
+      httpSrvInfo: null,
       loggedIn: true,
       registered: true,
+      sessionSeq: 0,
       uid: 'u1',
+      userReacjis: {skinTone: 0, topReacjis: null},
       username: 'testuser',
       ...over,
-    }) as unknown as T.RPCGen.BootstrapStatus
+    }) as T.RPCGen.BootstrapStatus
   const userA = status()
   const userB = status({deviceID: 'd2', uid: 'u2', username: 'testuser2'})
   const loggedOut = status({deviceID: '', deviceName: '', loggedIn: false, uid: '', username: ''})
 
-  let replies: Array<(bs: T.RPCGen.BootstrapStatus) => void> = []
-  const flush = async () => jest.advanceTimersByTimeAsync(0)
-  const notify = (type: string, params: unknown) => _onEngineIncoming({payload: {params}, type} as never)
-  const readReplying = async (bs: T.RPCGen.BootstrapStatus) => {
-    useDaemonState.getState().dispatch.refreshSessionFromDaemon('test')
-    await flush()
-    replies[replies.length - 1]?.(bs)
-    await flush()
+  let fake: FakeEngine
+  let seq = 0
+  // The session the service has, which a read returns with the seq of the latest one it sent
+  let current = loggedOut
+  // The service sends the session it changed to, numbered in the order it sent them
+  const send = async (bs: T.RPCGen.BootstrapStatus, sessionSeq = ++seq) => {
+    current = bs
+    await fake.push('keybase.1.NotifySession.sessionChanged', {status: {...bs, sessionSeq}}, {oneway: true})
+    await settle()
   }
+  // reads of the session, the handshake's own included
+  const sessionReads = () => fake.calls.filter(c => c.method === 'keybase.1.config.getBootstrapStatus').length
 
   // what resetAllStores clears, standing in for the previous account's state
   const markAccountState = () => useConfigState.setState({justDeletedSelf: 'testuser'})
@@ -160,67 +173,80 @@ describe('the session comes from the daemon; notifications only say to read it',
     return {changes, unsub}
   }
 
-  beforeEach(() => {
-    jest.useFakeTimers()
-    replies = []
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockImplementation(
-      async () =>
-        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
-          replies.push(resolve)
-        })
-    )
-    jest.spyOn(T.RPCGen, 'loginGetConfiguredAccountsRpcPromise').mockResolvedValue([])
+  // A new connection's handshake: the service has sent nothing on it yet
+  beforeEach(async () => {
+    seq = 0
+    current = loggedOut
+    fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    fake.answer('keybase.1.config.getBootstrapStatus', () => ({...current, sessionSeq: seq}))
+    fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
     useConfigState.getState().dispatch.setUserSwitching(false)
     initSharedSubscriptions()
+    useDaemonState.getState().dispatch.initBootstrapSteps([], async () => {})
+    useDaemonState.getState().dispatch.startHandshake()
+    await settle()
   })
   afterEach(() => {
-    jest.useRealTimers()
-    jest.restoreAllMocks()
+    uninstallFakeEngine()
     useConfigState.getState().dispatch.setUserSwitching(false)
     resetAllStores()
   })
 
-  test('loggedOut and loggedIn delivered reversed still end with the last reply', async () => {
-    // the service logged out and then in; its two notifications reached us the other way round
-    notify('keybase.1.NotifySession.loggedIn', {signedUp: false, username: 'testuser'})
-    notify('keybase.1.NotifySession.loggedOut', undefined)
-    await flush()
-    replies[1]?.(userA)
-    await flush()
-    replies[0]?.(loggedOut)
-    await flush()
+  // The service leaves its HTTP server token out of the push; the read that asked for it keeps it
+  test('a session sent without the HTTP server keeps the one a read got', async () => {
+    current = {...userA, httpSrvInfo: {address: '127.0.0.1:1234', token: 'tok'}}
+    await useDaemonState.getState().dispatch.readSessionFromDaemon('test')
+    await settle()
+    expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:1234', token: 'tok'})
+
+    await send(userB)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:1234', token: 'tok'})
+  })
+
+  test('a session sent applies without reading the service', async () => {
+    await send(userA)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+    expect(sessionReads()).toBe(1)
+  })
+
+  test('a logged-out session sent logs out', async () => {
+    await send(userA)
+    await send(loggedOut)
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('an older session that reaches us late is dropped', async () => {
+    await send(userA, 2)
+    await send(loggedOut, 1)
 
     expect(useConfigState.getState().loggedIn).toBe(true)
     expect(useCurrentUserState.getState().username).toBe('testuser')
   })
 
-  test('a loggedOut hint logs out once the daemon says so', async () => {
-    await readReplying(userA)
-    expect(useConfigState.getState().loggedIn).toBe(true)
+  test('an http server update applies at once without reading the service', async () => {
+    await fake.push(
+      'keybase.1.NotifyService.HTTPSrvInfoUpdate',
+      {info: {address: '127.0.0.1:2', token: 'token'}},
+      {oneway: true}
+    )
+    await settle()
 
-    notify('keybase.1.NotifySession.loggedOut', undefined)
-    expect(useConfigState.getState().loggedIn).toBe(true)
-    await flush()
-    replies[replies.length - 1]?.(loggedOut)
-    await flush()
-
-    expect(useConfigState.getState().loggedIn).toBe(false)
-  })
-
-  test('an http server update applies at once without re-reading the daemon', async () => {
-    const before = replies.length
-    notify('keybase.1.NotifyService.HTTPSrvInfoUpdate', {info: {address: '127.0.0.1:2', token: 'token'}})
     expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:2', token: 'token'})
-    await flush()
-    expect(replies.length).toBe(before)
+    expect(sessionReads()).toBe(1)
   })
 
-  test('a reply for another user while logged in logs out first, clearing the old account', async () => {
-    await readReplying(userA)
+  // The service reads the session when it sends it, so the status sent for a logout can already be
+  // the next login.
+  test('another user while logged in logs out first, clearing the old account', async () => {
+    await send(userA)
     markAccountState()
     const {changes, unsub} = loginChanges()
 
-    await readReplying(userB)
+    await send(userB)
     unsub()
 
     expect(changes).toEqual([false, true])
@@ -231,11 +257,11 @@ describe('the session comes from the daemon; notifications only say to read it',
   })
 
   test('the same user again is not a switch', async () => {
-    await readReplying(userA)
+    await send(userA)
     markAccountState()
     const {changes, unsub} = loginChanges()
 
-    await readReplying({...userA, fullname: 'changed'} as T.RPCGen.BootstrapStatus)
+    await send({...userA, fullname: 'changed'})
     unsub()
 
     expect(changes).toEqual([])
@@ -247,7 +273,7 @@ describe('the session comes from the daemon; notifications only say to read it',
     markAccountState()
     const {changes, unsub} = loginChanges()
 
-    await readReplying(userA)
+    await send(userA)
     unsub()
 
     expect(changes).toEqual([])
@@ -256,7 +282,7 @@ describe('the session comes from the daemon; notifications only say to read it',
   })
 
   test('starting a switch logs the old account out of our stores', async () => {
-    await readReplying(userA)
+    await send(userA)
     markAccountState()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
 
@@ -264,30 +290,15 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(accountStateCleared()).toBe(true)
   })
 
-  test("once the switch's target is logged in, a logged-out reply mid-switch is ignored", async () => {
-    await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
-    await readReplying(userB)
-    expect(useConfigState.getState().loggedIn).toBe(true)
-
-    await readReplying(loggedOut)
-
-    expect(useConfigState.getState().loggedIn).toBe(true)
-    expect(useCurrentUserState.getState().username).toBe('testuser2')
-    expect(useConfigState.getState().userSwitching).toBe(true)
-  })
-
-  // A read of the old account in flight when the switch began replies after the reset.
-  test("mid-switch, the old account's reply is ignored, and the target's still applies", async () => {
-    await readReplying(userA)
+  // The switch's own logout, then its login: the navigator for the new account ends the switch
+  // (endUserSwitchLandedOn), not its session.
+  test('a switch applies its target and leaves the switch for its navigator to end', async () => {
+    await send(userA)
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
     const {changes, unsub} = loginChanges()
 
-    await readReplying(userA)
-    expect(useConfigState.getState().loggedIn).toBe(false)
-    expect(useCurrentUserState.getState().uid).toBe('')
-
-    await readReplying(userB)
+    await send(loggedOut)
+    await send(userB)
     unsub()
 
     expect(changes).toEqual([true])
@@ -295,47 +306,88 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(useConfigState.getState().userSwitching).toBe(true)
   })
 
-  // The navigator for the new account ends the switch (endUserSwitchLandedOn), not its bootstrap.
-  test("the switch's target logging in leaves the switch for its navigator to end", async () => {
-    await readReplying(userA)
+  // Sent before the switch's logout, delivered after the switch began
+  test("mid-switch, the old account's session is ignored, and the target's still applies", async () => {
+    await send(userA)
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
 
-    await readReplying(userB)
+    await send(userA)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
 
-    expect(useConfigState.getState().loggedIn).toBe(true)
+    await send(userB)
     expect(useCurrentUserState.getState().username).toBe('testuser2')
-    expect(useConfigState.getState().userSwitching).toBe(true)
   })
 
-  test('a switch whose login fails ends logged out, no longer switching', async () => {
-    await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
-    await readReplying(loggedOut)
+  test('a switch whose login fails after the logout ends logged out, no longer switching', async () => {
+    await send(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await send(loggedOut)
+    const logins = fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser2', '')
+    await settle()
 
-    useConfigState.getState().dispatch.setLoginError(new Error('bad password') as never)
-    await readReplying(loggedOut)
-
-    expect(useConfigState.getState().loggedIn).toBe(false)
-    expect(useConfigState.getState().userSwitching).toBe(false)
-  })
-
-  test.each([
-    ['cancelled', new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric)],
-    ['ended by a non-RPC error', new Error('engine reset')],
-  ])('a switch whose login is %s ends logged out, no longer switching', async (_, error) => {
-    await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
-    await readReplying(loggedOut)
-    expect(useConfigState.getState().userSwitching).toBe(true)
-
-    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(error)
-    useConfigState.getState().dispatch.login('testuser2', 'password')
-    await flush()
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'))
+    await settle(2)
 
     expect(useConfigState.getState().userSwitching).toBe(false)
     expect(useConfigState.getState().loggedIn).toBe(false)
-    replies[replies.length - 1]?.(loggedOut)
-    await flush()
+    expect(useCurrentUserState.getState().uid).toBe('')
+  })
+
+  // The service logged A out, but the session it sent for that has not reached us when the login
+  // fails: ending the switch must not put A back.
+  test('a switch whose login fails before its logout reaches us ends logged out, never back on the old account', async () => {
+    await send(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    const logins = fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser2', '')
+    await settle()
+    current = loggedOut
+    seq++
+    const {changes, unsub} = loginChanges()
+
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad password'))
+    await settle(2)
+    await send(loggedOut, seq)
+    unsub()
+
+    expect(changes).toEqual([])
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
+  })
+
+  // The switch-start reset logged A out of our stores, and the service sends nothing: nothing
+  // changed there.
+  test('a switch whose login fails before the service logs out ends back on the old account', async () => {
+    await send(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    const logins = fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser2', '')
+    await settle()
+
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'network'))
+    await settle(2)
+
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+  })
+
+  test('a switch whose login is cancelled after the logout ends logged out, with no error', async () => {
+    await send(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await send(loggedOut)
+    const logins = fake.hold('keybase.1.login.login')
+    useConfigState.getState().dispatch.login('testuser2', '')
+    await settle()
+
+    logins[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC'))
+    await settle(2)
+
+    expect(useConfigState.getState().userSwitching).toBe(false)
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().loginError).toBeUndefined()
   })
@@ -380,5 +432,61 @@ describe('email notifications', () => {
       uid: 'u2',
     })
     expect([...useSettingsEmailState.getState().emails.keys()]).toEqual(['a@keybase.io'])
+  })
+})
+
+describe('a new connection subscribes before it reads', () => {
+  const userA = {
+    deviceID: 'd1',
+    deviceName: 'testuser-mac',
+    fullname: '',
+    httpSrvInfo: null,
+    loggedIn: true,
+    registered: true,
+    sessionSeq: 0,
+    uid: 'u1',
+    userReacjis: {skinTone: 0, topReacjis: null},
+    username: 'testuser',
+  } as T.RPCGen.BootstrapStatus
+  const loggedOut = {...userA, deviceID: '', deviceName: '', loggedIn: false, uid: '', username: ''}
+
+  afterEach(() => {
+    uninstallFakeEngine()
+    resetAllStores()
+  })
+
+  // The service sends a change only to a connection subscribed to its channel, so a change made
+  // after the handshake read the session but before the subscription landed would reach no one.
+  test('a login between the read and the subscription still reaches the app', async () => {
+    const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+    let session = loggedOut
+    const subscribes = fake.hold('keybase.1.notifyCtl.setNotifications')
+    fake.answer('keybase.1.config.getBootstrapStatus', () => session)
+    fake.answer('keybase.1.login.getConfiguredAccounts', () => [])
+    for (const m of [
+      'keybase.1.delegateUiCtl.registerChatUI',
+      'keybase.1.delegateUiCtl.registerLogUI',
+      'keybase.1.delegateUiCtl.registerHomeUI',
+      'keybase.1.delegateUiCtl.registerSecretUI',
+      'keybase.1.delegateUiCtl.registerIdentify3UI',
+      'keybase.1.delegateUiCtl.registerRekeyUI',
+      'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+      'keybase.1.config.helloIAm',
+    ]) {
+      fake.answer(m, () => null)
+    }
+    fake.answer('keybase.1.config.guiGetValue', () => fakeError(1, 'no value'))
+    useConfigState.setState({chatBuiltinCommands: {} as any, chatDeletableByDeleteHistory: new Set()})
+    initSharedSubscriptions()
+    onEngineConnected()
+    await settle()
+
+    // The user logs in on the service before the subscription lands, so nothing is sent to us
+    session = userA
+    subscribes.forEach(c => c.reply(null))
+    await settle()
+
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+    expect(useConfigState.getState().loggedIn).toBe(true)
   })
 })

@@ -274,6 +274,9 @@ protocol config {
     FullName fullname;        // current user's fullname
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
     union { null, HttpSrvInfo } httpSrvInfo; // info about the service http server
+    // The seq of the latest NotifySession.sessionChanged this status is at least as new as;
+    // numbered per service process.
+    int sessionSeq;
   }
 
   BootstrapStatus getBootstrapStatus(int sessionID);

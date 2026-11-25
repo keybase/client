@@ -257,6 +257,10 @@ func (h *notifyHandler) LoggedIn(_ context.Context, arg keybase1.LoggedInArg) er
 	return nil
 }
 
+func (h *notifyHandler) SessionChanged(context.Context, keybase1.BootstrapStatus) error {
+	return nil
+}
+
 func (h *notifyHandler) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) error {
 	h.outOfDateCh <- arg
 	return nil

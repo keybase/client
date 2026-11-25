@@ -7,7 +7,6 @@ import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from
 import {installNavigation} from '@/test/navigation'
 import {openDialog} from './dialog'
 import {useConfigState} from '@/stores/config'
-import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {settle, tick} from '@/test/flush'
@@ -220,7 +219,6 @@ describe('every way a switch ends lets its calls out', () => {
     begin: (fake: FakeEngine) => Promise<void>,
     end: (fake: FakeEngine) => Promise<void>
   ) => {
-    useDaemonState.setState(s => ({dispatch: {...s.dispatch, refreshSessionFromDaemon: () => {}}}))
     const fake = installFakeEngine()
     fake.answer(settings, () => ({}))
     await begin(fake)
@@ -271,6 +269,8 @@ describe('every way a switch ends lets its calls out', () => {
       },
       async fake => {
         const refusal = {code: T.RPCGen.StatusCode.scgeneric, desc: 'Canceling RPC'}
+        // a failed switch reads the session before it ends
+        fake.answer('keybase.1.config.getBootstrapStatus', () => ({loggedIn: false, sessionSeq: 0}))
         const pushed = fake.push(
           'keybase.1.provisionUi.chooseDevice',
           {canSelectNoDevice: false, devices: []},

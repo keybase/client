@@ -340,9 +340,29 @@ func (d *Service) Run() (err error) {
 	return err
 }
 
+// sessionStatus reads the session for NotifySession.sessionChanged and config.getBootstrapStatus.
+// It leaves out the HTTP server token, which the push would hand to every session subscriber;
+// getBootstrapStatus adds it for the caller that asked.
+func (d *Service) sessionStatus(m libkb.MetaContext) (keybase1.BootstrapStatus, error) {
+	eng := engine.NewBootstrap(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.BootstrapStatus{}, err
+	}
+	return eng.Status(), nil
+}
+
+func (d *Service) httpSrvInfo() *keybase1.HttpSrvInfo {
+	addr, err := d.httpSrv.Addr()
+	if err != nil {
+		return nil
+	}
+	return &keybase1.HttpSrvInfo{Address: addr, Token: d.httpSrv.Token()}
+}
+
 func (d *Service) SetupCriticalSubServices() error {
 	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
+	d.G().NotifyRouter.SetSessionStatusSource(d.sessionStatus)
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
 	pvl.NewPvlSourceAndInstall(d.G())
@@ -750,6 +770,8 @@ func (d *Service) StartLoopbackServer(loginMode libkb.LoginAttempt) error {
 	if l, err = d.G().MakeLoopbackServer(); err != nil {
 		return err
 	}
+	// This listens before SetupCriticalSubServices runs, and the login below announces the session
+	d.G().NotifyRouter.SetSessionStatusSource(d.sessionStatus)
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.

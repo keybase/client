@@ -29,6 +29,10 @@ func (noopNotifySession) ClientOutOfDate(context.Context, keybase1.ClientOutOfDa
 	return nil
 }
 
+func (noopNotifySession) SessionChanged(context.Context, keybase1.BootstrapStatus) error {
+	return nil
+}
+
 // NotifyRecorder is a connection registered with a NotifyRouter, for tests.
 // It records the notifications and calls sent to it in the order they were
 // written: each is decoded inside the transport's Write, so it is recorded

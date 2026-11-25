@@ -20,7 +20,6 @@ import {
 
 const login = 'keybase.1.login.login'
 const deviceAdd = 'keybase.1.device.deviceAdd'
-const bootstrap = 'keybase.1.config.getBootstrapStatus'
 const deviceName = 'keybase.1.provisionUi.PromptNewDeviceName'
 const chooseDevice = 'keybase.1.provisionUi.chooseDevice'
 const getPassphrase = 'keybase.1.secretUi.getPassphrase'
@@ -72,8 +71,6 @@ const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop
 // Every login attempt is held until the test replies to it, like the real RPC waiting on prompts
 const startLogin = async () => {
   const held = fake.hold(login)
-  // A login that returns reads the session again
-  fake.hold(bootstrap)
   submitProvisionUsername('testuser')
   await tick()
   return held
@@ -179,8 +176,6 @@ describe('login', () => {
     ])
     held[1]!.reply(undefined)
     await settle()
-    // the login returned: the session is read again
-    expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
   })
 
   test('a later step resubmitted replays every earlier answer in order, then answers it', async () => {
@@ -389,7 +384,6 @@ describe('login', () => {
 
     held[0]!.reply(undefined)
     await settle()
-    expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
     expect(navigations().filter(n => n.name === 'error')).toEqual([])
   })
 

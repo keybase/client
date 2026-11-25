@@ -355,25 +355,14 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	// attempt (which can be slow: leveldb open/recovery, keychain reads) so
 	// we don't report loggedIn=false while it is still in flight.
 	h.svc.awaitInitialLoginAttempt(m, 30*time.Second)
-	eng := engine.NewBootstrap(h.G())
-	if err = engine.RunEngine2(m, eng); err != nil {
+	if res, err = h.G().NotifyRouter.SessionStatus(m); err != nil {
 		return res, err
 	}
-	res = eng.Status()
-	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
-	for range 40 { // wait at most 2 seconds
-		addr, addrErr := h.svc.httpSrv.Addr()
-		if addrErr != nil {
-			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", addrErr)
-		} else {
-			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", addr, h.svc.httpSrv.Token())
-			res.HttpSrvInfo = &keybase1.HttpSrvInfo{
-				Address: addr,
-				Token:   h.svc.httpSrv.Token(),
-			}
-			break
-		}
+	res.HttpSrvInfo = h.svc.httpSrvInfo()
+	for i := 0; res.HttpSrvInfo == nil && i < 40; i++ { // wait at most 2 seconds
+		m.Debug("GetBootstrapStatus: waiting for the HTTP server address")
 		time.Sleep(50 * time.Millisecond)
+		res.HttpSrvInfo = h.svc.httpSrvInfo()
 	}
 	if res.HttpSrvInfo == nil {
 		m.Debug("GetBootstrapStatus: failed to get HTTP srv info after max attempts")

@@ -24,10 +24,15 @@ type ClientOutOfDateArg struct {
 	UpgradeMsg string `codec:"upgradeMsg" json:"upgradeMsg"`
 }
 
+type SessionChangedArg struct {
+	Status BootstrapStatus `codec:"status" json:"status"`
+}
+
 type NotifySessionInterface interface {
 	LoggedOut(context.Context) error
 	LoggedIn(context.Context, LoggedInArg) error
 	ClientOutOfDate(context.Context, ClientOutOfDateArg) error
+	SessionChanged(context.Context, BootstrapStatus) error
 }
 
 func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
@@ -74,6 +79,21 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 					return
 				},
 			},
+			"sessionChanged": {
+				MakeArg: func() any {
+					var ret [1]SessionChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]SessionChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SessionChangedArg)(nil), args)
+						return
+					}
+					err = i.SessionChanged(ctx, typedArgs[0].Status)
+					return
+				},
+			},
 		},
 	}
 }
@@ -94,5 +114,11 @@ func (c NotifySessionClient) LoggedIn(ctx context.Context, __arg LoggedInArg) (e
 
 func (c NotifySessionClient) ClientOutOfDate(ctx context.Context, __arg ClientOutOfDateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.NotifySession.clientOutOfDate", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c NotifySessionClient) SessionChanged(ctx context.Context, status BootstrapStatus) (err error) {
+	__arg := SessionChangedArg{Status: status}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.sessionChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }
