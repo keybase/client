@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
-import {getExplodingModeFromGregorItems} from './thread-load'
+import {getExplodingModeFromPrefs} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
 export const emptyParticipantInfo: T.Chat.ParticipantInfo = {
@@ -86,7 +86,7 @@ export const useConversationParticipantsSelector = <TValue,>(
   useInboxMetadataState(s => selector(s.participants.get(conversationIDKey) ?? emptyParticipantInfo))
 
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)
+  useConfigState(state => getExplodingModeFromPrefs(conversationIDKey, state.gregorUIPrefs))
 
 const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread: string) => {
   if (!thread) {

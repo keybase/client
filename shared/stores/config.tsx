@@ -37,7 +37,7 @@ type Store = T.Immutable<{
   configuredAccounts: Array<T.Config.ConfiguredAccount>;
   defaultUsername: string;
   globalError?: Error | RPCError;
-  gregorPushState: Array<{ md: T.RPCGregor.Metadata; item: T.RPCGregor.Item }>;
+  gregorUIPrefs: T.RPCGen.GregorUIPrefs;
   loginError?: RPCError;
   httpSrv: {
     address: string;
@@ -76,7 +76,7 @@ const initialStore: Store = {
   configuredAccounts: [],
   defaultUsername: "",
   globalError: undefined,
-  gregorPushState: [],
+  gregorUIPrefs: { allowAnimatedEmojis: true },
   httpSrv: {
     address: "",
     token: "",
@@ -178,27 +178,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     } catch (err) {
       logger.warn("error getting update info: ", err);
     }
-  };
-
-  const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
-    const items = state.items || [];
-    const goodState = items.reduce<
-      Array<{ md: T.RPCGregor.Metadata; item: T.RPCGregor.Item }>
-    >((arr, { md, item }) => {
-      if (md && item) {
-        arr.push({ item, md });
-      }
-      return arr;
-    }, []);
-    if (goodState.length !== items.length) {
-      logger.warn("Lost some messages in filtering out nonNull gregor items");
-    }
-    set((s) => {
-      s.gregorPushState = T.castDraft(goodState);
-      s.allowAnimatedEmojis = !goodState.find(
-        (i) => i.item.category === "emojianimations",
-      );
-    });
   };
 
   const dispatch: State["dispatch"] = {
@@ -404,12 +383,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
       inflightRefreshAccounts = undefined;
-      // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
         try {
-          await T.RPCGen.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({
-            systems: [],
-          });
+          await T.RPCGen.delegateUiCtlRegisterGregorUIPrefsRpcPromise();
           logger.info("Registered gregor listener");
         } catch (error) {
           logger.warn("error in registering gregor listener: ", error);
@@ -438,9 +414,12 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         case "keybase.1.NotifyBadges.badgeState":
           get().dispatch.setBadgeState(action.payload.params.badgeState);
           break;
-        case "keybase.1.gregorUI.pushState": {
-          const { state } = action.payload.params;
-          setGregorPushState(state);
+        case "keybase.1.gregorUI.pushUIPrefs": {
+          const { prefs } = action.payload.params;
+          set((s) => {
+            s.gregorUIPrefs = T.castDraft(prefs);
+            s.allowAnimatedEmojis = prefs.allowAnimatedEmojis;
+          });
           break;
         }
         case "keybase.1.NotifyService.HTTPSrvInfoUpdate": {

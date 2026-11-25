@@ -1091,16 +1091,8 @@ const signIn = (uid: string, username: string) =>
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'test-device', uid, username})
 
 const explodingModeIn = (id: T.Chat.ConversationIDKey, seconds: number) =>
-  engineAction('keybase.1.gregorUI.pushState', {
-    reason: T.RPCGen.PushReason.none,
-    state: {
-      items: [
-        {
-          item: {body: new TextEncoder().encode(String(seconds)), category: `exploding:${id}`},
-          md: {msgID: new Uint8Array([1])},
-        },
-      ],
-    },
+  engineAction('keybase.1.gregorUI.pushUIPrefs', {
+    prefs: {allowAnimatedEmojis: true, explodingModes: {[id]: seconds}},
   })
 
 // The switch as the stores see it: setUserSwitching resets every store, which empties the signed-in

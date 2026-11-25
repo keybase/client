@@ -1,9 +1,7 @@
 /// <reference types="jest" />
 import * as Meta from '@/constants/chat/meta'
-import {bodyToJSON} from '@/constants/rpc-utils'
 import * as T from '@/constants/types'
 
-const encodeText = (text: string) => new TextEncoder().encode(text)
 
 const makeConversationMetadata = (
   conversationID: T.RPCChat.ConversationID | string
@@ -65,12 +63,6 @@ const makeUnverifiedInboxUIItem = (
   version: 1,
   visibility: T.RPCGen.TLFVisibility.private,
   ...overrides,
-})
-
-test('bodyToJSON decodes UTF-8 JSON payloads used by RPC helpers', () => {
-  const payload = {message: 'hello🙂', nested: {count: 2}}
-
-  expect(bodyToJSON(encodeText(JSON.stringify(payload)))).toEqual(payload)
 })
 
 test('conversation and outbox ID helpers round-trip binary values and preserve leading zeros', () => {

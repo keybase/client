@@ -169,41 +169,13 @@ test('same-version badgeState updates teams detail and teams badge count', () =>
   expect(store.getState().teamIDToResetUsers.get('team-1')).toEqual(new Set(['bob']))
 })
 
-test('gregor push state populates per-team access requests', () => {
+test('gregor prefs populate per-team access requests', () => {
   const store = useNotifState
-  const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value))
-
   store.getState().dispatch.onEngineIncomingImpl({
     payload: {
-      params: {
-        state: {
-          items: [
-            {
-              item: {
-                body: encode({id: 'team-1', username: 'alice'}),
-                category: 'team.request_access:team-1',
-              },
-              md: {},
-            },
-            {
-              item: {
-                body: encode({id: 'team-1', username: 'bob'}),
-                category: 'team.request_access:team-1',
-              },
-              md: {},
-            },
-            {
-              item: {
-                body: encode({id: 'team-2', username: 'charlie'}),
-                category: 'team.request_access:team-2',
-              },
-              md: {},
-            },
-          ],
-        },
-      },
+      params: {prefs: {allowAnimatedEmojis: true, teamAccessRequests: {'team-1': ['alice', 'bob'], 'team-2': ['charlie']}}},
     },
-    type: 'keybase.1.gregorUI.pushState',
+    type: 'keybase.1.gregorUI.pushUIPrefs',
   } as any)
 
   expect(store.getState().newTeamRequests.get('team-1')).toEqual(new Set(['alice', 'bob']))

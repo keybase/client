@@ -1,22 +1,11 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {bodyToJSON} from '@/constants/rpc-utils'
 import {useInboxLayoutState} from './layout-state'
 
 export const pinnedConvsGregorKey = 'chatPinnedConvs'
 // The whole list is stored in one gregor item, so keep it bounded.
 export const maxPinnedConvs = 25
-
-type GregorItems = T.RPCGen.Gregor1.State['items']
-
-export const getPinnedConvIDs = (items: GregorItems): ReadonlyArray<T.Chat.ConversationIDKey> => {
-  const found = items?.find(i => i.item?.category === pinnedConvsGregorKey)
-  const parsed = bodyToJSON(found?.item?.body)
-  return Array.isArray(parsed)
-    ? parsed.filter((id): id is T.Chat.ConversationIDKey => typeof id === 'string' && id.length > 0)
-    : []
-}
 
 export const pruneToLayout = (
   list: ReadonlyArray<string>,
@@ -44,17 +33,16 @@ export const nextPinnedList = (list: ReadonlyArray<string>, id: string, pinned: 
 let pinChain: Promise<void> = Promise.resolve()
 
 const doSetConversationPinned = async (id: T.Chat.ConversationIDKey, pinned: boolean) => {
-  let items: GregorItems
+  let current: ReadonlyArray<string>
   try {
-    // Read from the service instead of the gregorPushState store: the service applies its
-    // local outbox before answering, so a write from the previous link in this chain is
-    // visible here right away, where the push-based store copy lags behind by the debounce.
-    items = (await T.RPCGen.gregorGetStateRpcPromise()).items
+    // Read from the service instead of the pushed prefs: the service applies its local outbox
+    // before answering, so a write from the previous link in this chain is visible here right
+    // away, where the pushed copy lags behind by the debounce.
+    current = (await T.RPCGen.gregorGetUIPrefsRpcPromise()).pinnedConvs ?? []
   } catch (error) {
     logger.warn(`setConversationPinned: fetching pinned convs failed: ${String(error)}`)
     return
   }
-  const current = getPinnedConvIDs(items)
   const smallTeams = useInboxLayoutState.getState().layout?.smallTeams
   const pruned = pruneToLayout(current, smallTeams)
   const next = nextPinnedList(pruned, id, pinned)

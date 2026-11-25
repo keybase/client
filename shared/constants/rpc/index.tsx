@@ -95,7 +95,7 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyUsers.userChanged' |
   'keybase.1.gpgUi.selectKey' |
   'keybase.1.gpgUi.wantToAddGPGKey' |
-  'keybase.1.gregorUI.pushState' |
+  'keybase.1.gregorUI.pushUIPrefs' |
   'keybase.1.homeUI.homeUIRefresh' |
   'keybase.1.identify3Ui.identify3Result' |
   'keybase.1.identify3Ui.identify3ShowTracker' |
@@ -209,7 +209,7 @@ export const survivesAccountChangeMethods: ReadonlySet<string> = new Set<string>
   'keybase.1.config.logSend',
   'keybase.1.config.waitForClient',
   'keybase.1.delegateUiCtl.registerChatUI',
-  'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+  'keybase.1.delegateUiCtl.registerGregorUIPrefs',
   'keybase.1.delegateUiCtl.registerHomeUI',
   'keybase.1.delegateUiCtl.registerIdentify3UI',
   'keybase.1.delegateUiCtl.registerLogUI',

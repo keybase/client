@@ -31,19 +31,10 @@ const badgeAction = (badgeState: T.RPCGen.BadgeState) =>
     type: 'keybase.1.NotifyBadges.badgeState',
   }) as unknown as EngineGen.Actions
 
-const gregorAction = (items: Array<{category: string; body: string}>) =>
+const prefsAction = (teamAccessRequests: {[teamID: string]: Array<string>}) =>
   ({
-    payload: {
-      params: {
-        state: {
-          items: items.map(({category, body}) => ({
-            item: {body: new TextEncoder().encode(body), category},
-            md: {},
-          })),
-        },
-      },
-    },
-    type: 'keybase.1.gregorUI.pushState',
+    payload: {params: {prefs: {allowAnimatedEmojis: true, teamAccessRequests}}},
+    type: 'keybase.1.gregorUI.pushUIPrefs',
   }) as unknown as EngineGen.Actions
 
 describe('notifications store identity stability', () => {
@@ -86,21 +77,13 @@ describe('notifications store identity stability', () => {
     expect(after.navBadges).not.toBe(before.navBadges)
   })
 
-  it('keeps newTeamRequests identity stable across equal gregor pushStates', () => {
+  it('keeps newTeamRequests identity stable across equal gregor prefs', () => {
     const dispatch = useNotifState.getState().dispatch
-    dispatch.onEngineIncomingImpl(
-      gregorAction([
-        {body: JSON.stringify({id: 'teamA', username: 'testuser'}), category: 'team.request_access:teamA'},
-      ])
-    )
+    dispatch.onEngineIncomingImpl(prefsAction({teamA: ['testuser']}))
     const before = useNotifState.getState().newTeamRequests
     expect(before.get('teamA' as never)?.has('testuser')).toBe(true)
 
-    dispatch.onEngineIncomingImpl(
-      gregorAction([
-        {body: JSON.stringify({id: 'teamA', username: 'testuser'}), category: 'team.request_access:teamA'},
-      ])
-    )
+    dispatch.onEngineIncomingImpl(prefsAction({teamA: ['testuser']}))
     expect(useNotifState.getState().newTeamRequests).toBe(before)
   })
 })

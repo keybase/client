@@ -10,7 +10,6 @@ import {getChatRpc, makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {flush as flushAll, settle} from '@/test/flush'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {
-  getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
   loadConversationThreadMessages,
@@ -32,14 +31,6 @@ import type {
 
 // the service sees the conversation ID, so keys that convert to one
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const otherConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
-
-const gregorItem = (category: string, body: string) => ({
-  item: {
-    body: new TextEncoder().encode(body),
-    category,
-  } as T.RPCGen.Gregor1.Item,
-})
 
 let fake: FakeEngine
 
@@ -59,31 +50,6 @@ const scriptLoadThread = (script?: (load: ThreadLoad) => Promise<void>) => {
 // Lets a chain of loads run out: each load crosses to the service and back, and each stream reaches
 // its handler on the listener's timer, so this waits on turns of the event loop, not microtasks.
 const settleLoads = async () => settle(60)
-
-describe('getExplodingModeFromGregorItems', () => {
-  test('no exploding items at all means no exploding mode', () => {
-    expect(getExplodingModeFromGregorItems(conversationIDKey, [])).toBe(0)
-    expect(getExplodingModeFromGregorItems(conversationIDKey, [gregorItem('other:thing', '60')])).toBe(0)
-  })
-
-  test('reads the seconds for this conversation', () => {
-    const items = [
-      gregorItem(`exploding:${otherConversationIDKey}`, '3600'),
-      gregorItem(`exploding:${conversationIDKey}`, '300'),
-    ]
-    expect(getExplodingModeFromGregorItems(conversationIDKey, items)).toBe(300)
-  })
-
-  test('a dismissed category with other conversations present means off', () => {
-    const items = [gregorItem(`exploding:${otherConversationIDKey}`, '3600')]
-    expect(getExplodingModeFromGregorItems(conversationIDKey, items)).toBe(0)
-  })
-
-  test('unparseable seconds yield undefined so callers can fall back', () => {
-    const items = [gregorItem(`exploding:${conversationIDKey}`, 'garbage')]
-    expect(getExplodingModeFromGregorItems(conversationIDKey, items)).toBeUndefined()
-  })
-})
 
 describe('scrollDirectionToPagination', () => {
   test('none sends no cursor', () => {

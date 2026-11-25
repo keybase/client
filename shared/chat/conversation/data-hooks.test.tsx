@@ -80,32 +80,21 @@ describe('getConversationClientPrev', () => {
 })
 
 describe('useConversationExplodingMode', () => {
-  const gregorPushState = (category: string, body: string) =>
-    [{item: {body: new TextEncoder().encode(body), category}}] as unknown as ReturnType<
-      typeof useConfigState.getState
-    >['gregorPushState']
-
   test('is off with no gregor state', () => {
     const {result} = renderHook(() => useConversationExplodingMode(conversationIDKey))
     expect(result.current).toBe(0)
   })
 
-  test('follows the gregor exploding item for this conversation', () => {
+  test('follows the exploding mode the service reports for this conversation', () => {
     const {result} = renderHook(() => useConversationExplodingMode(conversationIDKey))
     act(() => {
       useConfigState.setState({
-        gregorPushState: gregorPushState(`exploding:${conversationIDKey}`, '300'),
+        gregorUIPrefs: {allowAnimatedEmojis: true, explodingModes: {[conversationIDKey]: 300}},
       })
     })
     expect(result.current).toBe(300)
-  })
-
-  test('a dirty value reads as off rather than undefined', () => {
-    const {result} = renderHook(() => useConversationExplodingMode(conversationIDKey))
     act(() => {
-      useConfigState.setState({
-        gregorPushState: gregorPushState(`exploding:${conversationIDKey}`, 'garbage'),
-      })
+      useConfigState.setState({gregorUIPrefs: {allowAnimatedEmojis: true, explodingModes: {}}})
     })
     expect(result.current).toBe(0)
   })
