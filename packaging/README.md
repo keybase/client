@@ -39,12 +39,12 @@ copy calls must exist in any commit it can be asked to build.
 |------|------|
 | `KB_CLIENT_DIR` | root of the checkout `lib.sh` is in |
 | `KB_CODESIGN_IDENTITY` | the Developer ID that signs macOS binaries and the app |
-| `KB_INSTALLER_*`, `KB_UPDATER_*`, `kb_fetch_verified` | pinned KeybaseInstaller/KeybaseUpdater versions and checksums, and the verified download |
+| `KB_UPDATER_*`, `kb_fetch_verified` | pinned KeybaseUpdater version and checksum, and the verified download |
 | `KB_CI_CONTEXTS` | the CI checks the release `wait-ci` gate waits for |
 | `kb_lib_version` | the version in `go/libkb/version.go` |
 | `kb_build_id` | a new `<UTC timestamp>+<short commit>` build id; compute once per build and pass it down as `KEYBASE_BUILD`/`KBFS_BUILD` |
 | `kb_sign_binary <path>...` | signs binaries for `$PLATFORM` (macOS only) |
-| `kb_sign_app_inside_out <app> <entitlements>` | signs the Electron code in an app innermost first, then the app, without `codesign --deep`; finds code by Mach-O type, so Electron upgrades need no edits. Leaves the pre-signed `Resources/KeybaseInstaller.app`, `Resources/KeybaseUpdater.app` and `SharedSupport` alone. `KB_CODESIGN_IDENTITY=-` signs ad-hoc for local tests |
+| `kb_sign_app_inside_out <app> <entitlements>` | signs the Electron code in an app innermost first, then the app, without `codesign --deep`; finds code by Mach-O type, so Electron upgrades need no edits. Leaves the pre-signed `Resources/KeybaseUpdater.app` and `SharedSupport` alone. `KB_CODESIGN_IDENTITY=-` signs ad-hoc for local tests |
 | `kb_release_bin` | builds the `release` tool once and exports its path as `KB_RELEASE_BIN`, which child scripts reuse |
 | `kb_clean_caches` | true when `CLEAN_CACHES=1`; the three cache helpers below then always clear |
 | `kb_prune_yarn_cache` | cleans the yarn cache only when its volume has less than `KB_MIN_FREE_GB` (default 30) free |

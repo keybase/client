@@ -10,11 +10,8 @@ KB_CLIENT_DIR="$(CDPATH='' cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # KB_CODESIGN_IDENTITY=- to sign ad-hoc when testing locally.
 KB_CODESIGN_IDENTITY="${KB_CODESIGN_IDENTITY:-90524F7BEAEACD94C7B473787F4949582F904104}"
 
-# Native macOS apps bundled into Keybase.app. Bump the version and the sha256
+# Native macOS app bundled into Keybase.app. Bump the version and the sha256
 # together: `shasum -a 256` of the tgz at the URL below.
-KB_INSTALLER_VERSION=1.1.94
-KB_INSTALLER_SHA256=5e405dfe95cf31af107c0dedbb9b94fcd0cdab1ce6c0d0f881d7847e262fc284
-KB_INSTALLER_URL="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-${KB_INSTALLER_VERSION}-darwin.tgz"
 KB_UPDATER_VERSION=1.0.7
 KB_UPDATER_SHA256=f90fa382058d92f3751d24a208422758731b26c997c4debb623f1fa08e46f729
 KB_UPDATER_URL="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-${KB_UPDATER_VERSION}-darwin.tgz"
@@ -109,10 +106,10 @@ kb_sign_binary() {
 # app itself; Apple deprecates `codesign --deep` for signing. Code is found by
 # looking for Mach-O files, so Electron upgrades that add or drop helpers and
 # dylibs need no edits.
-#   - Resources/KeybaseInstaller.app, Resources/KeybaseUpdater.app and
-#     SharedSupport are left alone: their code arrives already signed (by
-#     Keybase, or by kb_sign_binary) with its own entitlements. Any other
-#     Mach-O, including under Resources (e.g. a native .node module), is signed.
+#   - Resources/KeybaseUpdater.app and SharedSupport are left alone: their
+#     code arrives already signed (by Keybase, or by kb_sign_binary) with its
+#     own entitlements. Any other Mach-O, including under Resources (e.g. a
+#     native .node module), is signed.
 #   - Executables and helper apps get <entitlements>, except executables inside
 #     a framework's Resources (Squirrel's ShipIt), which only need the runtime.
 #   - Dylibs, loadable bundles (.node) and frameworks get no entitlements.
@@ -150,7 +147,6 @@ kb_sign_app_inside_out() {
     entries+=("$(printf '%s' "$path" | tr -cd '/' | wc -c | tr -d ' ')	$kind	$path")
   done < <(find "$app/Contents" \
     \( -path "$app/Contents/MacOS" -o -path "$app/Contents/SharedSupport" \
-       -o -path "$app/Contents/Resources/KeybaseInstaller.app" \
        -o -path "$app/Contents/Resources/KeybaseUpdater.app" \) -prune \
     -o -type d \( -name '*.app' -o -name '*.framework' -o -name '*.xpc' \) -print0 \
     -o -type f \( -perm -u+x -o -name '*.dylib' -o -name '*.so' -o -name '*.node' \) -print0)
