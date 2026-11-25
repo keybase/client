@@ -14,6 +14,9 @@ import (
 type LoginWithPaperKey struct {
 	libkb.Contextified
 	username string
+	// skipLoginNotify leaves the login notification and login hooks to a
+	// caller that has more to do before the login is complete.
+	skipLoginNotify bool
 }
 
 // NewLoginWithPaperKey creates a LoginWithPaperKey engine.
@@ -124,6 +127,9 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) (err error) {
 	}
 	m.Debug("Unlocked device keys")
 
+	if e.skipLoginNotify {
+		return nil
+	}
 	m.Debug("LoginWithPaperkey success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(m.G().Env.GetUsername()))
 	m.Debug("LoginWithPaperkey success, calling login hooks")

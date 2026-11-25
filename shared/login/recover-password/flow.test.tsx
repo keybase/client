@@ -3,7 +3,6 @@
 import {setImmediate} from 'node:timers'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
 import {installNavigation, makeRootState, type InstalledNavigation} from '@/test/navigation'
 import {fakeError, installFakeEngine} from '@/test/fake-engine'
 import {
@@ -186,13 +185,6 @@ describe('through the engine listener', () => {
     })
   }
 
-  // Logged in, recovery runs from a modal, which an error replaces and nothing else clears.
-  const startLoggedIn = () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installNavigation({rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}]})})
-  }
-  const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
-
   test('a service error replaces the screen with the recovery error', async () => {
     startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
@@ -201,25 +193,10 @@ describe('through the engine listener', () => {
     expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
   })
 
-  test('logged in, a service error replaces the modal with the error modal and leaves it up', async () => {
-    startLoggedIn()
-    await failRecovery(T.RPCGen.StatusCode.scnotfound, 'no such user')
-
-    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
-    expect((nav.visibleScreen()?.params as {error: string}).error).toContain('no such user')
-  })
-
   test('a cancelled recovery shows no error and leaves the screens where they were', async () => {
     startLoggedOut()
     await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
 
     expect(loggedOutStack()).toEqual(['login', 'recoverPasswordExplainDevice'])
-  })
-
-  test('logged in, a cancelled recovery shows no error and leaves the modals', async () => {
-    startLoggedIn()
-    await failRecovery(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
-
-    expect(rootNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
   })
 })

@@ -232,6 +232,29 @@ test('a share made while logged out is not ended by staying logged out, and open
   expect(opened()).toEqual([1])
 })
 
+// Go logs in with the paper key before the last prompts, so a session read mid-recovery says logged
+// in while the logged-out screens stay up.
+test('a share made while logged out waits out a password recovery, even one that fails', async () => {
+  nav.setLoggedIn(false)
+  await renders()
+  hold(1)
+  const {dispatch} = useConfigState.getState()
+  dispatch.holdForRecoverPassword(1, true)
+  ready()
+  await renders()
+  expect(opened()).toEqual([])
+
+  // Go logs back out on the failure, and the run lets go.
+  dispatch.setLoggedIn(false)
+  dispatch.holdForRecoverPassword(1, false)
+  expect(mockNative.acks).toEqual([])
+
+  ready()
+  nav.setLoggedIn(true)
+  await renders()
+  expect(opened()).toEqual([1])
+})
+
 test('an account switch is not leaving the share: it opens again in the account switched to', async () => {
   ready()
   hold(1)

@@ -37,6 +37,8 @@ export type State = Store & {
     loadDaemonBootstrapStatus: () => Promise<void>
     /** reads the session afresh, superseding any read in flight; for hints that it changed */
     refreshSessionFromDaemon: (reason: string) => void
+    // refreshSessionFromDaemon for a caller that waits: settles once the read has applied, or failed
+    readSessionFromDaemon: (reason: string) => Promise<void>
     resetState: () => void
     setBootstrapStatus: (bs: T.RPCGen.BootstrapStatus) => void
     setError: (e?: Error) => void
@@ -94,11 +96,16 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       bootstrapSteps = steps
     },
     loadDaemonBootstrapStatus: async () => inflightBootstrapStatus ?? readBootstrapStatus(),
-    refreshSessionFromDaemon: reason => {
+    readSessionFromDaemon: async reason => {
       logger.info(`[Bootstrap] reading the session: ${reason}`)
-      readBootstrapStatus().catch((error: unknown) => {
+      try {
+        await readBootstrapStatus()
+      } catch (error) {
         logger.warn('[Bootstrap] reading the session failed:', error)
-      })
+      }
+    },
+    refreshSessionFromDaemon: reason => {
+      ignorePromise(get().dispatch.readSessionFromDaemon(reason))
     },
     resetState: () => {
       set(s => ({

@@ -4,6 +4,7 @@ import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {submitRecoverPasswordPaperKey} from './flow'
+import {useAnswerRecoverPasswordOnBack} from './use-cancel-on-leave'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {route: {params: {error?: string}}}
@@ -12,6 +13,7 @@ const PaperKey = ({route}: Props) => {
   const styles = useStyles()
   const {error} = route.params
   const [paperKey, setPaperKey] = React.useState('')
+  useAnswerRecoverPasswordOnBack()
   const onSubmit = () => {
     if (paperKey) {
       submitRecoverPasswordPaperKey(paperKey)

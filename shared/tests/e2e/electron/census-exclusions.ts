@@ -15,6 +15,8 @@ const resetFromProvisioning = 'owner: excluded (account reset start and cancel; 
 // remove jobs from before the run.
 const backupRunningOnly = 'offered only while a backup job runs; covered by settings/archive/index.test.tsx'
 
+const realPaperKeyOnly = 'unreachable: password recovery shows it only after a real paper key is accepted, and no real paper key is ever submitted on the main service'
+
 export const EXCLUSIONS: Exclusions = {
   routes: {
     accountSwitcher: `${phoneOnly} (opened only from the phone header avatar)`,
@@ -34,9 +36,9 @@ export const EXCLUSIONS: Exclusions = {
     paperkey: firstDevice,
     password: firstDevice,
     reallyRemoveAccount: 'needs a wallet account; payments are unsupported and the test account has none',
-    recoverPasswordPgpWarning:
-      'unreachable: it closes itself unless a password recovery started with a real paper key is waiting on it, and no real paper key is ever submitted on the main service',
+    recoverPasswordPgpWarning: realPaperKeyOnly,
     recoverPasswordPromptResetPassword: 'unreachable: the service asks it only of an account with no active key; every test account has devices',
+    recoverPasswordSetPassword: realPaperKeyOnly,
     resetConfirm: resetFromProvisioning,
     resetEnterPassword: resetFromProvisioning,
     resetKnowPassword: resetFromProvisioning,

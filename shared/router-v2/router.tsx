@@ -37,7 +37,7 @@ import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {takeLaunchURL} from './launch-url'
-import {holdLoggedOutLink, releaseLoggedOutLink} from './logged-out-share'
+import {holdLoggedOutLink, useLinksLoggedIn} from './logged-out-share'
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
@@ -661,10 +661,10 @@ function NativeRouter() {
   const theme = Kb.Styles.useTheme()
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {endUserSwitchLandedOn, loggedIn, startupLoaded, userSwitching} = useConfigState(
+  const loggedIn = useLinksLoggedIn()
+  const {endUserSwitchLandedOn, startupLoaded, userSwitching} = useConfigState(
     C.useShallow(s => ({
       endUserSwitchLandedOn: s.dispatch.endUserSwitchLandedOn,
-      loggedIn: s.loggedIn,
       startupLoaded: s.startup.loaded,
       userSwitching: s.userSwitching,
     }))
@@ -714,11 +714,6 @@ function NativeRouter() {
     const sub = Linking.addEventListener('url', ({url}: {url: string}) => holdLoggedOutLink(url))
     return () => sub.remove()
   }, [loggedInLoaded, loggedIn])
-  React.useEffect(() => {
-    if (loggedIn) {
-      releaseLoggedOutLink()
-    }
-  }, [loggedIn])
 
   const onNativeReady = () => {
     onStateChange()

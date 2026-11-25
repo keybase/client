@@ -254,6 +254,86 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	require.NoError(t, assertAutoreset(tc1, u3.UID(), -1))
 }
 
+type loginCountListener struct {
+	libkb.NoopNotifyListener
+	logins []string
+}
+
+func (n *loginCountListener) Login(username string) {
+	n.logins = append(n.logins, username)
+}
+
+type loginHookCounter struct {
+	calls int
+}
+
+func (h *loginHookCounter) OnLogin(libkb.MetaContext) error {
+	h.calls++
+	return nil
+}
+
+// secretUIRecordingLogins records, at each new-password prompt, how many
+// login notifications the UI had heard.
+type secretUIRecordingLogins struct {
+	TestSecretUIRecover
+	listener        *loginCountListener
+	loginsAtPrompts []int
+	cancelPassword  bool
+}
+
+func (t *secretUIRecordingLogins) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	if p.Type == keybase1.PassphraseType_VERIFY_PASS_PHRASE {
+		t.loginsAtPrompts = append(t.loginsAtPrompts, len(t.listener.logins))
+		if t.cancelPassword {
+			return keybase1.GetPassphraseRes{}, libkb.InputCanceledError{}
+		}
+	}
+	return t.TestSecretUIRecover.GetPassphrase(p, terminal)
+}
+
+// Recovering with a paper key logs in once, after the new password is set,
+// and runs the login hooks once. A recovery that fails never shows as a login.
+func TestPassphraseRecoverWithPaperKeyNotifiesLoginOnce(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseRecoverNotifiesLoginOnce")
+	defer tc.Cleanup()
+	u, paperkey := CreateAndSignupLPK(tc, "pprec")
+	Logout(tc)
+
+	tc.G.SetService()
+	listener := &loginCountListener{}
+	tc.G.NotifyRouter.AddListener(listener)
+	hook := &loginHookCounter{}
+	tc.G.AddLoginHook(hook)
+
+	secretUI := &secretUIRecordingLogins{
+		TestSecretUIRecover: TestSecretUIRecover{T: t, PaperKey: paperkey, Password: "test1234"},
+		listener:            listener,
+		cancelPassword:      true,
+	}
+	uis := libkb.UIs{
+		LogUI:       tc.G.UI.GetLogUI(),
+		LoginUI:     &TestLoginUIRecover{chooseDevice: keybase1.DeviceTypeV2_PAPER},
+		SecretUI:    secretUI,
+		ProvisionUI: newTestProvisionUI(),
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	arg := keybase1.RecoverPassphraseArg{Username: u.Username}
+
+	err := NewPassphraseRecover(tc.G, arg).Run(m)
+	require.Error(t, err)
+	require.Equal(t, []int{0}, secretUI.loginsAtPrompts)
+	require.Empty(t, listener.logins)
+	require.Zero(t, hook.calls)
+	require.Error(t, AssertLoggedIn(tc))
+
+	secretUI.cancelPassword = false
+	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
+	require.Equal(t, []int{0, 0}, secretUI.loginsAtPrompts)
+	require.Equal(t, []string{u.Username}, listener.logins)
+	require.Equal(t, 1, hook.calls)
+	require.NoError(t, AssertLoggedIn(tc))
+}
+
 type TestSecretUIRecover struct {
 	T                  *testing.T
 	PaperKey           string

@@ -24,6 +24,8 @@ const backupAll =
 // which would also remove jobs from before the run.
 const backupRunningOnly = 'offered only while a backup job runs; covered by settings/archive/index.test.tsx'
 
+const realPaperKeyOnly = 'unreachable: password recovery shows it only after a real paper key is accepted, and no real paper key is ever submitted'
+
 export const IOS_EXCLUSIONS: Exclusions = {
   routes: {
     cryptoRoot:
@@ -38,9 +40,9 @@ export const IOS_EXCLUSIONS: Exclusions = {
       "opened only from a map unfurl, and none is made: Keybase's maps proxy (maps-proxy.core.keybaseapi.com) returns 403 because its Google Maps billing is disabled",
     kextPermission: `${desktopOnly} (the macOS kernel extension permission popup; Settings > Files shows its entry only on macOS and Windows)`,
     paperkey: phoneNew,
-    recoverPasswordPgpWarning:
-      'unreachable: it closes itself unless a password recovery started with a real paper key is waiting on it, and no real paper key is ever submitted',
+    recoverPasswordPgpWarning: realPaperKeyOnly,
     recoverPasswordPromptResetPassword: 'unreachable: the service asks it only of an account with no active key; every test account has devices',
+    recoverPasswordSetPassword: realPaperKeyOnly,
     resetConfirm: resetStart,
     resetEnterPassword: resetStart,
     resetKnowPassword: resetStart,
