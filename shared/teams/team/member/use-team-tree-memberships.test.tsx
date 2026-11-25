@@ -8,6 +8,7 @@ import {useConfigState} from '@/stores/config'
 import {_onEngineIncoming} from '@/constants/init/shared'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
+import {startNewAccountGeneration} from '@/engine/account-generation'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {flush} from '@/test/flush'
 import {navigationWrapper} from '@/test/navigation'
@@ -62,6 +63,19 @@ afterEach(() => {
   cleanup()
   resetAllStores()
 })
+
+// what an account switch does to the rpcs in flight and to the next account's screens
+const switchAccount = async () => {
+  act(() => {
+    useConfigState.setState({loggedIn: false, userSwitching: true})
+    startNewAccountGeneration()
+    fake.engine.cancelOutstandingSessions()
+    useCurrentUserState.setState({username: 'testuser2'})
+  })
+  await flush()
+  act(() => useConfigState.setState({loggedIn: true, userSwitching: false}))
+  await flush()
+}
 
 const mount = async () => {
   const hook = renderHook(() => useTeamTreeMemberships(teamID, username))
@@ -317,8 +331,7 @@ describe('useTeamTreeMemberships', () => {
     const held = fake.hold(loadTree)
     const {result} = await mount()
 
-    act(() => useCurrentUserState.setState({username: 'testuser2'}))
-    await flush()
+    await switchAccount()
     expect(loads()).toHaveLength(2)
 
     held[0]?.reply(tree)
@@ -336,8 +349,7 @@ describe('useTeamTreeMemberships', () => {
     const {result} = await mount()
     expect(heldActivity).toHaveLength(2)
 
-    act(() => useCurrentUserState.setState({username: 'testuser2'}))
-    await flush()
+    await switchAccount()
     expect(heldActivity).toHaveLength(4)
 
     heldActivity[2]?.reply({[teamID]: 2000})

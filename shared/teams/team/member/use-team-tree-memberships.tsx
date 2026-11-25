@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useRPCLoad} from '@/util/use-rpc-load'
+import {refreshRpcParams, setRpcData, useRpcData} from '@/query'
 import {useThrottledCallback} from '@/util/use-debounce'
 import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
 
@@ -105,23 +105,37 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
   })
 
   const loadWaitingKey = C.waitingKeyTeamsLoadTeamTree(targetTeamID, username)
-  const {data, error, loading, refresh, reload, setData} = useRPCLoad(
+  const params = {teamID: targetTeamID, username}
+  const {data, error, loadCount, loading, reload} = useRpcData(
     T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise,
-    [{teamID: targetTeamID, username}, loadWaitingKey],
+    params,
     {
-      key,
-      map: toTeamTree,
       onError: error => {
         logger.warn(`Failed to load team tree memberships for ${targetTeamID}:${username}`, error)
       },
-      onResult: loadActivity,
+      select: toTeamTree,
+      waitingKey: loadWaitingKey,
     }
   )
   const inFlight = C.Waiting.useAnyWaiting(loadWaitingKey)
   // the newest load failed: its error replaces the rows of an older one
   const tree = (error ? undefined : data) ?? emptyTree
 
+  // each load's rows get their activity; the focus below covers rows already cached at mount
+  const lastLoadCount = React.useRef(loadCount)
+  React.useEffect(() => {
+    if (lastLoadCount.current === loadCount) {
+      return
+    }
+    lastLoadCount.current = loadCount
+    if (data && !error) {
+      loadActivity(data)
+    }
+  }, [data, error, loadCount])
+
   // leading, so a lone change (an edit made on this page) shows at once
+  // a load on the wire may predate the change: it finishes and one more follows
+  const refresh = () => refreshRpcParams(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params)
   const refreshSoon = useThrottledCallback(refresh, refreshWindowMs, {leading: true})
   React.useEffect(() => refreshSoon.cancel, [key, refreshSoon])
 
@@ -130,7 +144,7 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
     if (changedTeamID === targetTeamID && teamGone(kinds)) {
       // the tree hangs off this team, so its rows are gone; the load says why
       refreshSoon.cancel()
-      setData(undefined)
+      setRpcData(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params, () => undefined)
       refresh()
     } else if (changesTree(kinds)) {
       refreshSoon()
@@ -154,7 +168,7 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
   )
   return {
     errors: tree.errors,
-    loadError: error?.desc,
+    loadError: error ? ((error as {desc?: string}).desc ?? error.message) : undefined,
     loading: loading || inFlight,
     nodesIn,
     nodesNotIn: tree.nodesNotIn,
