@@ -5,7 +5,6 @@ import * as React from 'react'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import {refreshRpcParams, setRpcData, useRpcData} from '@/query'
-import {useThrottledCallback} from '@/util/use-debounce'
 import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
 
 export type TeamTreeRowNotIn = {
@@ -133,17 +132,17 @@ export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: s
     }
   }, [data, error, loadCount])
 
-  // leading, so a lone change (an edit made on this page) shows at once
   // a load on the wire may predate the change: it finishes and one more follows
   const refresh = () => refreshRpcParams(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params)
-  const refreshSoon = useThrottledCallback(refresh, refreshWindowMs, {leading: true})
-  React.useEffect(() => refreshSoon.cancel, [key, refreshSoon])
+  // The cache throttles these (debounce and max wait are both the window): a lone change (an edit
+  // made on this page) shows at once, and the rest wait for the window to end
+  const refreshSoon = () =>
+    refreshRpcParams(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params, refreshWindowMs, refreshWindowMs)
 
   const watchedTeamIDs = React.useMemo(() => new Set([targetTeamID, ...tree.teamIDs]), [targetTeamID, tree])
   useTeamChanged(watchedTeamIDs, (kinds, changedTeamID) => {
     if (changedTeamID === targetTeamID && teamGone(kinds)) {
       // the tree hangs off this team, so its rows are gone; the load says why
-      refreshSoon.cancel()
       setRpcData(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params, () => undefined)
       refresh()
     } else if (changesTree(kinds)) {
