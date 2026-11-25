@@ -6,7 +6,7 @@ import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
-import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
+import {subscribeTeamChanged, teamGone} from '@/teams/use-team-changed'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
@@ -48,6 +48,21 @@ const chatTeamReloadStaleMs = 5 * 60_000
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+
+// Module scope, not per hook: a membership change while no conversation in the team is open must
+// still mark the cached members stale, or the next one opened inside the stale window shows the
+// old list. Only membership brings back a team left and rejoined.
+subscribeTeamChanged('chat-team-members', (kinds, teamID) => {
+  const key = loadableTeamID(teamID)
+  if (!key) {
+    return
+  }
+  if (teamGone(kinds)) {
+    forgetLoad(chatTeamMembersLoad, key)
+  } else if (kinds.membership) {
+    reviveLoad(chatTeamMembersLoad, key)
+  }
+})
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -113,17 +128,6 @@ const useChatTeamMembersRaw = (
       onError: error => logger.warn(`Failed to reload chat team members for ${teamIDToLoad}`, error),
       staleMs: chatTeamReloadStaleMs,
     }
-  )
-  useTeamChanged(
-    validTeamID,
-    kinds => {
-      if (teamGone(kinds)) {
-        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
-      } else if (kinds.membership) {
-        reviveLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
   )
 
   // `loading` means "nothing to show yet" - a background revalidation of cached

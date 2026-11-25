@@ -1,13 +1,12 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
-import {subscribeToEngineAction} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
 import {registerExternalResetter} from '@/util/zustand'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {makeTeamReloadDebouncer, teamGone} from '../use-team-changed'
-import {forgetLoad, markLoadStale, reviveLoad, useLoadData} from '@/query'
+import {makeTeamReloadDebouncer, subscribeTeamChanged, teamGone} from '../use-team-changed'
+import {forgetLoad, markLoadStale, refreshLoad, unforgetLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -58,7 +57,7 @@ const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 // Teams whose channels this session loaded: the only ones a notice has anything to reload
 const loadedTeams = new Set<T.Teams.TeamID>()
 const teamChannelsChangedDebouncer = makeTeamReloadDebouncer(teamID =>
-  reviveLoad(loadedTeamChannelsLoad, teamID)
+  refreshLoad(loadedTeamChannelsLoad, teamID)
 )
 
 // module scope outlives sign-out and this is per-user team data
@@ -80,22 +79,27 @@ export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
 // Module scope, not per hook: a change that lands while no list is mounted must
 // still mark the shared entry stale, or a remount inside the stale window serves the
 // pre-change channels.
-// Membership is in: each channel's participants come with the list.
-subscribeToEngineAction('keybase.1.NotifyTeam.teamChanged', action => {
-  const {kinds, teamID} = action.payload.params
+// Membership is in: each channel's participants come with the list. Only membership brings back a
+// team left and rejoined.
+subscribeTeamChanged('loaded-team-channels', (kinds, teamID) => {
   const key = loadableTeamID(teamID)
-  if (!key) {
+  if (!key || !loadedTeams.has(key)) {
     return
   }
   if (teamGone(kinds)) {
     teamChannelsChangedDebouncer.cancel(key)
     forgetLoad(loadedTeamChannelsLoad, key)
-  } else if (kinds.channels || kinds.membership) {
+    return
+  }
+  if (kinds.membership) {
+    unforgetLoad(loadedTeamChannelsLoad, key)
+  }
+  if (kinds.channels || kinds.membership) {
     invalidateTeamChannels(key)
-  } else if (kinds.renamed) {
-    // the list is fetched by teamname and its metas carry it. Mounted lists
-    // reload once their teamname turns into the new one (refreshKey), which this
-    // makes stale; reloading them now would refetch under the old name.
+  }
+  if (kinds.renamed) {
+    // the list is fetched by teamname and its metas carry it: a list loaded while no screen
+    // shows it reloads on its next mount, and a mounted one reloads when its teamname changes
     markLoadStale(loadedTeamChannelsLoad, key)
   }
 })
@@ -156,10 +160,19 @@ const useLoadedTeamChannelsRaw = (
     {
       enabled: canLoad,
       onError: error => logger.warn(`Failed to load team channels for ${teamIDToLoad}`, error),
-      refreshKey: teamnameToLoad,
       staleMs: loadedTeamChannelsReloadStaleMs,
     }
   )
+  // A rename: a load under the old name (on the wire, or just landed) holds the old metas, so load
+  // again under the new one, after any load on the wire
+  const lastTeamname = React.useRef(teamnameToLoad)
+  React.useEffect(() => {
+    const renamedFrom = lastTeamname.current
+    lastTeamname.current = teamnameToLoad
+    if (canLoad && renamedFrom && renamedFrom !== teamnameToLoad) {
+      refreshLoad(loadedTeamChannelsLoad, teamIDToLoad)
+    }
+  }, [canLoad, teamIDToLoad, teamnameToLoad])
 
   const {channelMetas, channelParticipants, channels} = data
   return React.useMemo(

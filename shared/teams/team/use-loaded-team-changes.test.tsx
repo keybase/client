@@ -195,3 +195,19 @@ test('the role map reloads only for a version newer than the one it has', async 
   await pushTeamChanged(fake, '', {roleMap: true}, 2)
   expect(callsOf(getTeamRoleMap).length).toBe(loads + 1)
 })
+
+// the role map update that follows a leave sends roles for the team left
+test('a roles notice after a team is left does not load it again', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
+  await mountTwoTeams()
+
+  await pushTeamChanged(fake, teamA, {exited: true})
+  await pushTeamChanged(fake, teamA, {roles: true})
+  await settleReloads()
+  expect(teamLoads(teamA)).toBe(1)
+
+  // rejoining brings it back
+  await pushTeamChanged(fake, teamA, {membership: true})
+  await settleReloads()
+  expect(teamLoads(teamA)).toBe(2)
+})

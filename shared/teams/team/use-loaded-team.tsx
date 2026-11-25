@@ -3,10 +3,9 @@ import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {makeTeamReloadDebouncer, teamGone} from '../use-team-changed'
-import {subscribeToEngineAction} from '@/engine/action-listener'
+import {makeTeamReloadDebouncer, subscribeTeamChanged, teamGone} from '../use-team-changed'
 import {registerExternalResetter} from '@/util/zustand'
-import {forgetLoad, reviveLoad, useLoadData} from '@/query'
+import {forgetLoad, refreshLoad, unforgetLoad, useLoadData} from '@/query'
 
 type LoadedTeam = {
   loaded: boolean
@@ -34,11 +33,14 @@ const loadedTeamReloadStaleMs = 5_000
 // modal above them would otherwise each pay a full team load.
 const loadedTeamLoad = 'teams.loadedTeam'
 
-const loadedTeamReloadDebouncer = makeTeamReloadDebouncer(teamID => reviveLoad(loadedTeamLoad, teamID))
+// Teams whose page this session loaded: the only ones a notice has anything to reload
+const loadedTeams = new Set<T.Teams.TeamID>()
+const loadedTeamReloadDebouncer = makeTeamReloadDebouncer(teamID => refreshLoad(loadedTeamLoad, teamID))
 
 // module scope outlives sign-out and this is per-user team data
 registerExternalResetter('loaded-team', () => {
   loadedTeamReloadDebouncer.cancelAll()
+  loadedTeams.clear()
 })
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
@@ -47,17 +49,20 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
 // Module scope, not per hook, so two pages for one team share one debounced reload, and a change
 // while no page is mounted still marks the cached copy stale. memberCount is left out: the page
 // counts the members it loads, and that load is what sets the cached count the notice is about.
-// Membership also brings back a team left and rejoined.
-subscribeToEngineAction('keybase.1.NotifyTeam.teamChanged', action => {
-  const {kinds, teamID} = action.payload.params
+subscribeTeamChanged('loaded-team', (kinds, teamID) => {
   const key = loadableTeamID(teamID)
-  if (!key) {
+  if (!key || !loadedTeams.has(key)) {
     return
   }
   if (teamGone(kinds)) {
     loadedTeamReloadDebouncer.cancel(key)
     forgetLoad(loadedTeamLoad, key)
   } else if (kinds.membership || kinds.roles || kinds.renamed || kinds.settings) {
+    // Only membership brings back a team left and rejoined: the role map's roles notice for a
+    // team just left must not reload it.
+    if (kinds.membership) {
+      unforgetLoad(loadedTeamLoad, key)
+    }
     loadedTeamReloadDebouncer.schedule(key)
   }
 })
@@ -121,6 +126,7 @@ const useLoadedTeamRaw = (
     loadedTeamLoad,
     teamIDToLoad,
     async (signal): Promise<LoadedTeamData> => {
+      loadedTeams.add(teamIDToLoad)
       const [annotatedTeam] = await Promise.all([
         T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: teamIDToLoad}, undefined, signal),
         loadRoleMapIfStale(),

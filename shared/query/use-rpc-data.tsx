@@ -161,6 +161,9 @@ export const refreshLoad = (name: string, key?: unknown, debounceMs?: number) =>
  * refreshLoad for one key that also undoes forgetLoad: for a notice that names this data (a team
  * changed), which says it exists again
  */
+/** undo forgetLoad without loading: refreshes reach it again from now on */
+export const unforgetLoad = (name: string, key: unknown) => reviveKey(stableKey(name, key))
+
 export const reviveLoad = (name: string, key: unknown, debounceMs?: number) => {
   reviveKey(stableKey(name, key))
   refreshLoad(name, key, debounceMs)
