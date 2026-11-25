@@ -1056,36 +1056,32 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh                     chan keybase1.TeamChangedByIDArg
-	abandonCh                    chan keybase1.TeamID
-	badgeCh                      chan keybase1.BadgeState
-	newTeamEKCh                  chan keybase1.NewTeamEkArg
-	newTeambotEKCh               chan keybase1.NewTeambotEkArg
-	teambotEKNeededCh            chan keybase1.TeambotEkNeededArg
-	newTeambotKeyCh              chan keybase1.NewTeambotKeyArg
-	teambotKeyNeededCh           chan keybase1.TeambotKeyNeededArg
-	newlyAddedToTeam             chan keybase1.TeamID
-	teamRoleMapCh                chan keybase1.UserTeamVersion
-	metadataUpdateCh             chan struct{}
-	teamTreeMembershipsPartialCh chan keybase1.TeamTreeMembership
-	teamTreeMembershipsDoneCh    chan keybase1.TeamTreeMembershipsDoneResult
+	changeCh           chan keybase1.TeamChangedByIDArg
+	abandonCh          chan keybase1.TeamID
+	badgeCh            chan keybase1.BadgeState
+	newTeamEKCh        chan keybase1.NewTeamEkArg
+	newTeambotEKCh     chan keybase1.NewTeambotEkArg
+	teambotEKNeededCh  chan keybase1.TeambotEkNeededArg
+	newTeambotKeyCh    chan keybase1.NewTeambotKeyArg
+	teambotKeyNeededCh chan keybase1.TeambotKeyNeededArg
+	newlyAddedToTeam   chan keybase1.TeamID
+	teamRoleMapCh      chan keybase1.UserTeamVersion
+	metadataUpdateCh   chan struct{}
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:                     make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh:                    make(chan keybase1.TeamID, 10),
-		badgeCh:                      make(chan keybase1.BadgeState, 10),
-		newTeamEKCh:                  make(chan keybase1.NewTeamEkArg, 10),
-		newTeambotEKCh:               make(chan keybase1.NewTeambotEkArg, 10),
-		teambotEKNeededCh:            make(chan keybase1.TeambotEkNeededArg, 10),
-		newTeambotKeyCh:              make(chan keybase1.NewTeambotKeyArg, 10),
-		teambotKeyNeededCh:           make(chan keybase1.TeambotKeyNeededArg, 10),
-		newlyAddedToTeam:             make(chan keybase1.TeamID, 10),
-		teamRoleMapCh:                make(chan keybase1.UserTeamVersion, 100),
-		metadataUpdateCh:             make(chan struct{}, 10),
-		teamTreeMembershipsPartialCh: make(chan keybase1.TeamTreeMembership, 10),
-		teamTreeMembershipsDoneCh:    make(chan keybase1.TeamTreeMembershipsDoneResult, 10),
+		changeCh:           make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:          make(chan keybase1.TeamID, 10),
+		badgeCh:            make(chan keybase1.BadgeState, 10),
+		newTeamEKCh:        make(chan keybase1.NewTeamEkArg, 10),
+		newTeambotEKCh:     make(chan keybase1.NewTeambotEkArg, 10),
+		teambotEKNeededCh:  make(chan keybase1.TeambotEkNeededArg, 10),
+		newTeambotKeyCh:    make(chan keybase1.NewTeambotKeyArg, 10),
+		teambotKeyNeededCh: make(chan keybase1.TeambotKeyNeededArg, 10),
+		newlyAddedToTeam:   make(chan keybase1.TeamID, 10),
+		teamRoleMapCh:      make(chan keybase1.UserTeamVersion, 100),
+		metadataUpdateCh:   make(chan struct{}, 10),
 	}
 }
 
@@ -1163,20 +1159,6 @@ func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keyb
 // TeamChanged is not sent here: this handler's connection is only on the team
 // channel. Tests of teamChanged listen in process (teamChangedRecorder).
 func (n *teamNotifyHandler) TeamChanged(context.Context, keybase1.TeamChangedArg) error {
-	return nil
-}
-
-func (n *teamNotifyHandler) TeamTreeMembershipsPartial(ctx context.Context,
-	arg keybase1.TeamTreeMembership,
-) error {
-	n.teamTreeMembershipsPartialCh <- arg
-	return nil
-}
-
-func (n *teamNotifyHandler) TeamTreeMembershipsDone(ctx context.Context,
-	arg keybase1.TeamTreeMembershipsDoneResult,
-) error {
-	n.teamTreeMembershipsDoneCh <- arg
 	return nil
 }
 

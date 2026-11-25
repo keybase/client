@@ -71,6 +71,8 @@ export const waitingKeyTeamsLoadRetentionPolicy = (teamID: T.Teams.TeamID) =>
   `teamRetentionLoad:${teamID}` as const
 export const waitingKeyTeamsSetRetentionPolicy = (teamID: T.Teams.TeamID) =>
   `teamRetention:${teamID}` as const
+export const waitingKeyTeamsLoadTeamTree = (teamID: T.Teams.TeamID, username: string) =>
+  `loadTeamTree:${teamID};${username}` as const
 export const waitingKeyTeamsLoadTeamTreeActivity = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}` as const
 export const waitingKeyTeamsEditMembership = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>

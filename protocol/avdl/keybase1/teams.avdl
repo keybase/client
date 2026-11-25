@@ -1754,6 +1754,8 @@ protocol teams {
     // last time the user joined the team
     union { null, Time } joinTime;
     TeamID teamID;
+    // counted as the teams list counts it; null if it could not be counted
+    union { null, int } memberCount;
   }
   enum TeamTreeMembershipStatus {
     OK_0,
@@ -1778,27 +1780,11 @@ protocol teams {
   record TeamTreeMembership {
     string teamName;
     TeamTreeMembershipResult result;
-
-    // bookkeeping params; 'target' refers to the initial request
-    TeamID targetTeamID;
-    string targetUsername;
-    int guid;
   }
-  record TeamTreeMembershipsDoneResult {
-    int expectedCount;
-
-    // bookkeeping params; 'target' refers to the initial request
-    TeamID targetTeamID;
-    string targetUsername;
-    int guid;
-  }
-  record TeamTreeInitial {
-    int guid;
-  }
-  // loadTeamTreeMemberships takes a teamID and a username and asynchronously spawns notifications
-  // indicating the role of the user in each of the teams of the partial tree wrt the teamID.  The
-  // partial tree of a teamID contains that team, all of its direct ancestors, and all the subteams
-  // (recursively). For example, in the team tree
+  // loadTeamTreeMemberships takes a teamID and a username and returns the role of the user in each
+  // of the teams of the partial tree wrt the teamID, sorted by team name. The partial tree of a
+  // teamID contains that team, all of its direct ancestors, and all the subteams (recursively). For
+  // example, in the team tree
   //     .___A_____.
   //     |         |
   //     B     .___C__.
@@ -1817,29 +1803,20 @@ protocol teams {
   // does have the rights to view that team's memberships. We avoid this problem by requiring
   // adminship, and thus no stubbing.
   //
-  // After sending n TeamTreeMembershipsPartial notifications, it will send TeamTreeMembershipsDone
-  // indicating the number of TeamTreeMembershipsPartial notifications (which is unknown prior to
-  // beginning the process). There are no specific guarantees about notification ordering from the
-  // RPC layer, so the user should wait for the TeamTreeMembershipsDone notification (which will
-  // always get sent), and then wait for the specified number of TeamTreeMembershipsPartial
-  // notifications (if they have not already arrived). These invariants will hold true even if there
-  // is an error that causes some subtree to not be loaded. In the example above, if the tree load
-  // were started at E and (for whatever reason) the load failed at C and G, then this function
-  // would not attempt to load A or J, but would continue to load the rest of the tree. In this
-  // case, there would only be 5 Partial notifications (C, E, G, H, I) instead of all 7.
+  // The call fails only if the target user or teamID cannot be loaded. A team that fails to load
+  // comes back as an ERROR result and the rest of the tree still loads. In the example above, if
+  // the tree load were started at E and (for whatever reason) the load failed at C and G, then this
+  // function would not attempt to load A or J, but would return the rest of the tree: 5 results
+  // (C and G as errors, E, H and I) instead of all 7.
   //
   // With regards to ancestor teams, the loading user need not necessarily be an admin of those
   // teams in order to get results. If they are in the team, they will get a successful
-  // TeamTreeMembershipResult_OK partial; otherwise they will get a TeamTreeMembershipsResult_HIDDEN
+  // TeamTreeMembershipResult_OK; otherwise they will get a TeamTreeMembershipsResult_HIDDEN
   // for that teamname with no role information. Note that this does not currently consider implicit
-  // adminship: if Alice is an admin of A and loads A.C.E, she would get a OK partial for A, but a
-  // HIDDEN partial for A.C. This is a limitation that can be fixed, but is not critical since the
+  // adminship: if Alice is an admin of A and loads A.C.E, she would get a OK result for A, but a
+  // HIDDEN result for A.C. This is a limitation that can be fixed, but is not critical since the
   // more natural flow would be for Alice to start her load from A.
-  //
-  // Because these notifications are delivered asychronously, they are tied together with
-  // a `guid`: an opaque integer that happens to be the sessionID the initial RPC was called
-  // with. Each notification for the same load will contain the same `guid`.
-  TeamTreeInitial loadTeamTreeMembershipsAsync(int sessionID, TeamID teamID, string username);
+  array<TeamTreeMembership> loadTeamTreeMemberships(int sessionID, TeamID teamID, string username);
 
   // Given a list of assertions, check which ones are already in the team either
   // as members on invites, and return a list of them. User has to be an admin of

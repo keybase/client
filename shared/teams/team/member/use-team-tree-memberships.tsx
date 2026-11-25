@@ -2,10 +2,10 @@ import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import {produce} from 'immer'
 import logger from '@/logger'
-import {useEngineActionListener} from '@/engine/action-listener'
-import {useTeamsList} from '@/teams/use-teams-list'
+import {useCurrentUserState} from '@/stores/current-user'
+import {refreshRpcParams, setRpcData, useRpcData} from '@/query'
+import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
 
 export type TeamTreeRowNotIn = {
   teamID: T.Teams.TeamID
@@ -18,213 +18,165 @@ export type TeamTreeRowIn = {
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
 
-type TeamTreeMembershipState = {
-  expectedCount?: number
-  guid?: number
-  lastActivity: Map<T.Teams.TeamID, number>
-  memberships: Array<T.RPCGen.TeamTreeMembership>
-  sparseMemberInfos: Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>
-  targetTeamID: T.Teams.TeamID
-  username: string
+type TeamTree = {
+  errors: Array<T.RPCGen.TeamTreeMembership>
+  nodesIn: Array<Omit<TeamTreeRowIn, 'lastActivity'>>
+  nodesNotIn: Array<TeamTreeRowNotIn>
+  teamIDs: ReadonlySet<T.Teams.TeamID>
 }
 
-const makeEmptyTeamTreeMembershipState = (
-  targetTeamID: T.Teams.TeamID,
-  username: string
-): TeamTreeMembershipState => ({
-  lastActivity: new Map(),
-  memberships: [],
-  sparseMemberInfos: new Map(),
-  targetTeamID,
-  username,
-})
+const emptyTree: TeamTree = {errors: [], nodesIn: [], nodesNotIn: [], teamIDs: new Set()}
+const noActivity: ReadonlyMap<T.Teams.TeamID, number> = new Map()
 
-const matchesTeamTreeMembershipState = (
-  state: {targetTeamID: T.Teams.TeamID; username: string},
-  targetTeamID: T.Teams.TeamID,
-  username: string
-) => state.targetTeamID === targetTeamID && state.username === username
-
-const consumeTeamTreeMembershipValue = (
-  value: T.RPCGen.TeamTreeMembershipValue
-): T.Teams.TreeloaderSparseMemberInfo => ({
-  joinTime: value.joinTime ?? undefined,
-  type: Teams.teamRoleByEnum[value.role],
-})
-
-const getSparseMemberInfo = (
-  sparseMemberInfos: ReadonlyMap<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>,
-  teamID: T.Teams.TeamID
-) => sparseMemberInfos.get(teamID)
-
-export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
-  const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
-  const {teams} = useTeamsList()
-  const teamMetas = new Map(teams.map(team => [team.id, team] as const))
-  const [state, setState] = React.useState(() => makeEmptyTeamTreeMembershipState(targetTeamID, username))
-  const hasFocusedSinceMountRef = React.useRef(false)
-
-  const loadLastActivity = React.useEffectEvent((teamID: T.Teams.TeamID) => {
-    C.ignorePromise(
-      T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
-        {teamIDs: [teamID], username},
-        C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
-      )
-        .then(activityMap => {
-          setState(
-            produce(draft => {
-              if (!matchesTeamTreeMembershipState(draft, targetTeamID, username)) {
-                return
-              }
-              Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
-                draft.lastActivity.set(activityTeamID, lastActivity)
-              })
-            })
-          )
-          return undefined
-        })
-        .catch(error => {
-          logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}`, error)
-        })
-    )
-  })
-
-  const load = React.useCallback(() => {
-    loadTeamTreeMemberships(
-      [{teamID: targetTeamID, username}],
-      () => {},
-      error => {
-        logger.warn(`Failed to load team tree memberships for ${targetTeamID}:${username}`, error)
-      }
-    )
-  }, [loadTeamTreeMemberships, targetTeamID, username])
-
-  const reload = React.useCallback(() => {
-    setState(makeEmptyTeamTreeMembershipState(targetTeamID, username))
-    load()
-  }, [load, targetTeamID, username])
-
-  React.useEffect(() => {
-    load()
-  }, [load])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (hasFocusedSinceMountRef.current) {
-        reload()
-      } else {
-        hasFocusedSinceMountRef.current = true
-      }
-    }, [reload])
-  )
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsDone', action => {
-    const {result} = action.payload.params
-    if (result.targetTeamID !== targetTeamID || result.targetUsername !== username) {
-      return
-    }
-    setState(prev => {
-      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
-        ? prev
-        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-      if (base.guid !== undefined && result.guid < base.guid) {
-        return base
-      }
-      if (base.guid === undefined || result.guid > base.guid) {
-        const next = makeEmptyTeamTreeMembershipState(targetTeamID, username)
-        next.expectedCount = result.expectedCount
-        next.guid = result.guid
-        return next
-      }
-      return produce(base, draft => {
-        draft.expectedCount = result.expectedCount
-      })
-    })
-  })
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsPartial', action => {
-    const {membership} = action.payload.params
-    if (membership.targetTeamID !== targetTeamID || membership.targetUsername !== username) {
-      return
-    }
-    setState(prev => {
-      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
-        ? prev
-        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-      if (base.guid !== undefined && membership.guid < base.guid) {
-        return base
-      }
-      const reset = base.guid === undefined || membership.guid > base.guid
-      return produce(base, draft => {
-        draft.guid = membership.guid
-        if (reset) {
-          draft.memberships = [membership]
-          draft.sparseMemberInfos = new Map()
-        } else {
-          draft.memberships.push(membership)
-        }
-        if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-          draft.sparseMemberInfos.set(
-            membership.result.ok.teamID,
-            consumeTeamTreeMembershipValue(membership.result.ok)
-          )
-        }
-      })
-    })
+const toTeamTree = (memberships: ReadonlyArray<T.RPCGen.TeamTreeMembership> | null | undefined) => {
+  const teamIDs = new Set<T.Teams.TeamID>()
+  const tree: TeamTree = {errors: [], nodesIn: [], nodesNotIn: [], teamIDs}
+  for (const membership of memberships ?? []) {
     if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-      loadLastActivity(membership.result.ok.teamID)
-    }
-  })
-
-  const errors: Array<T.RPCGen.TeamTreeMembership> = []
-  const nodesNotIn: Array<TeamTreeRowNotIn> = []
-  const nodesIn: Array<TeamTreeRowIn> = []
-  const visibleState = matchesTeamTreeMembershipState(state, targetTeamID, username)
-    ? state
-    : makeEmptyTeamTreeMembershipState(targetTeamID, username)
-
-  // Note that we do not directly take any information directly from the TeamTree result other
-  // than the **shape of the tree**. Membership metadata comes from the async tree-membership
-  // results themselves instead of peeking into the global teams cache.
-  for (const membership of visibleState.memberships) {
-    const teamname = membership.teamName
-
-    if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
-      const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = getSparseMemberInfo(visibleState.sparseMemberInfos, teamID)
-      if (!sparseMemberInfo) {
-        continue
-      }
-
+      const {joinTime, memberCount, role, teamID} = membership.result.ok
+      teamIDs.add(teamID)
       const row = {
-        joinTime: sparseMemberInfo.joinTime,
-        lastActivity: visibleState.lastActivity.get(teamID),
-        // memberCount should always be populated because the TeamList, which is synced
-        // eagerly, provides it.
-        memberCount: teamMetas.get(teamID)?.memberCount,
+        joinTime: joinTime ?? undefined,
+        memberCount: memberCount ?? undefined,
         teamID,
-        teamname,
+        teamname: membership.teamName,
       }
-
-      if ('none' !== sparseMemberInfo.type) {
-        nodesIn.push({
-          role: sparseMemberInfo.type,
-          ...row,
-        })
+      const type = Teams.teamRoleByEnum[role]
+      if (type !== 'none') {
+        tree.nodesIn.push({role: type, ...row})
       } else {
-        nodesNotIn.push(row)
+        tree.nodesNotIn.push(row)
       }
-    } else if (T.RPCGen.TeamTreeMembershipStatus.error === membership.result.s) {
-      errors.push(membership)
+    } else if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.error) {
+      tree.errors.push(membership)
     }
   }
+  return tree
+}
+
+// memberCount is left out: the service sends it when it caches a count, which every tree load
+// does for each team, and the rows carry the count the load computed
+// settings is in: a subteam made or deleted under a team of the tree comes as that team's settings
+const changesTree = (kinds: T.RPCGen.TeamChangedKinds) =>
+  kinds.deleted || kinds.exited || kinds.membership || kinds.renamed || kinds.roles || kinds.settings
+// A tree load polls the server for every team in it, so changes reload at most once per window,
+// long enough that a team changing steadily cannot keep the page polling the whole tree
+const refreshWindowMs = 10_000
+
+export const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
+  const currentUsername = useCurrentUserState(s => s.username)
+  const key = `${currentUsername};${targetTeamID};${username}`
+  const [activity, setActivity] = React.useState({byTeam: noActivity, key})
+
+  const recordActivity = React.useEffectEvent(
+    (forKey: string, activityMap: {[teamID: string]: number} | null | undefined) => {
+      if (forKey !== key) {
+        return
+      }
+      setActivity(prev => {
+        const byTeam = new Map(prev.key === forKey ? prev.byTeam : undefined)
+        Object.entries(activityMap ?? {}).forEach(([teamID, lastActivity]) => {
+          byTeam.set(teamID, lastActivity)
+        })
+        return {byTeam, key: forKey}
+      })
+    }
+  )
+
+  // one call per team, so a team whose activity fails to load costs only that team's row
+  const loadActivity = React.useEffectEvent((tree: TeamTree) => {
+    const forKey = key
+    for (const {teamID} of tree.nodesIn) {
+      C.ignorePromise(
+        T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
+          {teamIDs: [teamID], username},
+          C.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
+        )
+          .then(activityMap => {
+            recordActivity(forKey, activityMap)
+            return undefined
+          })
+          .catch((error: unknown) => {
+            logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}`, error)
+          })
+      )
+    }
+  })
+
+  const loadWaitingKey = C.waitingKeyTeamsLoadTeamTree(targetTeamID, username)
+  const params = {teamID: targetTeamID, username}
+  const {data, error, loadCount, loading, reload} = useRpcData(
+    T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise,
+    params,
+    {
+      onError: error => {
+        logger.warn(`Failed to load team tree memberships for ${targetTeamID}:${username}`, error)
+      },
+      select: toTeamTree,
+      waitingKey: loadWaitingKey,
+    }
+  )
+  const inFlight = C.Waiting.useAnyWaiting(loadWaitingKey)
+  // the newest load failed: its error replaces the rows of an older one
+  const tree = (error ? undefined : data) ?? emptyTree
+
+  // each load's rows get their activity, including the load every mount makes
+  const lastLoadCount = React.useRef(loadCount)
+  React.useEffect(() => {
+    if (lastLoadCount.current === loadCount) {
+      return
+    }
+    lastLoadCount.current = loadCount
+    if (data && !error) {
+      loadActivity(data)
+    }
+  }, [data, error, loadCount])
+
+  // a load on the wire may predate the change: it finishes and one more follows
+  const refresh = () => refreshRpcParams(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params)
+  // The cache throttles these (debounce and max wait are both the window): a lone change (an edit
+  // made on this page) shows at once, and the rest wait for the window to end
+  const refreshSoon = () =>
+    refreshRpcParams(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params, refreshWindowMs, refreshWindowMs)
+
+  const watchedTeamIDs = React.useMemo(() => new Set([targetTeamID, ...tree.teamIDs]), [targetTeamID, tree])
+  useTeamChanged(watchedTeamIDs, (kinds, changedTeamID) => {
+    if (changedTeamID === targetTeamID && teamGone(kinds)) {
+      // the tree hangs off this team, so its rows are gone; the load says why
+      setRpcData(T.RPCGen.teamsLoadTeamTreeMembershipsRpcPromise, params, () => undefined)
+      refresh()
+    } else if (changesTree(kinds)) {
+      refreshSoon()
+    }
+  })
+
+  // chat activity sends no teamChanged, so refresh it when the page shows again. Not on the focus
+  // that comes with the mount: the mount's load brings it.
+  const focusedBefore = React.useRef(false)
+  const refreshActivity = React.useEffectEvent(() => {
+    if (!focusedBefore.current) {
+      focusedBefore.current = true
+      return
+    }
+    if (data && !error) loadActivity(data)
+  })
+  const [onFocus] = React.useState(() => () => {
+    refreshActivity()
+    return undefined
+  })
+  C.Router2.useSafeFocusEffect(onFocus)
+
+  const lastActivity = activity.key === key ? activity.byTeam : noActivity
+  const nodesIn = React.useMemo(
+    () => tree.nodesIn.map(node => ({...node, lastActivity: lastActivity.get(node.teamID)})),
+    [tree, lastActivity]
+  )
   return {
-    errors,
-    loading:
-      visibleState.expectedCount === undefined ||
-      visibleState.memberships.length < visibleState.expectedCount,
+    errors: tree.errors,
+    loadError: error ? ((error as {desc?: string}).desc ?? error.message) : undefined,
+    loading: loading || inFlight,
     nodesIn,
-    nodesNotIn,
+    nodesNotIn: tree.nodesNotIn,
     reload,
   }
 }

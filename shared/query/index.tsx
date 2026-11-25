@@ -5,6 +5,7 @@ export {
   markLoadStale,
   refreshLoad,
   refreshRpc,
+  refreshRpcParams,
   reviveLoad,
   setRpcData,
   useCachedRpcData,

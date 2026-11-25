@@ -1616,20 +1616,6 @@ func (k *KeybaseDaemonRPC) AvatarUpdated(ctx context.Context,
 	return nil
 }
 
-// TeamTreeMembershipsPartial implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
-func (k *KeybaseDaemonRPC) TeamTreeMembershipsPartial(context.Context,
-	keybase1.TeamTreeMembership,
-) error {
-	return nil
-}
-
-// TeamTreeMembershipsDone implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
-func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
-	keybase1.TeamTreeMembershipsDoneResult,
-) error {
-	return nil
-}
-
 // StartMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,

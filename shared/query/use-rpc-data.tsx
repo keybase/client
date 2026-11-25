@@ -153,6 +153,13 @@ export const useLoadData = <RAW, DATA = RAW>(
 
 /** the service's data behind this rpc changed (after a write, or on a notice): reload it wherever it is shown */
 export const refreshRpc = (rpc: AnyRpc, debounceMs?: number) => refreshMethod(rpc.method, undefined, debounceMs)
+/** refreshRpc for one params: a load on the wire finishes and one more follows it */
+export const refreshRpcParams = <F extends AnyRpc>(
+  rpc: F,
+  params: ParamsOf<F>,
+  debounceMs?: number,
+  maxWaitMs?: number
+) => refreshMethod(rpc.method, stableKey(rpc.method, params), debounceMs, maxWaitMs)
 /** refreshRpc for a useLoadData name; with a key (not undefined) for just that one */
 export const refreshLoad = (name: string, key?: unknown, debounceMs?: number) =>
   refreshMethod(name, key === undefined ? undefined : stableKey(name, key), debounceMs)

@@ -313,6 +313,80 @@ func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyba
 	return res, nil
 }
 
+func (t TeamSigChainState) Members() (keybase1.TeamMembers, error) {
+	var members keybase1.TeamMembers
+
+	x, err := t.GetUsersWithRole(keybase1.TeamRole_OWNER)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Owners = x
+
+	x, err = t.GetUsersWithRole(keybase1.TeamRole_ADMIN)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Admins = x
+
+	x, err = t.GetUsersWithRole(keybase1.TeamRole_WRITER)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Writers = x
+
+	x, err = t.GetUsersWithRole(keybase1.TeamRole_READER)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Readers = x
+
+	x, err = t.GetUsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
+
+	x, err = t.GetUsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.RestrictedBots = x
+
+	return members, nil
+}
+
+// memberCount counts the users in the team or invited to it as keybase users, leaving out bots.
+// It is the count the teams list shows.
+func (t TeamSigChainState) memberCount() (int, error) {
+	members, err := t.Members()
+	if err != nil {
+		return 0, err
+	}
+
+	memberUIDs := make(map[keybase1.UID]bool)
+	for _, uv := range members.AllUserVersions() {
+		memberUIDs[uv.Uid] = true
+	}
+
+	for _, inviteMD := range t.ActiveInvites() {
+		invite := inviteMD.Invite
+		category, err := invite.Type.C()
+		if err != nil {
+			return 0, fmt.Errorf("parsing invite %q: %w", invite.Id, err)
+		}
+
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			uv, err := invite.KeybaseUserVersion()
+			if err != nil {
+				return 0, fmt.Errorf("parsing invite %q: %w", invite.Id, err)
+			}
+
+			memberUIDs[uv.Uid] = true
+		}
+	}
+	return len(memberUIDs) - len(members.Bots) - len(members.RestrictedBots), nil
+}
+
 func (t TeamSigChainState) GetUsersWithRoleOrAbove(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
 	if role == keybase1.TeamRole_NONE {
 		return nil, errors.New("cannot get users with NONE role")

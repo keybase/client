@@ -105,40 +105,11 @@ func (t *Team) CanSkipKeyRotation() bool {
 }
 
 func (t *Team) calculateAndCacheMemberCount(ctx context.Context) (int, error) {
-	m := libkb.NewMetaContext(ctx, t.G())
-	members, err := t.Members()
+	count, err := t.chain().memberCount()
 	if err != nil {
-		m.Debug("| Failed to get Members() for team %q: %v", t.ID, err)
+		libkb.NewMetaContext(ctx, t.G()).Debug("| Failed to count members of team %q: %v", t.ID, err)
 		return 0, err
 	}
-
-	memberUIDs := make(map[keybase1.UID]bool)
-	for _, uv := range members.AllUserVersions() {
-		memberUIDs[uv.Uid] = true
-	}
-
-	inviteMDs := t.chain().ActiveInvites()
-	for _, inviteMD := range inviteMDs {
-		invite := inviteMD.Invite
-		invID := invite.Id
-		category, err := invite.Type.C()
-		if err != nil {
-			m.Debug("| Failed parsing invite %q in team %q: %v", invID, t.ID, err)
-			return 0, err
-		}
-
-		if category == keybase1.TeamInviteCategory_KEYBASE {
-			uv, err := invite.KeybaseUserVersion()
-			if err != nil {
-				m.Debug("| Failed parsing invite %q in team %q: %v", invID, t.ID, err)
-				return 0, err
-			}
-
-			memberUIDs[uv.Uid] = true
-		}
-
-	}
-	count := len(memberUIDs) - len(members.Bots) - len(members.RestrictedBots)
 	// The app's teams list leaves out implicit teams (only the CLI lists them),
 	// so an implicit team's count change is not worth a teamMetadataUpdate.
 	t.G().TeamMemberCountCache.Set(t.ID, count, !t.IsImplicit())
@@ -373,45 +344,7 @@ func (t *Team) Settings() keybase1.TeamSettings {
 }
 
 func (t *Team) Members() (keybase1.TeamMembers, error) {
-	var members keybase1.TeamMembers
-
-	x, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.Owners = x
-
-	x, err = t.UsersWithRole(keybase1.TeamRole_ADMIN)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.Admins = x
-
-	x, err = t.UsersWithRole(keybase1.TeamRole_WRITER)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.Writers = x
-
-	x, err = t.UsersWithRole(keybase1.TeamRole_READER)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.Readers = x
-
-	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.Bots = x
-
-	x, err = t.UsersWithRole(keybase1.TeamRole_RESTRICTEDBOT)
-	if err != nil {
-		return keybase1.TeamMembers{}, err
-	}
-	members.RestrictedBots = x
-
-	return members, nil
+	return t.chain().Members()
 }
 
 func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {

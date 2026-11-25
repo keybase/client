@@ -29,10 +29,6 @@ export type TeamProfileAddList = {
   open: boolean
 }
 export type MemberStatus = 'active' | 'deleted' | 'reset'
-export type TreeloaderSparseMemberInfo = {
-  joinTime?: number
-  type: MaybeTeamRoleType
-}
 type SparseMemberInfo = {
   joinTime?: number
   type: TeamRoleType

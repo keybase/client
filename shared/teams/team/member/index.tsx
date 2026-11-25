@@ -34,7 +34,7 @@ const TeamMember = (props: Props) => {
   const username = props.username
   const teamID = props.teamID
   const isMe = username === useCurrentUserState(s => s.username)
-  const {errors, loading, nodesIn, nodesNotIn, reload} = useTeamTreeMemberships(teamID, username)
+  const {errors, loadError, loading, nodesIn, nodesNotIn, reload} = useTeamTreeMemberships(teamID, username)
 
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
 
@@ -85,14 +85,16 @@ const TeamMember = (props: Props) => {
   const sections: Array<Section> = nodesNotIn.length > 0 ? [nodesInSection, nodesNotInSection] : [nodesInSection]
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} relative={true} testID={TestIDs.TEAMS_MEMBER_PAGE}>
-      {errors.length > 0 && (
+      {(errors.length > 0 || loadError !== undefined) && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
           <Kb.BannerParagraph
             key="teamTreeErrorHeader"
             bannerColor="red"
             content={[
-              'The following teams could not be loaded. ',
+              loadError === undefined
+                ? 'The following teams could not be loaded. '
+                : `The teams could not be loaded: ${loadError} `,
               {
                 onClick: reload,
                 text: 'Click to reload.',
