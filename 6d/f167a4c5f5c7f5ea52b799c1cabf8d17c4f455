@@ -1,0 +1,20 @@
+go/stellar/stellarsvc/export_test.go
+  s_21ba806e6c73ff::t_993d477ae7fafc 38-82,103
+  s_21ba806e6c73ff::t_d3fe780d6d380f 1-37,83-102,104-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6df167a4c5f5c7f5ea52b799c1cabf8d17c4f455",
+  "prompts": {},
+  "sessions": {
+    "s_21ba806e6c73ff": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9a7b4881-0b3a-4088-81d3-11cd54f52b15",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
