@@ -374,7 +374,8 @@ describe('useConversationMessage', () => {
     expect(result.current).toBeUndefined()
   })
 
-  test('a finished download of that message reloads it', async () => {
+  // the reload would only refresh fullUrlCached, which no screen reads
+  test('a finished download of that message does not reload it', async () => {
     const load = mockAroundMessages([20])
     renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
@@ -386,8 +387,8 @@ describe('useConversationMessage', () => {
       } as never)
       await microtasks(10)
     })
-    expect(load()).toHaveLength(2)
     await waitForLoad()
+    expect(load()).toHaveLength(1)
   })
 
   // loadConversationMessagesAroundMessageID reads what the stream callbacks collected right after

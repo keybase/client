@@ -840,6 +840,10 @@ func (d DummyParticipantSource) GetWithNotifyNonblock(ctx context.Context, uid g
 	convID chat1.ConversationID, dataSource InboxSourceDataSourceTyp) {
 }
 
+func (d DummyParticipantSource) ApplyMembershipChange(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, joined, removed []gregor1.UID) {
+}
+
 func (d DummyParticipantSource) GetParticipantsFromUids(
 	ctx context.Context,
 	uids []gregor1.UID,

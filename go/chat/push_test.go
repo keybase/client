@@ -286,3 +286,30 @@ func TestPushTyping(t *testing.T) {
 
 	require.Empty(t, handler.typingMonitor.typers)
 }
+
+func TestParticipantChanges(t *testing.T) {
+	me, other, third := gregor1.UID([]byte{1}), gregor1.UID([]byte{2}), gregor1.UID([]byte{3})
+	convA, convB, devConv := chat1.ConversationID([]byte{10}), chat1.ConversationID([]byte{11}),
+		chat1.ConversationID([]byte{12})
+	member := func(uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) chat1.ConversationMember {
+		return chat1.ConversationMember{Uid: uid, ConvID: convID, TopicType: topicType}
+	}
+	var joinedConv chat1.ConversationLocal
+	joinedConv.Info.Id = convB
+	joinedConv.Info.Triple.TopicType = chat1.TopicType_CHAT
+
+	changes := participantChanges(me, types.MembershipUpdateRes{
+		UserJoinedConvs: []chat1.ConversationLocal{joinedConv},
+		OthersJoinedConvs: []chat1.ConversationMember{
+			member(other, convA, chat1.TopicType_CHAT),
+			member(other, devConv, chat1.TopicType_DEV),
+		},
+		OthersRemovedConvs: []chat1.ConversationMember{member(third, convA, chat1.TopicType_CHAT)},
+		OthersResetConvs:   []chat1.ConversationMember{member(third, convB, chat1.TopicType_CHAT)},
+	})
+	require.Equal(t, []*participantChange{
+		{convID: convB, joined: []gregor1.UID{me}},
+		{convID: convA, joined: []gregor1.UID{other}, removed: []gregor1.UID{third}},
+	}, changes, "one change per chat conversation, resets and other topic types left out")
+	require.Empty(t, participantChanges(me, types.MembershipUpdateRes{}))
+}

@@ -102,14 +102,13 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('attachment gallery loads media, dedupes hits, and loads more from the oldest hit', async () => {
+test('attachment gallery loads media and loads more from the oldest hit', async () => {
   const requests = new Array<GalleryParams>()
   fake.answer(loadGallery, async (p: GalleryParams) => {
     requests.push(p)
     if (requests.length === 1) {
       await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'older gallery hit'))
       await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(101), 'newer gallery hit'))
-      await pushHit(p, makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'duplicate gallery hit'))
     }
     return {last: requests.length > 1}
   })

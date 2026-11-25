@@ -22,6 +22,7 @@ import {
   rowByOrdinal,
   searchFor,
   selectHit,
+  selectOldestHit,
   sendMessage,
   startScrollerFrames,
   stopScrollerFrames,
@@ -539,9 +540,8 @@ test.describe('search', () => {
     // the channel's oldest messages are its seeding pads (e2e-scratch-pad-<n>), far back from its end
     const hits = await searchFor(page, 'scratch')
     expect(hits.length, 'hits for the seeding pads').toBeGreaterThan(0)
-    // the oldest hit, at the bottom of the hit list, which scrolls
-    await threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_HIT).nth(hits.length - 1).scrollIntoViewIfNeeded({timeout: 5_000})
-    await selectHit(page, hits.length - 1)
+    // the oldest hit: the hit list draws only the rows in its view, so the walk gets there
+    await selectOldestHit(page)
     await expect.poll(async () => (await readThreadGeometry(page))?.distanceFromEnd ?? 0, {timeout: 10_000}).toBeGreaterThan(200)
     await waitForScrollStable(page)
     const before = await navigationWithoutSearch(page)

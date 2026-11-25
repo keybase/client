@@ -76,6 +76,7 @@ export const CHAT_THREAD_SEARCH_INPUT = 'chat-thread-search-input'
 export const CHAT_THREAD_SEARCH_HIT   = 'chat-thread-search-hit'
 // the hit count (or "No results") once a search has run
 export const CHAT_THREAD_SEARCH_STATUS = 'chat-thread-search-status'
+export const CHAT_THREAD_SEARCH_PROGRESS = 'chat-thread-search-progress'
 export const CHAT_JUMP_TO_RECENT      = 'chat-jump-to-recent'
 export const CHAT_CATCH_UP            = 'chat-catch-up'
 export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'

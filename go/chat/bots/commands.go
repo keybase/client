@@ -624,13 +624,15 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 		if err != nil {
 			return err
 		}
-		botSettings.Settings = make(map[string]keybase1.TeamBotSettings)
 		for uv, settings := range rawSettings {
+			if !CommandsBlocked(settings, job.convID) {
+				continue
+			}
 			username, err := b.G().GetUPAKLoader().LookupUsername(ctx, uv.Uid)
 			if err != nil {
 				return err
 			}
-			botSettings.Settings[username.String()] = settings
+			botSettings.CommandsBlocked = append(botSettings.CommandsBlocked, username.String())
 		}
 		return nil
 	})

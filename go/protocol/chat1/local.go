@@ -5937,7 +5937,6 @@ func (o GalleryItemTyp) String() string {
 }
 
 type LoadGalleryRes struct {
-	Messages         []UIMessage                   `codec:"messages" json:"messages"`
 	Last             bool                          `codec:"last" json:"last"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -5945,17 +5944,6 @@ type LoadGalleryRes struct {
 
 func (o LoadGalleryRes) DeepCopy() LoadGalleryRes {
 	return LoadGalleryRes{
-		Messages: (func(x []UIMessage) []UIMessage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIMessage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Messages),
 		Last: o.Last,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {

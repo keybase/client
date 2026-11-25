@@ -1991,11 +1991,10 @@
       "fields": [
         {
           "type": {
-            "type": "map",
-            "values": "keybase1.TeamBotSettings",
-            "keys": "string"
+            "type": "array",
+            "items": "string"
           },
-          "name": "settings"
+          "name": "commandsBlocked"
         }
       ]
     },

@@ -16,14 +16,12 @@ test('a thread search the service fails stops searching', async () => {
   const held = fake.hold('chat.1.local.searchInbox')
   let state: SearchState = {hits: [], status: 'inprogress'}
   const done = runSearchInbox({
+    addHit: () => {},
     conversationIDKey: T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4])),
     deviceName: 'testuser-mac',
     getLastOrdinal: () => T.Chat.numberToOrdinal(0),
     onDone: () => {},
-    pendingHitsRef: {current: []},
-    pendingReplaceHitsRef: {current: undefined},
     query: 'hello',
-    scheduleFlush: () => {},
     updateIfCurrent: updater => {
       state = updater(state)
     },

@@ -637,6 +637,8 @@ type ParticipantSource interface {
 		dataSource InboxSourceDataSourceTyp) chan ParticipantResult
 	GetWithNotifyNonblock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		dataSource InboxSourceDataSourceTyp)
+	ApplyMembershipChange(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		joined, removed []gregor1.UID)
 	GetParticipantsFromUids(ctx context.Context, uids []gregor1.UID) ([]chat1.ConversationLocalParticipant, error)
 }
 

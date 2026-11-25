@@ -587,6 +587,35 @@ func TestChatSearchInbox(t *testing.T) {
 			}
 		}
 
+		drainSearchHits := func() {
+			for {
+				select {
+				case <-chatUI.SearchHitCb:
+				case <-chatUI.InboxSearchHitCb:
+				default:
+					return
+				}
+			}
+		}
+		// a conversation-scoped search sends each hit once, and only as a ChatSearchHit
+		verifyConvScopedHits := func(msgIDs ...chat1.MessageID) {
+			for _, msgID := range msgIDs {
+				select {
+				case hit := <-chatUI.SearchHitCb:
+					require.Equal(t, msgID, hit.SearchHit.HitMessage.Valid().MessageID)
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no search hit received")
+				}
+			}
+			select {
+			case hit := <-chatUI.SearchHitCb:
+				require.Fail(t, "search hit sent twice", "%+v", hit)
+			case hit := <-chatUI.InboxSearchHitCb:
+				require.Fail(t, "conversation-scoped search sent an inbox hit", "%+v", hit)
+			default:
+			}
+		}
+
 		verifyIndexConsumption := func(ch chan chat1.ConversationID) {
 			select {
 			case id := <-ch:
@@ -662,6 +691,13 @@ func TestChatSearchInbox(t *testing.T) {
 			verifyHit(convID, nil, msgID1, nil, []chat1.ChatSearchMatch{matches[i]}, convHit.Hits[0])
 			verifySearchDone(1, false)
 		}
+
+		drainSearchHits()
+		convOpts := opts
+		convOpts.ConvID = &convID
+		runSearch("hello", convOpts, false /* expectedReindex */)
+		verifyConvScopedHits(msgID1)
+		verifySearchDone(1, false)
 
 		// We get a hit but without any highlighting highlighting fails
 		query := "hell bye"
@@ -975,6 +1011,7 @@ func TestChatSearchInbox(t *testing.T) {
 		// test search delegation with a specific conv
 		// delegate on queries shorter than search.MinTokenLength
 		opts.ConvID = &convID
+		drainSearchHits()
 		// delegate if a single conv is not fully indexed
 		query = "hello"
 		_, err = g1.LocalChatDb.Nuke()
@@ -986,6 +1023,7 @@ func TestChatSearchInbox(t *testing.T) {
 		require.Equal(t, convID, convHit.ConvID)
 		require.Len(t, convHit.Hits, 1)
 		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifyConvScopedHits(msgID10)
 		verifySearchDone(1, true)
 
 		// delegate on regexp searches
@@ -996,6 +1034,7 @@ func TestChatSearchInbox(t *testing.T) {
 		require.Equal(t, convID, convHit.ConvID)
 		require.Len(t, convHit.Hits, 1)
 		verifyHit(convID, []chat1.MessageID{}, msgID10, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifyConvScopedHits(msgID10)
 		verifySearchDone(1, true)
 
 		query = "hi"

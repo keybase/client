@@ -8636,3 +8636,21 @@ func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
 		}
 	})
 }
+
+func TestUnsentSearchHits(t *testing.T) {
+	hit := func(msgID chat1.MessageID) chat1.ChatSearchHit {
+		return chat1.ChatSearchHit{HitMessage: chat1.NewUIMessageWithValid(chat1.UIMessageValid{MessageID: msgID})}
+	}
+	ids := func(hits []chat1.ChatSearchHit) (res []chat1.MessageID) {
+		for _, h := range hits {
+			res = append(res, h.HitMessage.GetMessageID())
+		}
+		return res
+	}
+	sent := make(map[chat1.MessageID]bool)
+	require.Equal(t, []chat1.MessageID{9, 5}, ids(unsentSearchHits(sent, []chat1.ChatSearchHit{hit(9), hit(5)})))
+	// a conversation searched again after reindexing repeats its earlier hits
+	require.Equal(t, []chat1.MessageID{7, 3},
+		ids(unsentSearchHits(sent, []chat1.ChatSearchHit{hit(9), hit(7), hit(5), hit(3)})))
+	require.Empty(t, unsentSearchHits(sent, []chat1.ChatSearchHit{hit(9), hit(3)}))
+}

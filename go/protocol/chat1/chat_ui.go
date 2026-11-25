@@ -2871,23 +2871,22 @@ func (o UIBotCommandsUpdateStatusTyp) String() string {
 }
 
 type UIBotCommandsUpdateSettings struct {
-	Settings map[string]keybase1.TeamBotSettings `codec:"settings" json:"settings"`
+	CommandsBlocked []string `codec:"commandsBlocked" json:"commandsBlocked"`
 }
 
 func (o UIBotCommandsUpdateSettings) DeepCopy() UIBotCommandsUpdateSettings {
 	return UIBotCommandsUpdateSettings{
-		Settings: (func(x map[string]keybase1.TeamBotSettings) map[string]keybase1.TeamBotSettings {
+		CommandsBlocked: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]keybase1.TeamBotSettings, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
 			}
 			return ret
-		})(o.Settings),
+		})(o.CommandsBlocked),
 	}
 }
 

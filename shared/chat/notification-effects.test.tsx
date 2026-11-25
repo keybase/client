@@ -969,9 +969,10 @@ const cases: Array<Case> = [
   {
     action: () =>
       engineAction('chat.1.NotifyChat.ChatAttachmentDownloadComplete', {convID: rpcConvID(convA), msgID: 20}),
+    // the thread store clears the transfer state; a storeless consumer has nothing to reload
     expected: {
-      A: ['rpc:loadThread:A:general:centered'],
-      'A+B': ['rpc:loadThread:A:general:centered'],
+      A: none,
+      'A+B': none,
       none: none,
     },
     name: 'ChatAttachmentDownloadComplete of the message a storeless consumer shows',

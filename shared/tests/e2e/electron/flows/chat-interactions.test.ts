@@ -1,6 +1,6 @@
 import type {ConsoleMessage, Page} from '@playwright/test'
 import {test, expect, e2eMarker, seedChatData} from '@/tests/e2e/electron/helpers/fixtures'
-import {composerInput, mediaInViewLoaded, messageMenu, openE2EChannel, rowByOrdinal, waitForRow, waitForScrollStable} from '@/tests/e2e/electron/helpers/chat'
+import {composer, mediaInViewLoaded, messageMenu, openE2EChannel, rowByOrdinal, waitForRow, waitForScrollStable} from '@/tests/e2e/electron/helpers/chat'
 import {E2E_CHANNELS, sendFromCli} from '@/tests/e2e/shared/chat-data'
 import {step} from '@/tests/e2e/electron/helpers/step'
 import * as T from '@/tests/e2e/shared/test-ids'
@@ -22,13 +22,6 @@ const openWithOwnMessage = async (page: Page, label: string) => {
   return waitForRow(page, marker, 30_000)
 }
 
-// Empties the composer: ArrowUp edits the last message only from an empty input.
-const clearComposer = async (page: Page) => {
-  await composerInput(page).click({timeout: 5_000})
-  await page.keyboard.press('Meta+a')
-  await page.keyboard.press('Backspace')
-}
-
 test('reply-quote state in input', async ({page}, testInfo) => {
   const ordinal = await openWithOwnMessage(page, 'reply')
   const menu = await messageMenu(page, ordinal)
@@ -45,13 +38,13 @@ test('edit-message mode in input', async ({page}, testInfo) => {
   // button next to the input (Save/Send is mobile-only).
   await openWithOwnMessage(page, 'edit')
   const cancelButton = page.getByText('Cancel', {exact: true}).locator('visible=true').first()
-  await clearComposer(page)
+  await composer.clear(page)
   await page.keyboard.press('ArrowUp')
   await expect(cancelButton, 'ArrowUp in an empty composer to edit the message just sent').toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'edit mode in input')
   await page.keyboard.press('Escape')
   await expect(cancelButton).not.toBeVisible({timeout: 5_000})
-  await clearComposer(page)
+  await composer.clear(page)
 })
 
 test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
@@ -79,7 +72,7 @@ test('reaction picker opens from hover toolbar', async ({page}, testInfo) => {
 test('channel mention popup in team conversation', async ({page}, testInfo) => {
   const suggestions = page.getByTestId(T.CHAT_SUGGESTION_LIST)
   await openE2EChannel(page)
-  await clearComposer(page)
+  await composer.clear(page)
   await page.keyboard.type('#')
   await expect(suggestions.first(), 'the channel suggestions for "#" in a team channel').toBeVisible({timeout: 5_000})
   await step(page, testInfo, 'channel mention popup')

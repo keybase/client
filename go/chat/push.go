@@ -220,6 +220,8 @@ type PushHandler struct {
 	typingMonitor *TypingMonitor
 	handlerCtx    context.Context
 	handlerCancel context.CancelFunc
+	// closed when the last queued participant patch is done; guarded by the embedded Mutex
+	participantsTail <-chan struct{}
 
 	// testing only
 	testingIgnoreBroadcasts bool
@@ -273,14 +275,15 @@ func (g *PushHandler) Stop(ctx context.Context) chan struct{} {
 // goHandler runs f on a context cancelled by Stop or logout. Callers must not
 // hold startMu: Stop and goHandler share it so a handler cannot join the
 // errgroup after Wait has started.
-func (g *PushHandler) goHandler(ctx context.Context, f func(context.Context) error) {
+func (g *PushHandler) goHandler(ctx context.Context, f func(context.Context) error) (started bool) {
 	g.startMu.Lock()
 	defer g.startMu.Unlock()
 	if !g.started {
-		return
+		return false
 	}
 	bg := globals.WithStop(globals.BackgroundChatCtx(ctx, g.G()), g.handlerCtx)
 	g.eg.Go(func() error { return f(bg) })
+	return true
 }
 
 func waitForTurnDone(ctx context.Context, turn <-chan struct{}) error {
@@ -955,6 +958,87 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+type participantChange struct {
+	convID          chat1.ConversationID
+	joined, removed []gregor1.UID
+}
+
+// participantChanges collects the joins and removals in a membership push per chat
+// conversation, in push order. Resets are left out: whether a reset member stays in
+// the list is the server's call, and the next load of the list picks it up.
+func participantChanges(uid gregor1.UID, membersRes types.MembershipUpdateRes) (res []*participantChange) {
+	changes := make(map[chat1.ConvIDStr]*participantChange)
+	add := func(convID chat1.ConversationID, topicType chat1.TopicType, member gregor1.UID, joined bool) {
+		if topicType != chat1.TopicType_CHAT {
+			return
+		}
+		key := convID.ConvIDStr()
+		c, ok := changes[key]
+		if !ok {
+			c = &participantChange{convID: convID}
+			changes[key] = c
+			res = append(res, c)
+		}
+		if joined {
+			c.joined = append(c.joined, member)
+		} else {
+			c.removed = append(c.removed, member)
+		}
+	}
+	for _, c := range membersRes.UserJoinedConvs {
+		add(c.GetConvID(), c.GetTopicType(), uid, true)
+	}
+	for _, cm := range membersRes.OthersJoinedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, true)
+	}
+	for _, cm := range membersRes.UserRemovedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, false)
+	}
+	for _, cm := range membersRes.OthersRemovedConvs {
+		add(cm.ConvID, cm.TopicType, cm.Uid, false)
+	}
+	return res
+}
+
+// participantPatchTimeout bounds each conversation's patch, which can wait on a
+// participant load holding the conversation's lock across a server call.
+const participantPatchTimeout = 30 * time.Second
+
+// queueParticipantChanges patches the cached participant lists for a membership push
+// in the background, off the push lock, so a slow participant load never holds up
+// other pushes. Each batch waits for the one queued before it, keeping push order.
+// Callers hold the PushHandler lock, which guards participantsTail.
+func (g *PushHandler) queueParticipantChanges(ctx context.Context, uid gregor1.UID,
+	changes []*participantChange,
+) {
+	if len(changes) == 0 {
+		return
+	}
+	prev := g.participantsTail
+	done := make(chan struct{})
+	g.participantsTail = done
+	started := g.goHandler(ctx, func(ctx context.Context) error {
+		defer close(done)
+		if prev != nil {
+			if err := waitForTurnDone(ctx, prev); err != nil {
+				return nil
+			}
+		}
+		for _, c := range changes {
+			if ctx.Err() != nil {
+				return nil
+			}
+			cctx, cancel := context.WithTimeout(ctx, participantPatchTimeout)
+			g.G().ParticipantsSource.ApplyMembershipChange(cctx, uid, c.convID, c.joined, c.removed)
+			cancel()
+		}
+		return nil
+	})
+	if !started {
+		close(done)
+	}
+}
+
 func (g *PushHandler) notifyConversationsStale(ctx context.Context, uid gregor1.UID,
 	updates []chat1.ConversationUpdate,
 ) {
@@ -1101,6 +1185,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
+		g.queueParticipantChanges(ctx, uid, participantChanges(uid, updateRes))
 		g.notifyConvUpdates(ctx, uid, updateRes.RoleUpdates)
 
 		// Fire off badger updates

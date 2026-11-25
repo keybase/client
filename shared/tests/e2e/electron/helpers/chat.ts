@@ -623,6 +623,12 @@ export const composer = {
   focus: async (page: Page) => {
     await composerInput(page).click({timeout: 5_000})
   },
+  // empties it, so a draft an earlier flow left in the conversation is not typed into
+  clear: async (page: Page) => {
+    await composerInput(page).click({timeout: 5_000})
+    await page.keyboard.press('Meta+a')
+    await page.keyboard.press('Backspace')
+  },
   getText: async (page: Page) => composerInput(page).inputValue({timeout: 5_000}),
   press: async (page: Page, key: string) => {
     await composerInput(page).press(key, {timeout: 5_000})
@@ -674,7 +680,9 @@ export const openThreadSearch = async (page: Page) => {
   await expect(threadSearch(page)).toBeVisible({timeout: 5_000})
 }
 
-// Runs a search and waits for it to finish; returns the hits' texts, newest first.
+// Runs a search and waits for it to finish; returns the texts of the hit rows drawn, newest first.
+// The hit list is virtualized, so a long one draws only the rows in its view: count hits with the
+// status counter, not with this.
 export const searchFor = async (page: Page, query: string, timeoutMs = 15_000) => {
   const input = threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_INPUT).locator('input')
   await input.fill(query, {timeout: 5_000})
@@ -682,15 +690,18 @@ export const searchFor = async (page: Page, query: string, timeoutMs = 15_000) =
   const hits = threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_HIT)
   const counter = threadSearch(page).getByText(/^(No results|\d+ of \d+)$/)
   await expect(counter).toBeVisible({timeout: timeoutMs})
-  // the counter shows as soon as the first hit lands; let the rest arrive
-  await expect
-    .poll(async () => {
-      const a = await hits.count()
-      await page.waitForTimeout(300)
-      return a === (await hits.count()) ? a : -1
-    }, {timeout: timeoutMs})
-    .toBeGreaterThanOrEqual(0)
+  // the counter shows as soon as the first hit lands, and the service streams the rest until its done
+  await expect(threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_PROGRESS)).toHaveCount(0, {timeout: timeoutMs})
   return hits.allInnerTexts()
+}
+
+// Steps from the first hit down to the oldest (the walk wraps), as the counter's down arrow does,
+// and waits for the counter to read "n of n".
+export const selectOldestHit = async (page: Page) => {
+  const status = threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_STATUS)
+  await expect(status.getByText(/^1 of \d+$/)).toBeVisible({timeout: 5_000})
+  await clickUnoccluded(status.locator('.icon-gen-iconfont-arrow-down'))
+  await expect(status.getByText(/^(\d+) of \1$/)).toBeVisible({timeout: 5_000})
 }
 
 export const selectHit = async (page: Page, index: number) => {

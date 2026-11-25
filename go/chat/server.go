@@ -2301,29 +2301,38 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 	default:
 		_ = ui.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{})
 	}
+	// A conversation-scoped search streams each hit as it is found and never repeats
+	// them as an inbox hit; an inbox-wide search sends only the per-conversation hits.
+	convScoped := opts.ConvID != nil
 	var numHits, numConvs int
 	for index, conv := range convs {
-		uiCh := make(chan chat1.ChatSearchHit, 10)
-		ch := make(chan struct{})
-		go func() {
-			for searchHit := range uiCh {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					_ = ui.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
-						SearchHit: searchHit,
-					})
+		var uiCh chan chat1.ChatSearchHit
+		var ch chan struct{}
+		if convScoped {
+			ch = make(chan struct{})
+			uiCh = make(chan chat1.ChatSearchHit, 10)
+			go func() {
+				defer close(ch)
+				for searchHit := range uiCh {
+					select {
+					case <-ctx.Done():
+					default:
+						_ = ui.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+							SearchHit: searchHit,
+						})
+					}
 				}
-			}
-			close(ch)
-		}()
+			}()
+		}
 		hits, _, err := h.G().RegexpSearcher.Search(ctx, uid, conv.GetConvID(), re, uiCh, opts)
+		if convScoped {
+			// Search closes uiCh on every return, so this waits out every hit it sent
+			<-ch
+		}
 		if err != nil {
 			h.Debug(ctx, "delegateInboxSearch: failed to search conv: %s", err)
 			continue
 		}
-		<-ch
 		if len(hits) == 0 {
 			continue
 		}
@@ -2337,10 +2346,10 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 			Time:     hits[0].HitMessage.Valid().Ctime,
 			Hits:     hits,
 		}
-		select {
-		case <-ctx.Done():
-			return res, ctx.Err()
-		default:
+		if err := ctx.Err(); err != nil {
+			return res, err
+		}
+		if !convScoped {
 			_ = ui.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 				SearchHit: inboxHit,
 			})
@@ -2367,6 +2376,19 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 		})
 	}
 	return res, nil
+}
+
+// unsentSearchHits returns the hits whose message is not in sent yet, and adds them to it.
+func unsentSearchHits(sent map[chat1.MessageID]bool, hits []chat1.ChatSearchHit) (res []chat1.ChatSearchHit) {
+	for _, hit := range hits {
+		msgID := hit.HitMessage.GetMessageID()
+		if sent[msgID] {
+			continue
+		}
+		sent[msgID] = true
+		res = append(res, hit)
+	}
+	return res
 }
 
 func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
@@ -2430,15 +2452,35 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if !doSearch {
 			return nil
 		}
+		// A conversation-scoped search gets each hit once, as a ChatSearchHit, the same
+		// shape the delegated search streams. A conversation the indexer searches again
+		// after reindexing repeats its earlier hits, and the ones it adds can be older than
+		// hits already sent, so the thread search orders hits by message id itself.
+		sent := make(map[chat1.MessageID]bool)
 		for searchHit := range hitUICh {
-			numHits += len(searchHit.Hits)
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-				_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-					SearchHit: searchHit,
-				})
+			if opts.ConvID == nil {
+				numHits += len(searchHit.Hits)
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+					_ = chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+						SearchHit: searchHit,
+					})
+				}
+				continue
+			}
+			fresh := unsentSearchHits(sent, searchHit.Hits)
+			numHits += len(fresh)
+			for _, hit := range fresh {
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+					_ = chatUI.ChatSearchHit(ctx, chat1.ChatSearchHitArg{
+						SearchHit: hit,
+					})
+				}
 			}
 		}
 		return nil
@@ -2904,21 +2946,22 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 		msgID = conv.Conv.ReaderInfo.MaxMsgid + 1
 	}
 
+	// every hit reaches the UI before the reply does
 	hitCh := make(chan chat1.UIMessage)
+	hitsDone := make(chan struct{})
 	go func(ctx context.Context) {
+		defer close(hitsDone)
 		for msg := range hitCh {
 			_ = chatUI.ChatLoadGalleryHit(ctx, msg)
 		}
 	}(ctx)
 	gallery := attachments.NewGallery(h.G())
-	msgs, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	_, last, err := gallery.NextMessages(ctx, uid, convID, msgID, arg.Num, opts, hitCh)
+	<-hitsDone
 	if err != nil {
 		return res, err
 	}
-	return chat1.LoadGalleryRes{
-		Last:     last,
-		Messages: utils.PresentMessagesUnboxed(ctx, h.G(), msgs, uid, convID),
-	}, nil
+	return chat1.LoadGalleryRes{Last: last}, nil
 }
 
 func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1.LoadFlipRes, err error) {

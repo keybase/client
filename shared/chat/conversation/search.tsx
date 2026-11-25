@@ -25,19 +25,16 @@ type SearchState = {
 }
 
 export const runSearchInbox = async (p: {
+  addHit: (message: T.Chat.Message) => void
   conversationIDKey: T.Chat.ConversationIDKey
   deviceName: string
   getLastOrdinal: () => T.Chat.Ordinal
   onDone: () => void
-  pendingHitsRef: {current: Array<T.Chat.Message>}
-  pendingReplaceHitsRef: {current: Array<T.Chat.Message> | undefined}
   query: string
-  scheduleFlush: () => void
   updateIfCurrent: (updater: (state: SearchState) => SearchState) => void
   username: string
 }) => {
-  const {conversationIDKey, deviceName, getLastOrdinal, onDone, query, username} = p
-  const {pendingHitsRef, pendingReplaceHitsRef, scheduleFlush, updateIfCurrent} = p
+  const {addHit, conversationIDKey, deviceName, getLastOrdinal, onDone, query, updateIfCurrent, username} = p
   try {
     await searchInboxRPC({
       // Name, bot and index-progress results are for the inbox search, not a thread's
@@ -56,31 +53,11 @@ export const runSearchInbox = async (p: {
             getLastOrdinal,
             deviceName
           )
-          if (!message) {
-            return
+          if (message) {
+            addHit(message)
           }
-          pendingHitsRef.current.push(message)
-          scheduleFlush()
         },
         'chat.1.chatUi.chatSearchInboxDone': onDone,
-        'chat.1.chatUi.chatSearchInboxHit': resp => {
-          const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((result, hit) => {
-            const message = Message.uiMessageToMessage(
-              conversationIDKey,
-              hit.hitMessage,
-              username,
-              getLastOrdinal,
-              deviceName
-            )
-            if (message) {
-              result.push(message)
-            }
-            return result
-          }, [])
-          pendingHitsRef.current = []
-          pendingReplaceHitsRef.current = messages
-          scheduleFlush()
-        },
         'chat.1.chatUi.chatSearchInboxStart': () => {
           updateIfCurrent(state => ({...state, status: 'inprogress'}))
         },
@@ -114,20 +91,19 @@ export const useCommon = (ownProps: CommonProps) => {
     summary: h.bodySummary.stringValue(),
     timestamp: h.timestamp,
   }))
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
-  // an inbox hit replaces the whole list, so a shorter replacement can leave the
-  // index past the end and the counter reading "8 of 2" until the user moves
-  if (selectedIndex >= numHits && selectedIndex !== 0) {
-    setSelectedIndex(numHits === 0 ? 0 : numHits - 1)
-  }
+  // the selected hit by message id: a flush re-sorts the hits, and the selection
+  // stays on the same message
+  const [selectedID, setSelectedID] = React.useState<T.Chat.MessageID | undefined>(undefined)
+  const selectedIndex = Math.max(
+    0,
+    messageHits.findIndex(h => h.id === selectedID)
+  )
   const [text, setText] = React.useState(initialQuery)
   const [lastSearch, setLastSearch] = React.useState(initialQuery)
 
   const searchOrdinalRef = React.useRef(0)
   const hitsRef = React.useRef(messageHits)
   const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
-  const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
   const lastOrdinal = useConversationThreadSelector(
     s => s.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   )
@@ -144,8 +120,6 @@ export const useCommon = (ownProps: CommonProps) => {
       clearTimeout(flushTimeoutRef.current)
       flushTimeoutRef.current = undefined
     }
-    pendingHitsRef.current = []
-    pendingReplaceHitsRef.current = undefined
   })
 
   const startThreadSearchRequest = React.useEffectEvent((query: string, requestOrdinal: number) => {
@@ -155,42 +129,41 @@ export const useCommon = (ownProps: CommonProps) => {
 
     const {deviceName, username} = useCurrentUserState.getState()
     const getLastOrdinal = () => lastOrdinalRef.current
+    const isCurrent = () => searchOrdinalRef.current === requestOrdinal
     const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
-      if (searchOrdinalRef.current !== requestOrdinal) {
+      if (!isCurrent()) {
         return
       }
-      setSearchState(state => (searchOrdinalRef.current === requestOrdinal ? updater(state) : state))
+      setSearchState(state => (isCurrent() ? updater(state) : state))
     }
+    // this request's own buffer: a superseded search's late hits and its done can never
+    // flush, or drop, the hits of the search that replaced it
+    let pendingHits: Array<T.Chat.Message> = []
     const flushPendingHits = (statusOverride?: SearchState['status']) => {
+      if (!isCurrent()) {
+        return
+      }
       if (flushTimeoutRef.current) {
         clearTimeout(flushTimeoutRef.current)
         flushTimeoutRef.current = undefined
       }
-      const pendingReplaceHits = pendingReplaceHitsRef.current
-      const pendingHits = pendingHitsRef.current
-      pendingReplaceHitsRef.current = undefined
-      pendingHitsRef.current = []
-      if (!pendingReplaceHits && !pendingHits.length && statusOverride === undefined) {
+      const flushed = pendingHits
+      pendingHits = []
+      if (!flushed.length && statusOverride === undefined) {
         return
       }
-      updateIfCurrent(state => {
-        let nextHits = state.hits
-        if (pendingReplaceHits) {
-          nextHits = pendingReplaceHits
-        } else if (pendingHits.length) {
-          const seen = new Set(nextHits.map(hit => hit.id))
-          nextHits = [...nextHits]
-          pendingHits.forEach(hit => {
-            if (!seen.has(hit.id)) {
-              seen.add(hit.id)
-              nextHits.push(hit)
-            }
-          })
-        }
-        return {hits: nextHits, status: statusOverride ?? state.status}
-      })
+      updateIfCurrent(state => ({
+        // newest first; a conversation the service searches again after reindexing can
+        // add hits older than ones already sent
+        hits: flushed.length ? [...state.hits, ...flushed].sort((a, b) => b.id - a.id) : state.hits,
+        status: statusOverride ?? state.status,
+      }))
     }
-    const scheduleFlush = () => {
+    const addHit = (message: T.Chat.Message) => {
+      if (!isCurrent()) {
+        return
+      }
+      pendingHits.push(message)
       if (flushTimeoutRef.current) {
         return
       }
@@ -204,14 +177,12 @@ export const useCommon = (ownProps: CommonProps) => {
 
     C.ignorePromise(
       runSearchInbox({
+        addHit,
         conversationIDKey,
         deviceName,
         getLastOrdinal,
         onDone,
-        pendingHitsRef,
-        pendingReplaceHitsRef,
         query,
-        scheduleFlush,
         updateIfCurrent,
         username,
       })
@@ -228,7 +199,7 @@ export const useCommon = (ownProps: CommonProps) => {
 
   const submitSearch = () => {
     setLastSearch(text)
-    setSelectedIndex(0)
+    setSelectedID(undefined)
     runThreadSearch(text)
   }
 
@@ -240,7 +211,7 @@ export const useCommon = (ownProps: CommonProps) => {
       return false
     }
     centerOnMessage(message.id, 'always')
-    setSelectedIndex(index)
+    setSelectedID(message.id)
     return true
   })
 
@@ -443,7 +414,11 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" noShrink={true}>
-            {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {inProgress && (
+              <Kb.Box2 direction="horizontal" testID={TestIDs.CHAT_THREAD_SEARCH_PROGRESS}>
+                <Kb.ProgressIndicator style={styles.progress} />
+              </Kb.Box2>
+            )}
             {hasResults && (
               <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>

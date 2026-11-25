@@ -378,19 +378,14 @@ describe('decodeChatNotification', () => {
     })
   })
 
-  test('a finished download goes to the thread and reloads a reader of that message', () => {
+  test('a finished download goes only to the thread', () => {
     const {reloads, thread} = decodeChatNotification(
       chat('chat.1.NotifyChat.ChatAttachmentDownloadComplete', {convID: rpcConvID(convA), msgID: 7})
     )
     expect(thread).toEqual([
       {conversationIDKey: convA, notification: {msgID: 7, type: 'attachmentDownloadComplete'}},
     ])
-    expect(reloads).toEqual([
-      {
-        conversationIDKey: convA,
-        notification: {messageID: T.Chat.numberToMessageID(7), type: 'attachmentDownloaded'},
-      },
-    ])
+    expect(reloads).toEqual([])
   })
 
   test('an upload start is progress with no bytes', () => {
