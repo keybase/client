@@ -70,14 +70,6 @@ const subscribeNonPath = (
   C.ignorePromise(f())
 }
 
-export const getJournalWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
-  if (!endEstimate) {
-    return upper
-  }
-  const diff = endEstimate - Date.now()
-  return diff < lower ? lower : diff > upper ? upper : diff
-}
-
 const loadUploadStatusImpl = async (
   generation: number,
   isCurrentGeneration: (generation: number) => boolean,
@@ -121,32 +113,48 @@ const loadUploadStatusImpl = async (
   }
 }
 
-const pollJournalStatusImpl = async (
-  generation: number,
-  isCurrentGeneration: (generation: number) => boolean,
-  journalUpdate: (
-    syncingPaths: ReadonlyArray<T.FS.Path>,
-    totalSyncingBytes: number,
-    endEstimate?: number
-  ) => void,
+type JournalUpdate = (
+  syncingPaths: ReadonlyArray<T.FS.Path>,
+  totalSyncingBytes: number,
+  endEstimate?: number
+) => void
+
+const loadJournalStatusImpl = async (
+  isCurrentGeneration: () => boolean,
+  journalUpdate: JournalUpdate,
+  onError: () => void
+) => {
+  try {
+    const {syncingPaths, totalSyncingBytes, endEstimate} = await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
+      filter: T.RPCGen.ListFilter.filterSystemHidden,
+    })
+    if (!isCurrentGeneration()) {
+      return
+    }
+    journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
+    useNotifState.getState().dispatch.badgeApp('kbfsUploading', totalSyncingBytes > 0 || !!syncingPaths?.length)
+  } catch {
+    if (!isCurrentGeneration()) {
+      return
+    }
+    useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
+    onError()
+  }
+}
+
+type JournalStatusRequest = {dirty: boolean; generation: number}
+
+const runJournalStatusRequest = async (
+  request: JournalStatusRequest,
+  isCurrentGeneration: () => boolean,
+  journalUpdate: JournalUpdate,
+  onError: () => void,
   onDone: () => void
 ) => {
   try {
-    while (isCurrentGeneration(generation)) {
-      const {syncingPaths, totalSyncingBytes, endEstimate} =
-        await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
-          filter: T.RPCGen.ListFilter.filterSystemHidden,
-        })
-      if (!isCurrentGeneration(generation)) {
-        return
-      }
-      journalUpdate((syncingPaths || []).map(T.FS.stringToPath), totalSyncingBytes, endEstimate ?? undefined)
-
-      if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
-        break
-      }
-      useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
-      await C.timeoutPromise(getJournalWaitDuration(endEstimate || undefined, 100, 4000))
+    while (request.dirty && isCurrentGeneration()) {
+      request.dirty = false
+      await loadJournalStatusImpl(isCurrentGeneration, journalUpdate, onError)
     }
   } finally {
     onDone()
@@ -164,7 +172,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const connectedRef = React.useRef(connected)
   const fsStatusStateRef = React.useRef(fsStatusState)
   const generationRef = React.useRef(0)
-  const pollJournalStatusPollingRef = React.useRef(false)
+  const journalStatusRequestRef = React.useRef<JournalStatusRequest | undefined>(undefined)
   const [currentGeneration, setCurrentGeneration] = React.useState(0)
   const [prevConnected, setPrevConnected] = React.useState(connected)
 
@@ -182,7 +190,6 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   React.useEffect(() => {
     connectedRef.current = connected
     if (!connected) {
-      pollJournalStatusPollingRef.current = false
       useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
     }
   }, [connected])
@@ -247,23 +254,30 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     }
   )
 
-  const pollJournalStatus = React.useEffectEvent(() => {
-    if (pollJournalStatusPollingRef.current || !connectedRef.current) {
+  // One read at a time: a notice during a read marks it dirty, and a dirty read runs once more
+  // when it finishes, so a slow service never has more than one read in flight and no notice is lost.
+  const loadJournalStatus = React.useEffectEvent(() => {
+    const generation = generationRef.current
+    const inFlight = journalStatusRequestRef.current
+    if (inFlight?.generation === generation) {
+      inFlight.dirty = true
       return
     }
-    pollJournalStatusPollingRef.current = true
-    const generation = generationRef.current
-
+    const request = {dirty: true, generation}
+    journalStatusRequestRef.current = request
+    const isCurrent = () => isCurrentGeneration(generation)
     C.ignorePromise(
-      pollJournalStatusImpl(generation, isCurrentGeneration, journalUpdate, () => {
-        if (generation === generationRef.current) {
-          pollJournalStatusPollingRef.current = false
+      runJournalStatusRequest(
+        request,
+        isCurrent,
+        journalUpdate,
+        checkKbfsDaemonRpcStatus,
+        () => {
+          if (journalStatusRequestRef.current === request) {
+            journalStatusRequestRef.current = undefined
+          }
         }
-        useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
-        if (isCurrentGeneration(generation)) {
-          checkKbfsDaemonRpcStatus()
-        }
-      })
+      )
     )
   })
 
@@ -323,7 +337,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     }
     loadSettings()
     loadUploadStatus()
-    pollJournalStatus()
+    loadJournalStatus()
   }, [connected])
 
   React.useEffect(() => {
@@ -368,7 +382,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
       }
       switch (topic) {
         case T.RPCGen.SubscriptionTopic.journalStatus:
-          pollJournalStatus()
+          loadJournalStatus()
           break
         case T.RPCGen.SubscriptionTopic.uploadStatus:
           loadUploadStatus()

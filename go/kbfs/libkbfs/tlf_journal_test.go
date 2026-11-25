@@ -276,6 +276,8 @@ func setupTLFJournalTest(
 		keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
 	mockPublisher.EXPECT().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE).AnyTimes()
+	mockPublisher.EXPECT().SubscriberWatch(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS).Return(false, nil).AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -2113,6 +2115,100 @@ func testTLFJournalSingleOpPersistentFlushErr(
 		"waitForCompleteFlush spun: %d flush attempts in %s", attempts, window)
 }
 
+// recordingPublisher records the subscription topics a tlfJournal publishes.
+// onPublish, when set, runs inside PublishChange, which tlfJournal calls
+// with journalLock held. Its subscribers are counted by the real
+// subscriberWatches; add one with add(topic, 1).
+type recordingPublisher struct {
+	*subscriberWatches
+	lock      sync.Mutex
+	topics    []keybase1.SubscriptionTopic
+	onPublish func(keybase1.SubscriptionTopic)
+}
+
+func newRecordingPublisher() *recordingPublisher {
+	return &recordingPublisher{subscriberWatches: newSubscriberWatches()}
+}
+
+func (p *recordingPublisher) SubscriberWatch(
+	topic keybase1.SubscriptionTopic,
+) (subscribed bool, changed <-chan struct{}) {
+	return p.watch(topic)
+}
+
+func (p *recordingPublisher) PublishChange(topic keybase1.SubscriptionTopic) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.topics = append(p.topics, topic)
+	if p.onPublish != nil {
+		p.onPublish(topic)
+	}
+}
+
+func (p *recordingPublisher) count(topic keybase1.SubscriptionTopic) int {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	n := 0
+	for _, t := range p.topics {
+		if t == topic {
+			n++
+		}
+	}
+	return n
+}
+
+func testTLFJournalPublishesJournalStatusOnMDPut(
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		ctx, tempdir, config, cancel, tlfJournal, delegate)
+
+	publisher := newRecordingPublisher()
+	config.subscriptionManagerPublisher = publisher
+
+	// The unflushed paths come from the MD journal, so a status
+	// reader must hear about a new revision.
+	putOneMD(ctx, config, tlfJournal)
+	require.Equal(t, 1,
+		publisher.count(keybase1.SubscriptionTopic_JOURNAL_STATUS))
+}
+
+func testTLFJournalPublishesJournalStatusOnMDFlush(
+	t *testing.T, ver kbfsmd.MetadataVer,
+) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate := setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		ctx, tempdir, config, cancel, tlfJournal, delegate)
+
+	md := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
+	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
+	require.NoError(t, err)
+
+	var mdserver shimMDServer
+	config.mdserver = &mdserver
+	publisher := newRecordingPublisher()
+	var mdLengthsAtPublish []uint64
+	publisher.onPublish = func(topic keybase1.SubscriptionTopic) {
+		if topic == keybase1.SubscriptionTopic_JOURNAL_STATUS {
+			mdLengthsAtPublish = append(
+				mdLengthsAtPublish, tlfJournal.mdJournal.length())
+		}
+	}
+	config.subscriptionManagerPublisher = publisher
+
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), tlfJournal.mdJournal.length())
+
+	// The last status published must show the flushed MD journal, or
+	// a reader that refetches on notification keeps showing the
+	// revision as unflushed.
+	require.NotEmpty(t, mdLengthsAtPublish)
+	require.Equal(t, uint64(0),
+		mdLengthsAtPublish[len(mdLengthsAtPublish)-1])
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testTLFJournalBasic,
@@ -2147,6 +2243,8 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalFirstRevNoSquash,
 		testTLFJournalSingleOp,
 		testTLFJournalSingleOpPersistentFlushErr,
+		testTLFJournalPublishesJournalStatusOnMDPut,
+		testTLFJournalPublishesJournalStatusOnMDFlush,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }

@@ -2012,3 +2012,87 @@ loopWait:
 	}
 	require.Empty(t, files)
 }
+
+func TestReadListFreesHandle(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	pathJDoe := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathJDoe, `test1.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	lists := map[string]func(keybase1.OpID) error{
+		"List": func(opid keybase1.OpID) error {
+			return sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+				OpID: opid, Path: pathJDoe,
+			})
+		},
+		"ListRecursiveToDepth": func(opid keybase1.OpID) error {
+			return sfs.SimpleFSListRecursiveToDepth(ctx,
+				keybase1.SimpleFSListRecursiveToDepthArg{
+					OpID: opid, Path: pathJDoe, Depth: 1,
+				})
+		},
+	}
+	for name, list := range lists {
+		t.Run(name, func(t *testing.T) {
+			opid, err := sfs.SimpleFSMakeOpid(ctx)
+			require.NoError(t, err)
+			require.NoError(t, list(opid))
+			require.NoError(t, sfs.SimpleFSWait(ctx, opid))
+			listResult, err := sfs.SimpleFSReadList(ctx, opid)
+			require.NoError(t, err)
+			require.NotEmpty(t, listResult.Entries)
+
+			// The GUI reads the list and never closes the op, so
+			// reading it must not leave the handle behind.
+			sfs.lock.RLock()
+			_, ok := sfs.handles[opid]
+			sfs.lock.RUnlock()
+			require.False(t, ok)
+
+			// The CLI checks and closes the op after reading it.
+			_, err = sfs.SimpleFSCheck(ctx, opid)
+			require.NoError(t, err)
+			require.NoError(t, sfs.SimpleFSClose(ctx, opid))
+			require.Equal(t, errNoSuchHandle, sfs.SimpleFSClose(ctx, opid))
+		})
+	}
+
+	unknown, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	require.Equal(t, errNoSuchHandle, sfs.SimpleFSClose(ctx, unknown))
+}
+
+// Lists read but never closed are forgotten after a while.
+func TestReadListForgetsUnclosedLists(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	clock := clocktest.NewTestClockNow()
+	config.SetClock(clock)
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	readList := func() keybase1.OpID {
+		opid, err := sfs.SimpleFSMakeOpid(ctx)
+		require.NoError(t, err)
+		require.NoError(t, sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+			OpID: opid, Path: keybase1.NewPathWithKbfsPath(`/private/jdoe`),
+		}))
+		require.NoError(t, sfs.SimpleFSWait(ctx, opid))
+		_, err = sfs.SimpleFSReadList(ctx, opid)
+		require.NoError(t, err)
+		return opid
+	}
+	old := readList()
+	clock.Add(2 * readListMemory)
+	recent := readList()
+
+	sfs.lock.RLock()
+	require.Len(t, sfs.readLists, 1)
+	sfs.lock.RUnlock()
+	require.Equal(t, errNoSuchHandle, sfs.SimpleFSClose(ctx, old))
+	require.NoError(t, sfs.SimpleFSClose(ctx, recent))
+}

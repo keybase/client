@@ -1547,6 +1547,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		j.needInfoFile = true
 	}
 
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	return nil
 }
 
@@ -1956,6 +1958,11 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, incompleteUnflushedPathsMarker)
 	}
 	return jStatus, nil
+}
+
+func (j *tlfJournal) hasUnflushedBytes() bool {
+	_, _, unflushedBytes, err := j.getByteCounts()
+	return err == nil && unflushedBytes > 0
 }
 
 func (j *tlfJournal) getByteCounts() (
@@ -2504,6 +2511,8 @@ func (j *tlfJournal) doPutMD(
 		return ImmutableRootMetadata{}, false, err
 	}
 	j.log.CDebugf(ctx, "Put update rev=%d id=%s", rmd.Revision(), mdID)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 
 	j.signalWork()
 
@@ -2611,6 +2620,8 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid kbfsmd.BranchID) error {
 	if err != nil {
 		return err
 	}
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 
 	j.resume(journalPauseConflict)
 	return nil
@@ -2686,6 +2697,10 @@ func (j *tlfJournal) doResolveBranch(
 		return ImmutableRootMetadata{}, false, err
 	}
 	j.log.CDebugf(ctx, "Put resolution rev=%d id=%s", rmd.Revision(), mdID)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 
 	j.resume(journalPauseConflict)
 	j.signalWork()

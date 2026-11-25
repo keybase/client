@@ -1146,3 +1146,53 @@ func TestJournalManagerCorruptJournal(t *testing.T) {
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
 }
+
+// Journal status is republished while a client subscribes and a journal holds
+// unflushed bytes, whatever the journal is doing (paused here), and not
+// otherwise.
+func TestJournalManagerPublishesStatusWhileUnflushed(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
+
+	topic := keybase1.SubscriptionTopic_JOURNAL_STATUS
+	publisher := newRecordingPublisher()
+	stop := make(chan struct{})
+	defer close(stop)
+	go jManager.publishStatusWhileUnflushed(
+		func() SubscriptionManagerPublisher { return publisher },
+		20*time.Millisecond, stop)
+	count := func() int { return publisher.count(topic) }
+
+	publisher.add(topic, 1)
+	time.Sleep(200 * time.Millisecond)
+	require.Zero(t, count(), "published with nothing unflushed")
+
+	tlfID := tlf.FakeID(1, tlf.Private)
+	err := jManager.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "test_user1,test_user2",
+		tlf.Private)
+	require.NoError(t, err)
+	bCtx := kbfsblock.MakeFirstContext(
+		h.ResolvedWriters()[0], keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = config.BlockServer().Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool { return count() >= 3 },
+		5*time.Second, 10*time.Millisecond)
+
+	publisher.add(topic, -1)
+	time.Sleep(100 * time.Millisecond)
+	afterUnsubscribe := count()
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, afterUnsubscribe, count(),
+		"published after the subscriber left")
+}

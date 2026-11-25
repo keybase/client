@@ -2139,9 +2139,8 @@ type SubscriptionID string
 type SubscriptionNotifier interface {
 	// OnPathChange notifies about a change that's related to a specific path.
 	// Multiple subscriptionIDs may be sent because a client can subscribe on
-	// the same path multiple times. In the future topics will become a single
-	// topic but we don't differeciate between the two topics for now so they
-	// are just sent together if both topics are subscribed.
+	// the same path multiple times; topics holds the changed topics, and
+	// subscriptionIDs the subscriptions to them.
 	OnPathChange(
 		clientID SubscriptionManagerClientID, subscriptionIDs []SubscriptionID,
 		path string, topics []keybase1.PathSubscriptionTopic)
@@ -2197,6 +2196,11 @@ type SubscriptionManager interface {
 // used to publish changes to subscribers mangaged by it.
 type SubscriptionManagerPublisher interface {
 	PublishChange(topic keybase1.SubscriptionTopic)
+	// SubscriberWatch reports whether any client subscribes to topic, and
+	// returns a channel that is closed when that next changes. Publishers
+	// of periodic changes use it to stay quiet while nobody listens.
+	SubscriberWatch(
+		topic keybase1.SubscriptionTopic) (subscribed bool, changed <-chan struct{})
 }
 
 type kbContextGetter interface {

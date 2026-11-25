@@ -189,6 +189,10 @@ type JournalManager struct {
 	// Real TLF ID -> time that conflict was cleared -> fake TLF ID
 	clearedConflictTlfs map[clearedConflictKey]clearedConflictVal
 	delegateMaker       func(tlf.ID) tlfJournalBWDelegate
+
+	// Closed by shutdown, to stop publishStatusWhileUnflushed.
+	statusStop     chan struct{}
+	statusStopOnce sync.Once
 }
 
 func makeJournalManager(
@@ -219,7 +223,85 @@ func makeJournalManager(
 		clearedConflictTlfs:     make(map[clearedConflictKey]clearedConflictVal),
 	}
 	jManager.dirtyOpsDone = sync.NewCond(&jManager.lock)
+	jManager.statusStop = make(chan struct{})
+	go jManager.publishStatusWhileUnflushed(
+		config.SubscriptionManagerPublisher, journalStatusInterval,
+		jManager.statusStop)
 	return &jManager
+}
+
+// journalStatusInterval is how often journal status is republished while
+// some journal holds unflushed bytes and a client subscribes to it: the
+// status's endEstimate moves with the clock while those bytes wait (flushing
+// paused, backing off, or a flush running past its expected time), and
+// nothing else publishes then.
+const journalStatusInterval = 4 * time.Second
+
+// publishStatusWhileUnflushed republishes JOURNAL_STATUS every interval
+// while some client subscribes to it and some journal
+// holds unflushed bytes, until stop closes. One timer for every journal, so
+// the rate does not grow with the number of journals.
+func (j *JournalManager) publishStatusWhileUnflushed(
+	publisher func() SubscriptionManagerPublisher, interval time.Duration,
+	stop <-chan struct{},
+) {
+	topic := keybase1.SubscriptionTopic_JOURNAL_STATUS
+	for {
+		var subscribed bool
+		var changed <-chan struct{}
+		var retry <-chan time.Time
+		p := publisher()
+		if p != nil {
+			subscribed, changed = p.SubscriberWatch(topic)
+		} else {
+			// not set up yet: look again later
+			retry = time.After(interval)
+		}
+		var ticker *time.Ticker
+		var tick <-chan time.Time
+		if subscribed {
+			ticker = time.NewTicker(interval)
+			tick = ticker.C
+		}
+		done := false
+	wait:
+		for {
+			select {
+			case <-stop:
+				done = true
+				break wait
+			case <-changed:
+				break wait
+			case <-retry:
+				break wait
+			case <-tick:
+				if j.anyUnflushedBytes() {
+					p.PublishChange(topic)
+				}
+			}
+		}
+		if ticker != nil {
+			ticker.Stop()
+		}
+		if done {
+			return
+		}
+	}
+}
+
+func (j *JournalManager) anyUnflushedBytes() bool {
+	j.lock.RLock()
+	journals := make([]*tlfJournal, 0, len(j.tlfJournals))
+	for _, tj := range j.tlfJournals {
+		journals = append(journals, tj)
+	}
+	j.lock.RUnlock()
+	for _, tj := range journals {
+		if tj.hasUnflushedBytes() {
+			return true
+		}
+	}
+	return false
 }
 
 func (j *JournalManager) rootPath() string {
@@ -1385,6 +1467,8 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FAVORITES)
 	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
 		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
@@ -1435,6 +1519,8 @@ func (j *JournalManager) deleteJournal(
 	tlfJournal.shutdown(ctx)
 	delete(j.tlfJournals, tlfID)
 	journalDir = tlfJournal.dir
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	return nil
 }
 
@@ -1492,6 +1578,7 @@ func (j *JournalManager) shutdownExistingJournals(ctx context.Context) {
 
 func (j *JournalManager) shutdown(ctx context.Context) {
 	j.log.CDebugf(ctx, "Shutting down journal")
+	j.statusStopOnce.Do(func() { close(j.statusStop) })
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	for _, tlfJournal := range j.tlfJournals {

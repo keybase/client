@@ -4462,3 +4462,18 @@ func (mr *MockSubscriptionManagerPublisherMockRecorder) PublishChange(topic any)
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishChange", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).PublishChange), topic)
 }
+
+// SubscriberWatch mocks base method.
+func (m *MockSubscriptionManagerPublisher) SubscriberWatch(topic keybase1.SubscriptionTopic) (bool, <-chan struct{}) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscriberWatch", topic)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(<-chan struct{})
+	return ret0, ret1
+}
+
+// SubscriberWatch indicates an expected call of SubscriberWatch.
+func (mr *MockSubscriptionManagerPublisherMockRecorder) SubscriberWatch(topic any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscriberWatch", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).SubscriberWatch), topic)
+}

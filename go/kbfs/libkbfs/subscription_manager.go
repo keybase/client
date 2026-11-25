@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -110,6 +111,12 @@ type pathSubscription struct {
 	pathsToNotify   map[string]struct{}
 	limit           rate.Limit
 	debouncedNotify *debouncedNotify
+
+	// pendingTopics are the topics changed since the last notification.
+	// They are added under the manager's read lock, so they have their
+	// own.
+	pendingLock   sync.Mutex
+	pendingTopics map[keybase1.PathSubscriptionTopic]bool
 }
 
 type nonPathSubscription struct {
@@ -141,12 +148,13 @@ type subscriptionManager struct {
 	config   Config
 	log      logger.Logger
 	notifier SubscriptionNotifier
+	// watches is shared by every client's manager, and counts the clients
+	// subscribed to each non-path topic.
+	watches *subscriberWatches
 
-	onlineStatusTracker *onlineStatusTracker
-	subscribeLock       sync.Mutex
-	lock                sync.RWMutex
-	// TODO HOTPOT-416: add another layer here to reference by topics, and
-	// actually check topics in LocalChange and BatchChanges.
+	onlineStatusTracker             *onlineStatusTracker
+	subscribeLock                   sync.Mutex
+	lock                            sync.RWMutex
 	pathSubscriptions               map[pathSubscriptionRef]*pathSubscription
 	pathSubscriptionIDToRef         map[SubscriptionID]pathSubscriptionRef
 	nonPathSubscriptions            map[keybase1.SubscriptionTopic]*nonPathSubscription
@@ -154,6 +162,15 @@ type subscriptionManager struct {
 	subscriptionIDs                 map[SubscriptionID]bool
 	subscriptionCountByFolderBranch map[data.FolderBranch]int
 	folderBranchPollerCancelers     map[SubscriptionID]context.CancelFunc
+	// set by Shutdown; a later subscribe would count a subscriber that
+	// nothing ever removes from watches
+	shutDown bool
+
+	// One overall sync status pass at a time, off the publisher's path;
+	// a publish during a pass reruns it once.
+	overallSyncStatusLock    sync.Mutex
+	overallSyncStatusRunning bool
+	overallSyncStatusAgain   bool
 }
 
 func (sm *subscriptionManager) notifyOnlineStatus() {
@@ -167,8 +184,12 @@ func (sm *subscriptionManager) notifyOnlineStatus() {
 	}
 }
 
-func newSubscriptionManager(clientID SubscriptionManagerClientID, config Config, notifier SubscriptionNotifier) *subscriptionManager {
+func newSubscriptionManager(
+	clientID SubscriptionManagerClientID, config Config,
+	notifier SubscriptionNotifier, watches *subscriberWatches,
+) *subscriptionManager {
 	sm := &subscriptionManager{
+		watches:                         watches,
 		pathSubscriptions:               make(map[pathSubscriptionRef]*pathSubscription),
 		pathSubscriptionIDToRef:         make(map[SubscriptionID]pathSubscriptionRef),
 		nonPathSubscriptions:            make(map[keybase1.SubscriptionTopic]*nonPathSubscription),
@@ -210,6 +231,7 @@ func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 	for _, sid := range nonPathSids {
 		sm.unsubscribeNonPathLocked(ctx, sid)
 	}
+	sm.shutDown = true
 	sm.lock.Unlock()
 	for _, fb := range unregister {
 		sm.unregisterFromChanges(ctx, fb)
@@ -268,11 +290,20 @@ func (sm *subscriptionManager) preparePathNotification(
 	if !ok {
 		return
 	}
-	sids = make([]SubscriptionID, 0, len(ps.subscriptionIDs))
+	ps.pendingLock.Lock()
+	pending := ps.pendingTopics
+	ps.pendingTopics = make(map[keybase1.PathSubscriptionTopic]bool)
+	ps.pendingLock.Unlock()
 	topicsMap := make(map[keybase1.PathSubscriptionTopic]struct{})
 	for sid, topic := range ps.subscriptionIDs {
+		if !pending[topic] {
+			continue
+		}
 		sids = append(sids, sid)
 		topicsMap[topic] = struct{}{}
+	}
+	if len(sids) == 0 {
+		return nil, nil, nil
 	}
 	topics = make([]keybase1.PathSubscriptionTopic, 0, len(topicsMap))
 	for topic := range topicsMap {
@@ -359,6 +390,7 @@ func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 			limit:           limit,
 			debouncedNotify: sm.makePathSubscriptionDebouncedNotify(ref, limit),
 			pathsToNotify:   make(map[string]struct{}),
+			pendingTopics:   make(map[keybase1.PathSubscriptionTopic]bool),
 		}
 		sm.pathSubscriptions[ref] = ps
 	} else if ps.limit < limit {
@@ -366,6 +398,13 @@ func (sm *subscriptionManager) subscribePathWithFolderBranchLocked(
 		ps.limit = limit
 		ps.debouncedNotify.shutdown()
 		ps.debouncedNotify = sm.makePathSubscriptionDebouncedNotify(ref, limit)
+		// The old debouncer may have been holding back a notification.
+		ps.pendingLock.Lock()
+		pending := len(ps.pendingTopics) > 0
+		ps.pendingLock.Unlock()
+		if pending {
+			ps.debouncedNotify.notify()
+		}
 	}
 	ps.subscriptionIDs[req.sid] = req.topic
 	ps.pathsToNotify[req.path] = struct{}{}
@@ -515,6 +554,9 @@ func (sm *subscriptionManager) SubscribeNonPath(
 ) error {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
+	if sm.shutDown {
+		return errors.New("subscription manager is shut down")
+	}
 	subscriptionIDSetter, err := sm.checkSubscriptionIDLocked(sid)
 	if err != nil {
 		return err
@@ -532,6 +574,7 @@ func (sm *subscriptionManager) SubscribeNonPath(
 			debouncedNotify: sm.makeNonPathSubscriptionDebouncedNotify(topic, limit),
 		}
 		sm.nonPathSubscriptions[topic] = nps
+		sm.watches.add(topic, 1)
 	} else if nps.limit < limit {
 		// New limit is higher than what we have. Update it to match.
 		nps.limit = limit
@@ -598,6 +641,7 @@ func (sm *subscriptionManager) unsubscribeNonPathLocked(
 	if len(nps.subscriptionIDs) == 0 {
 		nps.debouncedNotify.shutdown()
 		delete(sm.nonPathSubscriptions, topic)
+		sm.watches.add(topic, -1)
 	}
 
 	delete(sm.subscriptionIDs, subscriptionID)
@@ -616,21 +660,36 @@ func (sm *subscriptionManager) Unsubscribe(ctx context.Context, sid Subscription
 	}
 }
 
-func (sm *subscriptionManager) notifyRefLocked(ref pathSubscriptionRef) {
+func (sm *subscriptionManager) notifyRefLocked(
+	ref pathSubscriptionRef, topics ...keybase1.PathSubscriptionTopic,
+) {
 	ps, ok := sm.pathSubscriptions[ref]
 	if !ok {
 		return
 	}
+	if len(topics) == 0 {
+		topics = []keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+			keybase1.PathSubscriptionTopic_CHILDREN,
+		}
+	}
+	ps.pendingLock.Lock()
+	for _, topic := range topics {
+		ps.pendingTopics[topic] = true
+	}
+	ps.pendingLock.Unlock()
 	// We are notify()-ing while holding a lock, but it's fine since the
 	// other side of the channel consumes it pretty fast, either by
 	// dropping deduplicated ones, or by doing the actual send in a
 	// separate goroutine.
-	//
-	// We are not differentiating topics here yet. TODO: do it.
 	ps.debouncedNotify.notify()
 }
 
-func (sm *subscriptionManager) nodeChangeLocked(node Node) {
+// nodeChangeLocked notifies node's subscriptions of nodeTopics, and its
+// parent's of CHILDREN, since the parent's listing carries node's stat.
+func (sm *subscriptionManager) nodeChangeLocked(
+	node Node, nodeTopics ...keybase1.PathSubscriptionTopic,
+) {
 	path, ok := node.GetPathPlaintextSansTlf()
 	if !ok {
 		return
@@ -640,38 +699,88 @@ func (sm *subscriptionManager) nodeChangeLocked(node Node) {
 	sm.notifyRefLocked(pathSubscriptionRef{
 		folderBranch: node.GetFolderBranch(),
 		path:         cleanPath,
-	})
+	}, nodeTopics...)
 
-	// Do this for parent as well, so if "children" is subscribed on parent
-	// path, we'd trigger a notification too.
 	if parent, ok := getParentPath(cleanPath); ok {
 		sm.notifyRefLocked(pathSubscriptionRef{
 			folderBranch: node.GetFolderBranch(),
 			path:         parent,
-		})
+		}, keybase1.PathSubscriptionTopic_CHILDREN)
 	}
 }
 
-var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
-
-// PublishChange implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
-
-	// When sync status changes, trigger notification for all paths so they
-	// reload to get new prefetch status. This is unfortunate but it's
-	// non-trivial to actually build notification around individuall path's
-	// prefetch status. Since GUI doesnt' have that many path notifications,
-	// this should be fine.
-	//
-	// TODO: Build it.
-	if topic == keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS {
-		for _, ps := range sm.pathSubscriptions {
-			ps.debouncedNotify.notify()
+// publishOverallSyncStatus reloads paths whose prefetch status may have
+// moved, since it isn't tracked per path. Every path reloads its own stat
+// (the GUI checks any path's prefetch status for offline use, and a TLF
+// that just stopped syncing reads as not syncing here). Only TLFs that
+// sync (fully or partly) also reload their children: sync prefetching is
+// what drives this topic. It runs in a goroutine, one pass at a time: the
+// prefetcher publishes while holding its own lock, and the sync states are
+// read under the config's lock, which a sync setting change holds across
+// disk work.
+func (sm *subscriptionManager) publishOverallSyncStatus() {
+	sm.overallSyncStatusLock.Lock()
+	defer sm.overallSyncStatusLock.Unlock()
+	if sm.overallSyncStatusRunning {
+		sm.overallSyncStatusAgain = true
+		return
+	}
+	sm.overallSyncStatusRunning = true
+	go func() {
+		for {
+			sm.publishOverallSyncStatusOnce()
+			sm.overallSyncStatusLock.Lock()
+			if !sm.overallSyncStatusAgain {
+				sm.overallSyncStatusRunning = false
+				sm.overallSyncStatusLock.Unlock()
+				return
+			}
+			sm.overallSyncStatusAgain = false
+			sm.overallSyncStatusLock.Unlock()
 		}
+	}()
+}
+
+func (sm *subscriptionManager) publishOverallSyncStatusOnce() {
+	sm.lock.RLock()
+	tlfs := make(map[tlf.ID]bool)
+	for ref := range sm.pathSubscriptions {
+		tlfs[ref.folderBranch.Tlf] = true
+	}
+	sm.lock.RUnlock()
+	synced := make(map[tlf.ID]bool, len(tlfs))
+	for tlfID := range tlfs {
+		synced[tlfID] = sm.config.GetTlfSyncState(tlfID).Mode !=
+			keybase1.FolderSyncMode_DISABLED
 	}
 
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	for ref := range sm.pathSubscriptions {
+		topics := []keybase1.PathSubscriptionTopic{
+			keybase1.PathSubscriptionTopic_STAT,
+		}
+		// a TLF first subscribed after its sync state was read above
+		// reloads its children too, to be safe
+		if isSynced, read := synced[ref.folderBranch.Tlf]; isSynced || !read {
+			topics = append(topics, keybase1.PathSubscriptionTopic_CHILDREN)
+		}
+		sm.notifyRefLocked(ref, topics...)
+	}
+	if nps, ok := sm.nonPathSubscriptions[keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS]; ok {
+		nps.debouncedNotify.notify()
+	}
+}
+
+// PublishChange notifies this client's subscriptions to topic.
+func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
+	if topic == keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS {
+		sm.publishOverallSyncStatus()
+		return
+	}
+
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
 	if nps, ok := sm.nonPathSubscriptions[topic]; ok {
 		nps.debouncedNotify.notify()
 	}
@@ -685,8 +794,7 @@ func (sm *subscriptionManager) LocalChange(ctx context.Context,
 ) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	// TODO HOTPOT-416: check topics
-	sm.nodeChangeLocked(node)
+	sm.nodeChangeLocked(node, keybase1.PathSubscriptionTopic_STAT)
 }
 
 // BatchChanges implements the Observer interface.
@@ -695,9 +803,16 @@ func (sm *subscriptionManager) BatchChanges(ctx context.Context,
 ) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	// TODO HOTPOT-416: check topics
 	for _, change := range changes {
-		sm.nodeChangeLocked(change.Node)
+		// Only a file write leaves the node's own entries alone; a
+		// change with no details may be an invalidation of anything.
+		if len(change.FileUpdated) > 0 && len(change.DirUpdated) == 0 {
+			sm.nodeChangeLocked(change.Node, keybase1.PathSubscriptionTopic_STAT)
+			continue
+		}
+		sm.nodeChangeLocked(change.Node,
+			keybase1.PathSubscriptionTopic_STAT,
+			keybase1.PathSubscriptionTopic_CHILDREN)
 	}
 }
 
@@ -706,9 +821,53 @@ func (sm *subscriptionManager) TlfHandleChange(ctx context.Context,
 	newHandle *tlfhandle.Handle) {
 }
 
+// subscriberWatches counts, per non-path topic, the clients subscribed to
+// it. Its lock is taken under a manager's lock, and nothing is called with
+// it held.
+type subscriberWatches struct {
+	lock    sync.Mutex
+	counts  map[keybase1.SubscriptionTopic]int
+	changed map[keybase1.SubscriptionTopic]chan struct{}
+}
+
+func newSubscriberWatches() *subscriberWatches {
+	return &subscriberWatches{
+		counts:  make(map[keybase1.SubscriptionTopic]int),
+		changed: make(map[keybase1.SubscriptionTopic]chan struct{}),
+	}
+}
+
+func (w *subscriberWatches) add(topic keybase1.SubscriptionTopic, delta int) {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	old := w.counts[topic]
+	w.counts[topic] = old + delta
+	if (old > 0) == (old+delta > 0) {
+		return
+	}
+	if ch, ok := w.changed[topic]; ok {
+		close(ch)
+		delete(w.changed, topic)
+	}
+}
+
+func (w *subscriberWatches) watch(
+	topic keybase1.SubscriptionTopic,
+) (subscribed bool, changed <-chan struct{}) {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	ch, ok := w.changed[topic]
+	if !ok {
+		ch = make(chan struct{})
+		w.changed[topic] = ch
+	}
+	return w.counts[topic] > 0, ch
+}
+
 type subscriptionManagerManager struct {
 	lock                   sync.RWMutex
 	config                 Config
+	watches                *subscriberWatches
 	subscriptionManagers   map[SubscriptionManagerClientID]*subscriptionManager
 	purgeableClientIDsFIFO []SubscriptionManagerClientID
 }
@@ -716,6 +875,7 @@ type subscriptionManagerManager struct {
 func newSubscriptionManagerManager(config Config) *subscriptionManagerManager {
 	return &subscriptionManagerManager{
 		config:                 config,
+		watches:                newSubscriberWatches(),
 		subscriptionManagers:   make(map[SubscriptionManagerClientID]*subscriptionManager),
 		purgeableClientIDsFIFO: nil,
 	}
@@ -776,7 +936,7 @@ func (smm *subscriptionManagerManager) get(
 		smm.purgeableClientIDsFIFO = append(smm.purgeableClientIDsFIFO, clientID)
 	}
 
-	sm = newSubscriptionManager(clientID, smm.config, notifier)
+	sm = newSubscriptionManager(clientID, smm.config, notifier, smm.watches)
 	smm.subscriptionManagers[clientID] = sm
 
 	return sm
@@ -789,4 +949,11 @@ func (smm *subscriptionManagerManager) PublishChange(topic keybase1.Subscription
 	for _, sm := range smm.subscriptionManagers {
 		sm.PublishChange(topic)
 	}
+}
+
+// SubscriberWatch implements the SubscriptionManagerPublisher interface.
+func (smm *subscriptionManagerManager) SubscriberWatch(
+	topic keybase1.SubscriptionTopic,
+) (subscribed bool, changed <-chan struct{}) {
+	return smm.watches.watch(topic)
 }
