@@ -5,26 +5,35 @@
 Let's start with OS X, because it's the most challenging environment as well as
 the one that's had the most work done on it.
 
-We have components to keep up to date, some requiring special privileges:
+We have components to keep up to date:
 
 1. The Go client/service binary
 2. The Electron app
-3. The FUSE kernel binary (kbfuse kext and fsbundle)
-4. The launchd services for keybase and KBFS
+3. The launchd services for keybase and KBFS
+
+FUSE is not shipped. macOS users who want KBFS in Finder install stock macFUSE
+5.x from https://macfuse.io themselves (kext mode). KBFS and the in-app Files
+tab work without it.
 
 Here's the plan:
 
 We have a single "app bundle" containing all of the items above, called
-Keybase.app. It also contains a native installer binary and a privileged
-helper, which handles installing 3 and 4.
+Keybase.app. There is no native installer and no privileged helper. Older
+versions installed a root helper, `keybase.Helper`, which ran the old
+`/keybase` redirector and the old Keybase FUSE kext. When `install-auto`
+reports that helper, Electron runs `keybase uninstall --components=helper`
+once: one macOS administrator prompt, then a root shell script (built in
+`go/install`) stops the helper and redirector, unloads and removes the kext,
+removes the redirector directories and finally the helper itself. If the user
+cancels, Electron does not ask again; the command can be run by hand.
 
 On OS X, app bundles look like normal executables to the user, but they're
-always signed and they can perform privileged operations.
+always signed.
 
 We distribute the Keybase.app bundle inside a DMG. Any time you launch
-Keybase.app, it launches Electron, which launches the native installer binary
-straight away. It blocks on the native installer binary exiting. The native
-installer binary checks the app bundle it's inside, and:
+Keybase.app, it launches Electron, which runs `keybase install-auto` from the
+bundle straight away. It blocks on that command exiting. The installer checks
+the app bundle it's inside, and:
 
 - If the installer sees that the app bundle doesn't contain any newer
   components than are installed on the system, it exits very quickly, and the
@@ -39,10 +48,12 @@ the entire "Keybase.app" bundle with a new one and relaunch Keybase.app,
 which triggers Electron to start the installer, which performs an install,
 before continuing.
 
-Some of the installation steps are done by the privileged helper, because they
-have to be. But most are done by our own Go code, by running `keybase install`
-using the new `keybase` Go binary that we're updating to. Here are the full
-commands:
+The installation steps are done by our own Go code, by running `keybase install`
+using the new `keybase` Go binary that we're updating to. Nothing needs root,
+except the `keybase` and `git-remote-keybase` symlinks in `/usr/local/bin`
+when the user cannot write there: `keybase install --components=clipaths`
+then shows a macOS administrator prompt and links them to the binaries in
+`/Applications/Keybase.app`. Here are the full commands:
 
 ```sh
 # Keybase service install (launchd):
@@ -57,7 +68,7 @@ keybase install --components=cli
 
 The code for `keybase install` on OS X is here:
 
-https://github.com/keybase/client/blob/master/go/client/install_osx.go
+https://github.com/keybase/client/blob/master/go/client/cmd_install_osx.go
 
 Once we think the install has finished, we can run a few commands to check the
 status of the new components:
@@ -68,6 +79,9 @@ keybase launchd status --format=json kbfs
 keybase fuse status
 ```
 
+`keybase fuse status` reports the stock macFUSE install: whether it is
+installed and at least 5.x, whether its kext is loaded, and any KBFS mounts.
+
 ### Updater
 
 The design above limits the updater's responsibilities to:
@@ -76,9 +90,12 @@ The design above limits the updater's responsibilities to:
 - download it
 - ask the user for permission to update, or do so automatically if they've
   said they don't want to be asked every time
-- check signatures on the new upgrade, ask for admin permissions if needed to
-  perform the install
-- replace the old app bundle on disk with the newly-downloaded one
+- check signatures on the new upgrade
+- replace the old app bundle on disk with the newly-downloaded one. If it
+  cannot rename Keybase.app in /Applications, it checks the new bundle's code
+  signature and swaps the bundle's `Contents` in place as the user. If that
+  fails too, the update fails; the updater never asks for administrator
+  permissions
 - restart the app, triggering the installer to notice and install new services
 
 #### How do we find out about updates?
