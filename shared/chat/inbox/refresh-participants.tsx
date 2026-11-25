@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {useTeamChanged} from '@/teams/use-team-changed'
 import logger from '@/logger'
 import {getChatRpc} from '@/chat/conversation/chat-rpc'
 
@@ -25,22 +25,19 @@ export const refreshConversationParticipants = async (
 }
 
 // Membership can also change from outside this client (someone else adds you, an admin
-// kicks a member, a reset user is let back in). teamChangedByID fires for every incoming
-// message in the team, so gate on membershipChanged - otherwise an open members list
-// issues a participant refresh per message.
+// kicks a member, a reset user is let back in).
 export const useRefreshParticipantsOnTeamMembershipChange = (
   teamID: T.Teams.TeamID,
   conversationIDKey: T.Chat.ConversationIDKey,
   enabled = true
 ) => {
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamChangedByID',
-    action => {
-      const {changes, teamID: changedTeamID} = action.payload.params
-      if (changedTeamID === teamID && changes.membershipChanged) {
+  useTeamChanged(
+    teamID,
+    kinds => {
+      if (kinds.membership) {
         void refreshConversationParticipants([conversationIDKey])
       }
     },
-    enabled && !!teamID && teamID !== T.Teams.noTeamID
+    enabled && teamID !== T.Teams.noTeamID
   )
 }

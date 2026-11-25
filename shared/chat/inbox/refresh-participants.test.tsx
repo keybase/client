@@ -2,15 +2,15 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {cleanup, renderHook} from '@testing-library/react'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {_onEngineIncoming} from '@/constants/init/shared'
 import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {routeChatNotification} from '@/chat/notification-router'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {pushTeamChanged} from '@/test/team-changed'
 import {paramsOf} from '@/test/fake-thread-load'
-import {flush} from '@/test/flush'
 import {participantInfoReceived, useInboxMetadataState} from './metadata'
 import {
   refreshConversationParticipants,
@@ -28,31 +28,8 @@ let fake: FakeEngine
 const refreshes = () =>
   paramsOf(fake, refreshParticipants).map((p: {convID: Uint8Array}) => [T.Chat.conversationIDToKey(p.convID)])
 
-const noChanges = {keyRotated: false, membershipChanged: false, misc: false, renamed: false}
-
-const teamChangedByID = (
-  params: Partial<{
-    changes: typeof noChanges
-    teamID: T.Teams.TeamID
-  }> = {}
-) =>
-  ({
-    payload: {
-      params: {
-        changes: params.changes ?? {...noChanges, membershipChanged: true},
-        implicitTeam: false,
-        latestHiddenSeqno: 0,
-        latestOffchainSeqno: 0,
-        latestSeqno: 1,
-        source: 0,
-        teamID: params.teamID ?? teamID,
-      },
-    },
-    type: 'keybase.1.NotifyTeam.teamChangedByID',
-  }) as never
-
 beforeEach(() => {
-  fake = installFakeEngine()
+  fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
   fake.answer(refreshParticipants, () => {})
 })
 
@@ -112,21 +89,22 @@ describe('useRefreshParticipantsOnTeamMembershipChange', () => {
   test('a membership change in this team refreshes the conversation', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
-    notifyEngineActionListeners(teamChangedByID())
-    await flush()
+    await pushTeamChanged(fake, teamID, {membership: true})
 
     expect(refreshes()).toContainEqual([convA])
   })
 
-  // teamChangedByID also fires for every message sent in the team; refreshing on those
-  // would be one participant rpc per message for as long as the list is open
   test('a team change that did not touch membership is ignored', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
-    notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, misc: true}}))
-    notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, keyRotated: true}}))
-    notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, renamed: true}}))
-    await flush()
+    await pushTeamChanged(fake, teamID, {
+      channels: true,
+      keyRotated: true,
+      memberCount: true,
+      renamed: true,
+      roles: true,
+      settings: true,
+    })
 
     expect(refreshes()).toEqual([])
   })
@@ -134,8 +112,7 @@ describe('useRefreshParticipantsOnTeamMembershipChange', () => {
   test('a membership change in another team is ignored', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
-    notifyEngineActionListeners(teamChangedByID({teamID: otherTeamID}))
-    await flush()
+    await pushTeamChanged(fake, otherTeamID, {membership: true})
 
     expect(refreshes()).toEqual([])
   })
@@ -143,8 +120,7 @@ describe('useRefreshParticipantsOnTeamMembershipChange', () => {
   test('a disabled watcher does not refresh', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA, false))
 
-    notifyEngineActionListeners(teamChangedByID())
-    await flush()
+    await pushTeamChanged(fake, teamID, {membership: true})
 
     expect(refreshes()).toEqual([])
   })
@@ -152,8 +128,7 @@ describe('useRefreshParticipantsOnTeamMembershipChange', () => {
   test('an adhoc conversation has no team to watch', async () => {
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(T.Teams.noTeamID, convA))
 
-    notifyEngineActionListeners(teamChangedByID({teamID: T.Teams.noTeamID}))
-    await flush()
+    await pushTeamChanged(fake, T.Teams.noTeamID, {membership: true})
 
     expect(refreshes()).toEqual([])
   })
@@ -162,8 +137,7 @@ describe('useRefreshParticipantsOnTeamMembershipChange', () => {
     const {unmount} = renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     unmount()
-    notifyEngineActionListeners(teamChangedByID())
-    await flush()
+    await pushTeamChanged(fake, teamID, {membership: true})
 
     expect(refreshes()).toEqual([])
   })

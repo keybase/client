@@ -150,6 +150,10 @@
         {
           "type": "boolean",
           "name": "devicehistory"
+        },
+        {
+          "type": "boolean",
+          "name": "teamChanged"
         }
       ]
     }

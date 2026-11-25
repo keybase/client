@@ -1,10 +1,10 @@
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {forgetLoad, refreshLoad, reviveLoad, teamNoticeDebounceMs, useLoadData} from '@/query'
+import {subscribeTeamChanged, teamGone, teamReloadDebounceMs} from '../use-team-changed'
+import {forgetLoad, refreshLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeam = {
   loaded: boolean
@@ -34,6 +34,26 @@ const loadedTeamLoad = 'teams.loadedTeam'
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+
+// Module scope, not per hook, so a change while no page is mounted still marks the cached copy
+// stale; a team no screen has asked for has no entry, so nothing happens for it. memberCount is
+// left out: the page counts the members it loads, and that load is what sets the cached count the
+// notice is about.
+subscribeTeamChanged('loaded-team', (kinds, teamID) => {
+  const key = loadableTeamID(teamID)
+  if (!key) {
+    return
+  }
+  if (teamGone(kinds)) {
+    forgetLoad(loadedTeamLoad, key)
+  } else if (kinds.membership) {
+    // Only membership brings back a team left and rejoined: the role map's roles notice for a
+    // team just left must not reload it.
+    reviveLoad(loadedTeamLoad, key, teamReloadDebounceMs)
+  } else if (kinds.roles || kinds.renamed || kinds.settings) {
+    refreshLoad(loadedTeamLoad, key, teamReloadDebounceMs)
+  }
+})
 
 const emptyLoadedTeamData = (teamID?: T.Teams.TeamID): LoadedTeamData => ({
   teamDetails: Teams.emptyTeamDetails,
@@ -131,31 +151,6 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  // One logical change fires metadata, role map and changedByID, a reconnect fires all three at
-  // once, and a busy team fires them per message: the first reloads at once and the rest once more.
-  const onTeamChange = () => {
-    if (enabled) {
-      refreshLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
-    }
-  }
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, enabled)
-  // the one notice that names this team, so it also brings back a team left and rejoined
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      reviveLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      forgetLoad(loadedTeamLoad, teamIDToLoad)
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      forgetLoad(loadedTeamLoad, teamIDToLoad)
-    }
-  }, enabled)
 
   const teamDetails = data.teamDetails
   return React.useMemo(

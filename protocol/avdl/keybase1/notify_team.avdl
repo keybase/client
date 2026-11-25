@@ -67,6 +67,36 @@ protocol NotifyTeam {
   // Sent when any information on the top-level teams tab changes
   void teamMetadataUpdate() oneway;
 
+  // What a teamChanged is about. roleMap and memberShowcase are about the
+  // current user rather than one team, and come with an empty teamID.
+  record TeamChangedKinds {
+    // members or their roles changed on the team's sigchain
+    boolean membership;
+    // the current user's role or implicit role in the team changed in a new
+    // role map
+    boolean roles;
+    boolean keyRotated;
+    // the team or one of its ancestors was renamed
+    boolean renamed;
+    // settings, showcase, tars or other non-membership team data
+    boolean settings;
+    // this device created, deleted, renamed or re-described a chat channel
+    boolean channels;
+    // the cached member count that the team list shows changed
+    boolean memberCount;
+    // the current user left or was removed from the team
+    boolean exited;
+    boolean deleted;
+    // the current user's role map moved to roleMapVersion
+    boolean roleMap;
+    // the current user changed which teams they showcase
+    boolean memberShowcase;
+  }
+
+  // Sent to connections on the teamChanged notification channel, once per
+  // change. roleMapVersion is set only with kinds.roleMap.
+  void teamChanged(TeamID teamID, TeamChangedKinds kinds, UserTeamVersion roleMapVersion) oneway;
+
   void teamTreeMembershipsPartial(TeamTreeMembership membership) oneway;
   void teamTreeMembershipsDone(TeamTreeMembershipsDoneResult result) oneway;
 }

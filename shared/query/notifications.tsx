@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {subscribeToEngineAction} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
-import {refreshMethod} from './cache'
+import {peekData, refreshMethod, stableKey} from './cache'
 
 type Rpc = {readonly method: string}
 type Stale = {
@@ -13,12 +13,37 @@ type Stale = {
   readonly debounceMs?: number
 }
 
-/** team notices come one per message in a busy team */
-export const teamNoticeDebounceMs = 2_000
-const teamNotice = {debounceMs: teamNoticeDebounceMs}
-const teamsList: Stale = {rpc: T.RPCGen.teamsTeamListUnverifiedRpcPromise, ...teamNotice}
-const teamsRoleMap: Stale = {rpc: T.RPCGen.teamsGetTeamRoleMapRpcPromise, ...teamNotice}
 const devices: Stale = {rpc: T.RPCGen.deviceDeviceHistoryListRpcPromise}
+
+const teamChangedKinds = (action: EngineGen.Actions) =>
+  action.type === 'keybase.1.NotifyTeam.teamChanged' ? action.payload.params : undefined
+
+// the teams list shows each team's name, your role, its member count, settings
+// and your showcase of it. roleMap is in as well as roles: the service has no
+// per-team roles to send when it had no role map to compare a new one against.
+const changesTeamsList = (action: EngineGen.Actions) => {
+  const kinds = teamChangedKinds(action)?.kinds
+  return (
+    !!kinds &&
+    (kinds.membership ||
+      kinds.roles ||
+      kinds.roleMap ||
+      kinds.renamed ||
+      kinds.settings ||
+      kinds.memberCount ||
+      kinds.exited ||
+      kinds.deleted ||
+      kinds.memberShowcase)
+  )
+}
+
+// one per role map version, and an older or equal version is already loaded
+const newerRoleMap = (action: EngineGen.Actions) => {
+  const params = teamChangedKinds(action)
+  const rpc = T.RPCGen.teamsGetTeamRoleMapRpcPromise
+  const loaded = peekData(stableKey(rpc.method, undefined)) as T.RPCGen.TeamRoleMapAndVersion | undefined
+  return !!params?.kinds.roleMap && params.roleMapVersion > (loaded?.version ?? -1)
+}
 
 const isOurUser = (action: EngineGen.Actions) =>
   action.type === 'keybase.1.NotifyUsers.userChanged' &&
@@ -30,11 +55,13 @@ const staleOn: Partial<Record<EngineGen.ActionType, ReadonlyArray<Stale>>> = {
   // here, or a refresh that finds new links on our sigchain), once its own copy of us is fresh, so a
   // reload sees the change.
   'keybase.1.NotifyDeviceHistory.deviceHistoryChanged': [devices],
-  'keybase.1.NotifyTeam.teamChangedByID': [teamsList, teamsRoleMap],
-  'keybase.1.NotifyTeam.teamDeleted': [teamsList, teamsRoleMap],
-  'keybase.1.NotifyTeam.teamExit': [teamsList, teamsRoleMap],
-  'keybase.1.NotifyTeam.teamMetadataUpdate': [teamsList],
-  'keybase.1.NotifyTeam.teamRoleMapChanged': [teamsList, teamsRoleMap],
+  'keybase.1.NotifyTeam.teamChanged': [
+    // The list spans every team, so its changes come in bursts across teams: one gregor team.change
+    // carries a row per team, the member count loop flushes every team it counted, and a local
+    // change is echoed back by the server.
+    {debounceMs: 2_000, rpc: T.RPCGen.teamsTeamListUnverifiedRpcPromise, when: changesTeamsList},
+    {rpc: T.RPCGen.teamsGetTeamRoleMapRpcPromise, when: newerRoleMap},
+  ],
   'keybase.1.NotifyUsers.userChanged': [{rpc: T.RPCGen.userProofSuggestionsRpcPromise, when: isOurUser}],
 }
 

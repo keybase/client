@@ -7,6 +7,8 @@ import {makeConversationMeta} from '@/constants/chat/meta'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {_onEngineIncoming} from '@/constants/init/shared'
+import {pushTeamChanged} from '@/test/team-changed'
 import {flush} from '@/test/flush'
 import {answerTeamMembers, memberDetails, teamGetMembersByID} from '@/test/team-members'
 import {signIn, threadWrapper} from '@/test/thread-tree'
@@ -105,4 +107,20 @@ test('a disabled shadow useChatTeamMembers does not clobber the provider cache',
   expect(after.result.current.members.get('testuser')?.type).toBe('owner')
   await flush()
   expect(memberLoads(fake)).toBe(1)
+})
+
+test('a membership change while no conversation in the team is open reloads its members on the next open', async () => {
+  const teamID = makeTeamID(4)
+  const fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
+  answerTeamMembers(fake, {[teamID]: [memberDetails('testuser', T.RPCGen.TeamRole.owner)]})
+
+  const first = renderHook(() => useChatTeamMembers(teamID))
+  await flush()
+  expect(memberLoads(fake)).toBe(1)
+  first.unmount()
+
+  await pushTeamChanged(fake, teamID, {membership: true})
+  renderHook(() => useChatTeamMembers(teamID))
+  await flush()
+  expect(memberLoads(fake)).toBe(2)
 })

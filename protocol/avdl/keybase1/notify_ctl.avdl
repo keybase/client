@@ -43,6 +43,10 @@ protocol notifyCtl {
     boolean allowChatNotifySkips;
     boolean chatarchive;
     boolean devicehistory;
+    // NotifyTeam.teamChanged. A connection that sets it stops getting the
+    // notifications teamChanged replaces: teamChangedByID, teamChangedByName,
+    // teamDeleted, teamExit, teamRoleMapChanged and teamMetadataUpdate.
+    boolean teamChanged;
   }
 
   void setNotifications(NotificationChannels channels);

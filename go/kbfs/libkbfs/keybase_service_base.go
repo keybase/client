@@ -1581,6 +1581,12 @@ func (k *KeybaseDaemonRPC) TeamRoleMapChanged(context.Context, keybase1.UserTeam
 	return nil
 }
 
+// TeamChanged implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
+// KBFS does not subscribe to the teamChanged channel.
+func (k *KeybaseDaemonRPC) TeamChanged(context.Context, keybase1.TeamChangedArg) error {
+	return nil
+}
+
 // NewlyAddedToTeam implements keybase1.NotifyTeamInterface for
 // KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) NewlyAddedToTeam(context.Context, keybase1.TeamID) error {

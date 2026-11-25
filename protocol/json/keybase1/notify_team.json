@@ -46,6 +46,56 @@
         "USER_1",
         "TEAM_2"
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamChangedKinds",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "membership"
+        },
+        {
+          "type": "boolean",
+          "name": "roles"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated"
+        },
+        {
+          "type": "boolean",
+          "name": "renamed"
+        },
+        {
+          "type": "boolean",
+          "name": "settings"
+        },
+        {
+          "type": "boolean",
+          "name": "channels"
+        },
+        {
+          "type": "boolean",
+          "name": "memberCount"
+        },
+        {
+          "type": "boolean",
+          "name": "exited"
+        },
+        {
+          "type": "boolean",
+          "name": "deleted"
+        },
+        {
+          "type": "boolean",
+          "name": "roleMap"
+        },
+        {
+          "type": "boolean",
+          "name": "memberShowcase"
+        }
+      ]
     }
   ],
   "messages": {
@@ -190,6 +240,24 @@
     },
     "teamMetadataUpdate": {
       "request": [],
+      "response": null,
+      "oneway": true
+    },
+    "teamChanged": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "kinds",
+          "type": "TeamChangedKinds"
+        },
+        {
+          "name": "roleMapVersion",
+          "type": "UserTeamVersion"
+        }
+      ],
       "response": null,
       "oneway": true
     },

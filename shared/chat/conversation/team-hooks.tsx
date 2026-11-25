@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {subscribeTeamChanged, teamGone} from '@/teams/use-team-changed'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
@@ -42,12 +42,27 @@ type ChatTeamMembersData = ReadonlyMap<string, T.Teams.MemberInfo>
 const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.MemberInfo>()
 
 // One cache entry per team, so switching conversations (or channels within a team)
-// reuses loaded members instead of refetching. teamChangedByID & friends invalidate.
+// reuses loaded members instead of refetching. teamChanged invalidates.
 const chatTeamMembersLoad = 'chat.teamMembers'
 const chatTeamReloadStaleMs = 5 * 60_000
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+
+// Module scope, not per hook: a membership change while no conversation in the team is open must
+// still mark the cached members stale, or the next one opened inside the stale window shows the
+// old list. Only membership brings back a team left and rejoined.
+subscribeTeamChanged('chat-team-members', (kinds, teamID) => {
+  const key = loadableTeamID(teamID)
+  if (!key) {
+    return
+  }
+  if (teamGone(kinds)) {
+    forgetLoad(chatTeamMembersLoad, key)
+  } else if (kinds.membership) {
+    reviveLoad(chatTeamMembersLoad, key)
+  }
+})
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -113,33 +128,6 @@ const useChatTeamMembersRaw = (
       onError: error => logger.warn(`Failed to reload chat team members for ${teamIDToLoad}`, error),
       staleMs: chatTeamReloadStaleMs,
     }
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamChangedByID',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        reviveLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamDeleted',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamExit',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
   )
 
   // `loading` means "nothing to show yet" - a background revalidation of cached

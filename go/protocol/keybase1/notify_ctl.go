@@ -46,6 +46,7 @@ type NotificationChannels struct {
 	AllowChatNotifySkips bool `codec:"allowChatNotifySkips" json:"allowChatNotifySkips"`
 	Chatarchive          bool `codec:"chatarchive" json:"chatarchive"`
 	Devicehistory        bool `codec:"devicehistory" json:"devicehistory"`
+	TeamChanged          bool `codec:"teamChanged" json:"teamChanged"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -85,6 +86,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		AllowChatNotifySkips: o.AllowChatNotifySkips,
 		Chatarchive:          o.Chatarchive,
 		Devicehistory:        o.Devicehistory,
+		TeamChanged:          o.TeamChanged,
 	}
 }
 

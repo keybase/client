@@ -308,6 +308,17 @@ const settled = async (e: Entry) => {
   }
 }
 
+/** out of date, without loading it now: the next load-if-stale reloads it */
+export const markKeyStale = (key: string) => {
+  const e = entries.get(key)
+  if (e) {
+    e.stale = true
+  }
+}
+
+/** what is cached under key, without making an entry for it */
+export const peekData = (key: string) => entries.get(key)?.snapshot.data
+
 export const getEntry = (key: string, method: string): Entry => {
   const existing = entries.get(key)
   if (existing) {

@@ -40,7 +40,7 @@ beforeEach(() => {
     convs: channels.map(c => ({...c, headline: '', participants: []})),
     offline: false,
   }))
-  // the service deletes it, but sends no teamChangedByID: its local inbox did
+  // the service deletes it, but sends no teamChanged: its local inbox did
   // not know the channel's team
   fake.answer(deleteConversation, () => {
     channels = channels.filter(c => c.convID !== goneID)

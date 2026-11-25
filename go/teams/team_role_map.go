@@ -130,25 +130,41 @@ func (t *TeamRoleMapManager) loadDelayedRetry(mctx libkb.MetaContext, backoff ti
 	mctx.Debug("delayed retry: sleeping for %s backoff", backoff)
 	t.wait(mctx, backoff)
 
-	t.Lock()
-	defer t.Unlock()
-	if t.isLoadedAndFresh(mctx) {
-		mctx.Debug("delayed retry: TeamRoleMap was fresh, so nothing to do")
-		return
-	}
-
-	// Note that we are passing retryOnFail=true, meaning we're going to keep the retry attempt
-	// going if we fail again (but with a bigger backoff parameter).
-	err = t.load(mctx, backoffIncrease(backoff))
-	if err != nil {
-		mctx.Debug("delayed retry: exiting on error: %s", err)
+	var version *keybase1.UserTeamVersion
+	var changed []keybase1.TeamID
+	version, changed, err = t.loadDelayedRetryLocked(mctx, backoff)
+	if err != nil || version == nil {
 		return
 	}
 
 	// If we're here, it's because someone called #Get(_,true), meaning they wanted a retry
 	// on failure, and there was a failure. In that case, we call back to them
 	// (via sendNotification), and they will reattempt the Get(), hopefully succeeding this time.
-	t.sendNotification(mctx, t.state.Data.Version)
+	t.sendNotification(mctx, *version)
+	t.notifyRolesChanged(mctx, changed)
+}
+
+// loadDelayedRetryLocked returns the loaded version, or nil when the map was
+// already fresh.
+func (t *TeamRoleMapManager) loadDelayedRetryLocked(mctx libkb.MetaContext, backoff time.Duration) (
+	version *keybase1.UserTeamVersion, changed []keybase1.TeamID, err error,
+) {
+	t.Lock()
+	defer t.Unlock()
+	if t.isLoadedAndFresh(mctx) {
+		mctx.Debug("delayed retry: TeamRoleMap was fresh, so nothing to do")
+		return nil, nil, nil
+	}
+
+	// Note that we are passing retryOnFail=true, meaning we're going to keep the retry attempt
+	// going if we fail again (but with a bigger backoff parameter).
+	changed, err = t.loadAndDiffRoles(mctx, backoffIncrease(backoff))
+	if err != nil {
+		mctx.Debug("delayed retry: exiting on error: %s", err)
+		return nil, nil, err
+	}
+	v := t.state.Data.Version
+	return &v, changed, nil
 }
 
 func (t *TeamRoleMapManager) sendNotification(mctx libkb.MetaContext, version keybase1.UserTeamVersion) {
@@ -232,15 +248,69 @@ func (t *TeamRoleMapManager) Get(mctx libkb.MetaContext, retryOnFail bool) (res 
 
 func (t *TeamRoleMapManager) Update(mctx libkb.MetaContext, version keybase1.UserTeamVersion) (err error) {
 	defer mctx.Trace(fmt.Sprintf("TeamRoleMapManager#Update(%d)", version), &err)()
+	stale, changed, err := t.updateLocked(mctx, version)
+	if stale {
+		t.sendNotification(mctx, version)
+	}
+	t.notifyRolesChanged(mctx, changed)
+	return err
+}
+
+// updateLocked reports whether the map was stale, in which case it reloaded it.
+func (t *TeamRoleMapManager) updateLocked(mctx libkb.MetaContext, version keybase1.UserTeamVersion) (
+	stale bool, changed []keybase1.TeamID, err error,
+) {
 	t.Lock()
 	defer t.Unlock()
 	t.lastKnownVersion = &version
 	if t.isLoadedAndFresh(mctx) {
 		mctx.Debug("Swallowing update for TeamRoleMap to version %d, since it's already loaded and fresh", version)
-		return nil
+		return false, nil, nil
 	}
-	t.sendNotification(mctx, version)
-	return t.load(mctx, backoffInitial(false))
+	changed, err = t.loadAndDiffRoles(mctx, backoffInitial(false))
+	return true, changed, err
+}
+
+// loadAndDiffRoles loads the role map like load and returns the teams whose
+// role or implicit role the load changed, compared with the map in memory or
+// else the one on disk; with neither there is nothing to compare against.
+func (t *TeamRoleMapManager) loadAndDiffRoles(mctx libkb.MetaContext, retryOnFailBackoff time.Duration) ([]keybase1.TeamID, error) {
+	if uid := mctx.CurrentUID(); t.state == nil && uid.Exists() {
+		_ = t.loadFromDB(mctx, uid)
+	}
+	// a loaded map with no teams (a user in none) is still something to compare against
+	hadState := t.state != nil
+	var before map[keybase1.TeamID]keybase1.TeamRolePair
+	if hadState {
+		before = t.state.Data.Teams
+	}
+	if err := t.load(mctx, retryOnFailBackoff); err != nil {
+		return nil, err
+	}
+	if !hadState {
+		return nil, nil
+	}
+	after := t.state.Data.Teams
+	var changed []keybase1.TeamID
+	for teamID, pair := range after {
+		if old, ok := before[teamID]; !ok || old != pair {
+			changed = append(changed, teamID)
+		}
+	}
+	for teamID := range before {
+		if _, ok := after[teamID]; !ok {
+			changed = append(changed, teamID)
+		}
+	}
+	return changed, nil
+}
+
+// notifyRolesChanged sends teamChanged (roles) for each team. Delivery waits on
+// every connection, so callers send without holding the lock.
+func (t *TeamRoleMapManager) notifyRolesChanged(mctx libkb.MetaContext, changed []keybase1.TeamID) {
+	for _, teamID := range changed {
+		mctx.G().NotifyRouter.HandleTeamChanged(mctx.Ctx(), teamID, keybase1.TeamChangedKinds{Roles: true}, 0)
+	}
 }
 
 func (t *TeamRoleMapManager) FlushCache() {

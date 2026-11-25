@@ -309,6 +309,7 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 func HandleTeamMemberShowcaseChange(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	defer g.CTrace(ctx, "HandleTeamMemberShowcaseChange", &err)()
 	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
+	g.NotifyRouter.HandleTeamChanged(ctx, "", keybase1.TeamChangedKinds{MemberShowcase: true}, 0)
 	return nil
 }
 
