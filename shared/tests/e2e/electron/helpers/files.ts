@@ -44,6 +44,12 @@ export const filesRow = (page: Page, name: string) =>
     .locator('visible=true')
     .filter({has: page.getByText(name, {exact: true})})
 
+// Narrows the folder shown to the entries whose name has `text`, with the folder's own filter box.
+// The listing is virtualized, so a row past what it draws is not in the page at all, and a long
+// folder (leftovers of earlier runs) can leave a new name there. Opening a folder clears the filter.
+const filterFolder = async (page: Page, text: string) =>
+  page.getByRole('textbox', {name: /^Filter/}).locator('visible=true').fill(text)
+
 // Opens `folder` (/keybase/private or a path under it) by clicking down to it from the Files root.
 export const openKbfsFolder = async (page: Page, folder: string) => {
   const parts = folder.split('/').filter(Boolean)
@@ -55,7 +61,9 @@ export const openKbfsFolder = async (page: Page, folder: string) => {
     await expect(tlfTypes, 'the Files root').toHaveCount(3, {timeout: 2_000})
   }, {intervals: [0], timeout: 10_000})
   await clickFresh(tlfTypes.filter({hasText: 'private'}), 'the private folder row')
-  for (const name of parts.slice(2)) {
+  for (const [depth, name] of parts.slice(2).entries()) {
+    // the first is the account's own folder, in a list of folders that has no filter
+    if (depth > 0) await filterFolder(page, name)
     await expect(filesRow(page, name), `the row ${name}`).toHaveCount(1, {timeout: 20_000})
     await clickFresh(filesRow(page, name), `the row ${name}`)
   }
@@ -91,7 +99,9 @@ export const makeFolderInApp = async (page: Page, folder: string) => {
   const input = page.getByTestId(T.FILES_EDITING_ROW).locator('input')
   await input.fill(name)
   await input.press('Enter')
+  await filterFolder(page, name)
   await expect(filesRow(page, name), 'the new folder row').toHaveCount(1, {timeout: 20_000})
+  await filterFolder(page, '')
   await expect.poll(async () => (await kbfsEntry(parent, name))?.isDir, {message: `${folder} from the CLI`, timeout: 30_000}).toBe(true)
 }
 
