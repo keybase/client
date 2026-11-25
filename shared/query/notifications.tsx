@@ -26,18 +26,16 @@ const isOurUser = (action: EngineGen.Actions) =>
 
 // Which reads each service notification makes stale
 const staleOn: Partial<Record<EngineGen.ActionType, ReadonlyArray<Stale>>> = {
+  // The service sends this whenever our devices may have changed (a key change, a change to our user
+  // here, or a refresh that finds new links on our sigchain), once its own copy of us is fresh, so a
+  // reload sees the change.
   'keybase.1.NotifyDeviceHistory.deviceHistoryChanged': [devices],
   'keybase.1.NotifyTeam.teamChangedByID': [teamsList, teamsRoleMap],
   'keybase.1.NotifyTeam.teamDeleted': [teamsList, teamsRoleMap],
   'keybase.1.NotifyTeam.teamExit': [teamsList, teamsRoleMap],
   'keybase.1.NotifyTeam.teamMetadataUpdate': [teamsList],
   'keybase.1.NotifyTeam.teamRoleMapChanged': [teamsList, teamsRoleMap],
-  // A device added or revoked elsewhere sends no deviceHistoryChanged. The service sends userChanged
-  // once it has dropped its cached copy of our keys, so a reload then sees it.
-  'keybase.1.NotifyUsers.userChanged': [
-    devices,
-    {rpc: T.RPCGen.userProofSuggestionsRpcPromise, when: isOurUser},
-  ],
+  'keybase.1.NotifyUsers.userChanged': [{rpc: T.RPCGen.userProofSuggestionsRpcPromise, when: isOurUser}],
 }
 
 declare global {

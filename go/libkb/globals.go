@@ -1394,7 +1394,31 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 		g.NotifyRouter.HandleKeyfamilyChanged(u)
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
+		g.notifyDeviceHistoryIfSelf(u)
 	}
+}
+
+// notifyDeviceHistoryIfSelf tells device lists that our devices may have
+// changed; call it only once our cached user is busted, so the reload it
+// triggers sees the new devices.
+func (g *GlobalContext) notifyDeviceHistoryIfSelf(u keybase1.UID) {
+	if g.GetMyUID().Equal(u) {
+		g.NotifyRouter.HandleDeviceHistoryChanged()
+	}
+}
+
+// notifyDeviceHistoryAfterSelfLoad tells device lists that a refresh of our
+// own user found new links, which may add or revoke a device, once the full
+// self cache the device list reads holds that user. It runs in a goroutine:
+// LoadUser can run under the full self cache's lock (CachedFullSelf.WithUser).
+func (g *GlobalContext) notifyDeviceHistoryAfterSelfLoad(ctx context.Context, u *User) {
+	ctx = CopyTagsToBackground(ctx)
+	go func() {
+		if err := g.GetFullSelfer().Update(ctx, u); err != nil {
+			g.Log.CDebugf(ctx, "notifyDeviceHistoryAfterSelfLoad: updating the full self cache: %v", err)
+		}
+		g.NotifyRouter.HandleDeviceHistoryChanged()
+	}()
 }
 
 func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
@@ -1406,6 +1430,7 @@ func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 	g.BustLocalUserCache(ctx, u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "G.UserChanged")
+		g.notifyDeviceHistoryIfSelf(u)
 	}
 
 	g.uchMu.Lock()

@@ -317,6 +317,8 @@ func (e *RevokeEngine) run(m libkb.MetaContext) error {
 		}
 		return err
 	}
+	// the server has the revoke from here on, so clients hear of it even if a step below fails
+	defer e.G().UserChanged(m.Ctx(), me.GetUID())
 	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID); err != nil {
 		return err
 	}
@@ -335,8 +337,6 @@ func (e *RevokeEngine) run(m libkb.MetaContext) error {
 			m.Warning("error while saving userEK box: %s", err)
 		}
 	}
-
-	e.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return nil
 }

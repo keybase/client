@@ -332,6 +332,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			ret.SetGlobalContext(m.G())
 			if refresh {
 				m.G().NotifyRouter.HandleUserChanged(m, ret.GetUID(), fmt.Sprintf("libkb.LoadUser refresh '%v'", refreshReason))
+				if arg.self {
+					m.G().notifyDeviceHistoryAfterSelfLoad(m.Ctx(), ret)
+				}
 			}
 		}
 	}()
