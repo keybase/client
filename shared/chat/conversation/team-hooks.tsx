@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {teamGone, useTeamChanged} from '@/teams/use-team-changed'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
@@ -42,7 +42,7 @@ type ChatTeamMembersData = ReadonlyMap<string, T.Teams.MemberInfo>
 const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.MemberInfo>()
 
 // One cache entry per team, so switching conversations (or channels within a team)
-// reuses loaded members instead of refetching. teamChangedByID & friends invalidate.
+// reuses loaded members instead of refetching. teamChanged invalidates.
 const chatTeamMembersLoad = 'chat.teamMembers'
 const chatTeamReloadStaleMs = 5 * 60_000
 
@@ -114,29 +114,13 @@ const useChatTeamMembersRaw = (
       staleMs: chatTeamReloadStaleMs,
     }
   )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamChangedByID',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
+  useTeamChanged(
+    validTeamID,
+    kinds => {
+      if (teamGone(kinds)) {
+        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
+      } else if (kinds.membership) {
         reviveLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamDeleted',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
-      }
-    },
-    enabled
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamExit',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        forgetLoad(chatTeamMembersLoad, teamIDToLoad)
       }
     },
     enabled

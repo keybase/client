@@ -1,10 +1,10 @@
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {forgetLoad, refreshLoad, reviveLoad, teamNoticeDebounceMs, useLoadData} from '@/query'
+import {teamGone, useTeamChanged} from '../use-team-changed'
+import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeam = {
   loaded: boolean
@@ -131,31 +131,20 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  // One logical change fires metadata, role map and changedByID, a reconnect fires all three at
-  // once, and a busy team fires them per message: the first reloads at once and the rest once more.
-  const onTeamChange = () => {
-    if (enabled) {
-      refreshLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
-    }
-  }
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, enabled)
-  // the one notice that names this team, so it also brings back a team left and rejoined
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      reviveLoad(loadedTeamLoad, teamIDToLoad, teamNoticeDebounceMs)
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      forgetLoad(loadedTeamLoad, teamIDToLoad)
-    }
-  }, enabled)
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      forgetLoad(loadedTeamLoad, teamIDToLoad)
-    }
-  }, enabled)
+  // memberCount is left out: this page counts the members it loads, and that
+  // load is what sets the cached count the notification is about
+  useTeamChanged(
+    validTeamID,
+    kinds => {
+      if (teamGone(kinds)) {
+        forgetLoad(loadedTeamLoad, teamIDToLoad)
+      } else if (kinds.membership || kinds.roles || kinds.renamed || kinds.settings) {
+        // also brings back a team left and rejoined
+        reviveLoad(loadedTeamLoad, teamIDToLoad)
+      }
+    },
+    enabled
+  )
 
   const teamDetails = data.teamDetails
   return React.useMemo(

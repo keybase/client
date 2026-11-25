@@ -85,11 +85,6 @@ type Keybase1IncomingAction =
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
   'keybase.1.NotifyTeam.avatarUpdated' |
   'keybase.1.NotifyTeam.teamChanged' |
-  'keybase.1.NotifyTeam.teamChangedByID' |
-  'keybase.1.NotifyTeam.teamDeleted' |
-  'keybase.1.NotifyTeam.teamExit' |
-  'keybase.1.NotifyTeam.teamMetadataUpdate' |
-  'keybase.1.NotifyTeam.teamRoleMapChanged' |
   'keybase.1.NotifyTeam.teamTreeMembershipsDone' |
   'keybase.1.NotifyTeam.teamTreeMembershipsPartial' |
   'keybase.1.NotifyTracking.notifyUserBlocked' |

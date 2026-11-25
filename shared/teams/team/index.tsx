@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {useTeamChanged} from '../use-team-changed'
 import {produce} from 'immer'
 import {SelectionPopup, ActivityLevelsProvider} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
@@ -83,14 +83,9 @@ const useTabsState = (
 
 const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
   const navUpToScreen = C.Router2.navUpToScreen
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+  useTeamChanged(teamID, kinds => {
     // a delete from this team's confirm navigates once its RPC returns
-    if (action.payload.params.teamID === teamID && !C.Router2.isModalUp('teamDeleteTeam', {teamID})) {
-      navUpToScreen('teamsRoot')
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (action.payload.params.teamID === teamID) {
+    if (kinds.exited || (kinds.deleted && !C.Router2.isModalUp('teamDeleteTeam', {teamID}))) {
       navUpToScreen('teamsRoot')
     }
   })

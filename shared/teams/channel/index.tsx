@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {teamGone, useTeamChanged} from '../use-team-changed'
 import {
   useAttachmentSections,
   type Item as AttachmentItem,
@@ -133,13 +133,8 @@ type Section = Kb.SectionType<Item>
 
 const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
   const navUpToScreen = C.Router2.navUpToScreen
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (action.payload.params.teamID === teamID) {
-      navUpToScreen('teamsRoot')
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (action.payload.params.teamID === teamID) {
+  useTeamChanged(teamID, kinds => {
+    if (teamGone(kinds)) {
       navUpToScreen('teamsRoot')
     }
   })

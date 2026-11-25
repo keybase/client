@@ -1,10 +1,14 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
-import {subscribeToEngineAction, useEngineActionListener} from '@/engine/action-listener'
+import {subscribeToEngineAction} from '@/engine/action-listener'
+import type {DebouncedFunc} from 'lodash'
+import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import * as React from 'react'
+import {registerExternalResetter} from '@/util/zustand'
 import {useLoadedTeam} from '../team/use-loaded-team'
+import {teamGone, useTeamChanged} from '../use-team-changed'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
@@ -48,30 +52,55 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
 // One cache entry per team for every consumer: each load is a getTLFConversationsLocal,
 // which localizes every channel in the team.
 //
-// teamChangedByID fires for every incoming message in a team and reloads this, and
-// the result is nearly always identical to what is already cached: the cache keeps
+// A reload after a team change is nearly always identical to what is already
+// cached: the cache keeps
 // the previous Maps when nothing changed, and the previous entries when only some
 // did, so downstream memos can bail.
 const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
+// Teams whose channels this session loaded: the only ones a notice has anything to reload
+const loadedTeams = new Set<T.Teams.TeamID>()
+const teamChannelsChangedDebouncers = new Map<T.Teams.TeamID, DebouncedFunc<() => void>>()
+
+// module scope outlives sign-out and this is per-user team data
+registerExternalResetter('loaded-team-channels', () => {
+  teamChannelsChangedDebouncers.forEach(debounced => debounced.cancel())
+  teamChannelsChangedDebouncers.clear()
+  loadedTeams.clear()
+})
+
 // Reload a team's channel list wherever it is shown, and mark it stale where it is not. Notices
-// come in bursts (teamChangedByID fires for every incoming message in a team, and a bulk create or
-// delete sends one per channel), so the cache debounces them: a lone change lands at once, the
-// rest of a burst costs one more load, and a team that is never quiet still reloads (every 5
-// debounces, the cache's max wait). A team no screen has asked for has no entry, so nothing
-// happens for it; a list no screen is loading is only marked stale.
+// come in bursts: teamChangedByID fires for every incoming message in a team, and a bulk create or
+// delete sends one per channel. Leading so a lone change lands at once, trailing so the rest of a
+// burst costs one more load, maxWait so a team that is never quiet still reloads. A team whose
+// channels were never loaded has nothing to reload, so it gets no debouncer.
 export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
-  if (key) {
-    reviveLoad(loadedTeamChannelsLoad, key, 1000)
+  if (!key || !loadedTeams.has(key)) {
+    return
   }
+  let debounced = teamChannelsChangedDebouncers.get(key)
+  if (!debounced) {
+    debounced = debounce(() => reviveLoad(loadedTeamChannelsLoad, key), 1000, {
+      leading: true,
+      maxWait: 5000,
+      trailing: true,
+    })
+    teamChannelsChangedDebouncers.set(key, debounced)
+  }
+  debounced()
 }
 
 // Module scope, not per hook: a change that lands while no list is mounted must
 // still mark the shared entry stale, or a remount inside the stale window serves the
 // pre-change channels.
-subscribeToEngineAction('keybase.1.NotifyTeam.teamChangedByID', action => {
-  invalidateTeamChannels(action.payload.params.teamID)
+// Membership is in: each channel's participants come with the list.
+subscribeToEngineAction('keybase.1.NotifyTeam.teamChanged', action => {
+  const {kinds, teamID} = action.payload.params
+  if (!kinds.channels && !kinds.membership) {
+    return
+  }
+  invalidateTeamChannels(teamID)
 })
 
 const teamChannelsRPCParams = (teamname: string) => ({
@@ -79,20 +108,6 @@ const teamChannelsRPCParams = (teamname: string) => ({
   tlfName: teamname,
   topicType: T.RPCChat.TopicType.chat,
 })
-
-// drop a team's channel list when the team is deleted or left
-const useForgetOnTeamGone = (teamID: T.Teams.TeamID, enabled: boolean) => {
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === teamID) {
-      forgetLoad(loadedTeamChannelsLoad, teamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === teamID) {
-      forgetLoad(loadedTeamChannelsLoad, teamID)
-    }
-  })
-}
 
 const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
@@ -114,6 +129,7 @@ const useLoadedTeamChannelsRaw = (
     loadedTeamChannelsLoad,
     teamIDToLoad,
     async (signal): Promise<LoadedTeamChannelsData> => {
+      loadedTeams.add(teamIDToLoad)
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         teamChannelsRPCParams(teamnameToLoad),
         C.waitingKeyTeamsGetChannels(teamIDToLoad),
@@ -147,7 +163,16 @@ const useLoadedTeamChannelsRaw = (
       staleMs: loadedTeamChannelsReloadStaleMs,
     }
   )
-  useForgetOnTeamGone(teamIDToLoad, enabled && !!validTeamID)
+  // drop a team's channel list when the team is deleted or left
+  useTeamChanged(
+    validTeamID,
+    kinds => {
+      if (teamGone(kinds)) {
+        forgetLoad(loadedTeamChannelsLoad, teamIDToLoad)
+      }
+    },
+    enabled
+  )
 
   const {channelMetas, channelParticipants, channels} = data
   return React.useMemo(

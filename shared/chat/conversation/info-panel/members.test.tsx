@@ -3,12 +3,13 @@
 import * as T from '@/constants/types'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {_onEngineIncoming} from '@/constants/init/shared'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
 import {flush} from '@/test/flush'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {pushTeamChanged} from '@/test/team-changed'
 import {paramsOf} from '@/test/fake-thread-load'
 import {useChannelMembers} from './members'
 
@@ -49,28 +50,10 @@ const setConversation = (meta: T.Chat.ConversationMeta, all?: Array<string>) => 
 const answerMembers = (members: Array<T.RPCGen.TeamMemberDetails> = []) =>
   fake.answer(getTeamMembers, () => members)
 
-const noChanges = {keyRotated: false, membershipChanged: false, misc: false, renamed: false}
-
-const teamChangedByID = (changes = {...noChanges, membershipChanged: true}) =>
-  ({
-    payload: {
-      params: {
-        changes,
-        implicitTeam: false,
-        latestHiddenSeqno: 0,
-        latestOffchainSeqno: 0,
-        latestSeqno: 1,
-        source: 0,
-        teamID,
-      },
-    },
-    type: 'keybase.1.NotifyTeam.teamChangedByID',
-  }) as never
-
 let fake: FakeEngine
 
 beforeEach(() => {
-  fake = installFakeEngine()
+  fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
 })
 
 afterEach(() => {
@@ -80,6 +63,7 @@ afterEach(() => {
 })
 
 const refreshes = () => paramsOf(fake, refreshParticipants)
+const memberLoads = () => paramsOf(fake, getTeamMembers).length
 
 test('opening a team channel asks the service for its participants', async () => {
   setConversation(teamChannelMeta())
@@ -106,16 +90,14 @@ test('a membership change in the team refreshes the open list', async () => {
   renderHook(() => useChannelMembers(conversationIDKey))
   await flush()
   expect(refreshes()).toHaveLength(1)
+  expect(memberLoads()).toBe(1)
 
-  act(() => {
-    notifyEngineActionListeners(teamChangedByID())
-  })
-  await flush()
+  await pushTeamChanged(fake, teamID, {membership: true})
 
   expect(refreshes()).toEqual([{convID}, {convID}])
+  expect(memberLoads()).toBe(2)
 })
 
-// teamChangedByID also fires for every message in the team
 test('team activity that did not change membership does not refresh the open list', async () => {
   setConversation(teamChannelMeta())
   answerMembers()
@@ -123,12 +105,10 @@ test('team activity that did not change membership does not refresh the open lis
   renderHook(() => useChannelMembers(conversationIDKey))
   await flush()
 
-  act(() => {
-    notifyEngineActionListeners(teamChangedByID({...noChanges, misc: true}))
-  })
-  await flush()
+  await pushTeamChanged(fake, teamID, {channels: true, keyRotated: true, renamed: true, settings: true})
 
   expect(refreshes()).toHaveLength(1)
+  expect(memberLoads()).toBe(1)
 })
 
 test('a re-render of the same channel does not re-ask for participants', async () => {
@@ -248,10 +228,7 @@ test('a failed refresh after a membership change is logged at info and not surfa
   fake.answer(refreshParticipants, () => fakeError(T.RPCGen.StatusCode.scapinetworkerror, 'offline'))
   const logInfo = jest.spyOn(logger, 'info').mockImplementation(() => {})
 
-  act(() => {
-    notifyEngineActionListeners(teamChangedByID())
-  })
-  await flush()
+  await pushTeamChanged(fake, teamID, {membership: true})
 
   expect(refreshes()).toEqual([{convID}, {convID}])
   expect(logInfo).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${conversationIDKey}`)

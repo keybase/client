@@ -308,6 +308,9 @@ const settled = async (e: Entry) => {
   }
 }
 
+/** what is cached under key, without making an entry for it */
+export const peekData = (key: string) => entries.get(key)?.snapshot.data
+
 export const getEntry = (key: string, method: string): Entry => {
   const existing = entries.get(key)
   if (existing) {
