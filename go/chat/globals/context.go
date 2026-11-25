@@ -258,7 +258,7 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	return res
 }
 
-func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
+func backgroundChatValues(sourceCtx context.Context, g *Context) context.Context {
 	rctx := libkb.CopyTagsToBackground(sourceCtx)
 	if epoch, ok := ctxChatSession(sourceCtx); ok {
 		rctx = context.WithValue(rctx, chatSessionKey, epoch)
@@ -287,9 +287,22 @@ func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	if IsEmojiHarvesterCtx(sourceCtx) {
 		rctx = CtxMakeEmojiHarvester(rctx)
 	}
-	// Detach from the RPC context (CopyTagsToBackground) but still die on
-	// logout. Otherwise Stop waits out whatever this goroutine already started.
-	return WithStop(rctx, g.SessionContext())
+	return rctx
+}
+
+// BackgroundChatCtx copies sourceCtx's chat values onto a context detached from
+// the RPC (CopyTagsToBackground) that still dies on logout: otherwise Stop waits
+// out whatever this goroutine already started. Its hold on the session lasts
+// until logout; a caller that starts one per request uses
+// BackgroundChatCtxWithCancel.
+func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
+	return WithStop(backgroundChatValues(sourceCtx, g), g.SessionContext())
+}
+
+// BackgroundChatCtxWithCancel is BackgroundChatCtx, plus a cancel that ends the
+// context and drops its hold on the session.
+func BackgroundChatCtxWithCancel(sourceCtx context.Context, g *Context) (context.Context, context.CancelFunc) {
+	return WithStopCancel(backgroundChatValues(sourceCtx, g), g.SessionContext())
 }
 
 // WithStop returns a context that carries ctx's values and is cancelled when
@@ -298,8 +311,18 @@ func WithStop(ctx, stop context.Context) context.Context {
 	if stop == nil {
 		return ctx
 	}
+	child, _ := WithStopCancel(ctx, stop)
+	return child
+}
+
+// WithStopCancel is WithStop, plus a cancel that ends the context; once it ends
+// (by cancel, ctx or stop), it no longer holds a registration on stop.
+func WithStopCancel(ctx, stop context.Context) (context.Context, context.CancelFunc) {
 	child, cancel := context.WithCancel(ctx)
+	if stop == nil {
+		return child, cancel
+	}
 	stopAfter := context.AfterFunc(stop, cancel)
 	context.AfterFunc(child, func() { stopAfter() })
-	return child
+	return child, cancel
 }

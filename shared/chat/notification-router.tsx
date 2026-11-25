@@ -95,17 +95,27 @@ const chatNotificationTypeSet: ReadonlySet<string> = new Set(chatNotificationTyp
 export const isChatNotification = (action: EngineGen.Actions): action is ChatNotification =>
   chatNotificationTypeSet.has(action.type)
 
-type NotifyChatAction = Extract<EngineGen.Actions, {readonly type: `chat.1.NotifyChat.${string}`}>
+type AccountTaggedChatAction = Extract<
+  EngineGen.Actions,
+  {
+    readonly type:
+      | `chat.1.NotifyChat.${string}`
+      | 'chat.1.chatUi.chatInboxConversation'
+      | 'chat.1.chatUi.chatInboxFailed'
+  }
+>
 
-const isNotifyChat = (action: EngineGen.Actions): action is NotifyChatAction =>
-  action.type.startsWith('chat.1.NotifyChat.')
+const isAccountTagged = (action: EngineGen.Actions): action is AccountTaggedChatAction =>
+  action.type.startsWith('chat.1.NotifyChat.') ||
+  action.type === 'chat.1.chatUi.chatInboxConversation' ||
+  action.type === 'chat.1.chatUi.chatInboxFailed'
 
-// The service tags each chat notification with the uid of the account it was made for. Login and
-// logout are not serialized against them, so through an account switch the previous account's can
-// still arrive; while no account is signed in (uid '') none are ours. One with an empty uid names no
-// account, so it is not taken as another account's.
+// The service tags each chat notification, and each unboxed conv it answers, with the uid of the
+// account it was made for. Login and logout are not serialized against them, so through an account
+// switch the previous account's can still arrive; while no account is signed in (uid '') none are
+// ours. One with an empty uid names no account, so it is not taken as another account's.
 export const isChatNotificationNotForSignedInAccount = (action: EngineGen.Actions, currentUID: string) => {
-  if (!isNotifyChat(action)) return false
+  if (!isAccountTagged(action)) return false
   const {uid} = action.payload.params
   return !currentUID || (!!uid && uid !== currentUID)
 }
@@ -320,7 +330,8 @@ const stagesOf = (action: ChatNotification): Stages => {
     case 'chat.1.chatUi.chatInboxFailed': {
       const {convID, error} = action.payload.params
       const id = T.Chat.conversationIDToKey(convID)
-      return {inbox: () => metaReceivedError(id, error), reloads: () => metadataOf(id)}
+      // no reload: a mounted reader would ask again for the conv that just failed, and get the same
+      return {inbox: () => metaReceivedError(id, error)}
     }
     case 'chat.1.NotifyChat.ChatSetConvSettings': {
       const {params} = action.payload
@@ -369,7 +380,7 @@ const stagesOf = (action: ChatNotification): Stages => {
     }
     case 'chat.1.NotifyChat.ChatTLFFinalize': {
       const {convID} = action.payload.params
-      return {inbox: () => unboxRows([T.Chat.conversationIDToKey(convID)])}
+      return {inbox: () => unboxRows([T.Chat.conversationIDToKey(convID)], {changed: true})}
     }
     case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
       const {update} = action.payload.params

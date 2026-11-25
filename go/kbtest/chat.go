@@ -1201,7 +1201,8 @@ func (c *ChatUI) ChatInboxLayout(ctx context.Context, layout string) error {
 
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	c.InboxCb <- NonblockInboxResult{
-		Err: fmt.Errorf("%s", arg.Error.Message),
+		ConvID: arg.ConvID,
+		Err:    fmt.Errorf("%s", arg.Error.Message),
 	}
 	return nil
 }

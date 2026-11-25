@@ -10,11 +10,13 @@ import logger from '@/logger'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import * as Z from '@/util/zustand'
-import {useConfigState, isChatSessionReady} from '@/stores/config'
+import {isChatSessionReady} from '@/stores/config'
 import {withChatSessionRetry} from './session-rpc'
 import {conversationGone, maybeChangeSelectedConversation} from './selection'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
+import {getAccountGeneration} from '@/engine/account-generation'
 
 export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useInboxMetadataState.getState().metas.get(conversationIDKey)
@@ -51,9 +53,14 @@ export const metaReceivedError = (
   conversationIDKey: T.Chat.ConversationIDKey,
   error: T.RPCChat.InboxUIItemError
 ) => {
+  // only an answer to our own request is remembered: a failure from the inbox load was never asked
+  // for, and a later request should still go
+  if (pendingUnboxRows.delete(conversationIDKey)) {
+    failedUnboxRows.set(conversationIDKey, unboxGeneration())
+  }
   if (error.typ === T.RPCChat.ConversationErrorType.transient) {
     logger.info(
-      `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+      `metaReceivedError: transient error, keeping the current meta for convID: ${conversationIDKey} error: ${error.message}`
     )
     return
   }
@@ -201,36 +208,31 @@ export const clearConversationsForInboxSync = () => {
   })
 }
 
-// Values are start timestamps: an engine reset orphans the RPC promise, so the finally
-// that clears the marker never runs. Markers past the stale window are treated as dead
-// so later unboxes (and the self-heal retries below) aren't blocked forever.
-const inFlightUnboxRows = new Map<T.Chat.ConversationIDKey, number>()
-const pendingForcedUnboxRows = new Set<T.Chat.ConversationIDKey>()
-const unboxInFlightStaleMs = 20 * 1000
+// The link and the account an unbox is asked on. A new handshake loses the answers in flight on the
+// old link, and the next account answers none of the previous one's requests.
+const unboxGeneration = () => `${useDaemonState.getState().handshakeGeneration}:${getAccountGeneration()}`
 
-const isUnboxInFlight = (id: T.Chat.ConversationIDKey) => {
-  const started = inFlightUnboxRows.get(id)
-  if (started === undefined) {
-    return false
-  }
-  if (Date.now() - started > unboxInFlightStaleMs) {
-    inFlightUnboxRows.delete(id)
-    return false
-  }
-  return true
+// Convs asked of the service with no answer yet. The service answers every conv while the session and
+// the link last, so an entry ends with its answer, a store reset, or a new generation. An answer it
+// could not deliver (no chat UI yet, a failed send) is lost, so an entry also lapses after
+// unboxPendingMs and the conv can be asked again.
+const unboxPendingMs = 60_000
+const pendingUnboxRows = new Map<T.Chat.ConversationIDKey, {at: number; generation: string}>()
+const isUnboxPending = (id: T.Chat.ConversationIDKey) => {
+  const entry = pendingUnboxRows.get(id)
+  return entry?.generation === unboxGeneration() && Date.now() - entry.at < unboxPendingMs
 }
 
-// Trusted state now lives on the meta itself; a conv with no meta is 'requesting'
-// while its unbox is in flight, otherwise 'untrusted'.
-const trustedStateForConversation = (id: T.Chat.ConversationIDKey): T.Chat.MetaTrustedState =>
-  useInboxMetadataState.getState().metas.get(id)?.trustedState ??
-  (isUnboxInFlight(id) ? 'requesting' : 'untrusted')
+// Convs the service answered with a failure, each with the generation it failed in. Asking again
+// would get the same answer, so only something that can change it asks again in that generation: a
+// notification about the conv, a forced request, or the user opening it.
+const failedUnboxRows = new Map<T.Chat.ConversationIDKey, string>()
+const unboxFailed = (id: T.Chat.ConversationIDKey) => failedUnboxRows.get(id) === unboxGeneration()
 
-const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
-  ids.filter(id => {
-    const trustedState = trustedStateForConversation(id)
-    return trustedState !== 'requesting' && trustedState !== 'trusted'
-  })
+const needsUnbox = (id: T.Chat.ConversationIDKey) =>
+  getInboxConversationMeta(id)?.trustedState !== 'trusted' && !isUnboxPending(id) && !unboxFailed(id)
+
+const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => ids.filter(needsUnbox)
 
 type ConvoMetaQueueState = T.Immutable<{
   generation: number
@@ -274,10 +276,8 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
       get().dispatch.queueMetaHandle()
     },
     resetState: () => {
-      inFlightUnboxRows.clear()
-      pendingForcedUnboxRows.clear()
-      metaLoadRetries.forEach(entry => clearTimeout(entry.timer))
-      metaLoadRetries.clear()
+      pendingUnboxRows.clear()
+      failedUnboxRows.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -343,78 +343,56 @@ async function runMetaQueueWorker(generation: number) {
   }
 }
 
+// A forced request always goes: the service gives a conv it is already unboxing one more pass for it.
 const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => {
   const f = async () => {
     if (!isChatSessionReady()) {
       return
     }
-
-    const conversationIDKeys = ids.reduce<Array<string>>((arr, id) => {
-      if (id && T.Chat.isValidConversationIDKey(id)) {
-        const trustedState = trustedStateForConversation(id)
-        if (isUnboxInFlight(id)) {
-          if (force) {
-            pendingForcedUnboxRows.add(id)
-          }
-        } else if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
-          arr.push(id)
-        }
-      }
-      return arr
-    }, [])
-
+    const conversationIDKeys = [
+      ...new Set(ids.filter(id => T.Chat.isValidConversationIDKey(id) && (force || needsUnbox(id)))),
+    ]
     if (!conversationIDKeys.length) {
       return
     }
-    conversationIDKeys.forEach(id => inFlightUnboxRows.set(id, Date.now()))
+    const entry = {at: Date.now(), generation: unboxGeneration()}
+    conversationIDKeys.forEach(id => pendingUnboxRows.set(id, entry))
+    let asked: boolean | undefined
     logger.info(
-      `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
+      `unboxRows: unboxing len: ${conversationIDKeys.length} force: ${force} convs: ${conversationIDKeys.join(',')}`
     )
     try {
-      await withChatSessionRetry(async () =>
-        T.RPCChat.localRequestInboxUnboxRpcPromise({
+      asked = await withChatSessionRetry(async () => {
+        await T.RPCChat.localRequestInboxUnboxRpcPromise({
           convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
+          force,
         })
-      )
+        return true
+      })
     } catch (error) {
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
       }
-      // No per-conversation results arrived; the finally block clears the
-      // in-flight marker so these convs fall back to 'untrusted' and can retry.
-    } finally {
-      conversationIDKeys.forEach(id => inFlightUnboxRows.delete(id))
-      const rerunIDs = conversationIDKeys.filter(id => {
-        const shouldRerun = pendingForcedUnboxRows.has(id)
-        if (shouldRerun) {
-          pendingForcedUnboxRows.delete(id)
+    }
+    if (!asked) {
+      // no answer is coming for these; a later request's entry is left alone
+      conversationIDKeys.forEach(id => {
+        if (pendingUnboxRows.get(id) === entry) {
+          pendingUnboxRows.delete(id)
         }
-        return shouldRerun
       })
-      if (rerunIDs.length > 0) {
-        requestInboxUnboxRows(rerunIDs, true)
-      }
     }
   }
   ignorePromise(f())
 }
 
-export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+// changed: a notification says the convs changed, which can change a failed answer too
+export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, opts?: {changed?: boolean}) => {
+  if (opts?.changed) {
+    ids.forEach(id => failedUnboxRows.delete(id))
+  }
   requestInboxUnboxRows(ids, false)
 }
-
-// Self-heal for screens that render straight from this store (the thread header): a conv
-// opened before its data lands would otherwise show blank with no recovery path — the
-// requestInboxUnbox flow is fire-and-forget (data rides back on chatInboxConversation /
-// ChatParticipantsInfo notifications), so a client-side skip or a missed notification is a
-// permanent, silent miss. Fetch the conv directly instead: getInboxAndUnboxUILocal returns
-// the unboxed conversation in its response, which we write into the store ourselves. Backoff
-// retries only remain for the response-didn't-satisfy cases (offline, hung engine).
-const metaLoadBackoffsMs = [2000, 4000, 8000, 16000, 32000]
-const metaLoadRetries = new Map<
-  T.Chat.ConversationIDKey,
-  {attempt: number; timer?: ReturnType<typeof setTimeout>}
->()
 
 const conversationMetaIncomplete = (id: T.Chat.ConversationIDKey) => {
   const s = useInboxMetadataState.getState()
@@ -476,45 +454,15 @@ export const loadConversationMeta = async (id: T.Chat.ConversationIDKey) => {
   return trusted()
 }
 
-export const ensureConversationMetaLoaded = (id: T.Chat.ConversationIDKey) => {
-  if (!T.Chat.isValidConversationIDKey(id) || metaLoadRetries.has(id)) {
-    return
+// For screens that render straight from this store (the thread header), which can open a conv
+// before the inbox has unboxed it. The user opening the conv asks again even if it failed before. A
+// trusted adhoc conv whose participants never came is forced, since an ordinary request skips trusted
+// convs; it still waits on a request already pending, which fills the same gap.
+export const requestIncompleteConversationMeta = (id: T.Chat.ConversationIDKey) => {
+  if (T.Chat.isValidConversationIDKey(id) && conversationMetaIncomplete(id) && !isUnboxPending(id)) {
+    failedUnboxRows.delete(id)
+    requestInboxUnboxRows([id], getInboxConversationMeta(id)?.trustedState === 'trusted')
   }
-  if (!conversationMetaIncomplete(id)) {
-    return
-  }
-  const entry: {attempt: number; timer?: ReturnType<typeof setTimeout>} = {attempt: 0}
-  metaLoadRetries.set(id, entry)
-  const tick = () => {
-    const f = async () => {
-      if (!conversationMetaIncomplete(id) || !useConfigState.getState().loggedIn) {
-        // done, or logged out; callers re-arm on login
-        metaLoadRetries.delete(id)
-        return
-      }
-      try {
-        await fetchConversationDataWithin(id, 10000)
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.info(`ensureConversationMetaLoaded: load failed for ${id}: ${error.desc}`)
-        }
-      }
-      if (!conversationMetaIncomplete(id)) {
-        metaLoadRetries.delete(id)
-        return
-      }
-      const delay = metaLoadBackoffsMs[entry.attempt]
-      entry.attempt++
-      if (delay === undefined) {
-        // exhausted; deleting lets a later mount of the conv start over
-        metaLoadRetries.delete(id)
-        return
-      }
-      entry.timer = setTimeout(tick, delay)
-    }
-    ignorePromise(f())
-  }
-  tick()
 }
 
 export const forceUnboxRowsForService = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
@@ -575,6 +523,11 @@ export const onGetInboxConvsUnboxed = (
 ) => {
   const {convs} = action.payload.params
   const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
+  inboxUIItems.forEach(item => {
+    const id = T.Chat.stringToConversationIDKey(item.convID)
+    pendingUnboxRows.delete(id)
+    failedUnboxRows.delete(id)
+  })
   updateInboxUserInfo(inboxUIItems)
   hydrateInboxConversations(inboxUIItems)
 }

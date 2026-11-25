@@ -2965,14 +2965,16 @@ type ChatInboxUnverifiedArg struct {
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Convs     string `codec:"convs" json:"convs"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Convs     string       `codec:"convs" json:"convs"`
+	Uid       keybase1.UID `codec:"uid" json:"uid"`
 }
 
 type ChatInboxFailedArg struct {
 	SessionID int              `codec:"sessionID" json:"sessionID"`
 	ConvID    ConversationID   `codec:"convID" json:"convID"`
 	Error     InboxUIItemError `codec:"error" json:"error"`
+	Uid       keybase1.UID     `codec:"uid" json:"uid"`
 }
 
 type ChatThreadCachedArg struct {

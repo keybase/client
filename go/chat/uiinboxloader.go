@@ -31,7 +31,9 @@ type UIInboxLoader struct {
 
 	uid        gregor1.UID
 	stopCh     chan struct{}
+	workCtx    context.Context
 	workCancel context.CancelFunc
+	unboxer    *inboxUnboxer
 	started    bool
 	eg         errgroup.Group
 	// closed once the last stop's eg.Wait has returned; a Start waits on it before reusing eg
@@ -98,11 +100,18 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
 	workCtx, cancel := context.WithCancel(h.G().SessionContext())
+	h.workCtx = workCtx
 	h.workCancel = cancel
 	h.started = true
 	h.uid = uid
 	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 	stopCh := h.stopCh
+	transmitCh := h.transmitCh
+	h.unboxer = newInboxUnboxer(h.clock,
+		func(ctx context.Context, convIDs []chat1.ConversationID, final bool) []chat1.ConversationID {
+			return h.unboxPass(ctx, transmitCh, convIDs, final)
+		},
+		func(ctx context.Context) bool { return !h.G().InboxSource.IsOffline(ctx) })
 	h.setLastLayout(nil)
 	// registered under the lock, so a Stop never waits on eg while this start is still adding to it
 	h.eg.Go(func() error { return h.transmitLoop(workCtx, stopCh) })
@@ -125,6 +134,8 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 			h.workCancel()
 			h.workCancel = nil
 		}
+		h.workCtx = nil
+		h.unboxer = nil
 		close(h.stopCh)
 		h.started = false
 		h.uid = nil
@@ -248,6 +259,7 @@ func (h *UIInboxLoader) flushConvBatch(ctx context.Context) (err error) {
 	start = time.Now()
 	err = ui.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 		Convs: string(dat),
+		Uid:   keybase1.UID(uid.String()),
 	})
 	h.Debug(ctx, "flushConvBatch: transmit time: %v", time.Since(start))
 	return err
@@ -306,6 +318,7 @@ func (h *UIInboxLoader) flushFailed(ctx context.Context, r failedResponse) {
 		if err := ui.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 			ConvID: r.Conv.GetConvID(),
 			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), uid, *r.Conv.Error),
+			Uid:    keybase1.UID(uid.String()),
 		}); err != nil {
 			h.Debug(ctx, "flushFailed: failed to send failed conv: %s", err)
 		}
@@ -327,6 +340,9 @@ func (h *UIInboxLoader) transmitOnce(ctx context.Context, imsg any) {
 	case failedResponse:
 		_ = h.flushConvBatch(ctx)
 		h.flushFailed(ctx, msg)
+	case unboxMissedResponse:
+		_ = h.flushConvBatch(ctx)
+		h.flushMissed(ctx, msg)
 	case conversationResponse:
 		h.convTransmitBatch[msg.Conv.GetConvID().ConvIDStr()] = msg.Conv
 		if h.clock.Since(h.lastBatchFlush) > h.batchDelay {

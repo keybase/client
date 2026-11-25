@@ -3,11 +3,12 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {ensureConversationMetaLoaded, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {requestIncompleteConversationMeta, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {messagesTriggerConcerns, useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
+import {useDaemonState} from '@/stores/daemon'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
@@ -23,8 +24,22 @@ const emptyMessages: ReadonlyArray<T.Chat.Message> = []
 
 const reloadConversationMetadata = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (T.Chat.isValidConversationIDKey(conversationIDKey)) {
-    unboxRows([conversationIDKey])
+    unboxRows([conversationIDKey], {changed: true})
   }
+}
+
+// Asks for the conv's meta when what the store holds can't render it, again each time the service can
+// answer: a conv opened before login (push-notification cold start) or during an account switch is
+// asked once the session is ready, and a reconnect asks again since a result in flight when the link
+// dropped was lost with it.
+export const useRequestIncompleteConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const sessionReady = useConfigState(s => s.loggedIn && !s.userSwitching)
+  const connected = useDaemonState(s => s.handshakeState === 'done')
+  React.useEffect(() => {
+    if (sessionReady && connected) {
+      requestIncompleteConversationMeta(conversationIDKey)
+    }
+  }, [conversationIDKey, sessionReady, connected])
 }
 
 // Arms the meta/participants reload listeners for a conversation. The conversation
@@ -35,14 +50,7 @@ export const useConversationMetadataReload = (conversationIDKey: T.Chat.Conversa
     reloadConversationMetadata(conversationIDKey)
   })
 
-  // loggedIn is a dep so a conv opened before login (push-notification cold start) re-arms
-  // the self-heal loop once the unbox can actually run.
-  const loggedIn = useConfigState(s => s.loggedIn)
-  React.useEffect(() => {
-    if (loggedIn) {
-      ensureConversationMetaLoaded(conversationIDKey)
-    }
-  }, [conversationIDKey, loggedIn])
+  useRequestIncompleteConversationMeta(conversationIDKey)
 
   useReloadTriggers(conversationIDKey, trigger => {
     if (trigger.type === 'metadata') {

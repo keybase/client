@@ -413,9 +413,9 @@ beforeEach(() => {
   })
   useShellState.setState({active: false, appFocused: false})
   const unboxRows = InboxMetadata.unboxRows
-  jest.spyOn(InboxMetadata, 'unboxRows').mockImplementation(ids => {
+  jest.spyOn(InboxMetadata, 'unboxRows').mockImplementation((ids, opts) => {
     record(`unboxRows:${ids.map(label).join(',')}`)
-    unboxRows(ids)
+    unboxRows(ids, opts)
   })
   const forceUnboxRowsForService = InboxMetadata.forceUnboxRowsForService
   jest.spyOn(InboxMetadata, 'forceUnboxRowsForService').mockImplementation(ids => {
@@ -746,8 +746,8 @@ const cases: Array<Case> = [
         },
       }),
     expected: {
-      A: ['unboxRows:A'],
-      'A+B': ['unboxRows:A'],
+      A: none,
+      'A+B': none,
       none: none,
     },
     name: 'chatInboxFailed',
@@ -819,21 +819,19 @@ const cases: Array<Case> = [
         'forceUnboxRows:A',
         'forceUnboxRows:A,C',
         'rpc:unbox:A',
-        'rpc:unbox:C',
+        'rpc:unbox:A,C',
         'rpc:loadThread:A:general',
         'inbox:metas',
-        'rpc:unbox:A',
       ],
       'A+B': [
         'forceUnboxRows:A',
         'forceUnboxRows:A,C',
         'rpc:unbox:A',
-        'rpc:unbox:C',
+        'rpc:unbox:A,C',
         'rpc:loadThread:A:general',
         'inbox:metas',
-        'rpc:unbox:A',
       ],
-      none: ['forceUnboxRows:A', 'forceUnboxRows:A,C', 'rpc:unbox:A', 'rpc:unbox:C', 'rpc:unbox:A'],
+      none: ['forceUnboxRows:A', 'forceUnboxRows:A,C', 'rpc:unbox:A', 'rpc:unbox:A,C'],
     },
     name: 'ChatThreadsStale',
   },
@@ -1314,7 +1312,7 @@ describe('mounted conversation screens', () => {
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the
-  // same unbox once per reader. The in-flight check lets only the first reach the service.
+  // same unbox once per reader. Only the first reaches the service; the rest wait on its answer.
   test('each metadata reader asks for an unbox; only one reaches the service', async () => {
     await mountTree(<Screen id={convA} metadataReaders={2} />, () => {
       metasReceived(
