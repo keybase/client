@@ -1062,4 +1062,3 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 		LinkID:  linkID,
 	}, nil
 }
-
