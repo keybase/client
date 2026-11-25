@@ -2266,12 +2266,18 @@ func (n *NotifyRouter) wantsCoarseTeamNotifications(id ConnectionID) bool {
 	return ch.Team && !ch.TeamChanged
 }
 
+// enqueueTeamChanged queues teamChanged for id; a nil wg waits on nothing.
 func (n *NotifyRouter) enqueueTeamChanged(wg *sync.WaitGroup, id ConnectionID, xp rpc.Transporter, arg keybase1.TeamChangedArg) {
-	n.enqueueWG(wg, id, func() {
+	send := func() {
 		_ = (keybase1.NotifyTeamClient{
 			Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 		}).TeamChanged(context.Background(), arg)
-	})
+	}
+	if wg == nil {
+		n.enqueue(id, send)
+		return
+	}
+	n.enqueueWG(wg, id, send)
 }
 
 // HandleTeamChanged sends teamChanged, unless no kind is set. An empty teamID
@@ -2285,15 +2291,15 @@ func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.Te
 	}
 
 	arg := keybase1.TeamChangedArg{TeamID: teamID, Kinds: kinds, RoleMapVersion: roleMapVersion}
-	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending TeamChanged notification (team:%v, kinds:%+v)", teamID, kinds)
+	// Queued without waiting: each connection's queue keeps them in order, and callers send one
+	// per team in loops (member counts, role changes) that would otherwise wait on every client.
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).TeamChanged {
-			n.enqueueTeamChanged(&wg, id, xp, arg)
+			n.enqueueTeamChanged(nil, id, xp, arg)
 		}
 		return true
 	})
-	wg.Wait()
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.TeamChanged(teamID, kinds, roleMapVersion)

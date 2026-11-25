@@ -278,14 +278,16 @@ func (t *TeamRoleMapManager) loadAndDiffRoles(mctx libkb.MetaContext, retryOnFai
 	if uid := mctx.CurrentUID(); t.state == nil && uid.Exists() {
 		_ = t.loadFromDB(mctx, uid)
 	}
+	// a loaded map with no teams (a user in none) is still something to compare against
+	hadState := t.state != nil
 	var before map[keybase1.TeamID]keybase1.TeamRolePair
-	if t.state != nil {
+	if hadState {
 		before = t.state.Data.Teams
 	}
 	if err := t.load(mctx, retryOnFailBackoff); err != nil {
 		return nil, err
 	}
-	if before == nil {
+	if !hadState {
 		return nil, nil
 	}
 	after := t.state.Data.Teams
