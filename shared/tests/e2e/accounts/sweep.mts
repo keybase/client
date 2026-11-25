@@ -16,9 +16,9 @@
 // A stale e2e-<runid>-prov device is revoked after its home (homes/prov-<runid>) is shut down and
 // removed (or, its home already gone, once no service for it runs); a paper key only when the
 // ledger (paper-key-ledger.ts) recorded it, and the paper key names file an earlier run left goes.
-// Each delete first re-checks the acting account and the name, and targets one exact object. Only a
-// KBFS directory goes with what is in it (a run's own stamped folder, with the files its flows put
-// there); a team goes only once its subteams are gone. Exits 1
+// Each delete first re-checks the acting account and the name, and targets one exact object. A KBFS
+// directory is the one delete that recurses (`fs rm -r`: a run's own stamped folder, with the files
+// its flows put there); a team goes only once its subteams are gone. Exits 1
 // when a listing or a delete failed. An aborted sweep (sweep's `signal`) stops between listings and
 // deletes, rejecting with the signal's reason.
 import {spawn} from 'child_process'
@@ -44,6 +44,7 @@ import {
   checkDelete,
   describeCandidate,
   heldByTeamRepos,
+  kbfsRmArgs,
   kbfsRoots,
   localPgpSelected,
   listedEmojiAlias,
@@ -107,6 +108,9 @@ export type SweepResult = {
 
 const rpcTimeoutMs = 30_000
 const kbfsTimeoutMs = 45_000
+// A directory goes entry by entry, and the service carries on after a CLI that gave up: long enough
+// that the delete is over before the sweep says it is
+const kbfsTreeTimeoutMs = 180_000
 
 const withRpc = async <R,>(actor: Actor, f: (rpc: PeerRpc) => Promise<R>) => {
   const rpc = await actor.rpc()
@@ -320,17 +324,14 @@ const subteams = async (actor: Actor, team: string) => {
 }
 
 // `fs` expands globs in its arguments, so only plain paths go in.
-const kbfsList = async (actor: Actor, dir: string) => {
-  if (!/^\/keybase\/(?:private|public|team)\/[a-z0-9_.,]+$/.test(dir)) {
-    throw new Error(`refusing to list ${dir}: not a plain KBFS folder path`)
+const kbfsEntries = async (actor: Actor, root: string): Promise<Array<SweepCandidate>> => {
+  if (!/^\/keybase\/(?:private|public|team)\/[a-z0-9_.,]+$/.test(root)) {
+    throw new Error(`refusing to list ${root}: not a plain KBFS folder path`)
   }
-  return parseKbfsLs(await actor.cli(['fs', 'ls', '-w', '-a', '--nocolor', dir], kbfsTimeoutMs))
-}
-
-const kbfsEntries = async (actor: Actor, root: string): Promise<Array<SweepCandidate>> =>
-  (await kbfsList(actor, root))
+  return parseKbfsLs(await actor.cli(['fs', 'ls', '-w', '-a', '--nocolor', root], kbfsTimeoutMs))
     .filter(e => e.name.startsWith('e2e-'))
     .map(e => ({account: actor.account, isDir: e.isDir, kind: 'kbfs', name: `${root}/${e.name}`}))
+}
 
 // failed: the kinds whose listing failed
 type Gathered = {candidates: Array<SweepCandidate>; convIDs: Map<string, string>; errors: Array<string>; failed: Set<SweepKind>}
@@ -528,8 +529,7 @@ const deleteOne = async (actor: Actor, c: SweepCandidate, convIDs: Map<string, s
       await call(actor, 'keybase.1.emails.deleteEmail', {email: c.name, sessionID: 0})
       return
     case 'kbfs':
-      // -r only for a directory: what a run left in its own stamped folder goes with it
-      await actor.cli(['fs', 'rm', ...(c.isDir ? ['-r'] : []), c.name], kbfsTimeoutMs)
+      await actor.cli(kbfsRmArgs(c), c.isDir ? kbfsTreeTimeoutMs : kbfsTimeoutMs)
       return
     case 'subteam':
     case 'team':

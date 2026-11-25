@@ -308,10 +308,15 @@ export const describeCandidate = (c: SweepCandidate) => {
     case 'emoji':
     case 'teamRepo':
       return `${c.account} ${c.kind} ${c.team ?? '?'}/${c.name}`
+    case 'kbfs':
+      return `${c.account} kbfs ${c.name}${c.isDir ? '/ (with what is in it)' : ''}`
     default:
       return `${c.account} ${c.kind} ${c.name}`
   }
 }
+
+/** `keybase fs rm` for a KBFS candidate: -r only for a directory, which goes with what is in it */
+export const kbfsRmArgs = (c: SweepCandidate) => ['fs', 'rm', ...(c.isDir ? ['-r'] : []), c.name]
 
 // What tells two candidates apart: the same name can be two messages, or two devices.
 export const candidateKey = (c: SweepCandidate) =>
