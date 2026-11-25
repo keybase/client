@@ -36,9 +36,9 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 // Module scope, not per hook, so a change while no page is mounted still marks the cached copy
-// stale; a team whose page was never loaded has no entry, so nothing happens for it. memberCount
-// is left out: the page
-// counts the members it loads, and that load is what sets the cached count the notice is about.
+// stale; a team no screen has asked for has no entry, so nothing happens for it. memberCount is
+// left out: the page counts the members it loads, and that load is what sets the cached count the
+// notice is about.
 subscribeTeamChanged('loaded-team', (kinds, teamID) => {
   const key = loadableTeamID(teamID)
   if (!key) {

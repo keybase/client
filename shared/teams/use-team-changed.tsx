@@ -44,5 +44,6 @@ export const useTeamChanged = (
 
 // For reloads driven by teamChanged, debounced by the rpc data cache. One change can reach a team
 // as a burst of notices (a bulk add or a bulk channel create sends one each): a lone change lands
-// at once, the rest of a burst costs one more load, and a team that is never quiet still reloads.
+// at once, the rest of a burst costs one more load, and a team that is never quiet still reloads
+// (every 5 debounces, the cache's max wait).
 export const teamReloadDebounceMs = 1000
