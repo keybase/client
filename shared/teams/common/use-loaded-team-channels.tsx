@@ -2,14 +2,12 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import {subscribeToEngineAction} from '@/engine/action-listener'
-import type {DebouncedFunc} from 'lodash'
-import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import * as React from 'react'
 import {registerExternalResetter} from '@/util/zustand'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {teamGone, useTeamChanged} from '../use-team-changed'
-import {forgetLoad, reviveLoad, useLoadData} from '@/query'
+import {makeTeamReloadDebouncer, teamGone} from '../use-team-changed'
+import {forgetLoad, markLoadStale, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -60,35 +58,24 @@ const loadedTeamChannelsLoad = 'teams.loadedTeamChannels'
 
 // Teams whose channels this session loaded: the only ones a notice has anything to reload
 const loadedTeams = new Set<T.Teams.TeamID>()
-const teamChannelsChangedDebouncers = new Map<T.Teams.TeamID, DebouncedFunc<() => void>>()
+const teamChannelsChangedDebouncer = makeTeamReloadDebouncer(teamID =>
+  reviveLoad(loadedTeamChannelsLoad, teamID)
+)
 
 // module scope outlives sign-out and this is per-user team data
 registerExternalResetter('loaded-team-channels', () => {
-  teamChannelsChangedDebouncers.forEach(debounced => debounced.cancel())
-  teamChannelsChangedDebouncers.clear()
+  teamChannelsChangedDebouncer.cancelAll()
   loadedTeams.clear()
 })
 
-// Reload a team's channel list wherever it is shown, and mark it stale where it is not. Notices
-// come in bursts: teamChangedByID fires for every incoming message in a team, and a bulk create or
-// delete sends one per channel. Leading so a lone change lands at once, trailing so the rest of a
-// burst costs one more load, maxWait so a team that is never quiet still reloads. A team whose
-// channels were never loaded has nothing to reload, so it gets no debouncer.
+// Reload a team's channel list wherever it is shown, and mark it stale where it is not, coalescing
+// a burst (a bulk create or delete sends one notice per channel). A team whose channels were never
+// loaded has nothing to reload, so it schedules nothing.
 export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
   const key = loadableTeamID(teamID)
-  if (!key || !loadedTeams.has(key)) {
-    return
+  if (key && loadedTeams.has(key)) {
+    teamChannelsChangedDebouncer.schedule(key)
   }
-  let debounced = teamChannelsChangedDebouncers.get(key)
-  if (!debounced) {
-    debounced = debounce(() => reviveLoad(loadedTeamChannelsLoad, key), 1000, {
-      leading: true,
-      maxWait: 5000,
-      trailing: true,
-    })
-    teamChannelsChangedDebouncers.set(key, debounced)
-  }
-  debounced()
 }
 
 // Module scope, not per hook: a change that lands while no list is mounted must
@@ -97,10 +84,21 @@ export const invalidateTeamChannels = (teamID: T.Teams.TeamID) => {
 // Membership is in: each channel's participants come with the list.
 subscribeToEngineAction('keybase.1.NotifyTeam.teamChanged', action => {
   const {kinds, teamID} = action.payload.params
-  if (!kinds.channels && !kinds.membership) {
+  const key = loadableTeamID(teamID)
+  if (!key) {
     return
   }
-  invalidateTeamChannels(teamID)
+  if (teamGone(kinds)) {
+    teamChannelsChangedDebouncer.cancel(key)
+    forgetLoad(loadedTeamChannelsLoad, key)
+  } else if (kinds.channels || kinds.membership) {
+    invalidateTeamChannels(key)
+  } else if (kinds.renamed) {
+    // the list is fetched by teamname and its metas carry it. Mounted lists
+    // reload once their teamname turns into the new one (refreshKey), which this
+    // makes stale; reloading them now would refetch under the old name.
+    markLoadStale(loadedTeamChannelsLoad, key)
+  }
 })
 
 const teamChannelsRPCParams = (teamname: string) => ({
@@ -162,16 +160,6 @@ const useLoadedTeamChannelsRaw = (
       refreshKey: teamnameToLoad,
       staleMs: loadedTeamChannelsReloadStaleMs,
     }
-  )
-  // drop a team's channel list when the team is deleted or left
-  useTeamChanged(
-    validTeamID,
-    kinds => {
-      if (teamGone(kinds)) {
-        forgetLoad(loadedTeamChannelsLoad, teamIDToLoad)
-      }
-    },
-    enabled
   )
 
   const {channelMetas, channelParticipants, channels} = data

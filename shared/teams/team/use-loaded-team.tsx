@@ -3,7 +3,9 @@ import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {teamGone, useTeamChanged} from '../use-team-changed'
+import {makeTeamReloadDebouncer, teamGone} from '../use-team-changed'
+import {subscribeToEngineAction} from '@/engine/action-listener'
+import {registerExternalResetter} from '@/util/zustand'
 import {forgetLoad, reviveLoad, useLoadData} from '@/query'
 
 type LoadedTeam = {
@@ -32,8 +34,33 @@ const loadedTeamReloadStaleMs = 5_000
 // modal above them would otherwise each pay a full team load.
 const loadedTeamLoad = 'teams.loadedTeam'
 
+const loadedTeamReloadDebouncer = makeTeamReloadDebouncer(teamID => reviveLoad(loadedTeamLoad, teamID))
+
+// module scope outlives sign-out and this is per-user team data
+registerExternalResetter('loaded-team', () => {
+  loadedTeamReloadDebouncer.cancelAll()
+})
+
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+
+// Module scope, not per hook, so two pages for one team share one debounced reload, and a change
+// while no page is mounted still marks the cached copy stale. memberCount is left out: the page
+// counts the members it loads, and that load is what sets the cached count the notice is about.
+// Membership also brings back a team left and rejoined.
+subscribeToEngineAction('keybase.1.NotifyTeam.teamChanged', action => {
+  const {kinds, teamID} = action.payload.params
+  const key = loadableTeamID(teamID)
+  if (!key) {
+    return
+  }
+  if (teamGone(kinds)) {
+    loadedTeamReloadDebouncer.cancel(key)
+    forgetLoad(loadedTeamLoad, key)
+  } else if (kinds.membership || kinds.roles || kinds.renamed || kinds.settings) {
+    loadedTeamReloadDebouncer.schedule(key)
+  }
+})
 
 const emptyLoadedTeamData = (teamID?: T.Teams.TeamID): LoadedTeamData => ({
   teamDetails: Teams.emptyTeamDetails,
@@ -131,20 +158,6 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  // memberCount is left out: this page counts the members it loads, and that
-  // load is what sets the cached count the notification is about
-  useTeamChanged(
-    validTeamID,
-    kinds => {
-      if (teamGone(kinds)) {
-        forgetLoad(loadedTeamLoad, teamIDToLoad)
-      } else if (kinds.membership || kinds.roles || kinds.renamed || kinds.settings) {
-        // also brings back a team left and rejoined
-        reviveLoad(loadedTeamLoad, teamIDToLoad)
-      }
-    },
-    enabled
-  )
 
   const teamDetails = data.teamDetails
   return React.useMemo(

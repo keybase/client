@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import {afterEach, beforeEach, expect, test} from '@jest/globals'
-import {cleanup, render, screen} from '@testing-library/react'
+import {act, cleanup, render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {_onEngineIncoming} from '@/constants/init/shared'
 import {useConfigState} from '@/stores/config'
@@ -48,7 +48,16 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   resetAllStores()
+  jest.useRealTimers()
 })
+
+// past the reload debounce, so the next notice is a burst of its own
+const settleReloads = async () => {
+  await act(async () => {
+    jest.advanceTimersByTime(10_000)
+    await flush()
+  })
+}
 
 const Name = (props: {teamID: T.Teams.TeamID}) => {
   const {teamMeta} = useLoadedTeam(props.teamID)
@@ -82,15 +91,53 @@ test("a change to one team reloads that team's page and not another's", async ()
 })
 
 test('a team page reloads only for kinds that change what it shows', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
   await mountTwoTeams()
 
   await pushTeamChanged(fake, teamA, {channels: true, keyRotated: true, memberCount: true})
+  await settleReloads()
   expect(teamLoads(teamA)).toBe(1)
 
   for (const kind of ['roles', 'renamed', 'settings'] as const) {
     await pushTeamChanged(fake, teamA, {[kind]: true})
+    await settleReloads()
   }
   expect(teamLoads(teamA)).toBe(4)
+})
+
+// a bulk add sends a notice per member: the burst reloads once at its start and
+// once after it, not per notice, and two pages for the team share each load
+test('a burst of changes to a team costs a load at its start and one after it', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
+  render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamA}>
+        <Name teamID={teamA} />
+      </LoadedTeamProvider>
+      <LoadedTeamProvider teamID={teamA}>
+        <Name teamID={teamA} />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  await flush()
+  const loads = teamLoads(teamA)
+
+  await pushTeamChanged(fake, teamA, {membership: true})
+  expect(teamLoads(teamA)).toBe(loads + 1)
+
+  for (let i = 0; i < 20; i++) {
+    await pushTeamChanged(fake, teamA, {membership: true})
+  }
+  expect(teamLoads(teamA)).toBe(loads + 1)
+
+  await act(async () => {
+    jest.advanceTimersByTime(1000)
+    await flush()
+  })
+  expect(teamLoads(teamA)).toBe(loads + 2)
+
+  await settleReloads()
+  expect(teamLoads(teamA)).toBe(loads + 2)
 })
 
 // the role map and member showcase are about you, not one team; the role map provider and the

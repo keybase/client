@@ -6,6 +6,7 @@ import {
   forgetKey,
   getEntry,
   loadIfStale,
+  markKeyStale,
   refreshMethod,
   reviveKey,
   selectFrom,
@@ -164,6 +165,12 @@ export const reviveLoad = (name: string, key: unknown, debounceMs?: number) => {
   reviveKey(stableKey(name, key))
   refreshLoad(name, key, debounceMs)
 }
+
+/**
+ * a useLoadData's data is out of date, but loading it now would load the wrong thing (its screens
+ * still pass the old params): their next load-if-stale (a refreshKey change, a focus) reloads it
+ */
+export const markLoadStale = (name: string, key: unknown) => markKeyStale(stableKey(name, key))
 
 /** drop a useLoadData's cached data: for when it no longer exists, where refreshLoad would reload it */
 export const forgetLoad = (name: string, key: unknown) => forgetKey(stableKey(name, key))

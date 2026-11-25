@@ -18,17 +18,21 @@ const getChannels = 'chat.1.local.getTLFConversationsLocal'
 
 let fake: FakeEngine
 let channelnames: Array<string>
+let teamname: string
 
 const channelsCalls = () => fake.calls.filter(c => c.method === getChannels).length
+const channelsCallNames = () =>
+  fake.calls.filter(c => c.method === getChannels).map(c => (c.params as {tlfName: string}).tlfName)
 
 beforeEach(() => {
   channelnames = ['general']
+  teamname = 'testteam'
   fake = installFakeEngine({onEngineIncoming: _onEngineIncoming})
   fake.answer('keybase.1.teams.getAnnotatedTeam', () => ({
     invites: [],
     joinRequests: [],
     members: [],
-    name: 'testteam',
+    name: teamname,
     settings: {joinAs: T.RPCGen.TeamRole.reader, open: false},
     showcase: {anyMemberShowcase: false, description: '', isShowcased: false},
     tarsDisabled: false,
@@ -137,6 +141,49 @@ test('a membership change reloads the list; other team changes do not', async ()
   expect(channelsCalls()).toBe(calls)
 
   await pushTeamChanged(fake, teamID, {membership: true})
+  expect(channelsCalls()).toBe(calls + 1)
+})
+
+// the list is fetched by teamname and each meta carries it
+test('a rename while no list is mounted is picked up by the next mount', async () => {
+  const first = await mountChannels()
+  first.unmount()
+
+  teamname = 'renamedteam'
+  await pushTeamChanged(fake, teamID, {renamed: true})
+  const calls = channelsCalls()
+
+  renderHook(() => useLoadedTeamChannels(teamID, 'renamedteam'))
+  await act(async () => {
+    await flush()
+  })
+  expect(channelsCallNames().slice(calls)).toEqual(['renamedteam'])
+})
+
+// a mounted list follows its team's new name and refetches under it, not the old one
+test('a mounted list refetches under the new name after a rename', async () => {
+  renderHook(() => useLoadedTeamChannels(teamID))
+  await act(async () => {
+    await flush()
+  })
+  const calls = channelsCalls()
+  expect(channelsCallNames()).toEqual(['testteam'])
+
+  teamname = 'renamedteam'
+  await pushTeamChanged(fake, teamID, {renamed: true})
+  await act(async () => {
+    await flush()
+  })
+  expect(channelsCallNames().slice(calls)).toEqual(['renamedteam'])
+})
+
+test('leaving the team while no list is mounted drops the cached list', async () => {
+  const first = await mountChannels()
+  first.unmount()
+
+  await pushTeamChanged(fake, teamID, {exited: true})
+  const calls = channelsCalls()
+  await mountChannels()
   expect(channelsCalls()).toBe(calls + 1)
 })
 
