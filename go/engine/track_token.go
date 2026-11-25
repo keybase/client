@@ -18,6 +18,9 @@ type TrackToken struct {
 	them                *libkb.User
 	trackStatementBytes []byte
 	trackStatement      *libkb.ProofMetadataRes
+	// set once the follow is stored locally or its link is sent to the server
+	// whether the link may be stored, locally or on the server
+	stored bool
 }
 
 type TrackTokenArg struct {
@@ -98,6 +101,22 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// Once the link may be stored, both users' cached copies are stale on
+	// every exit: the server can accept it even when the post or a later step
+	// errors. The follow itself is announced only once it is known to have
+	// happened (the self load that finds a link signed by this device does not
+	// announce it); an ignore is not a follow.
+	defer func() {
+		if !e.stored {
+			return
+		}
+		m.G().UserChanged(m.Ctx(), e.them.GetUID())
+		m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+		if err == nil && !e.arg.Options.ExpiringLocal {
+			m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
+		}
+	}()
+
 	if err = e.isTrackTokenStale(m, outcome); err != nil {
 		m.Debug("Track statement is stale")
 		return err
@@ -123,7 +142,9 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
 		m.Debug("| Local")
 		err = e.storeLocalTrack(m)
+		e.stored = err == nil
 	} else {
+		e.stored = true
 		err = e.storeRemoteTrack(m, signingKeyPub.GetKID())
 		if err == nil {
 			// if the remote track succeeded, remove local tracks
@@ -145,17 +166,6 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-
-	// Remove this after desktop notification change complete:
-	m.G().UserChanged(m.Ctx(), e.them.GetUID())
-
-	// Remove these after desktop notification change complete, but
-	// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
-	m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
-
-	// Keep these:
-	m.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
-	m.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 
 	// Dismiss any associated gregor item.
 	if outcome.ResponsibleGregorItem != nil {

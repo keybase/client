@@ -19,9 +19,6 @@ const profileRecheckMs = 30_000
 // treating it as one made every tab switch re-check every proof.
 
 type Options = {
-  // surfaces that only want loadProfile() to call after an action, and never
-  // read details, can skip the identify their mount would otherwise trigger
-  loadOnMount?: boolean
   // Opening a profile means "check this identity now", so it forces a remote
   // check of every proof. Incidental surfaces - a hover card, a follow button in
   // a list - do not: they still need an identify session, but the cached proof
@@ -49,27 +46,20 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     loadNonUserProfile(username)
   }, [username])
 
-  // Every caller of this is a deliberate user action (opening reload, or a
-  // refresh after follow / profile edit), so it never joins an identify that
-  // was already running.
-  const loadProfile = React.useCallback(
-    (ignoreCache = true) => {
-      loadProfileIdentify(username, {freshAfter: Infinity, ignoreCache})
-    },
-    [username]
-  )
+  // Every caller of this is a deliberate user action (a Reload button), so it
+  // never joins an identify that was already running.
+  const loadProfile = React.useCallback(() => {
+    loadProfileIdentify(username, {freshAfter: Infinity, ignoreCache: true})
+  }, [username])
 
-  const loadOnMount = options?.loadOnMount ?? true
   const cachedOnMount = options?.cachedOnMount ?? false
   React.useEffect(() => {
-    if (loadOnMount) {
-      loadProfileIdentify(username, {
-        freshAfter: 0,
-        ignoreCache: !cachedOnMount,
-        maxAgeMs: profileRecheckMs,
-      })
-    }
-  }, [cachedOnMount, loadOnMount, username])
+    loadProfileIdentify(username, {
+      freshAfter: 0,
+      ignoreCache: !cachedOnMount,
+      maxAgeMs: profileRecheckMs,
+    })
+  }, [cachedOnMount, username])
 
   return React.useMemo(
     () => ({

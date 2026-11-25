@@ -33,7 +33,7 @@ const Actions = (ownProps: OwnProps) => {
 
   const navigateAppend = C.Router2.navigateAppend
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
-  const follow = (f: boolean) => followUser([{follow: f, guiID}, C.waitingKeyTracker], onReload, () => {})
+  const follow = (f: boolean) => followUser([{follow: f, guiID}, C.waitingKeyTracker], () => {}, () => {})
 
   const onAccept = () => follow(true)
   const onAddToTeam = () => navigateAppend({name: 'profileAddToTeam', params: {username}})

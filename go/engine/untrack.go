@@ -19,6 +19,9 @@ type UntrackEngine struct {
 	signingKeyPub         libkb.GenericKey
 	untrackStatementBytes []byte
 	untrackStatement      *libkb.ProofMetadataRes
+	// set once a local follow is removed or the unfollow link is sent to the server
+	// whether the link may be stored, locally or on the server
+	stored bool
 	libkb.Contextified
 }
 
@@ -65,6 +68,23 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
+	// Once the link may be stored, both users' cached copies are stale on
+	// every exit: the server can accept it even when the post or a later step
+	// errors. The unfollow itself is announced only once it is known to have
+	// happened (the self load that finds a link signed by this device does not
+	// announce it).
+	defer func() {
+		if !e.stored {
+			return
+		}
+		e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+		e.G().UserChanged(m.Ctx(), them.GetUID())
+		if err == nil {
+			e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
+			m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
+		}
+	}()
+
 	e.signingKeyPub, err = e.arg.Me.SigningKeyPub()
 	if err != nil {
 		return
@@ -89,10 +109,12 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return
 		}
+		e.stored = true
 		didUntrack = true
 	}
 
 	if remoteLink != nil && !remoteLink.IsRevoked() {
+		e.stored = true
 		err = e.storeRemoteUntrack(m, them)
 		if err != nil {
 			return
@@ -104,13 +126,6 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		err = libkb.NewUntrackError("User %s is already untracked", e.arg.Username)
 		return
 	}
-
-	e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
-	e.G().UserChanged(m.Ctx(), them.GetUID())
-
-	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
-	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
-	m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
 
 	return
 }

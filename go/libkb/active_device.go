@@ -704,7 +704,8 @@ func (a *ActiveDevice) ClearPassphraseStreamCacheIfOutdated(mctx MetaContext) er
 func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
 	a.RLock()
 	defer a.RUnlock()
-	if !a.UID().Equal(u) {
+	// a.uv, not a.UID(): a second RLock can deadlock behind a waiting writer
+	if !a.uv.Uid.Equal(u) {
 		return nil
 	}
 	return a.signingKey

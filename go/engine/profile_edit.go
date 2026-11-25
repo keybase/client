@@ -35,9 +35,11 @@ func (e *ProfileEdit) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 	u := m.G().ActiveDevice.UID()
-	m.Debug("Clearing Card cache for %s", u)
+	// bio, location and full name reach clients through the user card and the
+	// full name cache; no sigchain link changed, so the user caches stay
 	_ = e.G().CardCache().Delete(u)
 	_ = e.G().UIDMapper.ClearUIDFullName(m.Ctx(), m.G(), u)
+	m.G().NotifyRouter.HandleUserChanged(m, u, "ProfileEdit")
 	return nil
 }
 

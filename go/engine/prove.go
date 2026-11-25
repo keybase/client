@@ -437,10 +437,16 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 	stage("PostProofToServer")
-	if err = p.postProofToServer(m); err != nil {
+	err = p.postProofToServer(m)
+	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
+	// On every exit from here, even if the post errored, since the server may
+	// have accepted the link before the response was lost. Not before the flow
+	// ends: an identify the notice starts would check a proof the user has not
+	// posted yet, and the proof cache would keep that failure.
+	defer m.G().UserChanged(m.Ctx(), p.me.GetUID())
+	if err != nil {
 		return err
 	}
-	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
 	stage("CheckProofText")
 	if err = p.checkProofText(m); err != nil {
 		return err

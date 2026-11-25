@@ -8,7 +8,7 @@ import {useTrackerProfile} from '@/tracker/use-profile'
 
 const EditProfile = () => {
   const username = useCurrentUserState(s => s.username)
-  const {details: d, loadProfile} = useTrackerProfile(username)
+  const {details: d} = useTrackerProfile(username)
   const _bio = d.bio || ''
   const _fullname = d.fullname || ''
   const _location = d.location || ''
@@ -18,10 +18,7 @@ const EditProfile = () => {
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(
       [{bio, fullName: fullname, location}, C.waitingKeyTracker],
-      () => {
-        loadProfile(false)
-        navigateUp()
-      },
+      () => navigateUp(),
       () => {}
     )
   }

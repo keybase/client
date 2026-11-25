@@ -158,6 +158,8 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		args["sig_inner"] = libkb.S{Val: string(sigInner)}
 	}
 
+	// the server may accept the link even if the post or the merkle check below errors
+	defer m.G().UserChanged(m.Ctx(), me.GetUID())
 	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/post",
 		SessionType: libkb.APISessionTypeREQUIRED,
